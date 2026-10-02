@@ -88,12 +88,12 @@ class DeforestFusionSolver(val constraintSolver: FlowConstraintSolver)(using Con
     val prodRoots =
       for
         ctor <- constraintSolver.ctorsWithDests
-        if mergeDests(ctor.dests.toSet).isEmpty
+        if constraintSolver.collector.isBlocked(ctor) || mergeDests(ctor.dests.toSet).isEmpty
       yield ctor
     val consRoots =
       for
         dtor <- constraintSolver.consumersWithSrcs
-        if dtor.srcs.contains(UnknownProd)
+        if constraintSolver.collector.isBlocked(dtor) || dtor.srcs.contains(UnknownProd)
       yield dtor
 
     val result = FlowWebComputation[Ctor, ConcreteCtorConsumer](

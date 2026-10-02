@@ -71,9 +71,11 @@ abstract class PolyInstantiationRewrite(val constraintSolver: FlowConstraintSolv
       // skip synthesized instIds — those rewrite in-place
       if path.nonEmpty && !collector.synthesizedInstIdToFunSym.contains(path)
     do
+      val referredFun = path.last.getReferredFun.getOrElse(lastWords(
+        s"instantiation path ${path.map(_.nme).mkString(".")} does not end in a function; a solver kept a blocked decision"))
       res.getOrElseUpdate(
         path,
-        collector.funToSccGroups(path.last.getReferredFun.get)
+        collector.funToSccGroups(referredFun)
           .map: f =>
             val name = path.mkFunName + s"$$${f.nme}"
             f -> (
@@ -90,14 +92,19 @@ abstract class PolyInstantiationRewrite(val constraintSolver: FlowConstraintSolv
         (instId, funSymMap) <- newPolyFnSyms
         (referringFun, (bms, tSym)) <- funSymMap.toList.sortBy(_._1.uid)
       yield
-        val original = pre.res.funSymToFunDefn(referringFun)
+        val original = collector.rootDefn(referringFun)
         mkPolyFunCopy(original, bms, tSym, mkRewriter(instId).rewriteFunDefn(original))
     
     val newFuns = newPolyFuns ++ otherNewFunDefns
     
+    // building the new functions rewrote parts of their originals under the original symbols, which the originals keep
+    RestoreIrDefns.applyBlock(pre.pgrm.main)
+    for (_, funSymMap) <- newPolyFnSyms; f <- funSymMap.keysIterator do
+      RestoreIrDefns.applyFunDefn(collector.rootDefn(f))
+    
     val rewrittenInPlace = Map.from[TermSymbol, RewrittenFunDefn]:
       for (selfInstId, funSym) <- collector.synthesizedInstIdToFunSym yield
-        funSym -> mkRewriter(selfInstId).rewriteFunDefn(pre.res.funSymToFunDefn(funSym))
+        funSym -> mkRewriter(selfInstId).rewriteFunDefn(collector.rootDefn(funSym))
     
     val newMainBody = Scoped(
       Set.from(newFuns.map(_.sym)),
@@ -109,6 +116,16 @@ abstract class PolyInstantiationRewrite(val constraintSolver: FlowConstraintSolv
   end mkNewProgramBody
 
 
+  // the definitions of a program own their symbols, as recorded by the `Define` and `ClsLikeDefn` constructors
+  private object RestoreIrDefns extends BlockTraverser:
+    override def applyDefn(defn: Defn): Unit =
+      defn.defnSym.foreach(_.irDefn = S(defn))
+      super.applyDefn(defn)
+    override def applyClsLikeDefn(defn: ClsLikeDefn): Unit =
+      (defn.methods ::: defn.companion.toList.flatMap(_.methods)).foreach(m => m.dSym.irDefn = S(m))
+      super.applyClsLikeDefn(defn)
+  
+  
   // rewrites the program as seen from one instantiation path `instId`
   // helps subclass compute the symbol for the instantiated fun defns
   protected abstract class InstantiationRewriter(val instId: InstantiationId)

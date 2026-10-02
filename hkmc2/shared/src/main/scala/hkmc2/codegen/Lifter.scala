@@ -1169,10 +1169,13 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     private val passedDefnsMapVs = defnSymsMap_.view.mapValues(x => DefnRef.PathRef(LocalPath.Sym(x.vs).read)).toMap
     
     lazy val auxParams: List[Param] =
-      (reqDefnsOrdered.map(x => defnSymsMap_(x).vs)
-        ::: capturesOrdered.map(x => capSymsMap_(x).vs)
-        ::: passedSymsOrdered.map(x => passedSymsMap_(x).vs))
-      .map(Param.simple(_))
+      (reqDefnsOrdered.map(defnSymsMap_)
+        ::: capturesOrdered.map(capSymsMap_)
+        ::: passedSymsOrdered.map(passedSymsMap_))
+      .map: syms =>
+        val p = Param.simple(syms.vs)
+        p.fldSym = S(syms.ts)
+        p
     lazy val auxParamList = PlainParamList(auxParams)(N)
     
     // Whether this can be lifted without the need to pass extra parameters.

@@ -133,9 +133,12 @@ class EtaExpansionSolver(val constraintSolver: FlowConstraintSolver, tl: TraceLo
       val id = pf.concreteId
       if !etaExpandedFunShape.contains(id) then
         val shape = etaExpansionTargetShapes(pf)(using Set.empty)
-        if isEtaExpanded(id.exprId, shape) then etaExpandedFunShape(id) = shape
+        // expanding only some targets would make them disagree on arity, so every one must be rewritable
+        if isEtaExpanded(id.exprId, shape)
+          && !shape.exists(_.prodFuns.exists(constraintSolver.collector.isBlocked))
+        then etaExpandedFunShape(id) = shape
     end addFunShapeIfChanged
-    pf.exprId match
+    if !constraintSolver.collector.isBlocked(pf) then pf.exprId match
     case _: ResultId => addFunShapeIfChanged()
     case (_: TermSymbol, 0) => addFunShapeIfChanged()
     case _ => ()

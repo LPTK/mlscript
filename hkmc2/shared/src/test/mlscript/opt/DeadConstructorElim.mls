@@ -276,12 +276,11 @@ fun m() =
   2
 m()
 //│ dead-constructor-elim > >>> dead-constructor-elim results >>>
-//│ dead-constructor-elim > eliminable: Call(member:A²‹term:A⁰›, [[1]])
 //│ dead-constructor-elim > <<< dead-constructor-elim results <<<
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ define m⁰ as fun m¹() { do P⁰(undefined); return 2 }; return m¹()
+//│ define m⁰ as fun m¹() { let tmp; set tmp = A⁰(1); do P⁰(tmp); return 2 }; return m¹()
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ > undefined
+//│ > A(1)
 //│ = 2
 
 
@@ -419,9 +418,8 @@ w(new O)
 
 
 
-// FIXME: a constructor can observe its arguments even when its own result is discarded.
+// A constructor can observe its arguments even when its own result is discarded.
 // Flow analysis must account for those uses before removing the nested allocation.
-:fixme
 :flowBasedOpt mono debugDce
 :soir
 :noInline
@@ -434,17 +432,18 @@ fun consume() =
   42
 consume()
 //│ dead-constructor-elim > >>> dead-constructor-elim results >>>
-//│ dead-constructor-elim > eliminable: Call(member:Observed⁰‹term:Observed¹›, [[1]])
 //│ dead-constructor-elim > <<< dead-constructor-elim results <<<
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ define consume⁰ as fun consume¹() {
-//│   do Consumer⁰(undefined);
+//│   let tmp;
+//│   set tmp = Observed⁰(1);
+//│   do Consumer⁰(tmp);
 //│   return 42
 //│ };
 //│ @data
-//│ define Observed⁰ as class Observed² {
+//│ define Observed¹ as class Observed² {
 //│   val x¹;
-//│   constructor Observed¹(x) {
+//│   constructor Observed⁰(x) {
 //│     define x¹ as val x² = x;
 //│     end
 //│   }
@@ -463,13 +462,11 @@ consume()
 //│ };
 //│ return consume¹()
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ ═══[RUNTIME ERROR] expected Observed
-//│ ═══[RUNTIME ERROR] Expected: '42', got: 'undefined'
+//│ = 42
 
 
-// FIXME: lifting appends a capture argument that is absent from the source class parameter list.
+// Lifting appends a capture argument that is absent from the source class parameter list.
 // That argument remains live through the instance's method, even though it is not a source field.
-:fixme
 :flowBasedOpt mono debugDce
 :lift
 :soir
@@ -483,7 +480,6 @@ fun capture() =
   instance.get()
 capture()
 //│ dead-constructor-elim > >>> dead-constructor-elim results >>>
-//│ dead-constructor-elim > eliminable: Tuple(false, [1, 2])
 //│ dead-constructor-elim > <<< dead-constructor-elim results <<<
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let Capturing;
@@ -498,10 +494,709 @@ capture()
 //│   }
 //│ };
 //│ define capture⁰ as fun capture¹() {
-//│   let instance;
-//│   set instance = new Capturing¹(0, undefined);
+//│   let captured, instance;
+//│   set captured = [1, 2];
+//│   set instance = new Capturing¹(0, captured);
 //│   return instance.get﹖()
 //│ };
 //│ return capture¹()
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ ═══[RUNTIME ERROR] Expected: '[1, 2]', got: '()'
+//│ = [1, 2]
+// The lifted params stay linked to their fields, so the lifted class is still tracked
+// and the argument of the never-read field `b` can be eliminated.
+:lift
+:flowBasedOpt mono debugDce
+:soir
+:noInline
+:expect [1]
+fun liftedField() =
+  let captured = 0
+  class A(val a, val b) with
+    fun get() = captured
+  A([1], [2]).a
+liftedField()
+//│ dead-constructor-elim > >>> dead-constructor-elim results >>>
+//│ dead-constructor-elim > eliminable: Tuple(false, [2])
+//│ dead-constructor-elim > <<< dead-constructor-elim results <<<
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let A;
+//│ define A as class A⁴ {
+//│   private val captured¹;
+//│   val a⁰;
+//│   val b⁰;
+//│   constructor A³(a, b, captured) {
+//│     set A⁴.this.captured¹ = captured;
+//│     define a⁰ as val a¹ = a;
+//│     define b⁰ as val b¹ = b;
+//│     end
+//│   }
+//│   method get³ = fun get⁴() {
+//│     return A⁴.this.captured¹
+//│   }
+//│ };
+//│ define liftedField⁰ as fun liftedField¹() {
+//│   let tmp, tmp1;
+//│   set tmp = [1];
+//│   set tmp1 = new A⁴(tmp, undefined, 0);
+//│   return tmp1.a¹
+//│ };
+//│ return liftedField¹()
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = [1]
+
+
+// A call that does not saturate every parameter list returns a function, not an instance,
+// so `A(10)` must not be modeled as a constructed `A`, or the later `[1]` argument looks dead.
+:flowBasedOpt mono debugDce
+:soir
+:noInline
+:expect [10, [1]]
+class A(x) with
+  constructor(y)
+  fun both() = [x, y]
+fun mk(k) = A(10)
+fun go() = mk(0)([1]).both()
+go()
+//│ dead-constructor-elim > >>> dead-constructor-elim results >>>
+//│ dead-constructor-elim > <<< dead-constructor-elim results <<<
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ define mk⁰ as fun mk¹(k) {
+//│   return A⁵(10)
+//│ };
+//│ define go⁰ as fun go¹() {
+//│   let baseCall, tmp, tmp1;
+//│   set baseCall = mk¹(0);
+//│   set tmp = [1];
+//│   set tmp1 = baseCall(tmp);
+//│   return tmp1.both﹖()
+//│ };
+//│ define A⁶ as class A⁷ {
+//│   private val x⁴;
+//│   private val y³;
+//│   constructor A⁵(x, y) {
+//│     set A⁷.this.x⁴ = x;
+//│     set A⁷.this.y³ = y;
+//│     end
+//│   }
+//│   method both⁰ = fun both¹() { return [A⁷.this.x⁴, A⁷.this.y³] }
+//│ };
+//│ return go¹()
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = [10, [1]]
+
+:flowBasedOpt mono
+:noInline
+:expect [10, [1]]
+fun go() = A(10)([1]).both()
+go()
+//│ = [10, [1]]
+
+
+// A subclass instance read through a field of its parent class keeps its constructor arguments.
+// The `C` field select on a `B` ctor is dropped by design, but `B`'s ctor hands `y` to the parent ctor, which is opaque.
+:flowBasedOpt mono debugDce
+:soir
+:noInline
+:expect [4]
+class B(y) extends C(y)
+fun inherited() = if B([4]) is C(c) then c else 0
+inherited()
+//│ dead-constructor-elim > >>> dead-constructor-elim results >>>
+//│ dead-constructor-elim > <<< dead-constructor-elim results <<<
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ define inherited⁰ as fun inherited¹() {
+//│   let scrut, tmp;
+//│   set tmp = [4];
+//│   set scrut = B³(tmp);
+//│   match scrut
+//│     C¹ =>
+//│       return scrut.z⁰
+//│     else
+//│       return 0
+//│   end
+//│ };
+//│ define B⁴ as class B⁵ extends C¹ { constructor B³ };
+//│ return inherited¹()
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = [4]
+
+:flowBasedOpt mono
+:noInline
+:expect [4]
+fun inheritedViaDynSelect() = B([4]).z
+inheritedViaDynSelect()
+//│ = [4]
+
+
+// FIXME: a value that is called is used, but the solver drops a `Ctor` flowing into a call,
+// so the allocation is eliminated and the call becomes `undefined(2)` (it throws either way).
+:re
+:flowBasedOpt mono debugDce
+:soir
+:noInline
+fun callTuple() = [1](2)
+callTuple()
+//│ dead-constructor-elim > >>> dead-constructor-elim results >>>
+//│ dead-constructor-elim > eliminable: Tuple(false, [1])
+//│ dead-constructor-elim > <<< dead-constructor-elim results <<<
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ define callTuple⁰ as fun callTuple¹() { return undefined(2) }; return callTuple¹()
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ ═══[RUNTIME ERROR] TypeError: undefined is not a function
+
+
+// * Constructor flow: what a constructor does with its parameters decides whether an argument
+// * may be eliminated. The `Ctor` strategy models the parameter fields, so a constructor that
+// * only stores them stays transparent; any other use of a parameter field lets the argument escape.
+
+data class A(x)
+//│ dead-constructor-elim > >>> dead-constructor-elim results >>>
+//│ dead-constructor-elim > <<< dead-constructor-elim results <<<
+
+// reads its parameter field, like `P`, but through a `val` field rather than a private one
+data class N(v) with
+  print(v)
+//│ dead-constructor-elim > >>> dead-constructor-elim results >>>
+//│ dead-constructor-elim > <<< dead-constructor-elim results <<<
+
+// stores its parameter and never reads it back in the ctor
+class E(e) with
+  fun get() = e
+//│ dead-constructor-elim > >>> dead-constructor-elim results >>>
+//│ dead-constructor-elim > <<< dead-constructor-elim results <<<
+
+// passes its parameter field to something opaque
+class W(f) with
+  f(A(1))
+//│ dead-constructor-elim > >>> dead-constructor-elim results >>>
+//│ dead-constructor-elim > <<< dead-constructor-elim results <<<
+
+
+:soir
+:noInline
+fun dcN() =
+  let unused = N(A(1))
+  2
+dcN()
+//│ dead-constructor-elim > >>> dead-constructor-elim results >>>
+//│ dead-constructor-elim > <<< dead-constructor-elim results <<<
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ define dcN⁰ as fun dcN¹() { let tmp; set tmp = A⁸(1); do N⁰(tmp); return 2 }; return dcN¹()
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ > A(1)
+//│ = 2
+
+
+// the object never escapes and the private field is never read, so both go
+:soir
+:noInline
+fun dcE() =
+  let unused = E(A(1))
+  2
+dcE()
+//│ dead-constructor-elim > >>> dead-constructor-elim results >>>
+//│ dead-constructor-elim > eliminable: Call(member:A⁹‹term:A⁸›, [[1]])
+//│ dead-constructor-elim > eliminable: Call(member:E⁰‹term:E¹›, [[tmp:tmp¹]])
+//│ dead-constructor-elim > <<< dead-constructor-elim results <<<
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ define dcE⁰ as fun dcE¹() { return 2 }; return dcE¹()
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 2
+
+
+// selecting a method escapes the object, and with it its argument
+:soir
+:noInline
+fun dcEused() = (E(A(1))).get()
+dcEused()
+//│ dead-constructor-elim > >>> dead-constructor-elim results >>>
+//│ dead-constructor-elim > <<< dead-constructor-elim results <<<
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ define dcEused⁰ as fun dcEused¹() {
+//│   let tmp, tmp1;
+//│   set tmp = A⁸(1);
+//│   set tmp1 = E¹(tmp);
+//│   return tmp1.get⁵()
+//│ };
+//│ return dcEused¹()
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = A(1)
+
+
+:soir
+:noInline
+W(a => print(a))
+//│ dead-constructor-elim > >>> dead-constructor-elim results >>>
+//│ dead-constructor-elim > <<< dead-constructor-elim results <<<
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let lambda; define lambda as fun lambda⁴(a) { return Predef⁰.print⁰(a) }; return W⁰(lambda⁴)
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ > A(1)
+//│ = W(_)
+
+
+// hands the whole object to something opaque, so its parameter fields escape with it
+data class L(v) with
+  print(this)
+//│ dead-constructor-elim > >>> dead-constructor-elim results >>>
+//│ dead-constructor-elim > <<< dead-constructor-elim results <<<
+
+:soir
+:noInline
+fun dcL() =
+  let unused = L(A(1))
+  2
+dcL()
+//│ dead-constructor-elim > >>> dead-constructor-elim results >>>
+//│ dead-constructor-elim > <<< dead-constructor-elim results <<<
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ define dcL⁰ as fun dcL¹() { let tmp; set tmp = A⁸(1); do L⁰(tmp); return 2 }; return dcL¹()
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ > L(A(1))
+//│ = 2
+
+
+// A class may be constructed where the analysis cannot see, such as in a later block,
+// so its ctor is also analyzed for unknown arguments: `g`'s call in the ctor keeps `x`.
+:soir
+:noInline
+private fun g(x, y) = y
+class B(z) with
+  print(g(z, 2))
+g(A(3), 4)
+//│ dead-constructor-elim > >>> dead-constructor-elim results >>>
+//│ dead-constructor-elim > eliminable: Call(member:A⁹‹term:A⁸›, [[3]])
+//│ dead-constructor-elim > <<< dead-constructor-elim results <<<
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ @private
+//│ define g⁴ as fun g⁵(x, y) {
+//│   return y
+//│ };
+//│ define B⁶ as class B⁸ {
+//│   private val z¹;
+//│   constructor B⁷(z) {
+//│     let tmp;
+//│     set B⁸.this.z¹ = z;
+//│     set tmp = g⁵(B⁸.this.z¹, 2);
+//│     do Predef⁰.print⁰(tmp);
+//│     end
+//│   }
+//│ };
+//│ return g⁵(undefined, 4)
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 4
+
+B(A(1))
+//│ dead-constructor-elim > >>> dead-constructor-elim results >>>
+//│ dead-constructor-elim > <<< dead-constructor-elim results <<<
+//│ > 2
+//│ = B(_)
+
+// same for the private value read only by the ctor
+:soir
+private val pv = [1]
+class C with
+  val v = pv
+//│ dead-constructor-elim > >>> dead-constructor-elim results >>>
+//│ dead-constructor-elim > <<< dead-constructor-elim results <<<
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let tmp;
+//│ set tmp = [1];
+//│ @private
+//│ define pv⁰ as val pv¹ = tmp;
+//│ define C³ as class C⁴ { val v²; constructor() { define v² as val v³ = pv¹; end } };
+//│ end
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ pv = [1]
+
+:expect [1]
+(new C).v
+//│ dead-constructor-elim > >>> dead-constructor-elim results >>>
+//│ dead-constructor-elim > <<< dead-constructor-elim results <<<
+//│ = [1]
+
+
+// A ctor that constructs its own class is analyzed together with it,
+// so the argument of the never-read `x` can be eliminated.
+:soir
+:noInline
+class B(x, n) with
+  if n > 0 do B(x, n - 1)
+fun selfCtor() =
+  let unused = B(A(9), 2)
+  0
+selfCtor()
+//│ dead-constructor-elim > >>> dead-constructor-elim results >>>
+//│ dead-constructor-elim > eliminable: Call(member:A⁹‹term:A⁸›, [[9]])
+//│ dead-constructor-elim > <<< dead-constructor-elim results <<<
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ define selfCtor⁰ as fun selfCtor¹() {
+//│   do B⁹(undefined, 2);
+//│   return 0
+//│ };
+//│ define B¹⁰ as class B¹¹ {
+//│   private val x⁵;
+//│   private val n²;
+//│   constructor B⁹(x, n) {
+//│     let scrut, tmp;
+//│     set B¹¹.this.x⁵ = x;
+//│     set B¹¹.this.n² = n;
+//│     set scrut = >⁰(B¹¹.this.n², 0);
+//│     match scrut
+//│       true =>
+//│         set tmp = -⁰(B¹¹.this.n², 1);
+//│         do B⁹(B¹¹.this.x⁵, tmp);
+//│         end
+//│       else
+//│         end
+//│     end
+//│   }
+//│ };
+//│ return selfCtor¹()
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 0
+
+// mutually-constructing classes are analyzed together, and the argument read by the last one survives
+:soir
+:noInline
+class B(x, n) with
+  if n > 0 do C(x, n - 1)
+class C(x, n) with
+  if n > 0 then B(x, n - 1) else print(x)
+fun mutualCtors() =
+  let unused = B(A(7), 3)
+  0
+mutualCtors()
+//│ dead-constructor-elim > >>> dead-constructor-elim results >>>
+//│ dead-constructor-elim > <<< dead-constructor-elim results <<<
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ define mutualCtors⁰ as fun mutualCtors¹() {
+//│   let tmp;
+//│   set tmp = A⁸(7);
+//│   do B¹²(tmp, 3);
+//│   return 0
+//│ };
+//│ define B¹³ as class B¹⁴ {
+//│   private val x⁶;
+//│   private val n³;
+//│   constructor B¹²(x, n) {
+//│     let scrut, tmp;
+//│     set B¹⁴.this.x⁶ = x;
+//│     set B¹⁴.this.n³ = n;
+//│     set scrut = >⁰(B¹⁴.this.n³, 0);
+//│     match scrut
+//│       true =>
+//│         set tmp = -⁰(B¹⁴.this.n³, 1);
+//│         do C⁵(B¹⁴.this.x⁶, tmp);
+//│         end
+//│       else
+//│         end
+//│     end
+//│   }
+//│ };
+//│ define C⁶ as class C⁷ {
+//│   private val x⁷;
+//│   private val n⁴;
+//│   constructor C⁵(x, n) {
+//│     let scrut, tmp;
+//│     set C⁷.this.x⁷ = x;
+//│     set C⁷.this.n⁴ = n;
+//│     set scrut = >⁰(C⁷.this.n⁴, 0);
+//│     match scrut
+//│       true =>
+//│         set tmp = -⁰(C⁷.this.n⁴, 1);
+//│         do B¹²(C⁷.this.x⁷, tmp);
+//│         end
+//│       else
+//│         do Predef⁰.print⁰(C⁷.this.x⁷);
+//│         end
+//│     end
+//│   }
+//│ };
+//│ return mutualCtors¹()
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ > A(7)
+//│ = 0
+
+
+// In poly mode, a ctor instantiates the scheme of a function it calls,
+// even when that function is defined after the ctor.
+:flowBasedOpt debugDce poly
+:soir
+:noInline
+fun polyCtor() =
+  let unused = B(A(3))
+  0
+fun pr(x) = print(x)
+class B(y) with
+  pr(y)
+polyCtor()
+//│ dead-constructor-elim > >>> dead-constructor-elim results >>>
+//│ dead-constructor-elim > <<< dead-constructor-elim results <<<
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ define polyCtor⁰ as fun polyCtor¹() {
+//│   let tmp;
+//│   set tmp = A⁸(3);
+//│   do B¹⁵(tmp);
+//│   return 0
+//│ };
+//│ define pr⁰ as fun pr¹(x) {
+//│   return Predef⁰.print⁰(x)
+//│ };
+//│ define B¹⁶ as class B¹⁷ {
+//│   private val y⁵;
+//│   constructor B¹⁵(y) { set B¹⁷.this.y⁵ = y; do pr¹(B¹⁷.this.y⁵); end }
+//│ };
+//│ return polyCtor¹()
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ > A(3)
+//│ = 0
+
+// a ctor gets its own instance of a function it calls, so `A(1)` passing only through `ident` is eliminated,
+// which then fails like `privInCtor` below
+:fixme
+:flowBasedOpt debugDce poly
+:soir
+:noInline
+fun ident(x) = x
+class B(y) with
+  ident(y)
+fun ctorCallsIdent() =
+  let unused = B(A(1))
+  0
+ctorCallsIdent()
+//│ dead-constructor-elim > >>> dead-constructor-elim results >>>
+//│ dead-constructor-elim > eliminable: Call(member:A⁹‹term:A⁸›, [[1]])
+//│ dead-constructor-elim > eliminable: Call(member:A⁹‹term:A⁸›, [[1]])
+//│ dead-constructor-elim > <<< dead-constructor-elim results <<<
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let ctorCallsIdent$ctorCallsIdent;
+//│ define ctorCallsIdent$ctorCallsIdent as fun ctorCallsIdent$ctorCallsIdent⁰() {
+//│   do B¹⁸(undefined);
+//│   return 0
+//│ };
+//│ define ident⁰ as fun ident¹(x) {
+//│   return x
+//│ };
+//│ define ctorCallsIdent⁰ as fun ctorCallsIdent¹() {
+//│   do B¹⁸(undefined);
+//│   return 0
+//│ };
+//│ define B¹⁹ as class B²⁰ {
+//│   private val y⁶;
+//│   constructor B¹⁸(y) {
+//│     set B²⁰.this.y⁶ = y;
+//│     do ident¹(B²⁰.this.y⁶);
+//│     end
+//│   }
+//│ };
+//│ return ctorCallsIdent$ctorCallsIdent⁰()
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ ═══[RUNTIME ERROR] Error: MLscript call unexpectedly returned `undefined`, the forbidden value.
+
+// a ctor on a cycle through a function is analyzed in one group with it, and nothing reads `A(5)`
+:flowBasedOpt debugDce poly
+:soir
+:noInline
+:expect 0
+fun mk(x, n) = B(x, n)
+class B(x, n) with
+  if n > 0 do mk(x, n - 1)
+fun ctorCycle() =
+  let unused = mk(A(5), 2)
+  0
+ctorCycle()
+//│ dead-constructor-elim > >>> dead-constructor-elim results >>>
+//│ dead-constructor-elim > eliminable: Call(member:A⁹‹term:A⁸›, [[5]])
+//│ dead-constructor-elim > eliminable: Call(member:A⁹‹term:A⁸›, [[5]])
+//│ dead-constructor-elim > <<< dead-constructor-elim results <<<
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let ctorCycle$ctorCycle;
+//│ define ctorCycle$ctorCycle as fun ctorCycle$ctorCycle⁰() {
+//│   do mk²(undefined, 2);
+//│   return 0
+//│ };
+//│ define mk³ as fun mk²(x, n) {
+//│   return B²¹(x, n)
+//│ };
+//│ define ctorCycle⁰ as fun ctorCycle¹() {
+//│   do mk²(undefined, 2);
+//│   return 0
+//│ };
+//│ define B²² as class B²³ {
+//│   private val x⁸;
+//│   private val n⁵;
+//│   constructor B²¹(x, n) {
+//│     let scrut, tmp;
+//│     set B²³.this.x⁸ = x;
+//│     set B²³.this.n⁵ = n;
+//│     set scrut = >⁰(B²³.this.n⁵, 0);
+//│     match scrut
+//│       true =>
+//│         set tmp = -⁰(B²³.this.n⁵, 1);
+//│         do mk²(B²³.this.x⁸, tmp);
+//│         end
+//│       else
+//│         end
+//│     end
+//│   }
+//│ };
+//│ return ctorCycle$ctorCycle⁰()
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 0
+
+
+// TODO: dce replaces `A(1)` with `undefined`, but dpe keeps the param of `same` as the ctor's call cannot be narrowed,
+// so `same` returns `undefined` and the checked call throws; dce should not eliminate what flows into a param dpe keeps
+:fixme
+:flowBasedOpt mono debugDce
+:soir
+:noInline
+private fun same(x) = x
+class B(y) with
+  same(y)
+fun privInCtor() =
+  let unused = B(A(1))
+  0
+privInCtor()
+//│ dead-constructor-elim > >>> dead-constructor-elim results >>>
+//│ dead-constructor-elim > eliminable: Call(member:A⁹‹term:A⁸›, [[1]])
+//│ dead-constructor-elim > <<< dead-constructor-elim results <<<
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ @private
+//│ define same⁰ as fun same¹(x) {
+//│   return x
+//│ };
+//│ define privInCtor⁰ as fun privInCtor¹() {
+//│   do B²⁴(undefined);
+//│   return 0
+//│ };
+//│ define B²⁵ as class B²⁶ {
+//│   private val y⁷;
+//│   constructor B²⁴(y) { set B²⁶.this.y⁷ = y; do same¹(B²⁶.this.y⁷); end }
+//│ };
+//│ return privInCtor¹()
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ ═══[RUNTIME ERROR] Error: MLscript call unexpectedly returned `undefined`, the forbidden value.
+
+// control: the same flow through a lambda passes, as a call to a lambda is not checked
+:flowBasedOpt mono debugDce
+:soir
+:noInline
+class B(y) with
+  (x => x)(y)
+fun lamInCtor() =
+  let unused = B(A(1))
+  0
+lamInCtor()
+//│ dead-constructor-elim > >>> dead-constructor-elim results >>>
+//│ dead-constructor-elim > eliminable: Call(member:A⁹‹term:A⁸›, [[1]])
+//│ dead-constructor-elim > <<< dead-constructor-elim results <<<
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ define lamInCtor⁰ as fun lamInCtor¹() {
+//│   do B²⁷(undefined);
+//│   return 0
+//│ };
+//│ define B²⁸ as class B²⁹ {
+//│   private val y⁸;
+//│   constructor B²⁷(y) {
+//│     let lambda;
+//│     set B²⁹.this.y⁸ = y;
+//│     define lambda as fun lambda⁵(x) {
+//│       return x
+//│     };
+//│     do lambda⁵(B²⁹.this.y⁸);
+//│     end
+//│   }
+//│ };
+//│ return lamInCtor¹()
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 0
+
+
+// a ctor analyzed per construction keeps the flows of its sites apart:
+// only the first site's `f` ignores its argument, so only `B()` is dead
+:flowBasedOpt mono debugDce
+:soir
+:noInline
+class B()
+class C()
+class A(f, x) with
+  print(f(x))
+fun twoSites() =
+  A(x => 3, new B())
+  A(x => x, new C())
+  0
+twoSites()
+//│ dead-constructor-elim > >>> dead-constructor-elim results >>>
+//│ dead-constructor-elim > eliminable: Instantiate(false, member:B³⁰‹class:B³¹›, [[]])
+//│ dead-constructor-elim > <<< dead-constructor-elim results <<<
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ define twoSites⁰ as fun twoSites¹() {
+//│   let lambda, lambda1, tmp;
+//│   define lambda as fun lambda⁶(x) {
+//│     return 3
+//│   };
+//│   do A¹⁰(lambda⁶, undefined);
+//│   define lambda1 as fun lambda⁷(x) {
+//│     return x
+//│   };
+//│   set tmp = new C⁸();
+//│   do A¹⁰(lambda⁷, tmp);
+//│   return 0
+//│ };
+//│ define B³⁰ as class B³¹ {
+//│   constructor B³²
+//│ };
+//│ define C⁹ as class C⁸ {
+//│   constructor C¹⁰
+//│ };
+//│ define A¹¹ as class A¹² {
+//│   private val f⁴;
+//│   private val x⁹;
+//│   constructor A¹⁰(f, x) {
+//│     let tmp;
+//│     set A¹².this.f⁴ = f;
+//│     set A¹².this.x⁹ = x;
+//│     set tmp = A¹².this.f⁴(A¹².this.x⁹);
+//│     do Predef⁰.print⁰(tmp);
+//│     end
+//│   }
+//│ };
+//│ return twoSites¹()
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ > 3
+//│ > C()
+//│ = 0
+
+
+// a public function of an earlier block is analyzed through its symbol, but never rewritten,
+// so `[1]` passed only to `ignoreArg` is dead, while the private `ignoreArgPriv` stays opaque
+:flowBasedOpt mono debugDce
+fun ignoreArg(x) = 0
+private fun ignoreArgPriv(x) = 0
+//│ dead-constructor-elim > >>> dead-constructor-elim results >>>
+//│ dead-constructor-elim > <<< dead-constructor-elim results <<<
+
+:flowBasedOpt mono debugDce
+:soir
+:noInline
+fun earlierBlock() =
+  let a = ignoreArg([1])
+  let b = ignoreArgPriv([2])
+  a + b
+earlierBlock()
+//│ dead-constructor-elim > >>> dead-constructor-elim results >>>
+//│ dead-constructor-elim > eliminable: Tuple(false, [1])
+//│ dead-constructor-elim > <<< dead-constructor-elim results <<<
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ define earlierBlock⁰ as fun earlierBlock¹() {
+//│   let a, b, tmp;
+//│   set a = ignoreArg⁰(undefined);
+//│   set tmp = [2];
+//│   set b = ignoreArgPriv⁰(tmp);
+//│   return +⁰(a, b)
+//│ };
+//│ return earlierBlock¹()
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 0

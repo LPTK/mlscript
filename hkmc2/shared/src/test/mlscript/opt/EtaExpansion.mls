@@ -9,7 +9,7 @@
 fun g(x) = f(x)
 g(1)(2)
 //│ eta-expansion > >>> eta-expansion targets shapes >>>
-//│ eta-expansion > g⁰: [1, 1]
+//│ eta-expansion > g⁰ @ g¹: [1, 1]
 //│ eta-expansion > <<< eta-expansion targets shapes <<<
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ @inline @affine(1)
@@ -46,7 +46,7 @@ g(1)(2)
 fun h(x) = @affine(0) y => x + y
 h(1)(2)
 //│ eta-expansion > >>> eta-expansion targets shapes >>>
-//│ eta-expansion > h⁰: [1, 1]
+//│ eta-expansion > h⁰ @ h¹: [1, 1]
 //│ eta-expansion > <<< eta-expansion targets shapes <<<
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ @inline define h⁰ as fun h¹(x)(eta$0$0) { return +⁰(x, eta$0$0) }; return 3
@@ -169,7 +169,7 @@ main1(true)
 //│ eta-expansion > >>> eta-expansion targets shapes >>>
 //│ eta-expansion > <<< eta-expansion targets shapes <<<
 //│ dead-param-elim > >>> dead-param-elim results >>>
-//│ dead-param-elim > prodfun g1⁰#0 @ <root> -> eliminable: {0}
+//│ dead-param-elim > prodfun g1¹#0 @ g1⁰ -> eliminable: {0}
 //│ dead-param-elim > <<< dead-param-elim results <<<
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ @affine(0) @private
@@ -215,7 +215,7 @@ main2(true)
 //│ eta-expansion > >>> eta-expansion targets shapes >>>
 //│ eta-expansion > <<< eta-expansion targets shapes <<<
 //│ dead-param-elim > >>> dead-param-elim results >>>
-//│ dead-param-elim > prodfun g2⁰#0 @ <root> -> eliminable: {0}
+//│ dead-param-elim > prodfun g2¹#0 @ g2⁰ -> eliminable: {0}
 //│ dead-param-elim > <<< dead-param-elim results <<<
 //│ = 0
 
@@ -230,7 +230,7 @@ main2(true)
 fun returnRest(a) = rest(a)
 returnRest(0)(1, 2, 3)
 //│ eta-expansion > >>> eta-expansion targets shapes >>>
-//│ eta-expansion > returnRest⁰: [1, 0+rest]
+//│ eta-expansion > returnRest⁰ @ returnRest¹: [1, 0+rest]
 //│ eta-expansion > <<< eta-expansion targets shapes <<<
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ @affine(1)
@@ -254,12 +254,12 @@ private fun returnRest2(a) = rest2(a)
 private fun app(f) = f(1, 2, 3)
 app(returnRest2(0))
 //│ eta-expansion > >>> eta-expansion targets shapes >>>
-//│ eta-expansion > returnRest2⁰: [1, 1+rest]
+//│ eta-expansion > returnRest2⁰ @ returnRest2¹: [1, 1+rest]
 //│ eta-expansion > <<< eta-expansion targets shapes <<<
 //│ dead-param-elim > >>> dead-param-elim results >>>
-//│ dead-param-elim > prodfun rest2⁰#0 @ <root> -> eliminable: {0}
-//│ dead-param-elim > prodfun rest2⁰#1 @ <root> -> eliminable: {0}
-//│ dead-param-elim > prodfun returnRest2⁰#0 @ <root> -> eliminable: {0}
+//│ dead-param-elim > prodfun rest2¹#0 @ rest2⁰ -> eliminable: {0}
+//│ dead-param-elim > prodfun rest2¹#1 @ rest2⁰ -> eliminable: {0}
+//│ dead-param-elim > prodfun returnRest2⁰#0 @ returnRest2¹ -> eliminable: {0}
 //│ dead-param-elim > <<< dead-param-elim results <<<
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let tmp;

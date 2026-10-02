@@ -56,7 +56,7 @@ class DeadConstructorElimSolver(val constraintSolver: FlowConstraintSolver, trac
         cls.irClsLikeDefn.exists(hasSimpleCtor)
       case _ => false
     
-    val allCtorStrats = collector.allRealCtors.filter(_.instantiationId.isDefined)
+    val allCtorStrats = collector.allRealCtors.filter(c => c.instantiationId.isDefined && !collector.isBlocked(c))
     
     val liveCtorConcreteIds = allCtorStrats.iterator
       .filter: c =>
