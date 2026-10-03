@@ -58,7 +58,61 @@ sealed trait Shape extends ShapeEvent, ShapeLike:
     case bs: BaseShape => s"BaseShape(${bs.defn.sym.showDbg})"
     case es: ErrShape => es.describe
 
-sealed trait NonMarkedShape extends TermShape
+/** How inference hosts deduplicate their candidates (see utils.Candidates).
+  *
+  * Structural shape hashes can traverse nested shapes, marks, and the syntax
+  * trees they refer to. Recomputing these hashes whenever a host
+  * receives a candidate dominated the resolution time of large recursive
+  * definitions. Hosts therefore compare shapes by identity, and resolution must
+  * construct each shape once, reusing a cached shape wherever it rebuilds an
+  * existing candidate. Two kinds of shapes are cheap to identify without such
+  * caches. A marked shape is a view of its base shape through a normalized path,
+  * whose length is bounded by the lexical nesting depth; contextual shapes retain
+  * a binder substitution, and activation events also key their payload and activation.
+  * Unknown, opaque, rigid, and dynamic shapes are determined by their source nodes, and interface views of
+  * types by their type-level contents. An inferred type shape is identified by its
+  * value. Other type shapes, binder sets, and pattern shapes are small values that
+  * remain structural.
+  */
+object ShapeIdentity:
+  def candidateKey(candidate: Any): Any = candidate match
+    case ActivatedShapeEvent(value, instances) => (ActivatedShapeEvent, key(value), instances)
+    case shape: Shape => key(shape)
+    case TypeShape.Inferred(value) => (TypeShape.Inferred, key(value))
+    case other => other
+  private[semantics] def key(shape: Shape): Any = shape match
+    // Wrappers view their inner shape through a normalized path or a finite
+    // binder substitution; wrappers do not nest beyond a fixed depth.
+    case MarkedShape(base, marks) => (key(base), marks)
+    case ContextualShape(source, instances) => (ContextualShape, key(source), instances)
+    // Class selections rebuild their view when a receiver is replayed. Retain
+    // the runtime representation and parent without creating a new candidate.
+    case view: ClassValueShape => (ClassValueShape, view.target, view.parent.map(key))
+    // Interface views of types are determined by their type-level contents, like
+    // the InstanceShape of a DeclaredType. Each observation of a type in an
+    // activation view expands it anew.
+    case view: NominalInstanceView => (NominalInstanceView, new Identity(view.defn), view.bindings, view.parent.map(key))
+    case callable: CallableTypeShape => (CallableTypeShape, new Identity(callable.source), callable.paramLists,
+      callable.result, callable.scheme, callable.supplied, callable.declaration.map(new Identity(_)))
+    case record: RecordTypeShape => (RecordTypeShape, record.fields)
+    case specialized: SpecializedShape => (SpecializedShape, key(specialized.declaration),
+      specialized.arguments, specialized.instances)
+    case unknown: UnknownValueShape => (UnknownValueShape, new Identity(unknown.source), unknown.fromPublicInterface)
+    case opaque: OpaqueTypeShape => (OpaqueTypeShape, new Identity(opaque.source))
+    case rigid: RigidTypeShape => (RigidTypeShape, rigid.parameter, new Identity(rigid.source))
+    case _: DynShape => DynShape
+    case instance: InstanceShape => new Identity(instance.candidateIdentity)
+    // These producers reuse canonical objects. Keep the list explicit so a new
+    // shape variant requires a decision about identity and deduplication.
+    case _: (TupleShape | RecordShape | IntroShape | DefnShape | BaseShape |
+        AppShape | NewShape | SymShape | ErrShape) => new Identity(shape)
+
+sealed trait NonMarkedShape extends TermShape:
+  /** Whether nothing reachable from this shape (members, call results, captured
+    * values, or type arguments) depends on the lexical scope where the value was
+    * produced. Such shapes do not record scope exits (see MarkedShape.exit).
+    */
+  def isSelfContained: Bool = false
 sealed trait NonAppTermShape extends NonMarkedShape
 
 /** A shape with its outer contextual/specialization view removed. Application
@@ -181,6 +235,15 @@ object MarkedShape:
   def exit(sh: TermShape, boundary: ResolutionBoundary, id: Opt[FlowSymbol])(using TL): TermShape | NoShape =
   tl.trace[TermShape | NoShape](s".exit MarkedShape (${sh.shwDbg}, ${boundary.showDbg}, ${id.fold("")(_.showDbg)})", res => s"= ${res.shwDbg}"):
     sh match
+    // Exits are only ever prepended to a path's trailing exits, never compared
+    // against them; they locate what a value refers to. A self-contained value
+    // refers to nothing, so its exits carry no information. Recording them would
+    // make every route that a dynamic or unknown value takes out of recursive
+    // functions a distinct candidate: this multiplied candidates across
+    // FingerTreeList. Entries still decide which activations it can leave.
+    case sh: NonMarkedShape if sh.isSelfContained => sh
+    case MarkedShape(sh, _: ExitMark) if sh.isSelfContained =>
+      lastWords("A self-contained shape does not record exits")
     case sh: NonMarkedShape => MarkedShape(sh, ExitMark(boundary, id, NoMarks))
     case MarkedShape(sh, marks) =>
       marks match
@@ -375,6 +438,7 @@ extension (member: BlockMemberSymbol | RecordMember)
     case member: RecordMember => member.field.sym
 
 class ErrShape(val err: ErrorReport) extends CoreHeadShape:
+  override def isSelfContained: Bool = true
   def describe: Str = s"error: ${err.mainMsg}"
   protected def getMemberImpl(name: Str)(using NewResolverState): MemberLookup = MemberLookup.Missing
   def toLoc: Opt[Loc] = N
@@ -504,11 +568,28 @@ final case class RecordTypeShape(fields: Map[Str, DeclaredType])(
   * candidates would lose negative uses of generic arguments and compound types.
   * Operations obtain concrete member/call views through listenInstanceViews.
   */
-final case class InstanceShape(tpe: DeclaredType) extends CoreHeadShape:
+final class InstanceShape private (val tpe: DeclaredType, canonical: Opt[InstanceShape]) extends CoreHeadShape:
+  /** Diagnostic views share the origin-free reference's inference identity. */
+  private[semantics] def candidateIdentity: InstanceShape = canonical.getOrElse(this)
   def describe: Str = "value with a declared type"
   def toLoc: Opt[Loc] = tpe.resolution.source.toLoc
   protected def getMemberImpl(name: Str)(using NewResolverState): MemberLookup =
     lastWords("Instance member lookup requires interpreting its type first")
+
+object InstanceShape:
+  /** Intern the reference in the consuming graph, adopting an inherited instance
+    * when available. NewResolver.instanceShape first projects substitutions onto
+    * the type's support. Keep each diagnostic witness on its own interned view:
+    * otherwise observing the same type through another annotation reports the
+    * first annotation's location. All views share the origin-free reference's
+    * candidate identity, so diagnostic evidence cannot multiply inference flow.
+    */
+  def apply(tpe: DeclaredType)(using state: NewResolverState): InstanceShape =
+    val semanticType = if tpe.origin.isEmpty then tpe else tpe.copy()(N)
+    val canonical = state.canonicalInstance(semanticType)(new InstanceShape(semanticType, N))
+    if tpe.origin.isEmpty then canonical
+    else state.canonicalInstance(tpe)(new InstanceShape(tpe, S(canonical)))
+  def unapply(instance: InstanceShape): S[DeclaredType] = S(instance.tpe)
 
 /** A deferred value view: interpret references in the shared `source` using
   * `instances`, a flat map from original binders to canonical parameter instances.
@@ -642,6 +723,7 @@ enum TypeInterfaceReason:
   * excluded from equality so alternative witnesses do not add inference flow.
   */
 final case class OpaqueTypeShape(source: Term)(val reason: TypeInterfaceReason) extends CoreHeadShape:
+  override def isSelfContained: Bool = true
   def describe: Str = "value with no known interface"
   def toLoc: Opt[Loc] = source.toLoc
   def provenance: ShapeProvenance = reason.provenance
@@ -691,17 +773,26 @@ class DefnShape(val defn: Definition, val ext: Opt[TermShape]) extends CoreHeadS
   private lazy val bufferedMembers: Map[Str, RecordMember] = defn match
     case cls: ClassDef if cls.annotations.exists(_.isInstanceOf[Annot.Bufferable]) =>
       given Elaborator.State = cls.sym.getState
+      val state = cls.sym.getState.newResolverState
+      val binders = state.lexicalTypeBinders.get(cls.sym).getOrElse(
+        lastWords(s"Buffered class ${cls.sym.nme} must record its enclosing type binders")) ++ cls.tparams.map(_.sym)
+      // These synthetic functions read the class's parameter annotations and
+      // methods. Record their definition scope in the class's owning graph,
+      // just as elaboration records ordinary lambdas and getter references.
+      def scoped[T <: Term](term: T): T =
+        state.recordLexicalBinders(term, binders)
+        term
       def field(name: Str, value: Term): (Str, RecordMember) =
         name -> RecordMember(RcdField(Term.Lit(syntax.Tree.StrLit(name)), value), false)
       def withBuffer(body: Term): Term =
         val params = PlainParamList(List("buffer", "index").map: name =>
           Param.simple(VarSymbol(new syntax.Tree.Ident(name), erasedType = N)))(cls.toLoc)
-        Term.Lam(params, body)
+        scoped(Term.Lam(params, body))
       // Constructors return the allocated index after all their original lists.
       val ctor = (cls.paramsOpt.toList ::: cls.auxParams).foldRight[Term](Term.Lit(syntax.Tree.IntLit(0))):
-        (params, body) => Term.Lam(params, body)
+        (params, body) => scoped(Term.Lam(params, body))
       val methods = cls.body.methods.filter(method => method.body.nonEmpty && !method.tsym.isPrivate).map: method =>
-        val ref = Term.MemberRef(method.bsym)(new syntax.Tree.Ident(method.bsym.nme), FlowSymbol.memSym(method.bsym))
+        val ref = scoped(Term.MemberRef(method.bsym)(new syntax.Tree.Ident(method.bsym.nme), FlowSymbol.memSym(method.bsym)))
         field(method.bsym.nme, withBuffer(ref))
       (field("size", Term.Lit(syntax.Tree.IntLit(0))) ::
         field("ctor", withBuffer(ctor)) :: methods).toMap
@@ -729,8 +820,8 @@ class RefinedShape(val base: TermShape, val refinements: Ls[Str -> Term]) extend
   * lazy. Recursive spreads can have unknown length; retain the known fields around
   * them instead of discarding either those fields or the unresolved possibilities.
   */
-final case class TupleShape(source: Term, elements: Ls[TupleShape.Element],
-    instances: TypeSubstitution)(resolver: NewResolver) extends CoreHeadShape:
+final class TupleShape private (val source: Term, val elements: Ls[TupleShape.Element],
+    val instances: TypeSubstitution)(resolver: NewResolver) extends CoreHeadShape:
   def arrayParent(using NewResolverState): NominalInstanceView = resolver.tupleArrayParent(this)
   override def isInstanceOfClass(cls: ClassLikeDef)(using NewResolverState): Bool = arrayParent.isInstanceOfClass(cls)
   private lazy val sourceSegments: Ls[TupleShape.Segment] = elements.flatMap:
@@ -787,6 +878,7 @@ final case class TupleShape(source: Term, elements: Ls[TupleShape.Element],
   * by JavaScript interop and explicit `dyn` types, not by failed inference.
   */
 final case class DynShape() extends CoreHeadShape:
+  override def isSelfContained: Bool = true
   def describe: Str = "dynamic value"
   def toLoc: Opt[Loc] = N
   protected def getMemberImpl(name: Str)(using NewResolverState): MemberLookup = MemberLookup.Dynamic(Nil)
@@ -827,6 +919,7 @@ object ShapeProvenance:
   * not turn the same unknown into a new inference candidate.
   */
 final case class UnknownValueShape(source: Term, fromPublicInterface: Bool)(val provenance: ShapeProvenance) extends CoreHeadShape:
+  override def isSelfContained: Bool = true
   def describe: Str = "value of unknown shape"
   def toLoc: Opt[Loc] = source.toLoc
   protected def getMemberImpl(name: Str)(using NewResolverState): MemberLookup =
@@ -836,6 +929,7 @@ final case class UnknownValueShape(source: Term, fromPublicInterface: Bool)(val 
   * checking witness is not an inferred bound on any call-site parameter.
   */
 final case class RigidTypeShape(parameter: VarSymbol, source: Term) extends CoreHeadShape:
+  override def isSelfContained: Bool = true
   def describe: Str = "value of a type parameter"
   def toLoc: Opt[Loc] = source.toLoc
   def provenance: ShapeProvenance = ShapeProvenance(
@@ -853,8 +947,37 @@ object UnknownValueShape:
     origin.copy(source = source)(origin.provenance.via(msg"This spread has no known element shape." -> source.toLoc))
 
 object TupleShape:
-  def apply(source: Term, elements: Ls[Element])(resolver: NewResolver): TupleShape =
-    new TupleShape(source, elements, TypeSubstitution.empty)(resolver)
+  /** Tuple candidates are compared by identity (see ShapeIdentity), so each
+    * distinct tuple is constructed once per source node and element list.
+    * Only these factories can construct a tuple; a case-class copy would bypass
+    * interning and create a distinct inference candidate for the same tuple.
+    */
+  def apply(source: Term, elements: Ls[Element])(resolver: NewResolver)(using state: NewResolverState): TupleShape =
+    state.canonicalTuple((new Identity(source), elements.map(elementKey), TypeSubstitution.empty)):
+      new TupleShape(source, elements, TypeSubstitution.empty)(resolver)
+  /** The view of `tuple` through the complete effective substitution `instances`,
+    * canonical like the tuple itself: one identity per source, element list, and
+    * substitution, whichever sequence of substitutions produced the view. Copying
+    * a tuple instead would make each route to the same view a distinct candidate.
+    * NewResolver.instantiateShape composes the substitution before calling this. */
+  def view(tuple: TupleShape, instances: TypeSubstitution)(resolver: NewResolver)
+      (using state: NewResolverState): TupleShape =
+    state.canonicalTuple((new Identity(tuple.source), tuple.elements.map(elementKey), instances)):
+      new TupleShape(tuple.source, tuple.elements, instances)(resolver)
+  def unapply(tuple: TupleShape): S[(Term, Ls[Element], TypeSubstitution)] =
+    S((tuple.source, tuple.elements, tuple.instances))
+  /** A shallow key: nested shapes are canonical and compared by identity. */
+  private def elementKey(element: Element): Any = element match
+    case segment: Segment => segmentKey(segment)
+    case Spread(shape, marks) => (Spread, ShapeIdentity.key(shape), marks)
+    case Rest(shape, segments) => (Rest, ShapeIdentity.key(shape), segments.map(segmentKey))
+  private def segmentKey(segment: Segment): Any = segment match
+    case Field(field, marks) => (Field, new Identity(field), marks)
+    case ValueField(value, marks) => (ValueField, ShapeIdentity.key(value), marks)
+    case TypedField(tpe, marks) => (TypedField, tpe, marks)
+    case UnknownField(source, marks) => (UnknownField, new Identity(source), marks)
+    case ViewedField(source, instances, marks) => (ViewedField, segmentKey(source), instances, marks)
+    case Unknown(source, element) => (Unknown, new Identity(source), segmentKey(element))
   sealed trait Element
   sealed trait Segment extends Element:
     /** The deferred value of one element, independently of the segment's length. */
@@ -886,7 +1009,7 @@ object TupleShape:
     * for a spread whose shape has not arrived yet. */
   final case class Unknown(source: Term, element: Fixed) extends Segment
   final case class Spread(shape: TupleShape, marks: Marks) extends Element
-  def unknown(source: Term)(resolver: NewResolver): TupleShape =
+  def unknown(source: Term)(resolver: NewResolver)(using NewResolverState): TupleShape =
     TupleShape(source, Unknown(source, UnknownField(source, Nil)) :: Nil)(resolver)
   /** Retain the original candidate as well as the selected residual segments:
     * flattening away the parent would hide recursive producer dependencies from
@@ -899,7 +1022,7 @@ object TupleShape:
     * would make the candidate's identity record the order in which fields were
     * removed. For `if xs is [x, ...rest] then f(rest); [...rest, x] then f(rest)`
     * on an n-tuple, that yields 2^n candidates for only O(n^2) distinct layouts. */
-  def restView(tuple: TupleShape, segments: Ls[Segment])(resolver: NewResolver): TupleShape =
+  def restView(tuple: TupleShape, segments: Ls[Segment])(resolver: NewResolver)(using NewResolverState): TupleShape =
     val parent = tuple.elements match
       case Rest(parent, _) :: Nil => parent
       case _ => tuple
@@ -917,8 +1040,8 @@ final case class RecordMember(field: RcdField, mutable: Bool)
   * provenance. Lookup follows runtime's last-write-wins order. Unknown entries
   * are barriers: an opaque spread or computed key can overwrite earlier fields.
   */
-final case class RecordShape(source: Term.Rcd, elements: Ls[RecordShape.Element],
-    instances: TypeSubstitution) extends CoreHeadShape:
+final class RecordShape private (val source: Term.Rcd, val elements: Ls[RecordShape.Element],
+    val instances: TypeSubstitution) extends CoreHeadShape:
   def describe: Str = "record literal"
   def toLoc: Opt[Loc] = source.toLoc
   protected def getMemberImpl(name: Str)(using NewResolverState): MemberLookup =
@@ -952,7 +1075,27 @@ final case class RecordShape(source: Term.Rcd, elements: Ls[RecordShape.Element]
     case _ => false
 
 object RecordShape:
-  def apply(source: Term.Rcd, elements: Ls[Element]): RecordShape = new RecordShape(source, elements, TypeSubstitution.empty)
+  /** Record candidates are compared by identity (see ShapeIdentity), so each
+    * distinct record is constructed once per source node and element list.
+    * As for TupleShape, private construction without a case-class copy keeps
+    * every record candidate behind these canonical factories.
+    */
+  def apply(source: Term.Rcd, elements: Ls[Element])(using state: NewResolverState): RecordShape =
+    state.canonicalRecord((new Identity(source), elements.map(elementKey), TypeSubstitution.empty)):
+      new RecordShape(source, elements, TypeSubstitution.empty)
+  /** The canonical view of `record` through the complete effective substitution
+    * `instances`; see TupleShape.view. */
+  def view(record: RecordShape, instances: TypeSubstitution)(using state: NewResolverState): RecordShape =
+    state.canonicalRecord((new Identity(record.source), record.elements.map(elementKey), instances)):
+      new RecordShape(record.source, record.elements, instances)
+  def unapply(record: RecordShape): S[(Term.Rcd, Ls[Element], TypeSubstitution)] =
+    S((record.source, record.elements, record.instances))
+  /** A shallow key: nested shapes are canonical and compared by identity. */
+  private def elementKey(element: Element): Any = element match
+    case Field(field) => (Field, new Identity(field))
+    case Spread(shape, marks) => (Spread, ShapeIdentity.key(shape), marks)
+    case Unknown(shape) => (Unknown, ShapeIdentity.key(shape))
+    case Dynamic(marks) => (Dynamic, marks)
   enum Element:
     case Field(field: RcdField)
     case Spread(shape: RecordShape, marks: Marks)
@@ -964,6 +1107,8 @@ object RecordShape:
 type IntroTerm = Term.Lit | Term.UnitVal | Term.Lam //| Term.New
 class IntroShape(val trm: IntroTerm, val primitive: Opt[NominalInstanceView]) extends CoreHeadShape:
   def describe: Str = trm.describe
+  // Literals have global primitive interfaces; lambdas capture their scopes.
+  override def isSelfContained: Bool = !trm.isInstanceOf[Term.Lam]
   protected def getMemberImpl(name: Str)(using NewResolverState): MemberLookup = trm match
     case _: Term.Lit | _: Term.UnitVal => primitive.fold[MemberLookup](MemberLookup.Missing)(_.getMember(name))
     case lam: Term.Lam => MemberLookup.Missing // TODO: methods on lambdas
@@ -984,4 +1129,3 @@ sealed trait LitShape extends CoreHeadShape:
 
 type ShapePublisher = Publisher[ShapeEvent]
 type ShapeHost = Host[ShapeEvent]
-

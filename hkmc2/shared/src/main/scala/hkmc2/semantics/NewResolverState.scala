@@ -71,13 +71,11 @@ final class NewResolverState private (
   // unit, including their activation context. The block's exposure pass drains
   // these roots before sealing resolution; they are neither copied from imports
   // nor retained across worksheet blocks. One witness suffices for each value.
-  private val exposureInputs = mutable.LinkedHashMap.empty[(TermShape, NewResolverState), ShapeProvenance]
+  private val exposureInputs = mutable.LinkedHashMap.empty[(Any, NewResolverState), InterfaceExposure.Input]
   def exposeValue(shape: TermShape, provenance: ShapeProvenance): Unit =
-    root.exposureInputs.getOrElseUpdate((shape, this), provenance)
+    root.exposureInputs.getOrElseUpdate((ShapeIdentity.key(shape), this), InterfaceExposure.Input(shape, this)(provenance))
   def takeExposureInputs(): Ls[InterfaceExposure.Input] =
-    val inputs = root.exposureInputs.iterator.map:
-      case ((shape, state), provenance) => InterfaceExposure.Input(shape, state)(provenance)
-    .toList
+    val inputs = root.exposureInputs.values.toList
     root.exposureInputs.clear()
     inputs
 
@@ -233,16 +231,69 @@ final class NewResolverState private (
 
   val membersCache: Cache[(Identity[TermShape], Str), MemberLookup] =
     new Cache(inherited.map(_.membersCache), identity)
-  val spreadInputs: Cache[Object, mutable.Set[TermShape]] =
+  // Shape components of cache keys use ShapeIdentity.key, like hosts' candidates.
+  val spreadInputs: Cache[Object, mutable.Set[Any]] =
     new Cache(inherited.map(_.spreadInputs), _.clone())
   val reportedArities: Cache[Object, mutable.Set[Int]] =
     new Cache(inherited.map(_.reportedArities), _.clone())
-  val appShapes: Cache[(CoreTermShape, FlowSymbol), AppShape] =
+  val appShapes: Cache[(Any, FlowSymbol), AppShape] =
     new Cache(inherited.map(_.appShapes), identity)
   val newShapes: Cache[(ClassValueTarget, Ls[Marks], FlowSymbol, Opt[Ls[DeclaredType]]), NewShape] =
     new Cache(inherited.map(_.newShapes), identity)
   val constructorApplications: Seen[(NewShape, TypeSubstitution)] =
     new Seen(inherited.map(_.constructorApplications))
+  // Canonical shapes: inference hosts compare candidates by identity (see
+  // ShapeIdentity), so these are only accessed through `canonical`. Tuple and
+  // record views are keyed by their effective binder substitution, so the same
+  // view has one identity whichever sequence of substitutions produced it.
+  private val tupleShapes: Cache[(Identity[Term], Ls[Any], TypeSubstitution), TupleShape] =
+    new Cache(inherited.map(_.tupleShapes), identity)
+  private val recordShapes: Cache[(Identity[Term.Rcd], Ls[Any], TypeSubstitution), RecordShape] =
+    new Cache(inherited.map(_.recordShapes), identity)
+  private val instanceShapes: Cache[(DeclaredType, Opt[TypeInterfaceReason]), InstanceShape] =
+    new Cache(inherited.map(_.instanceShapes), identity)
+  private val shapeViews: Cache[(Any, TypeSubstitution), NonMarkedShape] =
+    new Cache(inherited.map(_.shapeViews), identity)
+  // Views constructed by this consumer, for growth regressions: cache hits and
+  // adopted imported views are not counted (see canonical).
+  private var allocatedShapeViews: Int = 0
+  private var largestShapeViewSubstitution: Int = 0
+  private def countView[A](substitution: TypeSubstitution)(make: => A): A =
+    if substitution.nonEmpty then
+      root.allocatedShapeViews += 1
+      root.largestShapeViewSubstitution = root.largestShapeViewSubstitution.max(substitution.size)
+    make
+  /** Number of shape views (substituted tuples, records, instances, interface
+    * views, and contextual wrappers) newly constructed in the consuming root. */
+  private[hkmc2] def allocatedShapeViewCount: Int = root.allocatedShapeViews
+  /** The largest binder substitution retained by any of those views. */
+  private[hkmc2] def largestRetainedSubstitution: Int = root.largestShapeViewSubstitution
+  /** Number of activation contexts created by withInstances in the consuming root. */
+  private[hkmc2] def activationContextCount: Int = root.contexts.size
+  /** Activation views share their consumer's hosts, so they must also share its
+    * canonical shapes. As for type instances, adopt an inherited shape before
+    * constructing one, and record either result in the consumer's cache.
+    * A shape built from another unit's syntax is looked up through that syntax's
+    * owning graph, as for named tuple records, so importers reuse the exporter's
+    * shape instead of adding an equal copy to imported hosts.
+    */
+  private def canonical[K, V](origin: Publisher[?] | Null, cache: NewResolverState => Cache[K, V], key: K)(make: => V): V =
+    val graph = if origin == null then null else origin.originalData.owner
+    val state = if graph == null then this else inGraph(graph)
+    cache(root).getOrElseUpdate(key, cache(state).get(key).getOrElse(make))
+  def canonicalTuple(key: (Identity[Term], Ls[Any], TypeSubstitution))(make: => TupleShape): TupleShape =
+    canonical(key._1.value, _.tupleShapes, key)(countView(key._3)(make))
+  def canonicalRecord(key: (Identity[Term.Rcd], Ls[Any], TypeSubstitution))(make: => RecordShape): RecordShape =
+    canonical(key._1.value, _.recordShapes, key)(countView(key._3)(make))
+  def canonicalInstance(tpe: DeclaredType)(make: => InstanceShape): InstanceShape =
+    canonical(tpe.resolution, _.instanceShapes, (tpe, tpe.origin))(countView(tpe.instances)(make))
+  def canonicalView(key: (Any, TypeSubstitution))(make: => NonMarkedShape): NonMarkedShape =
+    canonical(null, _.shapeViews, key)(countView(key._2)(make))
+  // The inferred element type of each array spread (see the tuple listener).
+  private val spreadElements: Cache[Identity[Term], TypeResolution] =
+    new Cache(inherited.map(_.spreadElements), identity)
+  def spreadElementType(spread: Term)(make: => TypeResolution): TypeResolution =
+    canonical(spread, _.spreadElements, new Identity(spread))(make)
   val introShapes: Cache[Identity[IntroTerm], IntroShape] =
     new Cache(inherited.map(_.introShapes), identity)
   val symShapes: Cache[(BlockMemberSymbol, FlowSymbol, Ls[Marks]), CoreSymShape] =
@@ -278,14 +329,61 @@ final class NewResolverState private (
     new Cache(inherited.map(_.selectedTypes), identity)
   // Recorded before elaborating a declaration's members, including in legacy
   // exporters. Nominal interfaces may use any enclosing explicit type binder.
+  // Term definitions record the binders enclosing their definition too, without
+  // their own binders, which every application or specialization binds afresh.
   val lexicalTypeBinders: Cache[AnyDefinitionSymbol, Set[VarSymbol]] =
     new Cache(inherited.map(_.lexicalTypeBinders), identity)
+  // The explicit type binders in scope where a lambda, tuple, record,
+  // application, construction, or pattern target is written. The elaborator records them when
+  // it creates the term, before any listener can build the term's shape, and
+  // binds the term's inference owner at the same time; the resolver reads them
+  // through that owner (see NewResolver.lexicalBinders), so an unowned term is
+  // one that was never recorded. A synthesized record standing in for a tuple's
+  // named fields is recorded by the resolver when it creates the record.
+  private val lexicalTermBinders: Cache[Identity[Term], Set[VarSymbol]] =
+    new Cache(inherited.map(_.lexicalTermBinders), identity)
+  def recordLexicalBinders(term: Term, binders: Set[VarSymbol]): Unit =
+    term.initialData(root)
+    root.lexicalTermBinders(new Identity(term)) = binders
+  private[semantics] def lexicalBindersOf(term: Term): Opt[Set[VarSymbol]] =
+    val graph = term.originalData.owner
+    if graph == null then N else inGraph(graph).lexicalTermBinders.get(new Identity(term))
   // Recorded with lexicalTypeBinders: the resolution scopes enclosing a type
   // definition. Declared members are located at their class's definition.
   val lexicalBoundaries: Cache[AnyDefinitionSymbol, Set[ResolutionBoundary]] =
     new Cache(inherited.map(_.lexicalBoundaries), identity)
   val typeDependencies: Cache[TypeResolution, Set[VarSymbol]] =
     new Cache(inherited.map(_.typeDependencies), identity)
+  // Like typeDependencies, but following the references of synthesized nodes;
+  // N when not fixed by the source graph (see NewResolver.instanceDependencies).
+  val typeInstanceDependencies: Cache[TypeResolution, Opt[Set[VarSymbol]]] =
+    new Cache(inherited.map(_.typeInstanceDependencies), identity)
+  // How many type arguments a type reference receives where it is the base of
+  // a type application, recorded when the application is interpreted. A generic
+  // reference without a record is a bare use. Either is intrinsic to the
+  // reference, so a cached dependency summary of its resolution does not depend
+  // on which traversal reached it first (see NewResolver.dependencies). Read
+  // through the reference's owning graph, like lexicalTermBinders.
+  private val appliedTypeArguments: Cache[Identity[Term], Int] =
+    new Cache(inherited.map(_.appliedTypeArguments), identity)
+  def recordAppliedTypeArguments(base: Term, count: Int): Unit =
+    root.appliedTypeArguments(new Identity(base)) = count
+  private[semantics] def appliedTypeArgumentsOf(base: Term): Opt[Int] =
+    val key = new Identity(base)
+    val graph = base.originalData.owner
+    (if graph == null then N else inGraph(graph).appliedTypeArguments.get(key)).orElse(appliedTypeArguments.get(key))
+  // The scope of the templates that a synthesized inferred-element or
+  // omitted-argument host receives: the binders that reading its values through
+  // a substitution can require, or N when that scope is not known. Recorded by
+  // the resolver when it creates the host, in the host's owning graph.
+  private val templateBinders: Cache[TypeResolution, Opt[Set[VarSymbol]]] =
+    new Cache(inherited.map(_.templateBinders), identity)
+  def recordTemplateBinders(host: TypeResolution, binders: Opt[Set[VarSymbol]]): Unit =
+    host.initialData(root)
+    root.templateBinders(host) = binders
+  private[semantics] def templateBindersOf(host: TypeResolution): Opt[Opt[Set[VarSymbol]]] =
+    val graph = host.originalData.owner
+    if graph == null then N else inGraph(graph).templateBinders.get(host)
   val unguardedTypeDependencies: Cache[TypeResolution, Set[VarSymbol]] =
     new Cache(inherited.map(_.unguardedTypeDependencies), identity)
   val regularTypes: Cache[TypeResolution, Bool] =
@@ -300,12 +398,10 @@ final class NewResolverState private (
     new Seen(inherited.map(_.dependencySubscriptions))
   val quantifiedTypes: Cache[(TypeResolution, Ls[VarSymbol]), TypeResolution] =
     new Cache(inherited.map(_.quantifiedTypes), identity)
-  val instantiatedCallables: Cache[(CallableTypeShape, FlowSymbol, Ls[Marks]), CallableTypeShape] =
+  val instantiatedCallables: Cache[(Any, FlowSymbol, Ls[Marks]), CallableTypeShape] =
     new Cache(inherited.map(_.instantiatedCallables), identity)
   val contextualSymbols: Cache[(CoreSymShape, TypeSubstitution), ContextualSymShape] =
     new Cache(inherited.map(_.contextualSymbols), identity)
-  val shapeViews: Cache[(TermShape, TypeSubstitution), TermShape] =
-    new Cache(inherited.map(_.shapeViews), identity)
   val inferredInstantiations: Seen[(AnyDefinitionSymbol, FlowSymbol, TypeSubstitution, Ls[Marks])] =
     new Seen(inherited.map(_.inferredInstantiations))
   // A scheme is owned by its source definition, or by the original interpretation
@@ -333,7 +429,7 @@ final class NewResolverState private (
     root.fieldProjectionSites.getOrElseUpdate(field, fieldProjectionSites.get(field).getOrElse(
       FlowSymbol.memSym(field)(using owner)))
   private[hkmc2] def instantiateTypeParameters(scheme: AnyDefinitionSymbol | TypeResolution,
-      site: FlowSymbol, parameters: Ls[VarSymbol]): TypeSubstitution =
+      site: FlowSymbol, parameters: Ls[VarSymbol], siteBinders: Opt[Set[VarSymbol]]): TypeSubstitution =
     require(parameters.distinct.length == parameters.length, "A scheme cannot bind a parameter twice")
     val origin = scheme match
       case constructor: ClassCtorSymbol => constructor.associatedCls
@@ -346,7 +442,7 @@ final class NewResolverState private (
       // Construct the complete group without activating constraints. Recursive
       // subscribers may use it only after the cache contains every binder.
       val result = parameters.map: parameter =>
-        new TypeParameterInstance(parameter)(using owner)
+        new TypeParameterInstance(parameter, siteBinders)(using owner)
       root.allocatedTypeInstances += result.length
       TypeSubstitution(result)
     })
@@ -357,9 +453,16 @@ final class NewResolverState private (
     new Cache(inherited.map(_.typeViews), identity)
   val patternTypes: Cache[(Identity[Pattern.Constructor], InnerSymbol), DeclaredType] =
     new Cache(inherited.map(_.patternTypes), identity)
+  // A pattern's unknown output has one source identity across repeated inputs.
+  // Rebuilding its synthetic term on every match would create fresh candidates
+  // in recursive pattern calls, where hosts compare source identities.
+  private val patternOutputs: Cache[Identity[Pattern], UnknownValueShape] =
+    new Cache(inherited.map(_.patternOutputs), identity)
+  def patternOutput(pattern: Pattern)(make: => UnknownValueShape): UnknownValueShape =
+    canonical(pattern, _.patternOutputs, new Identity(pattern))(make)
   // Repeated refinement of one input must reuse its synthesized type hosts.
   // Constructor paths distinguish references to the same captured class.
-  val patternRefinements: Cache[(Identity[Pattern.Constructor], InnerSymbol, Ls[Marks], TermShape), DeclaredType] =
+  val patternRefinements: Cache[(Identity[Pattern.Constructor], InnerSymbol, Ls[Marks], Any), DeclaredType] =
     new Cache(inherited.map(_.patternRefinements), identity)
   val primitiveTypes: Cache[ClassSymbol, DeclaredType] =
     new Cache(inherited.map(_.primitiveTypes), identity)
@@ -373,7 +476,7 @@ final class NewResolverState private (
     new Cache(inherited.map(_.abstractTypes), identity)
   val omittedTypes: Cache[(TypeResolution, VarSymbol), DeclaredType] =
     new Cache(inherited.map(_.omittedTypes), identity)
-  val exposedTypeHoles: Seen[(DeclaredType, TermShape, Ls[Marks])] =
+  val exposedTypeHoles: Seen[(DeclaredType, Any, Ls[Marks])] =
     new Seen(inherited.map(_.exposedTypeHoles))
   val signatureParameters: Cache[VarSymbol, DeclaredType] =
     new Cache(inherited.map(_.signatureParameters), identity)
@@ -401,8 +504,16 @@ final class NewResolverState private (
     root.explicitTypeArguments += symbol
   def hasExplicitTypeArgument(symbol: VarSymbol): Bool =
     root.explicitTypeArguments(symbol) || source.exists(_.hasExplicitTypeArgument(symbol))
-  val typeConstraints: Seen[(DeclaredType, TermShape, Ls[Marks])] =
+  private val typeConstraints: Seen[(DeclaredType, Any, Ls[Marks])] =
     new Seen(inherited.map(_.typeConstraints))
+  /** Whether this constraint is new; values are keyed like inference candidates.
+    * Install each constraint edge before subscribing: callback parameter/result
+    * flow can revisit it immediately. Distinct instantiations retain their marks.
+    */
+  def addTypeConstraint(tpe: DeclaredType, value: TermShape, marks: Ls[Marks]): Bool =
+    typeConstraints.add((tpe, ShapeIdentity.key(value), marks))
+  def hasTypeConstraint(tpe: DeclaredType, value: TermShape, marks: Ls[Marks]): Bool =
+    typeConstraints((tpe, ShapeIdentity.key(value), marks))
   val typeRelations: Seen[(ContextualType, ContextualType)] =
     new Seen(inherited.map(_.typeRelations))
   val typeArgumentArityErrors: Seen[(Identity[TyApp], Int)] =

@@ -76,7 +76,7 @@ final class TypeResolution(val source: Term, report: Ls[(Message, Opt[Loc])] => 
       case sel: Term.NewSel => sel.hasAmbiguousClass
       case _ => false
     if shapes.isEmpty then fail(msg"This type has no resolved target" -> source.toLoc :: Nil)
-    else if ambiguousReceiver || shapes.sizeCompare(1) > 0 then
+    else if ambiguousReceiver || shapes.size > 1 then
       def declarations(resolution: TypeResolution, seen: Set[TypeResolution]): Ls[(Message, Opt[Loc])] =
         if seen(resolution) then Nil else resolution.shapes.toList.flatMap:
           case Nominal(defn) => msg"candidate: ${defn.sym.describeKind}" -> defn.toLoc :: Nil

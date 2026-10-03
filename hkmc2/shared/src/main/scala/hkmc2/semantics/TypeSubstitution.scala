@@ -19,3 +19,5 @@ object TypeSubstitution:
   extension (self: TypeSubstitution)
     def withOverrides(that: TypeSubstitution): TypeSubstitution = self ++ that
     def without(parameters: IterableOnce[VarSymbol]): TypeSubstitution = self -- parameters
+    /** Project a view's support without changing any binder/instance pairing. */
+    def restrictTo(parameters: Set[VarSymbol]): TypeSubstitution = self.filter((binder, _) => parameters(binder))

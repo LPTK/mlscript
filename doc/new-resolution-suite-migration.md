@@ -49,11 +49,11 @@ compilation fixture; mixed-mode imports are supported.
 
 | Compilation suite | New resolution | Legacy resolution | Total |
 | --- | ---: | ---: | ---: |
-| Main | 46 | 4 | 50 |
+| Main | 48 | 3 | 51 |
 | Applications | 18 | 2 | 20 |
 | Nofib | 38 | 1 | 39 |
 | WASM | 1 | 0 | 1 |
-| Total | 103 | 7 | 110 |
+| Total | 105 | 6 | 111 |
 
 `LegacyGenericLibrary` deliberately uses legacy resolution to test mixed-mode
 imports. The other legacy compilation fixtures are listed below. Counts describe
@@ -63,7 +63,6 @@ source configuration, not the number of test cases reported by SBT.
 
 | Fixtures | Remaining work |
 | --- | --- |
-| `FingerTreeList` | New resolution exceeds the compilation time limit around recursive trees and tuple spreads. |
 | `CSP`, `QuoteExample1` | Quasiquote type selections and wildcard-reference lowering are unsupported. |
 | `parsing/Lexer` | Token constructors with trailing `using` parameters need automatic contextual argument insertion. `newres/LexerMigration` reproduces the missing behavior. |
 | `parsing/ParseRule` | Recursive rule inference exceeds the compilation time limit when compiling consumers. Callback inputs exposed by `Iter.mapping` also leave `rule.map` with an unknown receiver. |

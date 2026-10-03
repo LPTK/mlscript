@@ -1,7 +1,8 @@
 package hkmc2
 package utils
 
-import scala.collection.mutable.{ArrayBuffer, LinkedHashSet}
+import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
 
 import hkmc2.utils.*, shorthands.*
 import hkmc2.semantics.{NewResolverState, Symbol}
@@ -9,12 +10,40 @@ import hkmc2.semantics.{NewResolverState, Symbol}
 
 type ShapeListener[-A] = A => NewResolverState ?=> Unit
 
+/** Distinct candidates in publication order, compared by
+  * `semantics.ShapeIdentity.candidateKey`.
+  * TODO: shape keys allocate Identity wrappers; an identity-based set would avoid them.
+  *
+  * Appending while a listener iterates is allowed: `replay` delivers only the
+  * candidates present when it starts, and later ones reach the listener through
+  * notification.
+  */
+final class Candidates[A] extends Iterable[A]:
+  private val keys = mutable.HashSet.empty[Any]
+  private val ordered = ArrayBuffer.empty[A]
+  def add(candidate: A): Bool =
+    val added = keys.add(semantics.ShapeIdentity.candidateKey(candidate))
+    if added then ordered += candidate
+    added
+  def ++=(other: Candidates[A]): Unit = other.ordered.foreach(add)
+  override def size: Int = ordered.size
+  override def knownSize: Int = ordered.size
+  /** The candidates present when iteration starts. */
+  def iterator: Iterator[A] = Iterator.range(0, ordered.size).map(ordered(_))
+  /** Also visits candidates appended by `f`. */
+  override def foreach[U](f: A => U): Unit =
+    var i = 0
+    while i < ordered.size do
+      f(ordered(i))
+      i += 1
+  override def toString: Str = ordered.mkString("{", ", ", "}")
+
 object Publisher:
   private[hkmc2] final class Data[A]:
     private[hkmc2] var owner: NewResolverState | Null = null
     private[hkmc2] var completed = false
     val listeners: ArrayBuffer[ShapeListener[A]] = ArrayBuffer.empty
-    val shapes: LinkedHashSet[A] = LinkedHashSet.empty
+    val shapes: Candidates[A] = Candidates()
     // Pass-local observers never become part of a copied inference graph.
     private val observers: ArrayBuffer[ShapeListener[A]] = ArrayBuffer.empty
     def observe(listener: ShapeListener[A])(using state: NewResolverState): () => Unit =
@@ -55,7 +84,7 @@ object Publisher:
     def replay(listener: ShapeListener[A])(using state: NewResolverState): Unit =
       val candidates = state.local(this).shapes
       // Apply the contextual listener, rather than discard a contextual thunk.
-      candidates.iterator.take(candidates.size).foreach[Unit](shape => listener(shape))
+      candidates.iterator.foreach[Unit](shape => listener(shape))
     def subscribe(listener: ShapeListener[A])(using NewResolverState): Unit =
       addListener(listener)
       replay(listener)
@@ -79,9 +108,9 @@ trait Publisher[A]:
   private[hkmc2] def addShapeListener(listener: ShapeListener[A])(using origin: NewResolverState): Unit =
     inferenceHost.addListener(listener)
 
-  private[hkmc2] def currentShapes(using state: NewResolverState): LinkedHashSet[A] =
+  private[hkmc2] def currentShapes(using state: NewResolverState): Candidates[A] =
     state.data(this).shapes
-  private[hkmc2] def shapes: LinkedHashSet[A] = originalData.shapes
+  private[hkmc2] def shapes: Candidates[A] = originalData.shapes
 
   private[hkmc2] def notifyShapeListeners(shape: A)(using NewResolverState): Unit =
     inferenceHost.notify(shape)

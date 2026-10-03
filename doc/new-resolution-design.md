@@ -178,6 +178,40 @@ disambiguation. Class projections, constructor patterns, and type references req
 known, unambiguous identities. See `newres/Dynamic.mls`, `Records.mls`,
 `SpreadCalls.mls`, and `loose/Targets.mls`.
 
+## Candidate identity
+
+Inference hosts compare candidates with `ShapeIdentity.candidateKey`, never with
+case-class equality: structural hashes traverse nested shapes and the syntax trees
+they refer to, and recomputing them dominated resolution of large recursive
+definitions such as `FingerTreeList`. Most shapes are compared by identity, so
+resolution must construct each one once. Tuples, records, and instances of a
+`DeclaredType` have canonical constructors keyed shallowly by source identity,
+element keys, or type. These are final classes with private constructors and
+read-only extractors; their companion factories intern every instance. They must
+not become case classes: a generated `copy` would bypass the caches and create a
+distinct candidate for an existing shape. `instantiateShape` likewise memoizes views by
+the effective substitution after projecting the ambient one onto the value's
+binder support (see [instance types](new-resolution-type-value-flow.md#shared-bodies-and-contextual-constraints)),
+so equal views reached by different substitution sequences share one identity. These
+caches live in the consumer's root state, since activation views share its hosts,
+and adopt the shape of the unit that owns the source syntax.
+
+Some shapes are keyed without canonical construction. Marked, contextual, and
+activated shapes view an inner shape through a normalized path or a binder
+substitution. Leaf shapes such as unknown and opaque values are determined by their
+source nodes, and nominal, callable, and record interface views by their type-level
+contents. Caches keyed by shapes use the same keys. A shape type added without
+either a canonical constructor or a key makes every rebuilt copy a new candidate,
+which can prevent a recursive flow from reaching its fixed point.
+
+`ShapeIdentity.key` lists the identity-based variants explicitly, so adding a
+shape variant requires choosing its candidate-identity policy.
+
+Instance references retain diagnostic origins on separately interned views of
+the same origin-free reference. These views share its candidate identity, so
+observing a different annotation keeps the correct source witness without
+adding an inference alternative merely because its diagnostic evidence differs.
+
 ## Recursive getter results
 
 Parameterless definition bodies have a shared result host, cached by definition

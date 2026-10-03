@@ -453,7 +453,11 @@ object Elaborator:
           case sym: InnerSymbol =>
             Term.SelfRef(sym)(id)
           case sym: MemberSymbol =>
-            Term.MemberRef(sym)(id, FlowSymbol.memSym(sym))
+            // A reference can invoke a by-name definition, instantiating its
+            // binders at this site (see NewResolver.instantiateByName).
+            val ref = Term.MemberRef(sym)(id, FlowSymbol.memSym(sym))
+            rstate.recordLexicalBinders(ref, ctx.typeBinders)
+            ref
           // case sym: TermSymbol => // FIXME: should never happen... (currently happens for ref to ctor let)
           //   Term.MemberRef(sym)(id)
         else
@@ -469,6 +473,7 @@ object Elaborator:
         val name = new Ident(nme).withLocOf(id)
         if config.language.useNewResolution then
           val res = new Term.NewSel(prefix, name, N)(FlowSymbol.synthSel(nme)).withLocOf(id)
+          rstate.recordLexicalBinders(res, ctx.typeBinders)
           summon[NewResolver].newSel(res)
           res
         else
@@ -480,6 +485,7 @@ object Elaborator:
         // a chained wildcard reference may already have attached this location.
         val prefixes = sources.map(source => source.elem.ref(source.id).withoutLoc.withLocOf(source.id))
         val res = new Term.UnresolvedRef(prefixes, id)(FlowSymbol.synthSel(nme)).withLocOf(id)
+        rstate.recordLexicalBinders(res, ctx.typeBinders)
         summon[NewResolver].unresolvedRef(res)
         res
       def symbol: Opt[Symbol] = N
@@ -883,7 +889,7 @@ extends Importer:
     app(
       Term.Sel(handlerSymbol.ref(callSiteId), mtdTree)(
         S(state.nonLocalRet), FlowSymbol.sel(callSiteId.name), N, S(summon)),
-      Term.Tup(argTerms.map(term => PlainFld(term)))(argTree),
+      withTypeBinders(Term.Tup(argTerms.map(term => PlainFld(term)))(argTree)),
     )(Tree.DummyApp, N, rs)
   
   private def mkNonLocalContinueInvocation(
@@ -1105,7 +1111,7 @@ extends Importer:
       val op = term(ident, Trm)
       val split = term(lhs, Trm).reference: lhs =>
         val mk2 = (rhs: Term) =>
-          val args = Term.Tup(PlainFld(lhs()) :: PlainFld(rhs) :: Nil)(DummyTup)
+          val args = withTypeBinders(Term.Tup(PlainFld(lhs()) :: PlainFld(rhs) :: Nil)(DummyTup))
           app(op, args)(Tree.DummyApp, N, FlowSymbol("‹operator-split›"))
         termSplit(rhss, mk2 andThen mk)
       (ctx, split)
@@ -1213,10 +1219,22 @@ extends Importer:
         Param.simple(sym)
       .toList
     if params.isEmpty then st
-    else Term.Lam(PlainParamList(params)(N), st)
+    else withTypeBinders(Term.Lam(PlainParamList(params)(N), st))
   
-  private def app(lt: Term, rt: Term)(tree: Tree.App, typ: Opt[typing.Type], resSym: FlowSymbol): Term =
-    val res = new Term.App(lt, rt)(tree, typ, resSym)
+  /** Record the explicit type binders in scope where `term` is written, for
+    * new resolution's binder-support analysis (see NewResolver.shapeSupport).
+    * Every lambda, tuple, record, application, construction, and pattern target is recorded
+    * where it is created, before any listener can build its shape: `app` and
+    * `mkNew` install resolution listeners immediately, and a tuple is observed
+    * as soon as the application consuming it is. Legacy-resolution units record
+    * these too, since new-resolution consumers can import their syntax.
+    */
+  private def withTypeBinders[T <: Term](term: T)(using Ctx): T =
+    rstate.recordLexicalBinders(term, ctx.typeBinders)
+    term
+  
+  private def app(lt: Term, rt: Term)(tree: Tree.App, typ: Opt[typing.Type], resSym: FlowSymbol)(using Ctx): Term =
+    val res = withTypeBinders(new Term.App(lt, rt)(tree, typ, resSym))
     if newResolution then listenTerm(lt)(shape => appShape(shape, rt, res))
     res
   
@@ -1261,15 +1279,15 @@ extends Importer:
     def error = Term.Error().withLocOf(tree)
     
     def mkNew(cls: Term, args: Ls[Term], rft: Opt[ClassSymbol -> ObjBody])(typ: Opt[typing.Type]): Term.New =
-      val res = new Term.New(cls, args, rft)(FlowSymbol.neww(), typ).withLocOf(tree)
+      val res = withTypeBinders(new Term.New(cls, args, rft)(FlowSymbol.neww(), typ).withLocOf(tree))
       if newResolution then resolveNew(res)
       res
     
     def elaborateProjection(prefix: Term, cls: Term, name: Ident): Term =
       // The qualifier denotes a class even when its source is a stored constructor.
       // Resolve that interpretation on the qualifier itself, as for explicit `.class`.
-      val qualifier = new Term.NewSel(cls, new Ident("class").withLocOf(cls), N)(FlowSymbol.sel("class")).withLocOf(cls)
-      val res = new Term.NewSel(prefix, name, S(qualifier))(FlowSymbol.selProj(name.name)).withLocOf(tree)
+      val qualifier = withTypeBinders(new Term.NewSel(cls, new Ident("class").withLocOf(cls), N)(FlowSymbol.sel("class")).withLocOf(cls))
+      val res = withTypeBinders(new Term.NewSel(prefix, name, S(qualifier))(FlowSymbol.selProj(name.name)).withLocOf(tree))
       newSel(res)
       interpretRef(res, interp)
 
@@ -1302,7 +1320,7 @@ extends Importer:
         val loc = tree.toLoc.getOrElse(???)
         Term.Lit(StrLit(loc.origin.fileName.toString))
       else if newResolution then
-        val res = new Term.NewSel(preTrm, tree.name, N)(FlowSymbol.sel(tree.name.name)).withLocOf(tree)
+        val res = withTypeBinders(new Term.NewSel(preTrm, tree.name, N)(FlowSymbol.sel(tree.name.name)).withLocOf(tree))
         newSel(res)
         interpretRef(res, interp)
       else
@@ -1426,13 +1444,13 @@ extends Importer:
       val baseInterp = interp match
         case Trm | Receiver | Specialization => Specialization
         case _ => interp
-      val result = Term.TyApp(subterm(lhs, baseInterp), targs.map {
+      val result = withTypeBinders(Term.TyApp(subterm(lhs, baseInterp), targs.map {
         case Modified(kw @ Keywrd(Keyword.`in`), arg) => Term.WildcardTy(S(subterm(arg, Tpe)), N).mkLocWith(kw)
         case Modified(kw @ Keywrd(Keyword.`out`), arg) => Term.WildcardTy(N, S(subterm(arg, Tpe))).mkLocWith(kw)
         case Tup(Modified(in @ Keywrd(Keyword.`in`), arg1) :: Modified(out @ Keywrd(Keyword.`out`), arg2) :: Nil) =>
           Term.WildcardTy(S(subterm(arg1, Tpe)), S(subterm(arg2, Tpe))).mkLocWith(in, out)
         case arg => subterm(arg, Tpe)
-      })(N).withLocOf(tree)
+      })(N).withLocOf(tree))
       // A term specialization must validate its arguments even when unused.
       // Type and constructor interpretations have their own argument checks.
       if newResolution && interp == Trm then listenTerm(result)(_ => ())
@@ -1479,7 +1497,7 @@ extends Importer:
       case Tup(_) =>
         ctx.nest(OuterCtx.LambdaOrHandlerBlock).givenIn:
           val (syms, nestCtx) = funParams(lhs)
-          Term.Lam(syms, term(rhs, Trm)(using nestCtx))
+          withTypeBinders(Term.Lam(syms, term(rhs, Trm)(using nestCtx)))
       case TyTup(tys) =>
         val constraints = tys.flatMap(maybeConstraint)
         val body = term(rhs, interp)
@@ -1494,8 +1512,8 @@ extends Importer:
     case InfixApp(lhs, Keywrd(Keyword.`:`), rhs) =>
       block(Block(tree :: Nil), hasResult = false, resultInterp = interp)._1
     case PrefixApp(kw @ Keywrd(Keyword.`not`), rhs) =>
-      app(State.builtinOpsMap("!").ref(new Ident("not").withLocOf(kw)), Term.Tup(
-        PlainFld(subterm(rhs)) :: Nil)(DummyTup))(DummyApp, N, FlowSymbol("not-app"))
+      app(State.builtinOpsMap("!").ref(new Ident("not").withLocOf(kw)), withTypeBinders(Term.Tup(
+        PlainFld(subterm(rhs)) :: Nil)(DummyTup)))(DummyApp, N, FlowSymbol("not-app"))
     case tree @ InfixApp(lhs, Keywrd(Keyword.`is` | Keyword.`and` | Keyword.`or`), rhs) =>
       ifLike(Keyword.`if`, IfLikeForm.ReturningIf, shorthandSplit(tree), tree.toLoc)
     case InfixApp(Sel(pre, idn: Ident), Keywrd(Keyword.`#`), idp: Ident) =>
@@ -1587,7 +1605,7 @@ extends Importer:
       val lt = subterm(lhs)
       val ot = subterm(op)
       val rts = rhss.map(r => PlainFld(subterm(r)))
-      app(ot, Term.Tup(PlainFld(lt) :: rts)(DummyTup))(
+      app(ot, withTypeBinders(Term.Tup(PlainFld(lt) :: rts)(DummyTup)))(
         DummyApp, N, sym)
     case SynthSel(pre, nme) =>
       val preTrm = subterm(pre)
@@ -1651,20 +1669,20 @@ extends Importer:
           Param.simple(args)
       )(N)
       val rs = FlowSymbol.app()
-      Term.Lam(ps,
+      withTypeBinders(Term.Lam(ps,
         app(
           if newResolution then elaborateProjection(self.ref(), c, nme)
           else Term.SelProj(self.ref(), c, nme)(f, FlowSymbol.selProj(nme.name), N, S(summon)),
           args.ref())(
           App(nme, Tup(Nil)) // FIXME
           , N, rs)
-      )
+      ))
     case tree @ Tup(TermDef(Ins, f, N) :: fs) =>
       Term.CtxTup((f :: fs).map(fld(_, interp)))(tree)
     case Modified(kw @ Keywrd(Keyword.`mut`), tree @ Tup(fields)) =>
-      Term.Mut(Term.Tup(fields.map(fld(_, interp)))(tree)).mkLocWith(kw)
+      Term.Mut(withTypeBinders(Term.Tup(fields.map(fld(_, interp)))(tree))).mkLocWith(kw)
     case tree @ Tup(fields) =>
-      Term.Tup(fields.map(fld(_, interp)))(tree)
+      withTypeBinders(Term.Tup(fields.map(fld(_, interp)))(tree))
       
     case DynamicNew(Apps(c, args)) =>
       val (mut, c2) = c match
@@ -1723,7 +1741,7 @@ extends Importer:
       val scrut = VarSymbol(Ident("caseScrut"), erasedType = N)
       val body = caseSplit(scrut, tree)
       val params = Param.simple(scrut) :: Nil
-      Term.Lam(PlainParamList(params)(N), body).mkLocWith(kw)
+      withTypeBinders(Term.Lam(PlainParamList(params)(N), body)).mkLocWith(kw)
     case PrefixApp(kw @ Keywrd(Keyword.`return`), body) =>
       ctx.getRetHandler match
       case ReturnHandler.Required(sym) =>
@@ -1750,7 +1768,7 @@ extends Importer:
     case PrefixApp(kw @ Keywrd(Keyword.`yield` | Keyword.`yield*`), body) =>
       if ctx.inGenerator then
         val synthIdent = new Tree.Ident(kw.kw.name).withLocOf(kw)
-        app(ident(synthIdent, Trm).get, Term.Tup(PlainFld(subterm(body)) :: Nil)(DummyTup))(DummyApp, N, FlowSymbol("yield"))
+        app(ident(synthIdent, Trm).get, withTypeBinders(Term.Tup(PlainFld(subterm(body)) :: Nil)(DummyTup)))(DummyApp, N, FlowSymbol("yield"))
       else
         raise:
           ErrorReport(msg"Yield expressions are not allowed in this context." -> tree.toLoc :: Nil)
@@ -1798,11 +1816,11 @@ extends Importer:
     case Modified(Keywrd(Keyword.`mut`), body: Block) =>
       blockOrRcd(body, hasResult = true, resultInterp = interp) match
       case (Blk(Nil, Term.UnitVal()), ctx) =>
-        Rcd(mut = true, Nil).withLocOf(body)
+        withTypeBinders(Rcd(mut = true, Nil)).withLocOf(body)
       case (blk: Blk, ctx) =>
         raise(ErrorReport(msg"Expected a record after 'mut' keyword; found a block" -> blk.toLoc :: Nil))
         blk
-      case (rcd: Rcd, ctx) => rcd.copy(mut = true).withLocOf(rcd)
+      case (rcd: Rcd, ctx) => withTypeBinders(rcd.copy(mut = true)).withLocOf(rcd)
     case Modified(kw, body) =>
       raise(ErrorReport(msg"Illegal position for '${kw.name}' modifier." -> kw.toLoc :: Nil))
       subterm(body)
@@ -1820,13 +1838,13 @@ extends Importer:
           val res = go(acc, lhs :: Nil)
           val sym = FlowSymbol.app()
           val fl = Fld(FldFlags.empty, res, N)
-          val ap_ = app(subterm(f), Term.Tup(
-            fl :: args.map(fld(_, Trm)))(tup))(ap, N, sym)
+          val ap_ = app(subterm(f), withTypeBinders(Term.Tup(
+            fl :: args.map(fld(_, Trm)))(tup)))(ap, N, sym)
           go(ap_, trees)
         case (ap @ App(f, tup @ Tup(args))) :: trees =>
           val sym = FlowSymbol.app()
           go(app(subterm(f),
-              Term.Tup(Fld(FldFlags.empty, acc, N) :: args.map(fld(_, Trm)))(tup)
+              withTypeBinders(Term.Tup(Fld(FldFlags.empty, acc, N) :: args.map(fld(_, Trm)))(tup))
             )(ap, N, sym), trees)
         case Block(sts) :: trees =>
           go(acc, sts ::: trees)
@@ -2236,6 +2254,8 @@ extends Importer:
             val isMethod = owner.exists(_.isInstanceOf[ClassSymbol])
             
             val tsym = TermSymbol(k, owner, id) // TODO?
+            // Recorded before the definition's own type parameters enter scope.
+            rstate.lexicalTypeBinders(tsym) = ctx.typeBinders
             
             val tdf = ctx.nest(OuterCtx.NonReturnContext(S(tsym))).givenIn: newCtx ?=>
               // * Add type parameters to context
@@ -2427,11 +2447,14 @@ extends Importer:
                 p.fldSym = S(fsym)
                 fsym.tsym = S(tsym)
                 tsym.defn = S(fdef)
+                // A generated field is written inside its class, like a member.
+                rstate.lexicalTypeBinders(tsym) = ctx.typeBinders
                 fsym.complete()
                 fdef :: Nil
               else
                 val psym = TermSymbol(LetBind, owner, p.sym.id)
                 psym.sourceAliases = p.sym.sourceAliases
+                rstate.lexicalTypeBinders(psym) = ctx.typeBinders
                 val decl = LetDecl(psym, Nil)(p.toLoc) // TODO: never use term symbols on LetDecl LHS
                 val defn = defineVar(psym, p.sym.ref())(p.toLoc)
                 p.fldSym = S(psym)
@@ -2445,6 +2468,7 @@ extends Importer:
                 case _: TypeAliasSymbol => die
               val psym = TermSymbol(LetBind, owner, p.sym.id)
               psym.sourceAliases = p.sym.sourceAliases
+              rstate.lexicalTypeBinders(psym) = ctx.typeBinders
               val decl = LetDecl(psym, Nil)(p.toLoc)
               val defn = defineVar(psym, p.sym.ref())(p.toLoc)
               p.fldSym = S(psym)
@@ -2695,12 +2719,12 @@ extends Importer:
     res
   
   
-  def mkBlk(acc: Ls[Statement], res: Opt[Term], hasResult: Bool): Blk | Rcd =
+  def mkBlk(acc: Ls[Statement], res: Opt[Term], hasResult: Bool)(using Ctx): Blk | Rcd =
     // TODO forbid certain kinds of terms in records
     val isRcd = acc.exists:
       case _: (RcdField | RcdSpread) => true
       case _ => false
-    if isRcd then Term.Rcd(mut = false, (res.toList ::: acc).reverse)
+    if isRcd then withTypeBinders(Term.Rcd(mut = false, (res.toList ::: acc).reverse))
     else Blk(acc.reverse, res.getOrElse:
       if hasResult
         then unit
@@ -2862,7 +2886,10 @@ extends Importer:
         case S(bi) => S(bi.ref(id))
         case N => N
     def constructor(target: Term, arguments: Opt[Ls[Pattern]], source: Tree): Pattern.Constructor =
-      val res = new Constructor(target, arguments)
+      // Constructor tests synthesize nominal interfaces with omitted type
+      // arguments. Record the lexical scope of their bounds before
+      // constructorPattern registers resolution listeners.
+      val res = new Constructor(withTypeBinders(target), arguments)
       if newResolution then res.withLocOf(source)
       constructorPattern(res)
       res

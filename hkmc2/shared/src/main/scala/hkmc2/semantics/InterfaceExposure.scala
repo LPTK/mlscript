@@ -26,7 +26,8 @@ final class InterfaceExposure(resolver: NewResolver)(using NewResolverState, TL)
   private val work = mutable.Queue.empty[() => Unit]
   private val detach = mutable.ArrayBuffer.empty[() => Unit]
   private val watched = mutable.Set.empty[Any]
-  private val exposed = mutable.Set.empty[TermShape]
+  // Keyed by ShapeIdentity.key, like inference hosts' candidates.
+  private val exposed = mutable.Set.empty[Any]
   private val flows = mutable.Map.empty[BlockMemberSymbol, FlowSymbol]
 
   /** Forwarding edges belong to the inference graph. Only the final observer
@@ -47,14 +48,17 @@ final class InterfaceExposure(resolver: NewResolver)(using NewResolverState, TL)
       emit(shape.exit(marks), path)
 
   private def emit(shape: TermShape | NoShape, path: Path)(using NewResolverState): Unit = shape match
-    case shape: TermShape if exposed.add(shape) =>
+    case shape: TermShape if exposed.add(ShapeIdentity.key(shape)) =>
       val current = rstate
       work.enqueue(() => value(shape, path)(using current))
     case _ => ()
 
   private def source(symbol: BlockMemberSymbol): MemberRef =
     val flow = flows.getOrElseUpdate(symbol, FlowSymbol("exposed"))
-    MemberRef(symbol)(new syntax.Tree.Ident(symbol.nme).withLocOf(symbol), flow)
+    val ref: MemberRef = MemberRef(symbol)(new syntax.Tree.Ident(symbol.nme).withLocOf(symbol), flow)
+    // An exported definition is invoked from outside the unit, where no binder is in scope.
+    rstate.recordLexicalBinders(ref, Set.empty)
+    ref
 
   private def member(symbol: BlockMemberSymbol, marks: Ls[Marks], path: Path)(using NewResolverState): Unit =
     if (symbol.getState is rstate.owner) && (symbol.asModOrObj.isDefined || symbol.asTrm.isDefined || symbol.asCls.isDefined) then

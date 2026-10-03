@@ -401,7 +401,7 @@ class CompilerTest extends AnyFunSuite:
     val site = calls.head.lhs match
       case application: Term.TyApp => state.typeApplicationSite(application)
       case _ => fail("Expected an explicit type application")
-    val instance = state.instantiateTypeParameters(definition.tsym, site, parameter :: Nil)(parameter)
+    val instance = state.instantiateTypeParameters(definition.tsym, site, parameter :: Nil, None)(parameter)
     assert(state.allocatedTypeInstanceCount == 1, "Observation must reuse the specialization's binder")
     assert(!parameter.shapes.exists:
       case Marked(_: InstanceShape, _) => true

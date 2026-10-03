@@ -11,11 +11,16 @@ import hkmc2.utils.*, shorthands.*
   */
 class MarksTest extends AnyFunSuite:
   private class Harness:
-    given Elaborator.State = new Elaborator.State
+    given owner: Elaborator.State = new Elaborator.State
+    given NewResolverState = owner.newResolverState
     given DebugPrinter = new DebugPrinter
     given TraceLogger = new TraceLogger:
       override def doTrace: Boolean = false
-    val value = DynShape()
+    // Path normalization needs a value that retains scope exits. Dynamic values
+    // omit those exits because they carry no references into their source scope.
+    val resolution = new TypeResolution(Term.UnitVal(), _ => fail("Unexpected type error"))
+    resolution.publish(TypeShape.Bottom)
+    val value = InstanceShape(DeclaredType(resolution, Map.empty, TypeSubstitution.empty, true)(N))
     val outer = ResolutionBoundary(TermSymbol(Fun, N, Tree.Ident("outer")))
     val left = ResolutionBoundary(TermSymbol(Fun, N, Tree.Ident("left")))
     val right = ResolutionBoundary(TermSymbol(Fun, N, Tree.Ident("right")))
@@ -36,13 +41,14 @@ class MarksTest extends AnyFunSuite:
   test("scope transport agrees with matching activation stacks"):
     val h = new Harness
     import h.given
-    for from <- h.scopes; to <- h.scopes; origin <- h.sites; leaving <- h.sites; arriving <- h.sites do
-      val input = h.value.exit(h.entries(from, origin))
+    for value <- List[TermShape](h.value, DynShape())
+        from <- h.scopes; to <- h.scopes; origin <- h.sites; leaving <- h.sites; arriving <- h.sites do
+      val input = value.exit(h.entries(from, origin))
       val path = h.path(from, to, leaving, arriving)
       // Exiting consumes the entire input stack. A capture matches either site;
       // otherwise different identified activations have disjoint value flow.
       val compatible = from.isEmpty || origin.isEmpty || leaving.isEmpty || origin == leaving
-      val expected = if compatible then h.value.exit(h.entries(to, arriving)) else NoShape
+      val expected = if compatible then value.exit(h.entries(to, arriving)) else NoShape
       assert(input.exit(path) == expected)
       assert(input.exit(h.normalized(path)) == expected)
 
