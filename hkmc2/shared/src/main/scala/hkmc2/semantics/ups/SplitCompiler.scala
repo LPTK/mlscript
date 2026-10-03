@@ -723,11 +723,21 @@ class SplitCompiler(using codegen.Erasure)(using tl: TL)(using State, Ctx, Raise
         // to be a function that takes a diagnostic information generation
         // function.
         val outputSymbol = new LazyScrut()
-        makeMatchSplit(scrutinee, pattern, false)(
-          (_output, _bindings) => alternative, // The output and bindings are discarded.
-          // The place where the diagnostic information should be stored.
-          outputSymbol.toLet(scrutinee(), makeConsequent(outputSymbol, SeqMap.empty) ~~: alternative)
-        )
+        val success = outputSymbol.toLet(scrutinee(), makeConsequent(outputSymbol, SeqMap.empty) ~~: alternative)
+        if alternative.isFull then
+          makeMatchSplit(scrutinee, pattern, false)(
+            (_output, _bindings) => alternative, // The output and bindings are discarded.
+            success)
+        else
+          // An unfinished split means fallthrough, not a committed rejection.
+          // Swapping it into the inner pattern's consequent would let a match
+          // fall through to `success` (notably when a while loop should exit).
+          // Complete both inner outcomes before branching on the match result.
+          val test = Term.SynthIf(makeMatchSplit(scrutinee, pattern, false)(
+            (_output, _bindings) => Split.Else(Term.Lit(Tree.BoolLit(true))),
+            Split.Else(Term.Lit(Tree.BoolLit(false)))))
+          tempLet("negated", test): result =>
+            Branch(result.safeRef, FlatPattern.Lit(Tree.BoolLit(false)), success) ~: alternative
       // Note that we might duplicate the alternative split here.
       case Wildcard() => (makeConsequent, alternative) => makeConsequent(scrutinee, SeqMap.empty) ~~: alternative
       case Literal(literal) => (makeConsequent, alternative) =>
@@ -827,7 +837,7 @@ class SplitCompiler(using codegen.Erasure)(using tl: TL)(using State, Ctx, Raise
           val symbols = pattern.variables.symbols
           val params = parameters.map:
             case (_, parameterSymbol) =>
-              Param(FldFlags.empty, parameterSymbol, N, Modulefulness.none)
+              Param.simple(parameterSymbol)
           val lambdaSymbol = new TempSymbol(N, erasedType = N, "transform")
           // Next, we need to elaborate the pattern into a split. Note that
           // `makeMatchSplit` returns a function that takes a split as the
@@ -836,7 +846,7 @@ class SplitCompiler(using codegen.Erasure)(using tl: TL)(using State, Ctx, Raise
           // consequence split.
           (makeConsequent, alternative) => Split.Let(
             sym = lambdaSymbol,
-            term = Term.Lam(PlainParamList(params), transform.mkClone),
+            term = Term.Lam(PlainParamList(params)(N), transform.mkClone),
             // Declare the lambda function at the outermost level. Even if there
             // are multiple disjunctions in the consequent, we will not need to
             // repeat the `transform` term.
@@ -1106,11 +1116,11 @@ class SplitCompiler(using codegen.Erasure)(using tl: TL)(using State, Ctx, Raise
         val symbols = pattern.variables.symbols
         val params = parameters.map:
           case (_, parameterSymbol) =>
-            Param(FldFlags.empty, parameterSymbol, N, Modulefulness.none)
+            Param.simple(parameterSymbol)
         val lambdaSymbol = new TempSymbol(N, erasedType = N, "transform")
         (makeConsequent, alternative) => Split.Let(
           sym = lambdaSymbol,
-          term = Term.Lam(PlainParamList(params), transform),
+          term = Term.Lam(PlainParamList(params)(N), transform),
           tail = make(
             // Note that the output is not used. Semantically, the `transform`
             // term can only access the matched values by bindings.
@@ -1282,10 +1292,10 @@ class SplitCompiler(using codegen.Erasure)(using tl: TL)(using State, Ctx, Raise
   ): (BlockMemberSymbol, ParamList, Split) =
     val sym = BlockMemberSymbol(name, Nil)
     // Pattern parameters are passed as objects.
-    val patternInputs = patternParameters.map(_.copy(flags = FldFlags.empty))
+    val patternInputs = patternParameters.map(p => p.copy(flags = FldFlags.empty)(p.toLoc))
     // The last parameter is the scrutinee.
-    val scrutParam = Param(FldFlags.empty, scrut, N, Modulefulness.none)
-    val ps = PlainParamList(patternInputs :+ scrutParam)
+    val scrutParam = Param.simple(scrut)
+    val ps = PlainParamList(patternInputs :+ scrutParam)(N)
     (sym, ps, topmost)
   
   /** Translate a list of extractor/matching functions for the given pattern.
@@ -1353,11 +1363,11 @@ class SplitCompiler(using codegen.Erasure)(using tl: TL)(using State, Ctx, Raise
       topmost: Split
   ): Ls[Statement] =
     val fieldSymbol = TempSymbol(N, erasedType = N, name)
-    val decl = LetDecl(fieldSymbol, Nil)
-    val param = Param(FldFlags.empty, scrut, N, Modulefulness.none)
-    val paramList = PlainParamList(param :: Nil)
+    val decl = LetDecl(fieldSymbol, Nil)(N)
+    val param = Param.simple(scrut)
+    val paramList = PlainParamList(param :: Nil)(N)
     val lambda = Term.Lam(paramList, Term.SynthIf(topmost))
-    val defineVar = DefineVar(fieldSymbol, lambda)
+    val defineVar = DefineVar(fieldSymbol, lambda)(N)
     val field = RcdField(str(name), fieldSymbol.safeRef)
     decl :: defineVar :: field :: Nil
   

@@ -1,3 +1,8 @@
+NOTE: This document was written by Codex Astra and has not been deeply reviewed;
+it is not meant to be official documentation and
+is in fact likely to contain parts that are unintelligible to readers who lack sufficient context.
+
+
 # New-resolution implementation invariants
 
 This note describes the resolver's implementation contracts. User-facing rules
@@ -47,6 +52,11 @@ traverses that composition in reverse. A class and its constructor share one
 resolution boundary. Methods capture their enclosing instance scope as well as
 the enclosing function scopes. Alias qualification and structural type-field
 projection introduce no value boundary; modules introduce no invocation boundary.
+
+[Lexical paths in resolution](new-resolution-scopes.md) derives the normal form,
+boundary agreement, and depth bound from walks in the lexical scope tree. It also
+states the endpoint obligations on producers and the separate requirement for
+stable identities in recursive inference graphs.
 
 A normalized mark path contains entries followed by exits, with no repeated
 lexical boundary in either direction. `Shape.scala` enables assertions for this
@@ -202,6 +212,22 @@ the same origin-free reference. These views share its candidate identity, so
 observing a different annotation keeps the correct source witness without
 adding an inference alternative merely because its diagnostic evidence differs.
 
+## Recursive getter results
+
+Parameterless definition bodies have a shared result host, cached by definition
+and generic activation before following the body. Recursive references subscribe
+to that host instead of traversing the body again. An unproductive cycle has no
+normal result candidates; a productive branch publishes candidates through the
+cycle, with the publisher suppressing duplicates. No unknown or dynamic fallback
+is introduced to stop recursion.
+
+The host stores results at the body's lexical endpoint, including their activation
+events. Each reference still applies its own exit and capture marks. Resolver-state
+caches and consumer-local publisher copies preserve this graph across imports
+without sharing mutable inference between consumers. `newres/RecursiveGetters`
+checks cycles, later candidates, captures, generic specializations, imports, and
+runtime getter effects.
+
 ## Normal results of control flow
 
 Resolution must agree with lowering about which expressions produce values.
@@ -218,6 +244,20 @@ Ordinary values select function/constructor overloads; selection receivers selec
 companion modules. Preserve this distinction through nested captures and opens.
 `newres/OverloadedCalls.mls` covers direct, generic, stored-function, module-member,
 and captured uses.
+
+Bare classes can share their name with a function definition that has a parameter
+list. The generated function owns the class reference, so JS uses the existing
+`.class` property for references, selections, and imports. Arbitrary values,
+parameterless functions, and term declarations cannot supply that companion:
+their results may be primitive, aliased, or frozen, and must never be augmented.
+Instance methods cannot supply per-instance companions either, because their
+function objects are shared. Inlining may replace calls to a companion function,
+but must preserve its binding while the class is used. WASM identifies constructor
+functions by their class symbols, separately from explicit function companions.
+Session imports follow the selected definition and cast target, rather than MIR
+`freeVars`, which tracks lexical bindings introduced by `Scoped`. Importing a
+class must not also import its function companion: the two have independent
+signatures and can be shadowed independently in later worksheet blocks.
 
 Foreign declarations expose call and constructor capabilities explicitly.
 The JS backend uses native class values for `new` and patterns without generated

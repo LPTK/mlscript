@@ -56,12 +56,15 @@ class SubstitutionGrowthTest extends AnyFunSuite:
     val dir = os.temp.dir(prefix = "substitution-growth-")
     val file = dir / s"$name.mls"
     os.write(file, source)
+    measure(file)
+
+  private def measure(file: os.Path): Measurement =
     val diagnostics = ArrayBuffer.empty[Diagnostic]
     given Raise = diagnostics += _
     val prelude = cctx.getPrelude(cctx.paths.preludeFile)(using tl, summon[Raise]).ctx
     val artifact = cctx.getElaboratedBlock(file, prelude)(using tl, summon[Raise])
     val errors = diagnostics.collect { case error: ErrorReport => error }
-    assert(errors.isEmpty, s"Unexpected errors in $name:\n${errors.map(_.theMsg).mkString("\n")}")
+    assert(errors.isEmpty, s"Unexpected errors in ${file.baseName}:\n${errors.map(_.theMsg).mkString("\n")}")
     val state = artifact.state.newResolverState
     Measurement(state.allocatedShapeViewCount, state.largestRetainedSubstitution,
       state.activationContextCount, state.allocatedTypeInstanceCount)
@@ -82,6 +85,17 @@ class SubstitutionGrowthTest extends AnyFunSuite:
         assert(m.views <= 2 * k + 4)
         assert(m.activations <= 2 * k + 4)
 
+  // Constructor patterns synthesize omitted type arguments in the pattern's
+  // lexical scope. Missing that scope made recursive FingerTreeList patterns
+  // retain unrelated callers' binders, allocating over 15000 views instead of
+  // about 1400. Allow headroom while checking graph size independently of the
+  // machine-dependent timeout; the .mls tests cover observable behavior.
+  test("FingerTreeList constructor-pattern inference stays bounded"):
+    val m = measure(TestFolders.compileTestDir(os.pwd) / "FingerTreeList.mls")
+    withClue(s"FingerTreeList inference: $m"):
+      assert(m.largestSubstitution <= 4)
+      assert(m.views < 3000)
+
   /** Shapes and instances for the substitution laws below. */
   private class Harness:
     given owner: Elaborator.State = new Elaborator.State
@@ -95,7 +109,7 @@ class SubstitutionGrowthTest extends AnyFunSuite:
     val scheme = new TypeResolution(Term.UnitVal(), _ => fail("Unexpected type error"))
     def binder(name: Str): VarSymbol =
       val symbol = VarSymbol(Tree.Ident(name))
-      symbol.decl = S(TyParam(FldFlags.empty, N, symbol))
+      symbol.decl = S(TyParam(FldFlags.empty, N, symbol)(N))
       symbol
     def instance(binder: VarSymbol): TypeParameterInstance = instanceAt(binder, Set.empty)
     /** An instance of `binder` at a site where `site` are the binders in scope. */
@@ -248,7 +262,7 @@ class SubstitutionGrowthTest extends AnyFunSuite:
       val symbol = TypeAliasSymbol(Tree.Ident("Identity"))
       val member = BlockMemberSymbol("Identity", Nil)
       val body = h.typeOf(formal)
-      symbol.defn = S(TypeDef(symbol, member, List(TyParam(FldFlags.empty, N, formal)), S(body.resolution.source), N, Nil))
+      symbol.defn = S(TypeDef(symbol, member, List(TyParam(FldFlags.empty, N, formal)(N)), S(body.resolution.source), N, Nil)(N))
       // The use is written where B is in scope.
       val use = Term.UnitVal()
       h.state.recordLexicalBinders(use, Set(b))

@@ -19,6 +19,22 @@ sealed trait Shape extends ShapeEvent, ShapeLike:
   def describe: Str
   /** Origin of the value or symbol described by this shape, independently of its use site. */
   def toLoc: Opt[Loc]
+  /** Keep the operation's explanation at its interface witness, after any path
+    * from the observed value to that witness. Wrappers preserve this ordering.
+    * An annotation restricting a value and its class declaration are different
+    * witnesses: interface errors use the annotation, while toLoc identifies the
+    * declaration. Diagnostic witnesses do not change shape equality.
+    */
+  final def diagnostic(message: Message): Ls[(Message, Opt[Loc])] = this match
+    case value: TermShape => value.applicationHead._1 match
+      case view: NominalInstanceView => (message -> view.annotation.flatMap(_.toLoc).orElse(toLoc)) :: Nil
+      case view: ContextualShape => view.source.diagnostic(message)
+      case view: SpecializedShape => view.declaration.diagnostic(message)
+      case unknown: UnknownValueShape => unknown.provenance.diagnostic(message, toLoc)
+      case opaque: OpaqueTypeShape => opaque.provenance.diagnostic(message, toLoc)
+      case rigid: RigidTypeShape => rigid.provenance.diagnostic(message, toLoc)
+      case _ => (message -> toLoc) :: Nil
+    case _: SymShape => (message -> toLoc) :: Nil
   def shwDbg(using DebugPrinter): Str = this match
     // case ds: DefnShape => s"DefnShape(${ds.defn.describe} ${ds.defn.sym.showDbg})"
     case ds: DefnShape => ds.defn.sym.showDbg
@@ -69,17 +85,19 @@ object ShapeIdentity:
     // binder substitution; wrappers do not nest beyond a fixed depth.
     case MarkedShape(base, marks) => (key(base), marks)
     case ContextualShape(source, instances) => (ContextualShape, key(source), instances)
+    // Class selections rebuild their view when a receiver is replayed. Retain
+    // the runtime representation and parent without creating a new candidate.
+    case view: ClassValueShape => (ClassValueShape, view.target, view.parent.map(key))
     // Interface views of types are determined by their type-level contents, like
     // the InstanceShape of a DeclaredType. Each observation of a type in an
     // activation view expands it anew.
     case view: NominalInstanceView => (NominalInstanceView, new Identity(view.defn), view.bindings, view.parent.map(key))
     case callable: CallableTypeShape => (CallableTypeShape, new Identity(callable.source), callable.paramLists,
       callable.result, callable.scheme, callable.supplied, callable.declaration.map(new Identity(_)))
-    case record: RecordTypeShape => (RecordTypeShape, new Identity(record.source),
-      record.fields.map((field, tpe) => (new Identity(field), tpe)), record.bindings, record.positive)
+    case record: RecordTypeShape => (RecordTypeShape, record.fields)
     case specialized: SpecializedShape => (SpecializedShape, key(specialized.declaration),
       specialized.arguments, specialized.instances)
-    case unknown: UnknownValueShape => (UnknownValueShape, new Identity(unknown.source))
+    case unknown: UnknownValueShape => (UnknownValueShape, new Identity(unknown.source), unknown.fromPublicInterface)
     case opaque: OpaqueTypeShape => (OpaqueTypeShape, new Identity(opaque.source))
     case rigid: RigidTypeShape => (RigidTypeShape, rigid.parameter, new Identity(rigid.source))
     case _: DynShape => DynShape
@@ -124,6 +142,7 @@ final case class ResolutionBoundary private (symbol: AnyDefinitionSymbol):
   override def toString: Str = symbol.toString
 object ResolutionBoundary:
   def apply(symbol: AnyDefinitionSymbol): ResolutionBoundary =
+    assert(!symbol.isInstanceOf[TypeAliasSymbol], "Type aliases do not introduce value resolution scopes")
     new ResolutionBoundary(symbol match
       case ctor: ClassCtorSymbol => ctor.associatedCls
       case symbol => symbol)
@@ -140,6 +159,13 @@ private val checkMarkPaths = true
   * Each direction traverses distinct lexical scopes, so recursive calls cannot
   * lengthen a normalized path indefinitely. Debug assertions check this invariant
   * without widening paths.
+  *
+  * A well-scoped walk's adjacent entry/exit steps traverse the same tree edge.
+  * Cancelling them preserves endpoints; a reduced walk only ascends, then
+  * descends. Neither run can revisit a boundary, and its length is bounded by
+  * the sum of the endpoint depths. Producers must preserve those endpoints,
+  * including through qualified type selections and deferred type references.
+  * See doc/new-resolution-scopes.md for the proof and the producer contracts.
   */
 sealed abstract class Marks:
   def showDbg(using DebugPrinter): Str = this match
@@ -367,16 +393,19 @@ enum MemberLookup:
   // Declared members expose signatures only. Their marks transport dependent
   // type arguments; they never authorize reading an implementation's value flow.
   case Declared(member: BlockMemberSymbol, bindings: Map[VarSymbol, DeclaredType], marks: Ls[Marks], annotation: Opt[Term], positive: Bool)
+  // A structural field already has its lexical bindings and intersection applied.
+  case Typed(field: RcdField, tpe: DeclaredType, marks: Ls[Marks])
   // A preceding spread can place several different fields at the same index.
   case Indexed(fields: Ls[TupleShape.Fixed], marks: Ls[Marks])
   case Dynamic(marks: Ls[Marks])
   case Missing
-  case Unknown(reason: MemberLookup.Uncertainty, provenance: ShapeProvenance)
+  case Unknown(reason: MemberLookup.Uncertainty, fromPublicInterface: Bool, provenance: ShapeProvenance)
   
   def withMarks(marks: Ls[Marks]): MemberLookup = this match
     case Contextual(source, instances) => Contextual(source.withMarks(marks), instances)
     case Found(member, inner) => Found(member, inner ::: marks)
     case Declared(member, bindings, inner, annotation, positive) => Declared(member, bindings, inner ::: marks, annotation, positive)
+    case Typed(field, tpe, inner) => Typed(field, tpe, inner ::: marks)
     case Indexed(fields, inner) => Indexed(fields, inner ::: marks)
     case Dynamic(inner) => Dynamic(inner ::: marks)
     case _ => this
@@ -390,7 +419,7 @@ enum MemberLookup:
   def instantiate(instances: TypeSubstitution): MemberLookup =
     if instances.isEmpty then this else this match
       case Contextual(source, previous) => Contextual(source, instances.withOverrides(previous))
-      case Missing | Unknown(_, _) | Dynamic(_) => this
+      case Missing | Unknown(_, _, _) | Dynamic(_) => this
       case _ => Contextual(this, instances)
 
 object MemberLookup:
@@ -434,8 +463,9 @@ class AppShape(val receiver: CoreTermShape, val args: Term, val src: Term.App)(u
   override def toString: String = s"AppShape($receiver, ${args.showDbg})"
   // def target: Opt[AppTarget]
 
-class NewShape(val receiver: DefnShape, val cls: ClassLikeSymbol, val clsMarks: Ls[Marks], val argss: Ls[Term], val src: Term.New,
+class NewShape(val receiver: DefnShape, val classTarget: ClassValueTarget, val clsMarks: Ls[Marks], val argss: Ls[Term], val src: Term.New,
     val supplied: Opt[Ls[DeclaredType]])(using DebugPrinter) extends CoreShape:
+  def cls: ClassSymbol = ClassValueShape.definitionOf(classTarget).sym
   protected def getMemberImpl(name: Str)(using NewResolverState): MemberLookup =
     if isSaturated then receiver.getInstanceMember(name).withMarks(clsMarks)
     else MemberLookup.Missing
@@ -446,6 +476,34 @@ class NewShape(val receiver: DefnShape, val cls: ClassLikeSymbol, val clsMarks: 
     s"instance of ${cls.defn.get.describeRef}"
   override def toString: String = s"NewNewShape(${cls.showDbg}, $argss)"
   def toLoc: Opt[Loc] = src.toLoc
+
+/** A class expression can denote a class directly or recover it from its
+  * generated constructor function. Keep the source definition in the inference
+  * shape so lowering does not need a separate mutable access-mode annotation.
+  */
+type ClassValueTarget = ClassSymbol | ClassCtorSymbol
+
+final case class ClassValueShape(target: ClassValueTarget, parent: Opt[TermShape])
+    extends DefnShape(ClassValueShape.definitionOf(target), parent)
+
+object ClassValueShape:
+  def definitionOf(target: ClassValueTarget): ClassDef = target match
+    case cls: ClassSymbol => cls.defn.get
+    case ctor: ClassCtorSymbol => ctor.associatedCls.defn.get
+
+  /** Read the originating unit's completed interpretation. Later inference must
+    * preserve both the class identity and whether its operand needs unwrapping.
+    */
+  def targetsOf(term: Term): Ls[ClassValueTarget] =
+    def targets(event: ShapeEvent): Ls[ClassValueTarget] = event match
+      case ActivatedShapeEvent(value, _) => targets(value)
+      case MarkedShape(value, _) => targets(value)
+      case ContextualShape(value, _) => targets(value)
+      case SpecializedShape(value, _, _) => targets(value)
+      case shape: NewShape => shape.classTarget :: Nil
+      case shape: ClassValueShape => shape.target :: Nil
+      case _ => Nil
+    term.shapes.toList.flatMap(targets).distinct
 
 sealed abstract class SymShape(val sym: BlockMemberSymbol, val resSym: FlowSymbol, val markss: Ls[Marks]) extends Shape:
   def describe: Str = s"${sym.describe} symbol '${sym.nme}'"
@@ -493,15 +551,17 @@ class BaseShape(val defn: ClassLikeDef, val ext: Opt[TermShape]) extends CoreHea
 
 /** A structural annotation exposes only its declared fields. Their symbols belong
   * to the annotation, not to whichever record happens to be passed by a caller.
+  * Field types are deferred references, including for recursive intersections.
+  * Source declarations are witnesses for diagnostics and property selection, not
+  * part of semantic equality: a merged field may have several such witnesses.
   */
-final case class RecordTypeShape(source: Term.Rcd, fields: Ls[(RcdField, TypeResolution)],
-    bindings: Map[VarSymbol, DeclaredType], positive: Bool) extends CoreHeadShape:
+final case class RecordTypeShape(fields: Map[Str, DeclaredType])(
+    val source: Term.Rcd, val declarations: Map[Str, RcdField]) extends CoreHeadShape:
   def describe: Str = "record type"
   def toLoc: Opt[Loc] = source.toLoc
   protected def getMemberImpl(name: Str)(using NewResolverState): MemberLookup =
-    fields.reverseIterator.collectFirst {
-      case (field, _) if field.sym.nme == name => MemberLookup.Declared(field.sym, bindings, Nil, S(source), positive)
-    }.getOrElse(MemberLookup.Missing)
+    fields.get(name).fold[MemberLookup](MemberLookup.Missing)(tpe =>
+      MemberLookup.Typed(declarations(name), tpe, Nil))
 
 /** An instance described by a type, in either position of a constraint. Keep the
   * type reference intact during transport: expanding it to its current positive
@@ -635,26 +695,29 @@ enum TypeInterfaceReason:
   case Negated(source: Term)
   case Unavailable(source: Term)
 
-  def provenance: ShapeProvenance = ShapeProvenance(this match
-    case MissingOutput(source) =>
-      (msg"This type argument specifies only an input bound." -> source.toLoc) ::
-        (msg"Values read through it have no output bound more specific than 'Any'." -> N) :: Nil
-    case ContravariantParameter(parameter, source) =>
-      (msg"This type argument supplies only an input bound for '${parameter.sym.nme}'." -> source.toLoc) ::
-        (msg"Type parameter '${parameter.sym.nme}' is declared contravariant here." -> parameter.sym.toLoc) ::
-        (msg"Values read through it have no output bound more specific than 'Any'." -> N) :: Nil
-    case Unrestricted(source) =>
-      msg"This type permits values of any type, so no member interface is guaranteed." -> source.toLoc :: Nil
-    case AbstractDeclaration(symbol, source) =>
-      (msg"This type annotation supplies the value's shape." -> source.toLoc) ::
+  def provenance: ShapeProvenance =
+    val result = ShapeProvenance(this match
+      case MissingOutput(source) =>
+        (msg"This type argument specifies only an input bound." -> source.toLoc) ::
+          (msg"Values read through it have no output bound more specific than 'Any'." -> N) :: Nil
+      case ContravariantParameter(parameter, source) =>
+        (msg"This type argument supplies only an input bound for '${parameter.sym.nme}'." -> source.toLoc) ::
+          (msg"Type parameter '${parameter.sym.nme}' is declared contravariant here." -> parameter.sym.toLoc) ::
+          (msg"Values read through it have no output bound more specific than 'Any'." -> N) :: Nil
+      case Unrestricted(source) =>
+        msg"This type permits values of any type, so no member interface is guaranteed." -> source.toLoc :: Nil
+      case AbstractDeclaration(symbol, _) =>
         (msg"Type '${symbol.nme}' is declared without a member interface." -> symbol.toLoc) :: Nil
-    case RecursiveAlias(symbol) =>
-      msg"Following type alias '${symbol.nme}' does not expose a member interface." -> symbol.toLoc :: Nil
-    case Negated(source) =>
-      msg"This negated type does not specify a member interface." -> source.toLoc :: Nil
-    case Unavailable(source) =>
-      msg"No member interface is known for this type." -> source.toLoc :: Nil
-  )
+      case RecursiveAlias(symbol) =>
+        msg"Following type alias '${symbol.nme}' does not expose a member interface." -> symbol.toLoc :: Nil
+      case Negated(source) =>
+        msg"This negated type does not specify a member interface." -> source.toLoc :: Nil
+      case Unavailable(source) =>
+        msg"No member interface is known for this type." -> source.toLoc :: Nil
+    )
+    this match
+      case AbstractDeclaration(_, source) => result.withTypeOrigin(source)
+      case _ => result
 
 /** A type view that authorizes no member operations. The diagnostic reason is
   * excluded from equality so alternative witnesses do not add inference flow.
@@ -665,7 +728,7 @@ final case class OpaqueTypeShape(source: Term)(val reason: TypeInterfaceReason) 
   def toLoc: Opt[Loc] = source.toLoc
   def provenance: ShapeProvenance = reason.provenance
   protected def getMemberImpl(name: Str)(using NewResolverState): MemberLookup =
-    MemberLookup.Unknown(MemberLookup.Uncertainty.ValueShape, provenance)
+    MemberLookup.Unknown(MemberLookup.Uncertainty.ValueShape, false, provenance)
 
 class DefnShape(val defn: Definition, val ext: Opt[TermShape]) extends CoreHeadShape:
   /** Instance lookup is shared by constructor calls and explicit `new`.
@@ -702,10 +765,45 @@ class DefnShape(val defn: Definition, val ext: Opt[TermShape]) extends CoreHeadS
     }'${defn.bsym.nme}'"
   // override def toString: String = s"DefnShape(${defn.describe} ${defn.bsym.nme})"
   override def toString: String = s"DefnShape(${defn.describe})"
+  /** Shape-only counterparts of BufferableTransform's static members. The extra
+    * (buffer, index) list precedes the original method/constructor lists; it must
+    * not consume their arguments or expose instance fields as static members.
+    * These fields are never lowered: their symbols identify the generated names.
+    */
+  private lazy val bufferedMembers: Map[Str, RecordMember] = defn match
+    case cls: ClassDef if cls.annotations.exists(_.isInstanceOf[Annot.Bufferable]) =>
+      given Elaborator.State = cls.sym.getState
+      val state = cls.sym.getState.newResolverState
+      val binders = state.lexicalTypeBinders.get(cls.sym).getOrElse(
+        lastWords(s"Buffered class ${cls.sym.nme} must record its enclosing type binders")) ++ cls.tparams.map(_.sym)
+      // These synthetic functions read the class's parameter annotations and
+      // methods. Record their definition scope in the class's owning graph,
+      // just as elaboration records ordinary lambdas and getter references.
+      def scoped[T <: Term](term: T): T =
+        state.recordLexicalBinders(term, binders)
+        term
+      def field(name: Str, value: Term): (Str, RecordMember) =
+        name -> RecordMember(RcdField(Term.Lit(syntax.Tree.StrLit(name)), value), false)
+      def withBuffer(body: Term): Term =
+        val params = PlainParamList(List("buffer", "index").map: name =>
+          Param.simple(VarSymbol(new syntax.Tree.Ident(name), erasedType = N)))(cls.toLoc)
+        scoped(Term.Lam(params, body))
+      // Constructors return the allocated index after all their original lists.
+      val ctor = (cls.paramsOpt.toList ::: cls.auxParams).foldRight[Term](Term.Lit(syntax.Tree.IntLit(0))):
+        (params, body) => scoped(Term.Lam(params, body))
+      val methods = cls.body.methods.filter(method => method.body.nonEmpty && !method.tsym.isPrivate).map: method =>
+        val ref = scoped(Term.MemberRef(method.bsym)(new syntax.Tree.Ident(method.bsym.nme), FlowSymbol.memSym(method.bsym)))
+        field(method.bsym.nme, withBuffer(ref))
+      (field("size", Term.Lit(syntax.Tree.IntLit(0))) ::
+        field("ctor", withBuffer(ctor)) :: methods).toMap
+    case _ => Map.empty
+
   protected def getMemberImpl(name: Str)(using NewResolverState): MemberLookup =
     defn match
     case defn: ModuleOrObjectDef =>
       MemberLookup.inClass(defn, ext, name)
+    case cls: ClassDef if cls.annotations.exists(_.isInstanceOf[Annot.Bufferable]) =>
+      bufferedMembers.get(name).fold[MemberLookup](MemberLookup.Missing)(MemberLookup.Found(_, Nil))
     case _: TermDefinition => MemberLookup.Missing
     case _ => MemberLookup.Missing
   def toLoc: Opt[Loc] = defn.sym.toLoc
@@ -789,26 +887,43 @@ final case class DynShape() extends CoreHeadShape:
   * locations, and the flattened chain are evaluated only when reporting an error.
   * Discovery retains one witness per reached shape to bound recursive paths.
   */
-final class ShapeProvenance(notes: => Ls[(Message, Opt[Loc])]):
-  lazy val diagnosticNotes: Ls[(Message, Opt[Loc])] = notes
+final class ShapeProvenance private (path: => Ls[(Message, Opt[Loc])], notes: => Ls[(Message, Opt[Loc])],
+    typeOrigin: Opt[Term]):
+  private lazy val pathNotes = path
+  private lazy val originNotes = notes
+  /** A type origin anchors the operation's explanation: first trace the value
+    * back to that annotation, then explain the interface it provides. Without
+    * an annotation witness, report the operation at its fallback location first
+    * and follow it with the reasons the value's shape is unknown.
+    */
+  def diagnostic(message: Message, fallback: Opt[Loc]): Ls[(Message, Opt[Loc])] = typeOrigin match
+    case S(source) => pathNotes ::: (message -> source.toLoc.orElse(fallback)) :: originNotes
+    case N => (message -> fallback) :: pathNotes ::: originNotes
   def via(note: => (Message, Opt[Loc])): ShapeProvenance =
-    ShapeProvenance(note :: diagnosticNotes)
+    new ShapeProvenance(note :: pathNotes, originNotes, typeOrigin)
+  /** Keep the written type restricting this observation separate from the path
+    * through parameters, returns, and storage that led to the observation.
+    */
+  def withTypeOrigin(source: Term): ShapeProvenance =
+    new ShapeProvenance(pathNotes, originNotes, S(source))
 
 object ShapeProvenance:
+  def apply(notes: => Ls[(Message, Opt[Loc])]): ShapeProvenance = new ShapeProvenance(Nil, notes, N)
   val empty = ShapeProvenance(Nil)
 
 /** An unknown input or the element of an opaque or widened spread can be any
-  * value. Keep this alternative in the flow graph so known candidates cannot
-  * silently make an unresolved operation appear to have a static target.
+  * value. Inputs admitted by an exposed interface always require checking, even
+  * when local calls resolve the same selection. Keep that distinction in shape
+  * equality so an ordinary unknown cannot hide the public input's obligation.
   * Provenance is outside case-class equality: another diagnostic witness must
   * not turn the same unknown into a new inference candidate.
   */
-final case class UnknownValueShape(source: Term)(val provenance: ShapeProvenance) extends CoreHeadShape:
+final case class UnknownValueShape(source: Term, fromPublicInterface: Bool)(val provenance: ShapeProvenance) extends CoreHeadShape:
   override def isSelfContained: Bool = true
   def describe: Str = "value of unknown shape"
   def toLoc: Opt[Loc] = source.toLoc
   protected def getMemberImpl(name: Str)(using NewResolverState): MemberLookup =
-    MemberLookup.Unknown(MemberLookup.Uncertainty.ValueShape, provenance)
+    MemberLookup.Unknown(MemberLookup.Uncertainty.ValueShape, fromPublicInterface, provenance)
 
 /** A generic definition must be valid without choosing a caller's type. This
   * checking witness is not an inferred bound on any call-site parameter.
@@ -820,18 +935,16 @@ final case class RigidTypeShape(parameter: VarSymbol, source: Term) extends Core
   def provenance: ShapeProvenance = ShapeProvenance(
     msg"Type parameter '${parameter.nme}' does not specify a member interface." -> parameter.toLoc :: Nil)
   protected def getMemberImpl(name: Str)(using NewResolverState): MemberLookup =
-    MemberLookup.Unknown(MemberLookup.Uncertainty.ValueShape, provenance)
+    MemberLookup.Unknown(MemberLookup.Uncertainty.ValueShape, false, provenance)
 
 object UnknownValueShape:
   def at(source: Term): UnknownValueShape =
-    UnknownValueShape(source)(ShapeProvenance(msg"The shape of this value is unknown." -> source.toLoc :: Nil))
+    UnknownValueShape(source, fromPublicInterface = false)(ShapeProvenance(msg"The shape of this value is unknown." -> source.toLoc :: Nil))
   def spread(source: Term, value: TermShape): UnknownValueShape =
-    UnknownValueShape(source)(ShapeProvenance {
-      val notes = value.applicationHead._1 match
-        case unknown: UnknownValueShape => unknown.provenance.diagnosticNotes
-        case _ => Nil
-      (msg"This spread has no known element shape." -> source.toLoc) :: notes
-    })
+    val origin = value.applicationHead._1 match
+      case unknown: UnknownValueShape => unknown
+      case _ => UnknownValueShape(source, fromPublicInterface = false)(ShapeProvenance.empty)
+    origin.copy(source = source)(origin.provenance.via(msg"This spread has no known element shape." -> source.toLoc))
 
 object TupleShape:
   /** Tuple candidates are compared by identity (see ShapeIdentity), so each
@@ -933,7 +1046,7 @@ final class RecordShape private (val source: Term.Rcd, val elements: Ls[RecordSh
   def toLoc: Opt[Loc] = source.toLoc
   protected def getMemberImpl(name: Str)(using NewResolverState): MemberLookup =
     import MemberLookup.*
-    def unknown(source: Located) = Unknown(Uncertainty.RecordOverwrite,
+    def unknown(source: Located) = Unknown(Uncertainty.RecordOverwrite, false,
       ShapeProvenance(msg"This computed key can overwrite the selected member." -> source.toLoc :: Nil))
     def loop(rest: Ls[RecordShape.Element]): MemberLookup = rest match
       case Nil => Missing
@@ -941,17 +1054,17 @@ final class RecordShape private (val source: Term.Rcd, val elements: Ls[RecordSh
         case Term.Lit(Tree.StrLit(key)) =>
           if key == name then Found(RecordMember(field, source.mut), Nil) else loop(rest)
         case _ => unknown(field.field)
-      case (unknown: RecordShape.Unknown) :: _ => Unknown(Uncertainty.RecordOverwrite, unknown.provenance)
+      case RecordShape.Unknown(shape) :: _ => Unknown(Uncertainty.RecordOverwrite, shape.fromPublicInterface, shape.provenance)
       case RecordShape.Dynamic(marks) :: _ => Dynamic(marks)
       case RecordShape.Spread(shape, marks) :: rest =>
         def spread(info: MemberLookup): Opt[MemberLookup] = info match
           case Contextual(source, instances) => spread(source).map(_.instantiate(instances))
           case Dynamic(inner) => S(Dynamic(inner ::: marks :: Nil))
-          case Unknown(_, provenance) => S(Unknown(Uncertainty.RecordOverwrite, provenance))
+          case Unknown(_, fromPublicInterface, provenance) => S(Unknown(Uncertainty.RecordOverwrite, fromPublicInterface, provenance))
           case Missing => N
           case Found(member: RecordMember, inner) =>
             S(Found(member.copy(mutable = member.mutable || source.mut), inner ::: marks :: Nil))
-          case Found(_: BlockMemberSymbol, _) | Declared(_, _, _, _, _) | Indexed(_, _) =>
+          case Found(_: BlockMemberSymbol, _) | Declared(_, _, _, _, _) | Typed(_, _, _) | Indexed(_, _) =>
             // Record spreads recursively look up RecordShapes, which only create RecordMembers.
             lastWords("Record lookup returned a nominal member")
         spread(shape.getMember(name)).getOrElse(loop(rest))
@@ -981,12 +1094,12 @@ object RecordShape:
   private def elementKey(element: Element): Any = element match
     case Field(field) => (Field, new Identity(field))
     case Spread(shape, marks) => (Spread, ShapeIdentity.key(shape), marks)
-    case Unknown(source) => (Unknown, new Identity(source))
+    case Unknown(shape) => (Unknown, ShapeIdentity.key(shape))
     case Dynamic(marks) => (Dynamic, marks)
   enum Element:
     case Field(field: RcdField)
     case Spread(shape: RecordShape, marks: Marks)
-    case Unknown(source: Term)(val provenance: ShapeProvenance)
+    case Unknown(shape: UnknownValueShape)
     case Dynamic(marks: Ls[Marks])
   export Element.*
 

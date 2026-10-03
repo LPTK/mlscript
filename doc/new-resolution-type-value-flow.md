@@ -1,3 +1,8 @@
+NOTE: This document was written by Codex Astra and has not been deeply reviewed;
+it is not meant to be official documentation and
+is in fact likely to contain parts that are unintelligible to readers who lack sufficient context.
+
+
 # Instance types and parameter constraints
 
 This internal reference describes the current type-flow representation in new
@@ -20,11 +25,16 @@ An ordinary integer argument to `x: A` contributes only a lower bound. For
 neither argument must satisfy the other's type.
 
 If two distinct supplied types `Int` and `Str` reach the same activation of `A`,
-each obligation applies to both. Supplying the single type `Int | Str` instead
-retains that complete type as the negative constraint target. Positive union
-elimination does not justify splitting a negative union into conjunctive obligations.
-Concrete mismatches such as `Str <: Int` can remain quiet during migration; this
-does not permit dropping the corresponding constraints.
+each obligation applies to both. Resolution also approximates an upper union by
+constraining both components: `L <: A | B` propagates into both `A` and `B`. A lower
+intersection contributes every component separately when inspecting its interface
+for constraints: `L1 & L2 <: R` installs both `L1 <: R` and `L2 <: R`.
+For example, `(Int -> Int) & (Str -> Str) <: A -> B` constrains both arrows,
+producing `A <: Int`, `Int <: B`, `A <: Str`, and `Str <: B`.
+These rules collect possible resolution targets without solving
+alternative constraint sets or forming products of intersection candidates.
+They deliberately approximate type inference; concrete incompatibilities such as
+`Str <: Int` do not currently produce resolution diagnostics.
 
 ## Instance wrappers and interface observations
 
@@ -33,6 +43,11 @@ annotations, ascriptions, and annotated fields retain this wrapper until lookup,
 application, or destructuring requests an interface through `listenInstanceViews`.
 The type itself stays in the `TypeResolution`/`TypeShape` graph. A written interface
 restricts observation even when more specific implementation values reach it.
+
+Member lookup merges the fields of record intersections. Constraint inspection
+instead observes each component independently, including through aliases, type
+parameters, and inference holes. The type-view cache distinguishes these two
+observations so inferred arguments cannot change the interface of an annotation.
 
 A `DeclaredType` contains:
 
@@ -130,6 +145,13 @@ parent step preserves the child's binder substitution and the parent's scope
 marks before installing both variance directions. This applies to constructed
 receivers and declared nominal views, including multiple inheritance steps and
 captured enclosing binders (`InheritedTypeArguments.mls`).
+
+A nominal annotation's parent is interpreted inside the subclass instance scope,
+whereas the annotated value and its supplied type arguments are outside it.
+Capture the arguments used by the parent before substitution, and leave the
+subclass scope before applying the value's caller path. `nominalParent` shares
+that exit between ancestor constraints and inherited member lookup. Constructed
+receivers already carry the exit in their constructor context.
 
 ### Substitute at the occurrence before applying argument variance
 
@@ -370,6 +392,11 @@ listeners for future bounds. Delivery before and after edge creation must agree.
 Relation replay adds no candidates, listeners, or parameter instances.
 
 ## Scope transport
+
+See [Lexical paths in resolution](new-resolution-scopes.md) for the scope-tree
+model, reduction proof, and producer obligations. Syntactic captures and qualified
+type selections share `TypeShape.Reference`; both retain the declaration's
+endpoint before the enclosing substitution is applied.
 
 `ContextualType` pairs a reference with an ordinary normalized mark path.
 `transportType` uses the same mark operations as value flow and

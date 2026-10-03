@@ -1,3 +1,4 @@
+:.
 :js
 
 import "../../mlscript-compile/FingerTreeList.mls"
@@ -132,7 +133,7 @@ fun popUntilEmpty(lft, acc) =
     [] then acc
 
 :sjs
-fun popByIndex(start, end, acc, lft) =
+fun popByIndex(start, end, acc, lft: Indexable) =
   if start >= end then acc
   else popByIndex(start + 1, end, [...acc, lft.at(start)], lft)
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————

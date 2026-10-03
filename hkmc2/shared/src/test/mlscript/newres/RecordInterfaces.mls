@@ -28,7 +28,6 @@ opaque(value: {answer: 42})
 //│ ║  l.25: 	private fun opaque[A](fields: {value: A}) = fields.value.answer
 //│ ║        	                                            ^^^^^^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'answer' of a value with unknown shape.
-//│ ╟── This type annotation supplies the value's shape.
 //│ ║  l.25: 	private fun opaque[A](fields: {value: A}) = fields.value.answer
 //│ ║        	                                      ^
 //│ ╟── Type parameter 'A' does not specify a member interface.
@@ -56,12 +55,11 @@ callback(f: x => x.toUpperCase())
 fun expose(): {f: Object -> Int} = {f: x => x.answer}
 expose().f({answer: 1})
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.56: 	fun expose(): {f: Object -> Int} = {f: x => x.answer}
+//│ ║  l.55: 	fun expose(): {f: Object -> Int} = {f: x => x.answer}
 //│ ║        	                                            ^^^^^^^^
 //│ ╟── Value of type 'Object' does not contain member 'answer'
-//│ ║  in ../decls/Prelude.mls
-//│ ║  l.7: 	  fun toString(): Str
-//│ ╙──     	                  ^^^
+//│ ║  l.55: 	fun expose(): {f: Object -> Int} = {f: x => x.answer}
+//│ ╙──      	                  ^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 :expect "ALIAS"

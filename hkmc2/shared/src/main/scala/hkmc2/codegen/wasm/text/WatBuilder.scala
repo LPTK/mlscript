@@ -472,7 +472,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       ctorSym = N,
       k = syntax.Obj,
       paramsOpt = N,
-      auxParams = PlainParamList(Nil) :: Nil,
+      auxParams = PlainParamList(Nil)(N) :: Nil,
       parentPath = N,
       methods = Nil,
       privateFields = Nil,
@@ -879,13 +879,21 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
   private def initFuncSym(sym: BlockMemberSymbol): BlockMemberSymbol =
     initFuncSyms.getOrElseUpdate(sym, BlockMemberSymbol("init", Nil, nameIsMeaningful = false))
 
+  /** Constructors belong to the class definition, not its overloaded term binding.
+    * Using the block member for both would overwrite an explicit function companion.
+    * The class symbol already supplies a stable identity across definitions and imports.
+    */
+  private def constructorSymbol(defn: ClsLikeDefn): BlockMemberSymbol | ClassSymbol = defn.isym match
+    case cls: ClassSymbol => cls
+    case _ => defn.sym
+
   /** Registers a placeholder class-associated function so later lowering can overwrite it. */
   private def predeclareClassFunc(
       defn: ClsLikeDefn,
       suffix: Str,
       params: Seq[WasmSlotSymbol -> SymIdx],
       results: Seq[Result],
-      sym: BlockMemberSymbol,
+      sym: BlockMemberSymbol | ClassSymbol,
       exportName: Opt[Str],
       thisType: Opt[ValType],
   )(using Raise): Unit =
@@ -898,7 +906,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       suffix: Str,
       params: Seq[WasmSlotSymbol -> SymIdx],
       resultTypes: Seq[Result],
-      sym: BlockMemberSymbol,
+      sym: BlockMemberSymbol | ClassSymbol,
       exportName: Opt[Str],
       funcTy: TypeIdx,
   )(using Raise): Unit =
@@ -953,13 +961,17 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
     val ctorExportName = defn.sym
       .optionIf: sym =>
         !(defn.k is syntax.Obj) && sym.nameIsMeaningful
-      .map(_.nme)
+      .map: sym =>
+        // An explicit function companion exports the term under its source name.
+        // Give the constructor its own export so later worksheets can import both.
+        if defn.ctorSym.isEmpty && sym.hasTrmDef then s"mlscript.class:${sym.nme}"
+        else sym.nme
     predeclareClassFunc(
       defn,
       "ctor",
       ctorParams,
       Seq(Result(RefType(typeIdx, nullable = false))),
-      defn.sym,
+      constructorSymbol(defn),
       ctorExportName,
       thisType = N,
     )
@@ -1721,8 +1733,8 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
             errExpr:
               Ls(msg"Plain class references are not supported in Wasm; instantiate the class instead." -> r.toLoc)
           else
-            ctx.getFunc(bms) match
-              case S(funcIdx) => ref.func(funcIdx, RefType(ctx.getFuncTypeUse_!(bms).typeIdx, nullable = false))
+            ctx.getFunc(ExternSymbol.forReference(bms, disamb)) match
+              case S(funcIdx) => ref.func(funcIdx, RefType(ctx.getFuncTypeUse_!(funcIdx).typeIdx, nullable = false))
               case N => getVar(bms, r.toLoc)
     case Value.This(sym) =>
       singletonInfoFor(sym) match
@@ -1815,8 +1827,8 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
                 )
         case N =>
           fun match
-            case Value.MemberRef(l, _) =>
-              val base = ctx.getFunc(l)
+            case Value.MemberRef(l, disamb) =>
+              val base = ctx.getFunc(ExternSymbol.forReference(l, disamb))
               val baseFuncIdx = base match
                 case S(idx) => idx
                 case N => return errExpr(
@@ -1987,7 +1999,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
           s"Expected resolved class for an Instantiate(...) expression to be a BlockMemberSymbol, but got ${
               ctorClsSym.getClass.getName
             }"
-      val ctorFuncIdx = ctx.getFunc(ctorClsBlkSym).getOrElse:
+      val ctorFuncIdx = ctx.getFunc(ctorClsSym.asCls.getOrElse(ctorClsBlkSym)).getOrElse:
         lastWords(s"Missing constructor definition for class ${ctorClsBlkSym.toString}")
       val ctorTypeIdx = ctx.getTypeInfo(ctx.getFuncTypeUse_!(ctorFuncIdx).typeIdx).getOrElse:
         lastWords(s"Missing type definition for class constructor ${ctorClsBlkSym.toString}")
@@ -2235,7 +2247,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
 
                   val result = pss.foldRight(bod):
                     case (ps, block) =>
-                      Return(Lambda(ps, block)(Nil))
+                      Return(Lambda(ps, block)(Nil, N))
                   // Nested functions are not predeclared in `program` - declare them now.
                   // Note that predeclaring functions twice causes an orphaned type to be duplicated in the module.
                   if ctx.getFunc(sym).isEmpty then predeclareTopLevelFun(sym, ps)
@@ -2338,9 +2350,10 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
                     exportName = predeclaredInit.exportName,
                   ))
 
-                  val predeclaredCtor = ctx.getFuncInfo_!(clsLikeDefn.sym)
+                  val ctorSym = constructorSymbol(clsLikeDefn)
+                  val predeclaredCtor = ctx.getFuncInfo_!(ctorSym)
                   val ctorFuncInfo = FuncInfo(
-                    sym = clsLikeDefn.sym,
+                    sym = ctorSym,
                     wrapId = S(clsLikeDefn.sym.nme) -> N,
                     typeUse = predeclaredCtor.typeUse,
                     params = ctorFnCtx.resolvedParams,
@@ -2380,7 +2393,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
 
                   clsLikeDefn.methods.foreach:
                     case FunDefn(_, sym, _, Nil, bod) =>
-                      overwriteMethod(sym, PlainParamList(Nil), bod)
+                      overwriteMethod(sym, PlainParamList(Nil)(N), bod)
                     case FunDefn(_, sym, _, ps :: Nil, bod) =>
                       overwriteMethod(sym, ps, bod)
                     case methodDefn =>
@@ -2397,16 +2410,14 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
                       objectTag = typeinfo.objectTag,
                       rttiTypeInfo = rttiTypeInfo,
                       rttiGlobalExportName = rttiGlobalInfo.exportName.get,
-                      aliasSyms = clsLikeDefn.isym match
-                        case mos: ModuleOrObjectSymbol => mos :: Nil
-                        case _ => Nil,
+                      aliasSyms = clsLikeDefn.isym :: Nil,
                     ))
                     if !isSingletonObj && clsLikeDefn.sym.nameIsMeaningful then
                       summon[SessionExportCtx].emit(SessionFunc(
-                        sym = clsLikeDefn.sym,
+                        sym = ctorSym,
                         wrapId = ctorFuncInfo.wrapId,
                         moduleName = SessionBinding.ReplModuleName,
-                        exportName = clsLikeDefn.sym.nme,
+                        exportName = ctorFuncInfo.exportName.get,
                         funcType = FunctionType(ctorFuncInfo.getSignatureType),
                       ))
                   end if

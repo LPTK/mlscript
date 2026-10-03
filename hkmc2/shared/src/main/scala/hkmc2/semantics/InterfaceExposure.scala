@@ -8,9 +8,11 @@ import hkmc2.Message.MessageContext
 import NewResolverState.Listener
 
 object InterfaceExposure:
+  final case class Input(shape: TermShape, state: NewResolverState)(val provenance: ShapeProvenance)
+
   def isPublic(definition: Definition): Bool =
     !definition.annotations.contains(Annot.Private) && (definition match
-      case td: TermDefinition => (td.k isnt syntax.LetBind) || td.annotations.contains(Annot.Modifier(syntax.Keyword.`public`))
+      case td: TermDefinition => (td.k isnt syntax.LetBind) || td.annotations.contains(Annot.Modifier(syntax.Keyword.`public`)(N))
       case _: TypeDef => false
       case _ => true)
 
@@ -78,8 +80,8 @@ final class InterfaceExposure(resolver: NewResolver)(using NewResolverState, TL)
 
   private def parameter(param: Param, marks: Ls[Marks], path: Path)(using NewResolverState): Unit =
     val ref = SimpleRef(param.sym)(param.sym.id)
-    val unknown = UnknownValueShape(ref)(ShapeProvenance(
-      (msg"Parameter '${param.sym.nme}' admits values of unknown shape." -> param.toLoc) :: path.diagnosticNotes))
+    val unknown = UnknownValueShape(ref, fromPublicInterface = true)(path.via(
+      msg"Parameter '${param.sym.nme}' admits values of unknown shape." -> param.toLoc))
     resolver.parameterSignature(param) match
       case N => resolver.constrainParameter(param, unknown.enter(marks), marks)
       case S(tpe) => unknown.enter(marks) match
@@ -91,8 +93,8 @@ final class InterfaceExposure(resolver: NewResolver)(using NewResolverState, TL)
       params.params.foreach(parameter(_, marks, path))
       params.restParam.foreach: rest =>
         val ref = SimpleRef(rest.sym)(rest.sym.id)
-        val unknown = UnknownValueShape(ref)(ShapeProvenance(
-          (msg"Rest parameter '${rest.sym.nme}' admits elements of unknown shape." -> rest.toLoc) :: path.diagnosticNotes))
+        val unknown = UnknownValueShape(ref, fromPublicInterface = true)(path.via(
+          msg"Rest parameter '${rest.sym.nme}' admits elements of unknown shape." -> rest.toLoc))
         val tuple = TupleShape(ref, TupleShape.Unknown(ref, TupleShape.ValueField(unknown, Nil)) :: Nil)(resolver)
         resolver.constrainParameter(rest, tuple.enter(marks), marks)
 
@@ -170,7 +172,7 @@ final class InterfaceExposure(resolver: NewResolver)(using NewResolverState, TL)
       case callable: CallableTypeShape =>
         // Written structure constrains external values; missing output parts
         // still admit unknown shapes even when local callers supplied evidence.
-        val unknown = UnknownValueShape(callable.source)(path)
+        val unknown = UnknownValueShape(callable.source, fromPublicInterface = true)(path)
         callable.paramLists.foreach: params =>
           (params.params.flatten ::: params.rest.toList).foreach: input =>
             unknown.enter(marks) match
@@ -195,5 +197,13 @@ final class InterfaceExposure(resolver: NewResolver)(using NewResolverState, TL)
         member(symbol, Nil, ShapeProvenance.empty.via(msg"'${symbol.nme}' is exposed by this compilation unit." -> symbol.toLoc))
       values.foreach: value =>
         term(value, Nil, ShapeProvenance.empty.via(msg"This value is exposed by this compilation unit." -> value.toLoc))
-      while work.nonEmpty do work.dequeue()()
+      // Annotated callbacks can escape even from private code. Delay their
+      // exposure until the block is elaborated, so forward definitions and
+      // returned closures are available. Processing one root may discover more.
+      def pending(): Unit = rstate.takeExposureInputs().foreach: input =>
+        emit(input.shape, input.provenance)(using input.state)
+      pending()
+      while work.nonEmpty do
+        work.dequeue()()
+        pending()
     finally detach.reverseIterator.foreach(_())

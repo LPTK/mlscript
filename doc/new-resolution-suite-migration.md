@@ -1,198 +1,164 @@
+NOTE: This document was written by Codex Astra and has not been deeply reviewed;
+it is not meant to be official documentation and
+is in fact likely to contain parts that are unintelligible to readers who lack sufficient context.
+
+
 # New-resolution suite migration
+
+This document must describe only the **current state** of the migration: active
+configuration, remaining work, and validation requirements. Remove obsolete blockers
+and historical progress notes when updating it; Git history records earlier states.
 
 ## Scope and status
 
-This is the worklist for migrating existing worksheets and compilation fixtures
-to new resolution. Language rules live in the [language reference](reference.md#resolution-interfaces);
-resolver invariants and regression coverage live in the
-[resolver design notes](new-resolution-design.md). Backend-specific constraints
-are in [WASM resolution](new-resolution-wasm.md).
+Language rules are in the [language reference](reference.md#resolution-interfaces).
+Resolver invariants are in the [design notes](new-resolution-design.md), and
+backend constraints are in [WASM resolution](new-resolution-wasm.md).
 
-The checked-in worksheet headers give the following status. Counts exclude shared
-`.mls` configurations, new-resolution regression tests, and the 51 files under
-`ucs/staging`, which the test runner excludes.
+The table counts semantic worksheets, following their `:.` and `:..` configuration
+imports. It excludes configuration files, shared declarations, dedicated `newres`
+regressions, root scratch files, parser-only tests, the separate InvalML checker,
+and the inactive `ucs/staging` directory. A migrated worksheet can import a legacy
+compilation fixture; mixed-mode imports are supported.
 
-| Suite | Migrated | Legacy configuration | Active files |
+| Diff-test suite | New resolution | Legacy resolution | Total |
 | --- | ---: | ---: | ---: |
-| basics | 61 | 29 | 90 |
-| codegen | 86 | 39 | 125 |
-| ucs | 52 | 18 | 70 |
-| ups | 49 | 22 | 71 |
-| apps | 13 | 3 | 16 |
-| Total | 261 | 111 | 372 |
-| wasm (separate backend) | 19 | 2 | 21 |
-
-All twelve `apps/parsing` worksheets use new resolution, but some implementation
-modules they import still use legacy resolution. Worksheet migration does not
-imply that its dependencies have been migrated.
+| apps | 17 | 0 | 17 |
+| backlog | 5 | 3 | 8 |
+| basics | 79 | 11 | 90 |
+| block-staging | 4 | 3 | 7 |
+| codegen | 106 | 20 | 126 |
+| ctx | 3 | 10 | 13 |
+| dead-param-elim | 14 | 0 | 14 |
+| deforest | 21 | 0 | 21 |
+| flows | 0 | 7 | 7 |
+| handlers | 9 | 29 | 38 |
+| interop | 10 | 0 | 10 |
+| lifter | 11 | 5 | 16 |
+| meta | 7 | 0 | 7 |
+| nofib | 38 | 0 | 38 |
+| objbuf | 2 | 1 | 3 |
+| opt | 30 | 0 | 30 |
+| std | 8 | 2 | 10 |
+| syntax | 11 | 0 | 11 |
+| tailrec | 4 | 1 | 5 |
+| ucs | 69 | 1 | 70 |
+| ups | 60 | 11 | 71 |
+| wasm | 23 | 0 | 23 |
+| Total | 531 | 104 | 635 |
 
 | Compilation suite | New resolution | Legacy resolution | Total |
 | --- | ---: | ---: | ---: |
-| Main (including quotes, UPS, and regression fixtures) | 28 | 21 | 49 |
-| Applications | 8 | 12 | 20 |
-| Nofib | 12 | 27 | 39 |
-| WASM | 0 | 1 | 1 |
-| Total | 48 | 61 | 109 |
+| Main | 48 | 3 | 51 |
+| Applications | 18 | 2 | 20 |
+| Nofib | 38 | 1 | 39 |
+| WASM | 1 | 0 | 1 |
+| Total | 105 | 6 | 111 |
 
-These totals include the new-resolution `NamedFieldLibrary` regression fixture.
+`LegacyGenericLibrary` deliberately uses legacy resolution to test mixed-mode
+imports. The other legacy compilation fixtures are listed below. Counts describe
+source configuration, not the number of test cases reported by SBT.
 
-## Migration procedure
+## Remaining compilation fixtures
 
-- Start migrated worksheets with `:.` before any blank line. Suite `.mls` files
-  inherit the common `#lang(0.3.x)` configuration through `:..`, including in
-  nested directories. The general suites use non-strict resolution; `newres`
-  enables strict resolution and `newres/loose` explicitly overrides it.
-- Preserve each worksheet's execution flags. The common language configuration
-  disables JS execution; a parser-only test must not acquire runtime execution
-  merely because its resolution configuration changes. WASM has its own flags.
-- Add `#lang(0.3.x)` to compilation fixtures only after checking both standalone
-  compilation and existing consumers. Real files check their exposed interfaces
-  even in non-strict mode. Add the callable, nominal, or structural interfaces
-  their public APIs require. Making a helper private changes the exported API;
-  using `dyn` to bypass a missing interface changes the language contract.
-- Preserve successful results and negative-test intent. Existing invalid
-  operations may need compilation-error expectations in addition to runtime-error
-  expectations. Do not remove an expectation without resolving the intended
-  behavior, or rewrite a callable-constructor test to avoid the feature it tests.
-- Keep blocked files on their existing configuration with their source and
-  goldens intact. Do not add per-file `:todo`, `:fixme`, `:ignore`, or resolution
-  exceptions to claim a port. Use focused regressions for unresolved compiler bugs.
-
-## Remaining work
-
-### Mixed-mode imports and fixture interfaces
-
-Legacy consumers can read completed new-resolution symbols in imported signatures.
-The prelude, `Option`, `apps/parsing/Token`, and `apps/parsing/Keywords` use new
-resolution; all option consumers share `Option`'s constructor identities. Imported
-nodes must not be re-resolved, and erased types must not be queried before erasure.
-Other parser implementation modules retain legacy resolution and need individual
-migration checks even though their worksheets use new resolution.
-
-The remaining option consumers have these blockers when compiled with
-`#lang(0.3.x)`:
-
-| Fixtures | Current blockers |
+| Fixtures | Remaining work |
 | --- | --- |
-| `Block`, `Shape` | Missing nominal members and callback arity mismatches; `Block` also needs a public interface for `showArm`. |
-| `Iter`, `MutMap`, `ups/EvaluationContext` | Missing public parameter interfaces and unresolved member selections. |
-| `parsing/Extension`, `ParseRule`, `Test` | Selections on values imported from legacy-resolution modules, such as `Parser.tracer`, have no resolved target. `TreeHelpers` compiles standalone; its consumers remain to be checked. |
-| `parsing/Lexer` | Opened binary `~` conflicts with the builtin; calls with trailing contextual parameters leave function values where tokens are expected. |
-| `parsing/Parser` | Pattern-field flow and unresolved nominal members. |
-| `parsing/ParseRuleVisualizer`, `Rules`, `parsing-web-demo/main` | Missing host/public interfaces and unresolved selections. |
-| `parsing/Tree` | `JSON.stringify` has no result interface, so selecting `slice` on its result fails. |
+| `CSP`, `QuoteExample1` | Quasiquote type selections and wildcard-reference lowering are unsupported. |
+| `parsing/Lexer` | Token constructors with trailing `using` parameters need automatic contextual argument insertion. `newres/LexerMigration` reproduces the missing behavior. |
+| `parsing/ParseRule` | Recursive rule inference exceeds the compilation time limit when compiling consumers. Callback inputs exposed by `Iter.mapping` also leave `rule.map` with an unknown receiver. |
+| `nofib/sorting` | New resolution exceeds the compilation time limit, including with the required `int_of_char(c: Str)` parameter annotation. |
 
-To reproduce a blocker, temporarily add the language directive to the named
-compilation fixture and run `ctest <name>` or `catest <name>` as appropriate.
-The blocked fixtures retain their existing resolution mode.
+## Remaining worksheet constraints
 
-Many fixtures also need source interfaces: for example, `QuoteExample.bind` calls
-an unannotated callback, and Nofib helpers expose comparators and printers.
-Check each fixture's public API and its consumers when porting it; the source
-headers identify the remaining legacy fixtures.
+Legacy worksheets require more than enabling the language configuration. The
+following constraints identify the current failing behavior and representative tests.
 
-### Shape propagation and capture precision
+- **Contextual calls and module checks:** `basics/CompanionModules_Classes` can
+  produce a function instead of the completed result because implicit `using`
+  arguments are not inserted. Several `ctx` and module worksheets also lose
+  required negative diagnostics. `basics/CyclicModuleForwarders` needs a decision
+  about nominal module-forwarding compatibility. Passing contextual arguments
+  explicitly would bypass the feature these tests exercise.
+- **Constructor and anonymous-object interfaces:** `codegen/ParamClasses`,
+  `basics/ValMemberSymbols`, and `lifter/AnonClasses` exercise constructor members, partially
+  constructed objects, or anonymous refinements that lack the required interfaces.
+  `lifter/PrivateMutableFields` cannot resolve anonymous `new with` expressions.
+- **Mutation and returned shapes:** `codegen/SetStmt` retains an initializer's
+  tuple length after reassignment (`newres/MutationFlow`). `basics/Records` needs
+  callable result precision across branches with different parameter lists.
+  `std/LazyFingerTreeTest` loses the private view interface through slicing helpers;
+  its general slice result also includes finger trees without `materialize`.
+- **Generators:** `codegen/Generators` needs the iterator interface produced by
+  generator lowering. `newres/GeneratorResults` records the unresolved `.next`.
+- **Handlers:** handler-generated receiver and member references remain unresolved
+  in `handlers`, `codegen/ScopedBlocksAndHandlers`, and handler cases in `lifter`.
+  Receiver flow, resumption arguments, and abortive results need distinct handling
+  (`newres/HandlerResults`).
+- **Tail-call annotations and staged functions:** `tailrec/Annots` needs `@tailcall`
+  support for getter references and contains an unresolved handler receiver.
+  `block-staging/Functions` and `codegen/FirstClassFunctionTransform` encounter
+  unfinished generated symbols.
+- **Legacy flow analysis:** the `flows` worksheets run a separate flow pass that
+  does not handle new-resolution selections and can throw on `NewSel` nodes.
+- **Runtime instrumentation and privacy:** `codegen/ObjectMethodDebinding` loses
+  an expected runtime error. `codegen/PrivateMembers` loses privacy diagnostics
+  and required runtime errors. These worksheets must preserve their checks.
+- **Pattern values and transformations:** `ucs/patterns/where`, `ups/MatchResult`,
+  `ups/SimpleTransform`, `std/RenderingTest`, and regex worksheets use pattern
+  values or direct `.unapply`/`.unapplyStringPrefix` access. Range and higher-order
+  transformations lack result interfaces in `ups/examples/Computation` and
+  `ups/examples/ListPredicates`. `ups/examples/EvaluationContext2` and the
+  Hindley–Milner worksheets additionally need recursive member interfaces.
+- **Quasiquotes:** `codegen/Quasiquotes` needs type-selection and generated-reference
+  support. Pattern and quote lowering must preserve source targets and receiver paths.
 
-- **Generators:** `newres/GeneratorResults.mls` records a call whose result is
-  treated as the generator body's return value, leaving `.next` unresolved.
-  Model the iterator result produced by lowering; use `codegen/Generators` as
-  the worksheet acceptance case.
-- **Mutation and control flow:** mutable arrays propagate initializer and write
-  shapes through their element parameter. Position and length tracking is out of
-  scope. [Type-flow design improvements](new-resolution-future-work.md) are deferred:
-  receiver reconstruction, inferred missing member types through nominal views,
-  omitted-argument caller separation, and a more precise regularity check. These
-  do not block the current implementation batch. The reproduced alias/projection
-  termination failures now have fixes and regressions; the remaining
-  [whole-graph convergence audit](new-resolution-future-work.md#whole-graph-convergence-audit)
-  and local allocation/replay bounds are documented in the
-  [type-flow reference](new-resolution-type-value-flow.md#canonical-references-and-termination-obligations).
-  For broader mutation migration, decide how reassignment changes storage's
-  inferred interface, including across worksheet blocks. `newres/MutationFlow.mls`
-  records a reassigned array checked against its initializer's tuple length;
-  accumulating both shapes would still reject valid later indexing.
-  `codegen/SetStmt` needs argument flow through its update callback. Member-variable
-  definitions also need work. Handler inference needs separate flows for the
-  receiver, values passed to resumptions, and abortive results
-  (`newres/HandlerResults.mls` and `codegen/ScopedBlocksAndHandlers`). Review these
-  designs before implementation.
-- **Captured activations:** preserve activation identity through captured
-  functions, constructor aliases, reconstruction of the same class, and partial
-  construction. Existing regressions include `CtxSens`, `ValCtxSens`,
-  `Projections`, `RecursiveEnvironment`, `SpreadCalls`, and `InterfaceExposure`
-  under `newres`. Do not turn unknown shapes into dynamic values or truncate
-  capture paths to make these cases pass.
-- **Exposed nominal results:** `newres/InterfaceExposure.mls` records a returned
-  private class whose callable methods are not checked through its nominal result
-  annotation. Follow declared member interfaces back to their implementations
-  without exposing initializer shapes hidden by annotations.
-- **Cross-block flow:** remaining cases include parameter flow in
-  `basics/MiscArrayTests`, unfinished closures in `codegen/FirstClassFunctionTransform`,
-  and the unresolved receiver in `codegen/ObjectMethodDebinding`. Coordinate
-  cross-block method changes with the separate implementation work before porting.
+Focused coverage for capture identity and nominal interfaces is in `newres/CtxSens`,
+`ValCtxSens`, `Projections`, `RecursiveEnvironment`, `SpreadCalls`, `ScopePaths`,
+`InheritedTypeArguments`, and `InterfaceExposure`. These tests constrain fixes to
+recursive and exposed interfaces; unknown shapes must not silently become dynamic.
+`newres/RecursiveGetters` covers cyclic getter inference, productive results,
+captured and generic activations, imports, and invalid member access.
 
-### Patterns and generated references
+## Migration rules
 
-Complete record, conjunction/negation, string concatenation, guarded and
-transforming pattern flow, and pattern values such as `.unapply`. Representative
-worksheets are `ucs/general/BooleanPatterns`, `ucs/patterns/RecordPattern`,
-`ucs/patterns/String`, `ups/RecursiveTransformations`, and `ups/examples/HindleyMilner`.
-`Char.AnyChar` also loses its string interface before its `length` guard.
+- Load the common language configuration before the first blank line. Most suites
+  use `:.` and a local `.mls` containing `:..`. Lifter worksheets use `:..` for the
+  language configuration and `:.` for their existing lifting flags. Preserve all
+  execution flags. `wasm/Binaryen` imports the parent language configuration with
+  `:..` because it tests JavaScript host tooling rather than the compiler's WASM backend.
+- Add ordinary parameter and result interfaces before attributing a failure to
+  language design. Use shared `Indexable` and `IterableIndexable` aliases from
+  `decls/Prelude`; avoid invariant `Any` arguments and unnecessary casts.
+- Keep host declarations accurate. Array callbacks receive three arguments for
+  `map`/`filter`/`forEach` and four for `reduce`; use `pass1`, `pass2`, or unused
+  rest parameters where appropriate. Static callbacks must retain these arities.
+- Explicitly open names that shadow builtins, including operators and helpers such
+  as `equals`, `render`, and `Symbol`. Use dynamic selectors for deliberate host
+  reflection and undeclared property additions, preserving observable effects.
+  For tests of checked dynamic access, annotate receivers as `dyn` and keep ordinary
+  selections: raw `!` selectors omit checks that these tests need to exercise.
+- Review values and logs as well as test-runner success. A tolerated error or
+  an uncalled function can hide a regression. Existing invalid operations may
+  need compilation-error expectations in addition to runtime-error expectations.
+- Keep blocked worksheets on their existing configuration with their source and
+  goldens intact. Do not add failure suppressions or dynamic escapes to bypass
+  unresolved language features.
+  Reproduce compiler failures in focused `.mls` regressions.
 
-`ucs/examples/EitherOrBoth` and the imported parser implementation expose
-synthetic selections entering new resolution. Generated matcher code should retain
-the source reference's completed target and receiver path through the `Lowering`
-capability, without re-running lookup or cloning listener hosts with no candidates.
-Transfer rules must distinguish matched inputs, bound fields, and transformed
-outputs. Union alternatives, filter conjunctions successively, and avoid inventing
-positive bindings for negation. Recursive patterns need cycle-aware subscriptions
-and demonstrated convergence.
+Host-interface precision still needs work for `Array.concat`, `Array.splice`, and
+`Array.from`. `Array.reduce` without an initial accumulator also needs a signature
+that includes the element type; declared methods cannot overload by arity.
+`newres/MutableArrays` covers the missing insertion constraint for `splice`.
 
-Acceptance coverage should include tuple/record extraction, nested and imported
-constructors, aliases, guards, transformed results, repeated references, and
-recursive UPS matchers. Preserve both runtime results and matcher structure.
-
-### Calls, declarations, and diagnostics
-
-- Implement automatic contextual argument insertion for `Lexer` calls to
-  `Token.integer`, `symbol`, and related APIs with trailing `using` lists.
-  Resolve the opened binary `~`/builtin-operator conflict without removing those APIs.
-- Complete type-argument validation (`basics/GenericClasses`), constructor-value
-  member lookup (`codegen/ParamClasses`, `basics/DynamicInstantiation`), and
-  module/call checks. Decide nominal module-forwarding compatibility for
-  `basics/CyclicModuleForwarders` before changing its expected outcomes.
-- Extend host interfaces where needed: keyword-named `Map.set` and `Reflect.set`,
-  and WebAssembly exports. `Array.reduce` requires an initial value because
-  declared methods cannot be overloaded by arity; the form without one would need
-  an accumulator type that also includes the element type.
-  `Array.concat` currently returns `Array[Any]`; improving precision needs a
-  declared element constraint on its rest arguments. `Array.splice` must separate
-  its optional deletion count from inserted elements before those elements can
-  constrain `T`; `newres/MutableArrays.mls` records the gap.
-- Complete quasiquote type-selection and wildcard-reference lowering (`CSP`,
-  `QuoteExample1`).
-- Preserve source origins in synthesized references and diagnostics. In particular,
-  check the lost undefined-binding use sites in `ups/UpsBugsBacklog` and
-  `ups/syntax/MixedParameters` without changing the selected symbol.
-
-Retry legacy worksheets and compilation fixtures against the current compiler and
-prelude before diagnosing a blocker. Keep deferred fixtures on legacy resolution.
-The WASM fixture `wasm/Wasm.mls` needs interfaces for `WebAssembly.Instance.exports` and its exposed
-`wasmInst.imports` receiver.
-
-## Validation and completion gates
+## Validation
 
 Follow the [repository test workflow](../README.md#running-the-tests-1):
 
-1. Rebuild compilation fixtures before running their worksheet consumers: `ctest`
-   for main fixtures, `catest` for applications, `cntest` for Nofib, and `cwtest`
-   for WASM. In particular, runtime tests need the generated `.mjs` dependencies.
-2. Run affected consumers, including negative cases, and review golden changes.
-   Keep nonmigrated files intact; do not retain trial-generated failures.
-3. Run `hkmc2AllTests/test` for each retained batch. Commit intentional golden
-   updates together with the change, using the agent's identity for agent commits.
-4. Remove legacy suite configurations only after all covered files migrate,
-   without new failure suppressions or lost negative diagnostics.
-
-Update the counts and remaining work after each retained batch. Test totals
-include configurations and regression tests, so they are not migration counts.
+1. Run `ctest` before worksheet tests to regenerate main runtime dependencies.
+   Use `catest`, `cntest`, and `cwtest` for application, Nofib, and WASM fixtures.
+2. Run affected worksheets with `dtest`, `adtest`, `ndtest`, or `wdtest`; inspect
+   all rewritten goldens and retain existing successful results and negative intent.
+3. Run `hkmc2AllTests/test` for the retained changes. Commit the final golden output
+   together with the migration, using the agent's own identity for agent commits.
+4. Update this inventory and remove resolved blockers. Remove legacy configurations
+   only when every covered worksheet can migrate without lost coverage.

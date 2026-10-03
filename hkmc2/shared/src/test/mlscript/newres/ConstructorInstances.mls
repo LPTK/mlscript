@@ -172,7 +172,9 @@ callbacks.push(x => x.extra)
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.171: 	callbacks.push(x => x.extra)
 //│ ║         	                    ^^^^^^^
-//│ ╙── Value of type 'Base' does not contain member 'extra'
+//│ ╟── Value of type 'Base' does not contain member 'extra'
+//│ ║  l.170: 	let callbacks = new mut Array[Base -> Int](0)
+//│ ╙──       	                              ^^^^
 //│ = 1
 //│ callbacks = [fun]
 
@@ -194,9 +196,11 @@ callbacks.push(x => new Child(20))
 private fun first(callback, ...tail) = callback
 first(...callbacks)(new Base).extra
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.195: 	first(...callbacks)(new Base).extra
+//│ ║  l.197: 	first(...callbacks)(new Base).extra
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╙── Value of type 'Base' does not contain member 'extra'
+//│ ╟── Value of type 'Base' does not contain member 'extra'
+//│ ║  l.194: 	let callbacks = new mut Array[Base -> Base](0)
+//│ ╙──       	                                      ^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 //│ callbacks = [fun]
 
@@ -212,17 +216,35 @@ let first = new Box(First(21))
 let second = new Box(Second(22))
 [first.copy().item.first, second.copy().item.second]
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.213: 	[first.copy().item.first, second.copy().item.second]
+//│ ║  l.217: 	[first.copy().item.first, second.copy().item.second]
 //│ ║         	                          ^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── Instance of class 'First' does not contain member 'second'
-//│ ║  l.211: 	let first = new Box(First(21))
-//│ ╙──       	                    ^^^^^^^^^
+//│ ║  l.215: 	let first = new Box(First(21))
+//│ ║         	                    ^^^^^^^^^
+//│ ╟── Cannot resolve member 'second' of a value with unknown shape.
+//│ ╟── Parameter 'item' admits values of unknown shape.
+//│ ║  l.213: 	class Box(val item) with
+//│ ║         	          ^^^^^^^^
+//│ ╟── 'Box' is exposed by this compilation unit.
+//│ ║  l.213: 	class Box(val item) with
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.214: 	  fun copy() = new Box(item)
+//│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.213: 	[first.copy().item.first, second.copy().item.second]
+//│ ║  l.217: 	[first.copy().item.first, second.copy().item.second]
 //│ ║         	 ^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── Instance of class 'Second' does not contain member 'first'
-//│ ║  l.212: 	let second = new Box(Second(22))
-//│ ╙──       	                     ^^^^^^^^^^
+//│ ║  l.216: 	let second = new Box(Second(22))
+//│ ║         	                     ^^^^^^^^^^
+//│ ╟── Cannot resolve member 'first' of a value with unknown shape.
+//│ ╟── Parameter 'item' admits values of unknown shape.
+//│ ║  l.213: 	class Box(val item) with
+//│ ║         	          ^^^^^^^^
+//│ ╟── 'Box' is exposed by this compilation unit.
+//│ ║  l.213: 	class Box(val item) with
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.214: 	  fun copy() = new Box(item)
+//│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 //│ ═══[RUNTIME ERROR] Expected: '[21, 22]', got: 'undefined'
 //│ first = Box(First(21))

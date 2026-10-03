@@ -1,3 +1,8 @@
+NOTE: This document was written by Codex Astra and has not been deeply reviewed;
+it is not meant to be official documentation and
+is in fact likely to contain parts that are unintelligible to readers who lack sufficient context.
+
+
 # Regular structural types and canonical references
 
 This is an internal reference for structural recursion in new resolution. The
@@ -84,11 +89,12 @@ A | (A & Array[A])          = A
 ((A | Int) & Str | Int) & Str = (A | Int) & Str
 ```
 
-`TypeShape.Combined` retains the formula as one type. In particular, supplying a
-union still creates one instance wrapper, and a negative obligation against that
-union stays whole. Member-interface observation can inspect its components, as
-for source unions and intersections. Normalization does not turn one supplied
-union into several independently supplied types.
+`TypeShape.Combined` retains the formula as one type. Supplying a union still
+creates one instance wrapper. Constraint propagation approximates an upper union
+by constraining every component, and observes lower intersection components
+independently. Member lookup still merges record intersection interfaces.
+Normalization itself does not turn one supplied union into several independently
+supplied types.
 
 Formula atoms retain their lexical bindings, canonical binder instances, and
 ordinary marks. Different written references to the same unbound parameter and
@@ -316,7 +322,11 @@ limitations use ordinary `:e` expectations.
 
 `TypeFormulaTest` checks normalization against Boolean truth tables.
 `TypeRelationTest` checks a thousand repeated reductions,
-unchanged binder allocation and source-listener counts, late bounds, whole negative
-union targets, and the loss of caller identity under captured alias rebasing. These
-checks support normalization's local invariants; they do not establish the whole
-resolver's termination argument.
+unchanged binder allocation and source-listener counts, late bounds, independent
+intersection propagation, and the loss of caller identity under captured alias
+rebasing. These checks support normalization's local invariants; they do not
+establish the whole resolver's termination argument.
+
+`newres/FunctionIntersectionConstraints.mls` checks that both function components
+contribute result bounds and contravariant parameter bounds, with eager diagnostics
+also observing each concrete result candidate.

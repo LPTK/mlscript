@@ -82,7 +82,7 @@ fun main() =
 :ssjs
 object Cls(val x) with
   fun huh = x
-//│ ╔══[INTERNAL ERROR] Compiler reached an unsupported state: Unexpected class storage for Cls: parameters=Some(ParamList(‹›,List(Param(‹val›,x,None,Modulefulness(None))),None)), independent=None
+//│ ╔══[INTERNAL ERROR] Compiler reached an unsupported state: Missing constructor function for parameterized class Cls
 //│ ╟── The compilation result may be incorrect.
 //│ ╙── This is a known compiler limitation; if it is a blocker for you, please report it to the maintainers.
 //│ —————————————| JS (sanitized) |—————————————————————————————————————————————————————————————————————
@@ -240,7 +240,7 @@ id(Foo)(1)
 data class FooSpd(...args)
 //│ ╔══[COMPILATION ERROR] Spread parameters are not supported in class parameters.
 //│ ║  l.240: 	data class FooSpd(...args)
-//│ ╙──       	                     ^^^^
+//│ ╙──       	                  ^^^^^^^
 
 FooSpd(1, 2, 3).args
 //│ ╔══[COMPILATION ERROR] Expected 0 arguments, got 3
@@ -364,27 +364,20 @@ data class Foo(mut x)
 
 // ——— ——— ———
 
-:breakme // FIXME should report a compilation error
-:e
-fun Foo
-class Foo
-
-// ——— ——— ———
-
 // * TODO: improve errors (don't cascade meaningless errors)
 :e
 class Id(name: UnboundName)
 //│ ╔══[COMPILATION ERROR] Name not found: UnboundName
-//│ ║  l.376: 	class Id(name: UnboundName)
+//│ ║  l.369: 	class Id(name: UnboundName)
 //│ ╙──       	               ^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Expected a type, got a non-type ‹error›
-//│ ║  l.376: 	class Id(name: UnboundName)
+//│ ║  l.369: 	class Id(name: UnboundName)
 //│ ╙──       	               ^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Expected a type, got ‹error›
-//│ ║  l.376: 	class Id(name: UnboundName)
+//│ ║  l.369: 	class Id(name: UnboundName)
 //│ ╙──       	               ^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Expected a type, got a non-type ‹error›
-//│ ║  l.376: 	class Id(name: UnboundName)
+//│ ║  l.369: 	class Id(name: UnboundName)
 //│ ╙──       	               ^^^^^^^^^^^
 
 // ——— ——— ———

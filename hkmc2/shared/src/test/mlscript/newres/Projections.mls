@@ -14,10 +14,9 @@ read(a) + project(a)
 // The class interpretation is independent of its term overload.
 :expect 7
 class Overloaded { fun get() = 7 }
-val Overloaded = 99
+fun Overloaded() = 99
 (new Overloaded).Overloaded#get()
 //│ = 7
-//│ Overloaded = 99
 
 // Class aliases retain constructor shapes.
 :expect 8
@@ -49,20 +48,20 @@ cell.Cell#value
 :e
 fun missing(a) = a.Later#missing()
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.50: 	fun missing(a) = a.Later#missing()
+//│ ║  l.49: 	fun missing(a) = a.Later#missing()
 //│ ║        	                 ^^^^^^^^^^^^^^^
 //│ ╟── Class 'Later' does not contain member 'missing'
 //│ ║  l.7: 	class Later(val x) { fun get() = x }
-//│ ╙──     	                                 ^
+//│ ╙──     	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 :e
 val NotClass = 1
 fun invalid(a) = a.NotClass#get()
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.60: 	fun invalid(a) = a.NotClass#get()
+//│ ║  l.59: 	fun invalid(a) = a.NotClass#get()
 //│ ║        	                 ^^^^^^^^^^^^^^
 //│ ╟── Integer literal cannot be used as a projection class.
-//│ ║  l.59: 	val NotClass = 1
+//│ ║  l.58: 	val NotClass = 1
 //│ ╙──      	               ^
 //│ NotClass = 1
 
@@ -74,13 +73,13 @@ open Left
 open Right
 fun ambiguous(a) = a.Item#get()
 //│ ╔══[COMPILATION ERROR] The projection class is ambiguous
-//│ ║  l.75: 	fun ambiguous(a) = a.Item#get()
+//│ ║  l.74: 	fun ambiguous(a) = a.Item#get()
 //│ ║        	                    ^^^^^
 //│ ╟── class: 'Item'
-//│ ║  l.72: 	module Right { class Item extends Parent {} }
+//│ ║  l.71: 	module Right { class Item extends Parent {} }
 //│ ║        	                     ^^^^
 //│ ╟── class: 'Item'
-//│ ║  l.71: 	module Left { class Item extends Parent {} }
+//│ ║  l.70: 	module Left { class Item extends Parent {} }
 //│ ╙──      	                    ^^^^
 
 // Forwarded arguments carry shapes through the projected method's result.
@@ -93,13 +92,12 @@ let identity = new Identity
 val apply = Identity::apply
 apply(identity, new Answer).get()
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.94: 	apply(identity, new Answer).get()
+//│ ║  l.93: 	apply(identity, new Answer).get()
 //│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'get' of a value with unknown shape.
-//│ ╟── Rest parameter 'args' admits elements of unknown shape.
-//│ ╟── 'apply' is exposed by this compilation unit.
-//│ ║  l.93: 	val apply = Identity::apply
-//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── The shape of this value is unknown.
+//│ ║  l.92: 	val apply = Identity::apply
+//│ ╙──      	                    ^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 //│ ═══[RUNTIME ERROR] Expected: '17', got: 'undefined'
 //│ apply = fun
@@ -120,44 +118,40 @@ Counter.count
 :expect 21
 fun captured() = {
   class Local { fun get() = 21 }
-  val Local = 0
+  fun Local() = 0
   fun read(value) = value.Local#get()
   read(new Local)
 }
 captured()
 //│ = 21
 
-// Two instances exposing the same class symbol are still ambiguous.
-:e
+// Different wildcard receivers exposing the same class symbol agree on the qualifier.
+:expect [1, 1]
 class Library { class Entry { fun get() = 1 } }
 let first = new Library
 let second = new Library
 open first
 open second
 fun sameClass(value) = value.Entry#get()
-//│ ╔══[COMPILATION ERROR] The projection class is ambiguous
-//│ ║  l.137: 	fun sameClass(value) = value.Entry#get()
-//│ ║         	                            ^^^^^^
-//│ ╟── class: 'Entry'
-//│ ║  l.132: 	class Library { class Entry { fun get() = 1 } }
-//│ ╙──       	                      ^^^^^
+[sameClass(new first.Entry), sameClass(new second.Entry)]
+//│ = [1, 1]
 //│ first = Library { Entry: class Entry }
 //│ second = Library { Entry: class Entry }
 
 :e
 fun missingClass(value) = value.Unknown#get()
 //│ ╔══[COMPILATION ERROR] Cannot resolve the projection class
-//│ ║  l.148: 	fun missingClass(value) = value.Unknown#get()
+//│ ║  l.142: 	fun missingClass(value) = value.Unknown#get()
 //│ ╙──       	                               ^^^^^^^^
 
 :e
 val instance = new Parent
 fun instanceAsClass(value) = value.instance#get()
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.155: 	fun instanceAsClass(value) = value.instance#get()
+//│ ║  l.149: 	fun instanceAsClass(value) = value.instance#get()
 //│ ║         	                             ^^^^^^^^^^^^^^^^^^
 //│ ╟── Instance of class 'Parent' cannot be used as a projection class.
-//│ ║  l.154: 	val instance = new Parent
+//│ ║  l.148: 	val instance = new Parent
 //│ ╙──       	               ^^^^^^^^^^
 //│ instance = Parent
 
@@ -194,10 +188,86 @@ fun invalidAlias(value) = value.AliasToNumber#get()
 val SourceNumber = 123
 val AliasToNumber = SourceNumber
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.193: 	fun invalidAlias(value) = value.AliasToNumber#get()
+//│ ║  l.187: 	fun invalidAlias(value) = value.AliasToNumber#get()
 //│ ║         	                          ^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── Integer literal cannot be used as a projection class.
-//│ ║  l.194: 	val SourceNumber = 123
+//│ ║  l.188: 	val SourceNumber = 123
 //│ ╙──       	                   ^^^
 //│ AliasToNumber = 123
 //│ SourceNumber = 123
+
+// Stored class values with different captures still identify one class declaration.
+:expect [1, 2]
+class CapturedLibrary(val number) {
+  class Entry { fun get() = number }
+}
+let leftLibrary = CapturedLibrary(1)
+let rightLibrary = CapturedLibrary(2)
+fun chooseEntry(flag) = if flag then leftLibrary.Entry.class else rightLibrary.Entry.class
+val classFields = {entry: chooseEntry(true)}
+open classFields
+fun storedProjection(value) = value.entry#get()
+[storedProjection(new leftLibrary.Entry), storedProjection(new rightLibrary.Entry)]
+//│ = [1, 2]
+//│ classFields = {entry: class Entry}
+//│ leftLibrary = CapturedLibrary(1)
+//│ rightLibrary = CapturedLibrary(2)
+
+// The qualifier's outer object must not supply the selected method's result shape.
+:expect 42
+let recordLibrary = CapturedLibrary({answer: 42})
+let scalarLibrary = CapturedLibrary(0)
+val EntryAlias = scalarLibrary.Entry.class
+private fun recordProjection(value) = value.EntryAlias#get().answer
+recordProjection(new recordLibrary.Entry)
+//│ = 42
+//│ EntryAlias = class Entry
+//│ recordLibrary = CapturedLibrary({answer: 42})
+//│ scalarLibrary = CapturedLibrary(0)
+
+// Distinct class symbols remain ambiguous even when both inherit the same method.
+:e
+class OtherEntry extends Parent {}
+private fun chooseClass(flag) = if flag then Parent.class else OtherEntry.class
+let classAlias = chooseClass(true)
+fun ambiguousAlias(value) = value.classAlias#get()
+//│ ╔══[COMPILATION ERROR] The projection class is ambiguous
+//│ ║  l.233: 	fun ambiguousAlias(value) = value.classAlias#get()
+//│ ║         	                                 ^^^^^^^^^^^
+//│ ╟── class: 'OtherEntry'
+//│ ║  l.230: 	class OtherEntry extends Parent {}
+//│ ║         	      ^^^^^^^^^^
+//│ ╟── class: 'Parent'
+//│ ║  l.33: 	class Parent { fun get() = 9 }
+//│ ╙──      	      ^^^^^^
+//│ classAlias = class Parent
+
+// An unknown receiver still exposes the inherited field's declared type.
+:expect 6
+class FieldBase(val item: Int)
+class FieldChild extends FieldBase(5) {}
+fun readInherited(value) = value.FieldChild#item + 1
+readInherited(new FieldChild)
+//│ = 6
+
+// Constructor functions and raw class objects agree on the disambiguating symbol.
+:expect 5
+class Identified(val item)
+let qualifier = Identified
+set qualifier = Identified.class
+fun readMixed(value) = value.qualifier#item
+readMixed(Identified(5))
+//│ = 5
+//│ qualifier = class Identified
+
+// A projection qualifier requires a class interpretation, not a field named class.
+:e
+let recordQualifier = {"class": Parent}
+fun invalidRecordQualifier(value) = value.recordQualifier#get()
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.266: 	fun invalidRecordQualifier(value) = value.recordQualifier#get()
+//│ ║         	                                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Record literal cannot be used as a projection class.
+//│ ║  l.265: 	let recordQualifier = {"class": Parent}
+//│ ╙──       	                       ^^^^^^^^^^^^^^^
+//│ recordQualifier = {class: class Parent}

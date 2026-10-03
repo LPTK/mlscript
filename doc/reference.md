@@ -1406,6 +1406,13 @@ annotations therefore do not always preserve the precision of a wholly unannotat
 parameter. Concrete type-mismatch diagnostics are also incomplete during the
 new-resolution migration.
 
+Type-argument inference approximates a union in an expected type by propagating
+constraints into every component. An intersection in an actual type contributes
+each component separately: `L1 & L2 <: R` installs both `L1 <: R` and `L2 <: R`.
+Resolution uses these approximations to collect member targets without searching
+alternative constraint sets. Ordinary member
+lookup still combines the fields of record intersections.
+
 ### Structural Record Types
 
 ```mlscript

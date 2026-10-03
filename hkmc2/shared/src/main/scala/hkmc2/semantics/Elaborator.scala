@@ -61,12 +61,14 @@ object Elaborator:
     
     /** Functions and instantiated class bodies cross lexical resolution boundaries.
       * Function's NonReturnContext already supplies its boundary, so Function must
-      * not introduce it again. Modules/objects have no per-instance boundary.
+      * not introduce it again. Modules/objects have no per-instance boundary;
+      * type aliases substitute types without entering any value activation.
       * In C's method, referring to the outer C constructor crosses the old instance
       * boundary too. That capture cancels the old instance exit when the method's
       * result is consumed; the fresh constructor exit belongs to the new instance.
       */
     def resolutionBoundary: Opt[AnyDefinitionSymbol] = this match
+      case NonReturnContext(S(_: TypeAliasSymbol)) => N
       case NonReturnContext(sym) => sym
       case InnerScope(sym: ClassSymbol) => S(sym)
       case _ => N
@@ -166,16 +168,19 @@ object Elaborator:
     
     /** Explicit bindings in any enclosing scope take precedence over every wildcard open. */
     def get(name: Str)(using config: Config): Opt[Ctx.Elem] =
-      getExplicit(name).orElse:
+      get(name, config.language.useNewResolution)
+
+    def get(name: Str, captureScopes: Bool)(using config: Config): Opt[Ctx.Elem] =
+      getExplicit(name, captureScopes).orElse:
         if config.language.useNewResolution then
           val sources = visibleWildcardOpens.distinct
           if sources.isEmpty then N else S(Ctx.WildcardElem(name, sources))
         else N
 
-    private def getExplicit(name: Str)(using config: Config): Opt[Ctx.Elem] =
+    private def getExplicit(name: Str, captureScopes: Bool)(using config: Config): Opt[Ctx.Elem] =
       env.get(name).orElse:
-        val inherited = parent.flatMap(_.getExplicit(name))
-        if config.language.useNewResolution then inherited.map(capture)
+        val inherited = parent.flatMap(_.getExplicit(name, captureScopes))
+        if captureScopes then inherited.map(capture)
         else inherited
 
     private def capture(elem: Ctx.Elem): Ctx.Elem =
@@ -328,7 +333,7 @@ object Elaborator:
             case Tree.Modified(_, body) => underlyingTypeDef(body)
             case _ => N
 
-          val stmts = parent.tree.withPart match
+          val stmts = parent.tree.bodies.headOption match
             case S(Tree.Block(stmts)) => stmts
             case _ => Nil
           stmts.flatMap(underlyingTypeDef).collectFirst:
@@ -559,7 +564,7 @@ object Elaborator:
           .getOrElse(lastWords(s"Runtime.mls module '${module.nme}' does not define term '$memberName'."))
 
       val tuple = modOrObj("Tuple")
-      val str = modOrObj("Str")
+      val str = modOrObj("StrOps")
       RuntimeSymbols(
         unit = modOrObj("Unit"),
         loopEnd = modOrObj("LoopEnd"),
@@ -667,7 +672,7 @@ object Elaborator:
       val id = new Ident("NonLocalReturn")
       val sym = ClassSymbol(DummyTypeDef(syntax.Cls), id)
       val bsym = BlockMemberSymbol("ret", Nil, true)
-      val defn = ClassDef(N, syntax.Cls, sym, bsym, N, Nil, Nil, N, ObjBody(Blk(Nil, Term.Lit(UnitLit(false)))), Nil, N, auxCtorParams = Nil)
+      val defn = ClassDef(N, syntax.Cls, sym, bsym, N, Nil, Nil, N, ObjBody(Blk(Nil, Term.Lit(UnitLit(false)))), Nil, N, auxCtorParams = Nil)(N)
       sym.defn = S(defn)
       Term.SynthSel(runtimeSymbol.ref(), id)(S(sym), FlowSymbol.synthSel(id.name), N, N)
     val nonLocalRet =
@@ -752,9 +757,9 @@ extends Importer:
   lazy val illegalMemberNameTail =
     msg"Member names must start with a letter or underscore, followed by letters, digits, or underscores." -> N
     :: Nil
-
-  def mkLetBinding(kw: Tree.Keywrd[?], sym: LocalVarSymbol | TermSymbol, rhs: Term, annotations: Ls[Annot]): Ls[Statement] =
-    LetDecl(sym, annotations).mkLocWith(kw, sym) :: defineVar(sym, rhs) :: Nil
+  
+  def mkLetBinding(sym: LocalVarSymbol | TermSymbol, rhs: Term, annotations: Ls[Annot])(loc: Opt[Loc]): Ls[Statement] =
+    LetDecl(sym, annotations)(loc) :: defineVar(sym, rhs)(loc) :: Nil
   
   // TODO: remove in favor of new resolution logic
   def resolveField(srcTree: Tree, base: Opt[Symbol], nme: Ident): Opt[MemberSymbol] =
@@ -781,12 +786,12 @@ extends Importer:
       | Keyword.`virtual`
       | Keyword.`public`
       | Keyword.`private`
-    )) => S(Annot.Modifier(kw))
+    )) => S(Annot.Modifier(kw)(tree.toLoc))
     case App(Ident("config"), Tup(args)) =>
       val modify = ConfigParser.parseOverrides(args)
-      S(Annot.Config(modify))
+      S(Annot.Config(modify)(tree.toLoc))
     case App(Ident("affine"), Tup(IntLit(whichParamList) :: Nil)) =>
-      S(Annot.Affine(whichParamList.toInt).withLocOf(tree))
+      S(Annot.Affine(whichParamList.toInt)(tree.toLoc))
     case _ => term(tree, Trm) match
       case Term.Error() => N
       case trm =>
@@ -796,24 +801,28 @@ extends Importer:
         case S(sym) =>
           sym match
           case ctx.builtins.annotations.untyped =>
-            return S(Annot.Untyped)
+            return S(Annot.Untyped()(tree.toLoc))
           case ctx.builtins.annotations.tailcall =>
-            return S(Annot.TailCall)
+            return S(Annot.TailCall()(tree.toLoc))
           case ctx.builtins.annotations.tailrec =>
-            return S(Annot.TailRec)
+            return S(Annot.TailRec()(tree.toLoc))
           case ctx.builtins.annotations.inline =>
-            return S(Annot.Inline)
+            return S(Annot.Inline()(tree.toLoc))
           case ctx.builtins.annotations.noInline =>
-            return S(Annot.NoInline)
+            return S(Annot.NoInline()(tree.toLoc))
           case ctx.builtins.annotations.generator =>
-            return S(Annot.Generator)
+            return S(Annot.Generator()(tree.toLoc))
           case ctx.builtins.annotations.async =>
-            return S(Annot.Async)
+            return S(Annot.Async()(tree.toLoc))
+          case ctx.builtins.annotations.buffered =>
+            return S(Annot.Bufferable(false)(tree.toLoc))
+          case ctx.builtins.annotations.bufferable =>
+            return S(Annot.Bufferable(true)(tree.toLoc))
           case ctx.builtins.annotations.pure =>
-            return S(Annot.Pure)
+            return S(Annot.Pure()(tree.toLoc))
           case _ => ()
         case _ => ()
-        S(Annot.Trm(trm))
+        S(Annot.Trm(trm)(tree.toLoc))
   
   private final case class EffectHandlerMethodSpec(
       methodName: Str,
@@ -852,7 +861,7 @@ extends Importer:
         Fun,
         mtdSym,
         tsym,
-        PlainParamList(valueSym.fold(Nil)(sym => Param(FldFlags.empty, sym, N, Modulefulness.none) :: Nil)) :: Nil,
+        PlainParamList(valueSym.fold(Nil)(sym => Param.simple(sym) :: Nil))(N) :: Nil,
         N,
         N,
         S(spec.methodBody(valueSym)),
@@ -860,7 +869,7 @@ extends Importer:
         Modulefulness.none,
         Nil,
         N,
-      )
+      )(N)
       mtdSym.tsym = S(tsym)
       tsym.defn = S(td)
       HandlerTermDefinition(resumeSym, td)
@@ -904,8 +913,8 @@ extends Importer:
     if methods.isEmpty then body else
       mkEffectHandleAbortive(nonLocalHandlerSym, "NonLocalLabelEffect", methods, body)
   
-  /** A scrutinee is a function that returns a reference to the symbol. */
-  private type Reference = () => Term.Ref
+  /** A scrutinee reference retains captures until its pattern has been resolved. */
+  private type Reference = () => Term
   
   private type Connective = `do`.type | `then`.type
   
@@ -974,10 +983,16 @@ extends Importer:
       // case _ => ???
     Head.Let(binding, term)
   
-  protected def mkMatch(scrutinee: Term.Ref, pattern: Pattern, consequent: SimpleSplit) =
+  protected def mkMatch(scrutinee: Term, pattern: Pattern, consequent: SimpleSplit) =
     log(s"mkMatch: scrutinee = ${scrutinee.showDbg}, pattern = ${pattern.showDbg}, consequent = ${consequent.showDbg}")
     matchScrutPat(scrutinee, pattern)
-    Head.Match(scrutinee, pattern, consequent)
+    // Captures carry the scope crossings needed to resolve extracted bindings,
+    // but matching the value at runtime only needs the underlying reference.
+    val ref = scrutinee.withoutCaptures match
+      case ref: Term.Ref => ref
+      case ref: (Term.SimpleRef | Term.SelfRef) => ref.sym.ref().withLocOf(scrutinee)
+      case _ => lastWords("A pattern scrutinee must be a reference")
+    Head.Match(ref, pattern, consequent)
   
   /** Elaborate shorthand expressions. */
   protected def shorthandSplit(tree: Tree)(using UnderCtx): Ctxl[SimpleSplit] =
@@ -1149,10 +1164,13 @@ extends Importer:
       term match
         // If the term is already a reference, we can re-reference its symbol.
         case Term.Ref(symbol) => continuation(() => symbol.ref().withLocOf(term))
-        // Otherwise, we need to create a temporary symbol holding the term.
-        case term: Term =>
-          val symbol = TempSymbol(N, erasedType = N, "scrut")
-          mkSplitLet(symbol, term) ~: continuation(() => symbol.ref())
+        // New references may carry lexical captures with no runtime evaluation.
+        case _ => term.withoutCaptures match
+          case _: Term.SimpleRef | _: Term.SelfRef => continuation(() => term)
+          // Member references can invoke getters; evaluate those only once.
+          case _ =>
+            val symbol = TempSymbol(N, erasedType = N, "scrut")
+            mkSplitLet(symbol, term) ~: continuation(() => symbol.ref())
   
   private type TT = (Tree, Tree)
   
@@ -1198,14 +1216,14 @@ extends Importer:
     given UnderCtx = new UnderCtx(S(unders))
     val st = subterm(tree, interp)
     val params = unders.iterator.map: sym =>
-        Param(FldFlags.empty, sym, N, Modulefulness.none)
+        Param.simple(sym)
       .toList
     if params.isEmpty then st
-    else withTypeBinders(Term.Lam(PlainParamList(params), st))
+    else withTypeBinders(Term.Lam(PlainParamList(params)(N), st))
   
   /** Record the explicit type binders in scope where `term` is written, for
     * new resolution's binder-support analysis (see NewResolver.shapeSupport).
-    * Every lambda, tuple, record, application, and construction is recorded
+    * Every lambda, tuple, record, application, construction, and pattern target is recorded
     * where it is created, before any listener can build its shape: `app` and
     * `mkNew` install resolution listeners immediately, and a tuple is observed
     * as soon as the application consuming it is. Legacy-resolution units record
@@ -1227,6 +1245,7 @@ extends Importer:
     if newResolution then
       listenTerm(lhs)(_ => ())
       assignArrayElement(lhs, rhs)
+      assignVariable(lhs, rhs)
     Term.Assgn(lhs, rhs)
 
   def ifLike(kw: Keyword.SplitLike, form: IfLikeForm, split: SimpleSplit, loc: Opt[Loc]): Term.IfLike =
@@ -1265,7 +1284,10 @@ extends Importer:
       res
     
     def elaborateProjection(prefix: Term, cls: Term, name: Ident): Term =
-      val res = withTypeBinders(new Term.NewSel(prefix, name, S(cls))(FlowSymbol.selProj(name.name)).withLocOf(tree))
+      // The qualifier denotes a class even when its source is a stored constructor.
+      // Resolve that interpretation on the qualifier itself, as for explicit `.class`.
+      val qualifier = withTypeBinders(new Term.NewSel(cls, new Ident("class").withLocOf(cls), N)(FlowSymbol.sel("class")).withLocOf(cls))
+      val res = withTypeBinders(new Term.NewSel(prefix, name, S(qualifier))(FlowSymbol.selProj(name.name)).withLocOf(tree))
       newSel(res)
       interpretRef(res, interp)
 
@@ -1277,26 +1299,32 @@ extends Importer:
       app(lt, rt)(tree, N, sym)
     
     def elaborateSelection(tree: Sel): Term =
-      val preTrm = subterm(tree.prefix, Receiver)
-      if newResolution then
+      // `.class` chooses the class overload before requesting a receiver value.
+      // Interpreting C as a receiver first would also select its companion.
+      val preTrm = subterm(tree.prefix, if newResolution && tree.name.name == "class" then Clss else Receiver)
+      // `source` has no runtime object. Recognize its statically named fields
+      // before constructing a runtime selection, in either resolution mode.
+      // Compare symbols so a user-defined binding named `source` stays ordinary.
+      val sym = if newResolution then preTrm.withoutCaptures match
+        case Term.MemberRef(bms) if bms === ctx.builtins.source.bms =>
+          ctx.builtins.source.module.tree.definedSymbols.get(tree.name.name)
+        case _ => N
+      else resolveField(tree.name, preTrm.symbol, tree.name)
+      if sym.contains(ctx.builtins.source.line) then
+        val loc = tree.toLoc.getOrElse(???)
+        val (line, _, _) = loc.origin.fph.getLineColAt(loc.spanStart)
+        Term.Lit(IntLit(loc.origin.startLineNum + line))
+      else if sym.contains(ctx.builtins.source.name) then
+        Term.Lit(StrLit(ctx.getOuter.map(_.nme).getOrElse("")))
+      else if sym.contains(ctx.builtins.source.file) then
+        val loc = tree.toLoc.getOrElse(???)
+        Term.Lit(StrLit(loc.origin.fileName.toString))
+      else if newResolution then
         val res = withTypeBinders(new Term.NewSel(preTrm, tree.name, N)(FlowSymbol.sel(tree.name.name)).withLocOf(tree))
-        // listenTerm(preTrm, shape => selShape2(shape, tree.name, res))
         newSel(res)
         interpretRef(res, interp)
       else
-        val sym = if newResolution then N
-          else resolveField(tree.name, preTrm.symbol, tree.name)
-        if sym.contains(ctx.builtins.source.line) then
-          val loc = tree.toLoc.getOrElse(???)
-          val (line, _, _) = loc.origin.fph.getLineColAt(loc.spanStart)
-          Term.Lit(IntLit(loc.origin.startLineNum + line))
-        else if sym.contains(ctx.builtins.source.name) then
-          Term.Lit(StrLit(ctx.getOuter.map(_.nme).getOrElse("")))
-        else if sym.contains(ctx.builtins.source.file) then
-          val loc = tree.toLoc.getOrElse(???)
-          Term.Lit(StrLit(loc.origin.fileName.toString))
-        else
-          Term.Sel(preTrm, tree.name)(sym, FlowSymbol.sel(tree.name.name), N, S(summon))
+        Term.Sel(preTrm, tree.name)(sym, FlowSymbol.sel(tree.name.name), N, S(summon))
     
     tree.desugared match
     case Tree.Trm(term) => interpretRef(term, interp)
@@ -1342,7 +1370,7 @@ extends Importer:
         val lt = subterm(lhs)
         val sym = TempSymbol(S(lt), erasedType = N, "old")
         Blk(
-          LetDecl(sym, Nil) :: defineVar(sym, lt) :: Nil, Term.Try(Blk(
+          LetDecl(sym, Nil)(tree.toLoc) :: defineVar(sym, lt)(tree.toLoc) :: Nil, Term.Try(Blk(
             assignment(lt, subterm(rhs)) :: Nil,
             subterm(bod, interp),
         ), assignment(lt, sym.ref())))
@@ -1361,7 +1389,7 @@ extends Importer:
       derivedClsSym.defn = S(ClassDef(
         N, syntax.Cls, derivedClsSym,
         BlockMemberSymbol(derivedClsSym.name, Nil), N,
-        Nil, Nil, N, ObjBody(Blk(Nil, Term.Lit(Tree.UnitLit(false)))), Nil, N, auxCtorParams = Nil))
+        Nil, Nil, N, ObjBody(Blk(Nil, Term.Lit(Tree.UnitLit(false)))), Nil, N, auxCtorParams = Nil)(hd.toLoc))
       
       val elabed = ctx.nestInner(derivedClsSym).givenIn:
         block(sts_, hasResult = false)._1
@@ -1376,7 +1404,7 @@ extends Importer:
               case ParamList(_, value :: Nil, _) :: newParams =>
                 if newParams.isEmpty then
                   raise(ErrorReport(msg"Handler function cannot be a getter" -> td.toLoc :: Nil))
-                val newTd = TermDefinition(Fun, sym, tsym, newParams.reverse, tparams, sign, body, flags, mf, annotations, comp)
+                val newTd = TermDefinition(Fun, sym, tsym, newParams.reverse, tparams, sign, body, flags, mf, annotations, comp)(td.toLoc)
                 S(HandlerTermDefinition(value.sym, newTd))
               case _ =>
                 raise(ErrorReport(msg"Handler function is missing resumption parameter" -> td.toLoc :: Nil))
@@ -1407,7 +1435,7 @@ extends Importer:
         raise:
           ErrorReport(msg"Cannot use 'this' outside of an object scope" -> tree.toLoc :: Nil)
         error
-    case id @ Ident(name) => ident(id).map(interpretRef(_, interp)).getOrElse:
+    case id @ Ident(name) => ident(id, interp).map(interpretRef(_, interp)).getOrElse:
       raise(ErrorReport(msg"Name not found: $name" -> id.toLoc :: Nil))
       error
     case TyApp(lhs, targs) =>
@@ -1431,7 +1459,7 @@ extends Importer:
       val boundVars = mutable.HashMap.empty[Str, VarSymbol]
       def genSym(id: Tree.Ident) =
         val sym = VarSymbol(id, erasedType = N)
-        sym.decl = S(TyParam(FldFlags.empty, N, sym)) // TODO vce
+        sym.decl = S(TyParam(FldFlags.empty, N, sym)(id.toLoc)) // TODO vce
         boundVars += id.name -> sym
         sym
       val syms = (tvs.collect:
@@ -1636,10 +1664,10 @@ extends Importer:
       val self = VarSymbol(Ident("self"), erasedType = N)
       val args = VarSymbol(Ident("args"), erasedType = N)
       val ps = ParamList(ParamListFlags.empty,
-        Param(FldFlags.empty, self, N, Modulefulness.none) :: Nil,
+        Param.simple(self) :: Nil,
         S:
-          Param(FldFlags.empty, args, N, Modulefulness.none)
-      )
+          Param.simple(args)
+      )(N)
       val rs = FlowSymbol.app()
       withTypeBinders(Term.Lam(ps,
         app(
@@ -1712,8 +1740,8 @@ extends Importer:
     case tree @ Case(kw, _) =>
       val scrut = VarSymbol(Ident("caseScrut"), erasedType = N)
       val body = caseSplit(scrut, tree)
-      val params = Param(FldFlags.empty, scrut, N, Modulefulness.none) :: Nil
-      withTypeBinders(Term.Lam(PlainParamList(params), body)).mkLocWith(kw)
+      val params = Param.simple(scrut) :: Nil
+      withTypeBinders(Term.Lam(PlainParamList(params)(N), body)).mkLocWith(kw)
     case PrefixApp(kw @ Keywrd(Keyword.`return`), body) =>
       ctx.getRetHandler match
       case ReturnHandler.Required(sym) =>
@@ -1740,7 +1768,7 @@ extends Importer:
     case PrefixApp(kw @ Keywrd(Keyword.`yield` | Keyword.`yield*`), body) =>
       if ctx.inGenerator then
         val synthIdent = new Tree.Ident(kw.kw.name).withLocOf(kw)
-        app(ident(synthIdent).get, withTypeBinders(Term.Tup(PlainFld(subterm(body)) :: Nil)(DummyTup)))(DummyApp, N, FlowSymbol("yield"))
+        app(ident(synthIdent, Trm).get, withTypeBinders(Term.Tup(PlainFld(subterm(body)) :: Nil)(DummyTup)))(DummyApp, N, FlowSymbol("yield"))
       else
         raise:
           ErrorReport(msg"Yield expressions are not allowed in this context." -> tree.toLoc :: Nil)
@@ -1959,13 +1987,26 @@ extends Importer:
             log(s"Processing overloadings for '$name'")
             defns.iterator.foreach: defn =>
               if defn.k > k then
-                val bareClassOverload = newResolution && ((k is Fun) || k.isInstanceOf[Val]) && (defn match
+                // Only function definitions with parameters create a fresh companion object.
+                // A val initializer or parameterless function can yield an existing value;
+                // attaching a class to that value would mutate it (and may fail if frozen).
+                val functionCompanion = (k is Fun) && mainDefn.paramLists.nonEmpty
+                val instanceMethodCompanion = functionCompanion && ctx.outer.inner.exists(_.isInstanceOf[ClassSymbol])
+                val bareClassOverload = newResolution && functionCompanion && !instanceMethodCompanion && (defn match
                   case td: TypeDef => (td.k is Cls) && td.paramLists.isEmpty
                   case _ => false)
-                val functionModuleOverload = newResolution && (k is Fun) && (defn.k is Mod)
+                val functionModuleOverload = newResolution && functionCompanion && !instanceMethodCompanion && (defn.k is Mod)
                 if !supportedOverloadings(k -> defn.k) && !bareClassOverload && !functionModuleOverload then raise:
                   ErrorReport:
-                    if notYetSupportedOverloadings(k -> defn.k)
+                    if ((defn.k is Cls) || (defn.k is Mod)) && instanceMethodCompanion then
+                      msg"Not yet supported: ${defn.k.desc} companion '$name' defined as an instance method" -> mainDefn.toLoc
+                        :: msg"An instance method is shared by all instances, but its companion is created per instance" -> defn.toLoc
+                        :: Nil
+                    else if ((defn.k is Cls) || (defn.k is Mod)) && ((k is Fun) || k.isInstanceOf[Val]) && !functionCompanion then
+                      msg"A ${defn.k.desc} companion must be a function with a parameter list" -> mainDefn.toLoc
+                        :: msg"Arbitrary values cannot be overloaded with ${defn.k.desc} '$name'" -> defn.toLoc
+                        :: Nil
+                    else if notYetSupportedOverloadings(k -> defn.k)
                     then msg"Not yet supported: overloading of ${k.desc} '$name'" -> mainDefn.toLoc
                       :: msg"with ${defn.k.desc} of the same name" -> defn.toLoc
                       :: Nil
@@ -1990,7 +2031,11 @@ extends Importer:
     // * @param funs:
     // *  While elaborating a block, we move all function definitions to the top (similar to JS function semantics)
     @tailrec
-    def go(sts: Ls[Tree], annotations: Ls[Annot], acc: Ls[Statement]): Ctxl[(Blk | Rcd, Ctx)] =
+    def go(sts: Ls[Tree], annotations: Ls[Annot], acc: Ls[Statement])(sourceLoc: Opt[Loc]): Ctxl[(Blk | Rcd, Ctx)] =
+      // Annotation wrappers belong to the declaration's source span even when the
+      // annotation itself is invalid. Preserve the outer syntax while unwrapping;
+      // advancing to another statement starts a fresh span.
+      val statementLoc = sourceLoc.orElse(sts.headOption.flatMap(_.toLoc))
       /** Call this function when the following term cannot be annotated. */
       def reportUnusedAnnotations: Unit = if annotations.nonEmpty then raise:
         WarningReport:
@@ -2008,16 +2053,16 @@ extends Importer:
         (mkBlk(acc, N, hasResult), ctx)
       case Constructor(Block(ctors)) :: sts =>
         // TODO properly handle (it currently desugars to sibling classes)
-        go(sts, annotations, acc)
+        go(sts, annotations, acc)(N)
       case (ctorParams @ Constructor(ConstructorParamDecl(_))) :: sts =>
         // constructor(x, y) or constructor(x, y)(u, v) syntax: params are extracted during class elaboration
         ctx.getOuter match
         case S(_: ClassSymbol) =>
-          go(sts, annotations, acc)
+          go(sts, annotations, acc)(N)
         case _ =>
           raise(ErrorReport(msg"'constructor(...)' declarations are only allowed in class bodies"
             -> ctorParams.toLoc :: Nil))
-          go(sts, annotations, acc)
+          go(sts, annotations, acc)(N)
       case Open(bod) :: sts =>
         reportUnusedAnnotations
         bod match
@@ -2033,14 +2078,14 @@ extends Importer:
             raise(ErrorReport(msg"Illegal 'open' statement shape." -> bod.toLoc :: Nil))
             N
         match
-        case N => go(sts, annotations, acc)
+        case N => go(sts, annotations, acc)(N)
         case S((base, importedTrees)) =>
           base match
           case baseId: Ident =>
             ctx.get(baseId.name) match
             case S(baseElem) if newResolution && importedTrees.isEmpty =>
               ctx.copy(wildcardOpens = Ctx.OpenSource(baseElem)(baseId) :: ctx.wildcardOpens).givenIn:
-                go(sts, Nil, acc)
+                go(sts, Nil, acc)(N)
             case S(baseElem) =>
               val importedNames = importedTrees match
                 case N => // "wilcard" open
@@ -2064,13 +2109,13 @@ extends Importer:
                     raise(ErrorReport(msg"Illegal 'open' statement element." -> t.toLoc :: Nil))
                     Nil
               (ctx elem_++ importedNames).givenIn:
-                go(sts, Nil, acc)
+                go(sts, Nil, acc)(N)
             case N =>
               raise(ErrorReport(msg"Name not found: ${baseId.name}" -> baseId.toLoc :: Nil))
-              go(sts, Nil, acc)
+              go(sts, Nil, acc)(N)
           case _ =>
             raise(ErrorReport(msg"Illegal 'open' statement base." -> base.toLoc :: Nil))
-            go(sts, Nil, acc)
+            go(sts, Nil, acc)(N)
       case (m @ PrefixApp(Keywrd(Keyword.`import`), arg)) :: sts =>
         reportUnusedAnnotations
         val pathAndAlias: Opt[(Tree, Opt[Ident])] = arg match
@@ -2084,7 +2129,7 @@ extends Importer:
           case pathArg => S((pathArg, N))
         val (newCtx, newAcc) = pathAndAlias match
           case S((StrLit(path), alias)) =>
-            val stmt = importPath(path, alias).withLocOf(m)
+            val stmt = importPath(path, alias)(statementLoc)
             (ctx + (stmt.sym.nme -> stmt.sym),
               stmt :: acc)
           case S((pathArg, _)) =>
@@ -2095,11 +2140,11 @@ extends Importer:
           case N => // errors have been reported above.
             (ctx, acc)
         newCtx.givenIn:
-          go(sts, Nil, newAcc)
+          go(sts, Nil, newAcc)(N)
       
       case Spread(Keywrd(Keyword.`...`), S(body)) :: sts =>
         reportUnusedAnnotations
-        go(sts, Nil, RcdSpread(term(body, fieldInterpretation)) :: acc)
+        go(sts, Nil, RcdSpread(term(body, fieldInterpretation)) :: acc)(N)
       case InfixApp(lhs, Keywrd(Keyword.`:`), rhs) :: sts =>
         var newCtx = ctx
         val (rlhs, rhs_t) = rhs match
@@ -2119,8 +2164,8 @@ extends Importer:
             val sym = new VarSymbol(id, erasedType = N)
             newCtx += id.name -> sym
             RcdField(Term.Lit(StrLit(id.name)).withLocOf(id), sym.ref(id))
-              :: defineVar(sym, rhs_t)
-              :: LetDecl(sym, annotations)
+              :: defineVar(sym, rhs_t)(Loc(rlhs, rhs))
+              :: LetDecl(sym, annotations)(id.toLoc)
               :: acc
           case lit: Literal =>
             reportUnusedAnnotations
@@ -2134,7 +2179,7 @@ extends Importer:
             raise(ErrorReport(msg"Unexpected record key shape." -> rlhs.toLoc :: Nil))
             RcdField(Term.Error().withLocOf(rlhs), rhs_t) :: acc
         newCtx.givenIn:
-          go(sts, Nil, newAcc)
+          go(sts, Nil, newAcc)(N)
       case (hd @ LetLike(kw @ Keywrd(`let`), Apps(id: Ident, tups), rhso, N)) :: sts
       if tups.isEmpty || id.name.headOption.exists(_.isLower) =>
         val sym =
@@ -2147,17 +2192,17 @@ extends Importer:
           case S(rhs) =>
             val rrhs = tups.foldRight(rhs):
               InfixApp(_, Keywrd(Keyword.`=>`), _)
-            mkLetBinding(kw, sym, term(rrhs, Trm), annotations) reverse_::: acc
+            mkLetBinding(sym, term(rrhs, Trm), annotations)(statementLoc) reverse_::: acc
           case N =>
             if tups.nonEmpty then
               raise(ErrorReport(msg"Expected a right-hand side for let bindings with parameters" -> hd.toLoc :: Nil))
-            LetDecl(sym, annotations).mkLocWith(kw) :: acc
+            LetDecl(sym, annotations)(statementLoc) :: acc
         (ctx + (id.name -> sym)) givenIn:
-          go(sts, Nil, newAcc)
+          go(sts, Nil, newAcc)(N)
       case (tree @ LetLike(Keywrd(`let`), lhs, _, N)) :: sts =>
         raise(ErrorReport(msg"Unsupported let binding shape" -> tree.toLoc :: Nil))
-        go(sts, Nil, Term.Error().withLocOf(tree) :: acc)
-      case Def(lhs, rhs) :: sts =>
+        go(sts, Nil, Term.Error().withLocOf(tree) :: acc)(N)
+      case (definition @ Def(lhs, rhs)) :: sts =>
         reportUnusedAnnotations
         lhs match
         case id: Ident =>
@@ -2165,23 +2210,23 @@ extends Importer:
           ctx.get(id.name) match
           case S(elem) =>
             elem.symbol match
-            case S(sym: (LocalSymbol | TermSymbol)) => go(sts, Nil, defineVar(sym, r) :: acc)
+            case S(sym: (LocalSymbol | TermSymbol)) => go(sts, Nil, defineVar(sym, r)(statementLoc) :: acc)(N)
             case S(sym) =>
               raise(ErrorReport(msg"Symbol '${id.name}' is not a variable and cannot be reassigned" -> id.toLoc :: Nil))
-              go(sts, Nil, Term.Error().withLocOf(id) :: acc)
+              go(sts, Nil, Term.Error().withLocOf(id) :: acc)(N)
             case N =>
               raise(ErrorReport(msg"Name not found: ${id.name}" -> id.toLoc :: Nil))
-              go(sts, Nil, Term.Error().withLocOf(id) :: acc)
+              go(sts, Nil, Term.Error().withLocOf(id) :: acc)(N)
           case N =>
             // TODO lookup in members? inherited/refined stuff?
             raise(ErrorReport(msg"Name not found: ${id.name}" -> id.toLoc :: Nil))
-            go(sts, Nil, Term.Error().withLocOf(id) :: acc)
+            go(sts, Nil, Term.Error().withLocOf(id) :: acc)(N)
         case App(base, args) =>
-          go(Def(base, InfixApp(args, Keywrd(Keyword.`=>`), rhs)) :: sts, Nil, acc)
+          go(Def(base, InfixApp(args, Keywrd(Keyword.`=>`), rhs)) :: sts, Nil, acc)(statementLoc)
         case _ =>
           raise(ErrorReport(msg"Unrecognized definitional assignment left-hand side: ${lhs.describe}"
             -> lhs.toLoc :: Nil)) // TODO BE
-          go(sts, Nil, Term.Error().withLocOf(lhs) :: acc)
+          go(sts, Nil, Term.Error().withLocOf(lhs) :: acc)(N)
       case (td @ TermDef(k, nme, rhs)) :: sts =>
         log(s"Processing term definition $nme")
         td.symbName match
@@ -2197,15 +2242,15 @@ extends Importer:
             if (k is MutVal) && owner.isEmpty then
               raise:
                 ErrorReport:
-                  msg"Mutable 'val' definitions are only valid as members of a module, object, or class definition" -> td.toLoc
+                  msg"Mutable 'val' definitions are only valid as members of a module, object, or class definition" -> statementLoc
                   :: Nil
-              return go(sts, Nil, acc)
+              return go(sts, Nil, acc)(N)
             if owner.isDefined && !identifierPattern.matches(id.name) then
               raise:
                 ErrorReport:
                   msg"Illegal ${k.desc} member name: '${id.name}'" -> nme.toLoc
                   :: illegalMemberNameTail
-              return go(sts, Nil, acc)
+              return go(sts, Nil, acc)(N)
             val isMethod = owner.exists(_.isInstanceOf[ClassSymbol])
             
             val tsym = TermSymbol(k, owner, id) // TODO?
@@ -2244,10 +2289,10 @@ extends Importer:
                 case _ if ctx.mode is Mode.Light => S(Term.Missing)
                 case S(rhs) => S:
                   val nonLocalRetHandler = TempSymbol(N, erasedType = N, s"nonLocalRetHandler$$${id.name}")
-                  val hasGeneratorAnnotation = annotations.contains(Annot.Generator)
-                  val hasAsyncAnnotation = annotations.contains(Annot.Async)
+                  val hasGeneratorAnnotation = annotations.exists(_.isInstanceOf[Annot.Generator])
+                  val hasAsyncAnnotation = annotations.exists(_.isInstanceOf[Annot.Async])
                   if pss.isEmpty && hasGeneratorAnnotation then
-                    raise(ErrorReport(msg"Generators are not supported on functions without a parameter list" -> td.toLoc :: Nil))
+                    raise(ErrorReport(msg"Generators are not supported on functions without a parameter list" -> statementLoc :: Nil))
                   newCtx.nest(OuterCtx.Function(nonLocalRetHandler, S(tsym))(pss.nonEmpty && hasGeneratorAnnotation, hasAsyncAnnotation)).givenIn: newCtx ?=>
                     val b = term(rhs, Trm)(using newCtx)
                     if nonLocalRetHandler.directRefs.isEmpty then b else
@@ -2271,22 +2316,22 @@ extends Importer:
               // Retain the source signature's meaning; Erasure decides which arrows are physical parameters.
               if newResolution then s.foreach(registerSignature)
               val tdf = TermDefinition(k, sym, tsym, pss, tps, s, body, 
-                TermDefFlags.empty.copy(isMethod = isMethod, hasResultAnnotation = td.annotatedResultType.isDefined), mfn, annotations, N).withLocOf(td)
+                TermDefFlags.empty.copy(isMethod = isMethod, hasResultAnnotation = td.annotatedResultType.isDefined), mfn, annotations, N)(statementLoc)
               sym.tsym = S(tsym)
               tsym.defn = S(tdf)
               if newResolution then checkDeclaredResult(tdf)
               
               tdf
-            go(sts, Nil, tdf :: acc)
+            go(sts, Nil, tdf :: acc)(N)
           case L(d) =>
             reportUnusedAnnotations
             raise(d)
-            go(sts, Nil, acc)
+            go(sts, Nil, acc)(N)
       case (td @ TypeDef(k, head, rhs)) :: sts =>
         val owner = ctx.outer.inner
         
         softTODO((k is Als) || (k is Cls) || (k is Mod) || (k is Obj) || (k is Pat), k.desc + " not yet supported")
-        val body = td.reft ++ td.withPart match
+        val body = td.bodies match
           case Nil => N
           case hd :: Nil => S(hd)
           case hd :: hd2 :: tl =>
@@ -2300,14 +2345,14 @@ extends Importer:
           case R(id) => id
           case L(d) =>
             raise(d)
-            return go(sts, Nil, acc)
+            return go(sts, Nil, acc)(N)
         
         if owner.isDefined && !identifierPattern.matches(nme.name) then
           raise:
             ErrorReport:
               msg"Illegal ${k.desc} member name: '${nme.name}'" -> nme.toLoc
               :: illegalMemberNameTail
-          return go(sts, Nil, acc)
+          return go(sts, Nil, acc)(N)
         
         val sym = members.getOrElse(nme.name, lastWords(s"Symbol not found: ${nme.name}"))
         
@@ -2324,7 +2369,7 @@ extends Importer:
             ts.tys.flatMap: targ =>
               def mk(id: Ident, vce: Opt[Bool]): Ls[TyParam] =
                 val vs = VarSymbol(id, erasedType = N)
-                val res = TyParam(FldFlags.empty, vce, vs)
+                val res = TyParam(FldFlags.empty, vce, vs)(targ.toLoc)
                 vs.decl = S(res)
                 res :: Nil
               targ match
@@ -2355,7 +2400,7 @@ extends Importer:
           res.restParam.foreach: rp =>
             raise(ErrorReport(
               msg"Spread parameters are not supported in class parameters." -> rp.toLoc :: Nil))
-          res.copy(restParam = N)
+          res.copy(restParam = N)(res.toLoc)
         
         def withFields(extraParams: Ls[ParamList])(using Ctx)(fn: (Ctx) ?=> (Term.Blk, Ctx)): (Term.Blk, Ctx) =
           softAssert(pss.sizeCompare(td.clsParams) === 0,
@@ -2397,7 +2442,7 @@ extends Importer:
                   p.modulefulness,
                   if isPublicField then Nil else Annot.Private :: Nil,
                   N,
-                ).withLocOf(p)
+                )(p.toLoc)
                 assert(p.fldSym.isEmpty)
                 p.fldSym = S(fsym)
                 fsym.tsym = S(tsym)
@@ -2410,8 +2455,8 @@ extends Importer:
                 val psym = TermSymbol(LetBind, owner, p.sym.id)
                 psym.sourceAliases = p.sym.sourceAliases
                 rstate.lexicalTypeBinders(psym) = ctx.typeBinders
-                val decl = LetDecl(psym, Nil) // TODO: never use term symbols on LetDecl LHS
-                val defn = defineVar(psym, p.sym.ref())
+                val decl = LetDecl(psym, Nil)(p.toLoc) // TODO: never use term symbols on LetDecl LHS
+                val defn = defineVar(psym, p.sym.ref())(p.toLoc)
                 p.fldSym = S(psym)
                 decl :: defn :: Nil
           
@@ -2424,8 +2469,8 @@ extends Importer:
               val psym = TermSymbol(LetBind, owner, p.sym.id)
               psym.sourceAliases = p.sym.sourceAliases
               rstate.lexicalTypeBinders(psym) = ctx.typeBinders
-              val decl = LetDecl(psym, Nil)
-              val defn = defineVar(psym, p.sym.ref())
+              val decl = LetDecl(psym, Nil)(p.toLoc)
+              val defn = defineVar(psym, p.sym.ref())(p.toLoc)
               p.fldSym = S(psym)
               decl :: defn :: Nil
           
@@ -2474,7 +2519,7 @@ extends Importer:
             assert(body.isEmpty)
             val d =
               given Ctx = newCtx
-              semantics.TypeDef(alsSym, sym, tps, rhs.map(term(_, Tpe)), N, annotations)
+              semantics.TypeDef(alsSym, sym, tps, rhs.map(term(_, Tpe)), N, annotations)(statementLoc)
             alsSym.defn = S(d)
             d
         case Pat =>
@@ -2483,7 +2528,7 @@ extends Importer:
             if pss.length > 1 then raise:
                 ErrorReport:
                   msg"Multiple parameter lists are not supported for this definition." ->
-                    td.toLoc :: Nil
+                    statementLoc :: Nil
             // Pattern definition should not have a body like class definition.
             assert(body.isEmpty)
             val ps = pss.headOption
@@ -2506,15 +2551,16 @@ extends Importer:
             log(s"`${patSym.nme}`'s extraction parameters: ${extractionParams.mkString("[", ", ", "]")}")
             // Empty pattern body is considered as wildcard patterns.
             val rhs = td.rhs.getOrElse:
-              raise(ErrorReport(msg"Pattern definitions must have a body." -> td.toLoc :: Nil))
+              raise(ErrorReport(msg"Pattern definitions must have a body." -> statementLoc :: Nil))
               Tree.Under()
             // Elaborate the pattern body with the pattern parameters.
-            val pat = pattern(rhs)(using ctx ++ patternParams.iterator.map(p => p.sym.name -> p.sym))
+            val pat = pattern(rhs, extractionParams.map(p => p.sym.name -> p.sym).toMap)(
+              using ctx ++ patternParams.iterator.map(p => p.sym.name -> p.sym))
             // Report all invalid variables we found in the top-level pattern.
             pat.variables.report
-            // Note that the remaining variables have not been bound to any
-            // `VarSymbol` yet. Thus, we need to pair them with the extraction
-            // parameters. We only report warnings for unbound variables
+            // Pair the remaining variables with the extraction parameters.
+            // Guarded aliases already use these symbols so their elaborated
+            // references remain valid. We only report warnings for unbound variables
             // because they are harmless. Variables used in guard conditions
             // (from `where` clauses) are not considered useless.
             val guardedNames = pat.varNamesUsedInGuards
@@ -2529,8 +2575,9 @@ extends Importer:
             // `paramsOpt` is set to `N` because we don't want parameters to
             // appear in the generated class's constructor.
             val pd = PatternDef(owner, patSym, sym, tps, allParams,
-              patternParams, extractionParams, pat, annotations)
+              patternParams, extractionParams, pat, annotations)(statementLoc)
             patSym.defn = S(pd)
+            if newResolution then checkPatternDefinition(pd)
             pd
         case k: (Mod.type | Obj.type) =>
           val modSym = td.symbol.asInstanceOf[ModuleOrObjectSymbol] // TODO: improve `asInstanceOf`
@@ -2545,7 +2592,7 @@ extends Importer:
               val md =
                 val (bod, c) = mkBody(Nil)
                 ModuleOrObjectDef(owner, modSym, sym,
-                  tps, pss.headOption, pss.tailOr(Nil), newOf(td), k, ObjBody(bod), comp, annotations)(outerCtx.scope)
+                  tps, pss.headOption, pss.tailOr(Nil), newOf(td), k, ObjBody(bod), comp, annotations)(outerCtx.scope, statementLoc)
               modSym.defn = S(md)
               md
         case Cls =>
@@ -2567,7 +2614,7 @@ extends Importer:
             res.restParam.foreach: rp =>
               raise(ErrorReport(
                 msg"Spread parameters are not supported in class parameters." -> rp.toLoc :: Nil))
-            res.copy(restParam = N)
+            res.copy(restParam = N)(res.toLoc)
           newCtx.givenIn:
             trace(s"Processing class definition $nme"):
               val comp = sym.asMod
@@ -2581,7 +2628,7 @@ extends Importer:
                     sym,
                     ctsym,
                     allCtorPss,
-                    S(tps.map(tp => Param(FldFlags.empty, tp.sym, N, Modulefulness.none))),
+                    S(tps.map(tp => Param(FldFlags.empty, tp.sym, N, Modulefulness.none)(tp.toLoc))),
                     S(clsSym.ref()),
                     N,
                     TermDefFlags.empty,
@@ -2590,7 +2637,7 @@ extends Importer:
                       case a @ Annot.Modifier(Keyword.`declare`) => a
                     ,
                     S(clsSym),
-                  )
+                  )(statementLoc)
                 if pss.nonEmpty then sym.tsym = S(ctsym)
                 ctsym.defn = S(ctdef)
                 // Note: do NOT set sym.tsym for constructor(...) classes; they are not callable as functions.
@@ -2598,35 +2645,35 @@ extends Importer:
               else N
               val cd =
                 val (bod, c) = mkBody(auxCtorPss)
-                ClassDef(owner, Cls, clsSym, sym, tsym, tps, pss, newOf(td), ObjBody(bod), annotations, comp, auxCtorParams = auxCtorPss)
+                ClassDef(owner, Cls, clsSym, sym, tsym, tps, pss, newOf(td), ObjBody(bod), annotations, comp, auxCtorParams = auxCtorPss)(statementLoc)
               clsSym.defn = S(cd)
               cd
         case Trt | Mxn => lastWords(s"Unexpected type definition kind here: $k")
-        go(sts, Nil, defn :: acc)
+        go(sts, Nil, defn :: acc)(N)
       case Annotated(annotation, target) :: sts =>
-        go(target :: sts, annotations ++ annot(annotation), acc)
+        go(target :: sts, annotations ++ annot(annotation), acc)(statementLoc)
       // * With tight right precedence, `#config(args)` is parsed as `App(Directive(config, Tup()), Tup(args))`.
       // * Reconstruct as `Directive(config, Tup(args))` and re-process.
       case App(Directive(prefix, _), args) :: sts =>
-        go(Directive(prefix, args) :: sts, annotations, acc)
-      case Directive(Ident("config"), Tup(args)) :: sts =>
+        go(Directive(prefix, args) :: sts, annotations, acc)(statementLoc)
+      case (directive @ Directive(Ident("config"), Tup(args))) :: sts =>
         reportUnusedAnnotations
         val modify = ConfigParser.parseOverrides(args)
-        go(sts, Nil, SetConfig(modify) :: acc)
-      case Directive(Ident("lang"), Tup(args)) :: sts =>
+        go(sts, Nil, SetConfig(modify)(statementLoc) :: acc)(N)
+      case (directive @ Directive(Ident("lang"), Tup(args))) :: sts =>
         reportUnusedAnnotations
         val modify = ConfigParser.parseLanguageDirective(args)
-        go(sts, Nil, SetConfig(modify) :: acc)
+        go(sts, Nil, SetConfig(modify)(statementLoc) :: acc)(N)
       case Directive(Ident(name), _) :: sts =>
         raise(ErrorReport(
           msg"Unknown directive '#${name}'" -> sts.headOption.flatMap(_.toLoc) :: Nil,
           source = Diagnostic.Source.Compilation))
-        go(sts, annotations, acc)
+        go(sts, annotations, acc)(N)
       case (dir @ Directive(prefix, _)) :: sts =>
         raise(ErrorReport(
           msg"Expected a directive name after '#', but found ${prefix.describe}" -> prefix.toLoc :: Nil,
           source = Diagnostic.Source.Compilation))
-        go(sts, annotations, acc)
+        go(sts, annotations, acc)(N)
       case (st: Tree) :: sts =>
         // TODO reject plain term statements? Currently, `(1, 2)` is allowed to elaborate (tho it should be rejected in type checking later)
         val interpretation = if sts.isEmpty then resultInterp else Trm
@@ -2634,11 +2681,11 @@ extends Importer:
           case (acc, ann) => Term.Annotated(ann, acc)
         sts match
         case Nil => (mkBlk(acc, S(res), hasResult), ctx)
-        case _ => go(sts, Nil, res :: acc)
+        case _ => go(sts, Nil, res :: acc)(N)
     end go
     
     val res = ctx.withMembers(members).givenIn:
-      go(blk.desugStmts, Nil, Nil)
+      go(blk.desugStmts, Nil, Nil)(N)
     
     // if newResolution then
     members.valuesIterator.foreach(_.complete())
@@ -2646,6 +2693,16 @@ extends Importer:
       bms.symbols.foreach:
         case sym: (ClassLikeSymbol & InnerSymbol) =>
           sym.defn.foreach: d => // erroneous code may not have a defn even after the BMS is completed
+            // A declaration supplies no fresh function object to hold a companion.
+            // Generated constructor functions also have no source body, but lowering creates them.
+            // Foreign class-like declarations produce no companion initialization at all.
+            if d.hasDeclareModifier.isEmpty then
+              bms.asTrm.filterNot(_.isInstanceOf[ClassCtorSymbol]).flatMap(_.defn).foreach: term =>
+                if term.body.isEmpty || term.hasDeclareModifier.isDefined then raise:
+                  ErrorReport:
+                    msg"A term declaration cannot have an implemented ${sym.describeKind} companion" -> term.toLoc
+                      :: msg"Companion '${sym.nme}' is defined here" -> d.toLoc
+                      :: Nil
             d.ext match
             case S(ext) =>
               listenTerm(ext): esh =>
@@ -2707,7 +2764,7 @@ extends Importer:
         if newResolution then sig.foreach(registerSignature)
         val sym = VarSymbol(canonicalId)
         sym.sourceAliases = aliases
-        val p = Param(flg, sym, sig, mfn)
+        val p = Param(flg, sym, sig, mfn)(t.toLoc)
         sym.decl = S(p)
         if newResolution then sig.foreach: sign =>
           listenTypeInstances(sign): shape =>
@@ -2752,7 +2809,7 @@ extends Importer:
     case Tup(ps) =>
       def go(ps: Ls[Tree], acc: Ls[Param], ctx: Ctx, flags: ParamListFlags): (ParamList, Ctx) =
         ps match
-        case Nil => (ParamList(flags, acc.reverse, N).withLocOf(t), ctx)
+        case Nil => (ParamList(flags, acc.reverse, N)(t.toLoc), ctx)
         case hd :: tl =>
           val isCtxParam = hd.isModified(Ins)
           val inUsing = flags.ctx || isCtxParam
@@ -2768,7 +2825,7 @@ extends Importer:
               if spd is SpreadKind.Lazy then
                 raise(ErrorReport(msg"Lazy spread parameters not allowed." -> hd.toLoc :: Nil))
               if tl.isEmpty then
-                (ParamList(flags, acc.reverse, S(p)).withLocOf(t), newCtx)
+                (ParamList(flags, acc.reverse, S(p))(t.toLoc), newCtx)
               else
                 raise(ErrorReport(msg"Spread parameters must be the last in the parameter list." -> hd.toLoc :: Nil))
                 go(tl, p :: acc, newCtx, newFlags)
@@ -2779,18 +2836,23 @@ extends Importer:
       raise:
         ErrorReport:
           msg"Expected a parameter list (a tuple of parameters), but found ${t.describe}" -> t.toLoc :: Nil
-      (ParamList(ParamListFlags.empty, Nil, N).withLocOf(t), ctx)
+      (ParamList(ParamListFlags.empty, Nil, N)(t.toLoc), ctx)
   
-  def ident(id: Ident)(using Ctx): Ctxl[Opt[Term]] = ctx.get(id.name) match
-    case candidate @ (S(_: Ctx.WildcardElem) | N) =>
-      // Primitive operators are implicit bindings outside the Ctx environments;
-      // like explicit bindings, they take precedence over wildcard sources.
-      state.builtinOpsMap.get(id.name) match
-        case S(bi) => S(bi.ref(id))
-        case N => candidate.map(_.ref(id))
-    case S(elem) => S(elem.ref(id))
+  // Imported legacy signatures are also consumed by the new resolver. Keep
+  // their lexical type captures even though legacy term lookup ignores scopes.
+  def ident(id: Ident, interp: Interpretation)(using Ctx): Ctxl[Opt[Term]] =
+    ctx.get(id.name, newResolution || interp == Tpe) match
+      case candidate @ (S(_: Ctx.WildcardElem) | N) =>
+        // Primitive operators are implicit bindings outside the Ctx environments;
+        // like explicit bindings, they take precedence over wildcard sources.
+        state.builtinOpsMap.get(id.name) match
+          case S(bi) => S(bi.ref(id))
+          case N => candidate.map(_.ref(id))
+      case S(elem) => S(elem.ref(id))
   
-  def pattern(t: Tree): Ctxl[Pattern] =
+  def pattern(t: Tree): Ctxl[Pattern] = pattern(t, Map.empty)
+
+  private def pattern(t: Tree, extractionBindings: Map[Str, VarSymbol]): Ctxl[Pattern] =
     import ucs.{Ctor, unapply, error}, ucs.extractors.*, Keyword.*, Pattern.*, InvalidReason.*
     /** String range bounds must be single characters. */
     def isInvalidStringBounds(lo: StrLit, hi: StrLit)(using Raise): Bool =
@@ -2824,14 +2886,19 @@ extends Importer:
         case S(bi) => S(bi.ref(id))
         case N => N
     def constructor(target: Term, arguments: Opt[Ls[Pattern]], source: Tree): Pattern.Constructor =
-      val res = new Constructor(target, arguments)
+      // Constructor tests synthesize nominal interfaces with omitted type
+      // arguments. Record the lexical scope of their bounds before
+      // constructorPattern registers resolution listeners.
+      val res = new Constructor(withTypeBinders(target), arguments)
       if newResolution then res.withLocOf(source)
       constructorPattern(res)
       res
     /** Elaborate arrow patterns like `p => t`. Meanwhile, report all invalid
      *  variables we found in `p`. */
     def arrow(lhs: Tree, rhs: Tree): Ctxl[Pattern] =
-      val pattern = go(lhs)
+      // A transform consumes its inner bindings; they are not extraction
+      // parameters of the surrounding definition, even if their names coincide.
+      val pattern = this.pattern(lhs)
       // The symbol allocated here will be bound in `split` to the values
       // destructed from the scrutinee.
       val variables = pattern.variables.allocate
@@ -2944,7 +3011,7 @@ extends Importer:
         case _: Tree => Chain(go(p), go(q))
       case p where t =>
         val q = go(p)
-        Guarded(q, term(t, Trm)(using ctx ++ q.variables.allocate))
+        Guarded(q, term(t, Trm)(using ctx ++ q.variables.allocate(extractionBindings)))
       case Under() => Pattern.Wildcard().withLocOf(t)
       // Singleton blocks like `{1}`.
       case Block(p :: Nil) => go(p)
@@ -2990,8 +3057,8 @@ extends Importer:
       val vs = ps.flatMap:
         case id: Ident =>
           val sym = VarSymbol(id, erasedType = N)
-          sym.decl = S(TyParam(FldFlags.empty, N, sym))
-          Param(FldFlags.empty, sym, N, Modulefulness.none) :: Nil
+          sym.decl = S(TyParam(FldFlags.empty, N, sym)(id.toLoc))
+          Param.simple(sym) :: Nil
         case t =>
           raise(ErrorReport(msg"Unsupported type parameter ${t.describe}" -> t.toLoc :: Nil))
           Nil
@@ -3022,6 +3089,9 @@ extends Importer:
         val values = res.stats.collect:
           case DefineVar(sym: LocalVarSymbol, rhs) => Term.SimpleRef(sym)(new Ident(sym.nme).withLocOf(rhs))
         InterfaceExposure(this).check(exports, res.res :: values)
+      else
+        // Explicit annotations still check callbacks whose signatures they hide.
+        InterfaceExposure(this).check(Nil, Nil)
     rstate.completeBlock(res)
     (res, ctx)
   
