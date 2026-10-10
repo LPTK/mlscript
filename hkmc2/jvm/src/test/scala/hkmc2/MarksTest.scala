@@ -11,8 +11,10 @@ import hkmc2.utils.*, shorthands.*
   */
 class MarksTest extends AnyFunSuite:
   private class Harness:
+    import io.PlatformPath.given
     given owner: Elaborator.State = new Elaborator.State
     given NewResolverState = owner.newResolverState
+    given Raise = diagnostic => fail(diagnostic.theMsg)
     given DebugPrinter = new DebugPrinter
     given TraceLogger = new TraceLogger:
       override def doTrace: Boolean = false
@@ -20,7 +22,10 @@ class MarksTest extends AnyFunSuite:
     // omit those exits because they carry no references into their source scope.
     val resolution = new TypeResolution(Term.UnitVal(), _ => fail("Unexpected type error"))
     resolution.publish(TypeShape.Bottom)
-    val value = InstanceShape(DeclaredType(resolution, Map.empty, TypeSubstitution.empty, true)(N))
+    given Config = Config.default(TestFolders.mainTestDir(os.pwd))
+    given CompilerCtx = CompilerCtx.fresh(io.FileSystem.default, TestFolders.compilerPaths(os.pwd), summon[Config])
+    val resolver = Elaborator(summon[TraceLogger], TestFolders.mainTestDir(os.pwd), Elaborator.Ctx.empty)
+    val value = resolver.instanceShape(DeclaredType(resolution, Map.empty, TypeSubstitution.empty, true)(N))
     val outer = ResolutionBoundary(TermSymbol(Fun, N, Tree.Ident("outer")))
     val left = ResolutionBoundary(TermSymbol(Fun, N, Tree.Ident("left")))
     val right = ResolutionBoundary(TermSymbol(Fun, N, Tree.Ident("right")))

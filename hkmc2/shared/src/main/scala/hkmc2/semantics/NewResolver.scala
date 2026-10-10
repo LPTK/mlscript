@@ -910,7 +910,7 @@ class NewResolver:
     * bindings the type cannot observe share one shape (see instantiateShape).
     */
   private[semantics] def instanceShape(tpe: DeclaredType)(using NewResolverState): InstanceShape =
-    InstanceShape(projectType(tpe))
+    InstanceShape(tpe)(this)
 
   private[semantics] def listenTypeInstances(tpe: DeclaredType)(listener: Listener)(using NewResolverState): Unit =
     listener(instanceShape(tpe.instantiate(rstate.instances)))
@@ -1203,7 +1203,7 @@ class NewResolver:
     if projected.isEmpty then tpe else tpe.instantiate(projected)
 
   /** `tpe` without the retained instances it cannot observe. */
-  private def projectType(tpe: DeclaredType)(using NewResolverState): DeclaredType =
+  private[semantics] def projectType(tpe: DeclaredType)(using NewResolverState): DeclaredType =
     if tpe.instances.isEmpty then tpe else closure(typeDependencySet(tpe), tpe.instances.get) match
       case N => tpe
       case S(support) =>

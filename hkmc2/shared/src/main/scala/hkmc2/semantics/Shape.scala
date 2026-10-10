@@ -580,17 +580,22 @@ final class InstanceShape private (val tpe: DeclaredType, canonical: Opt[Instanc
 
 object InstanceShape:
   /** Intern the reference in the consuming graph, adopting an inherited instance
-    * when available. NewResolver.instanceShape first projects substitutions onto
-    * the type's support. Keep each diagnostic witness on its own interned view:
-    * otherwise observing the same type through another annotation reports the
-    * first annotation's location. All views share the origin-free reference's
-    * candidate identity, so diagnostic evidence cannot multiply inference flow.
+    * when available. The type's substitution is first projected onto its support
+    * (NewResolver.projectType): an instance retaining a binding it cannot observe
+    * would be a distinct candidate for every unrelated caller environment. This
+    * factory is the only way to construct an instance, so that no construction
+    * site can skip the projection. Keep each diagnostic witness on its own
+    * interned view: otherwise observing the same type through another annotation
+    * reports the first annotation's location. All views share the origin-free
+    * reference's candidate identity, so diagnostic evidence cannot multiply
+    * inference flow.
     */
-  def apply(tpe: DeclaredType)(using state: NewResolverState): InstanceShape =
-    val semanticType = if tpe.origin.isEmpty then tpe else tpe.copy()(N)
+  def apply(tpe: DeclaredType)(resolver: NewResolver)(using state: NewResolverState): InstanceShape =
+    val projected = resolver.projectType(tpe)
+    val semanticType = if projected.origin.isEmpty then projected else projected.copy()(N)
     val canonical = state.canonicalInstance(semanticType)(new InstanceShape(semanticType, N))
-    if tpe.origin.isEmpty then canonical
-    else state.canonicalInstance(tpe)(new InstanceShape(tpe, S(canonical)))
+    if projected.origin.isEmpty then canonical
+    else state.canonicalInstance(projected)(new InstanceShape(projected, S(canonical)))
   def unapply(instance: InstanceShape): S[DeclaredType] = S(instance.tpe)
 
 /** A deferred value view: interpret references in the shared `source` using
