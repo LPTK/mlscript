@@ -524,6 +524,41 @@ convergence. Depth limits and dropped marks do not establish a fixed point.
 These representations are internal to resolution. Lowering consumes completed
 targets and value shapes; runtime values acquire no type-argument objects.
 
+## Async fulfillment interfaces
+
+`Promise[A]` retains its settlement value type. The intrinsic `Awaited[A]`
+projects the eventual fulfillment interface, recursively adopting nested promises.
+Both `await` and `.then` observe this projection; constructors may receive a promise
+through their resolve callback. Factories and async results expose
+`Promise[Awaited[A]]`, while `Promise.all` applies the projection to its element type.
+
+The Promise declarations follow TypeScript's library where the current language
+can express the signatures. Executor, resolve, reject, and finalizer callbacks use
+`undefined` for TypeScript's `void`; only rejection reasons are unrestricted `Any`.
+`then` keeps separate fulfillment and rejection result parameters, `catch` includes
+the original fulfillment type, and `finally` preserves it. `Nothing` is the empty
+fulfillment type of a rejected promise, including through type aliases.
+
+Optional first callbacks, zero-argument factories, and default type arguments still
+require language support. The rejection callback of `then` uses the existing rest
+parameter convention; it, `catch`, and `finally` accept explicit `undefined` or
+`null`. Promise inputs currently support native promises; structural
+`PromiseLike` values, general JS
+iterables, and tuple-mapped `all` results remain outside these signatures.
+
+An async definition's result annotation describes its body before the async wrapper.
+Inferred bodies feed a shared deferred type edge, preserving their lexical marks.
+The `Awaited` application stays symbolic until the caller supplies its substitution:
+expanding it at the definition would lose inferred generic result parameters.
+Fulfillment observers are interned before following nested promises, retaining
+late bounds and sharing recursive edges. Exposing a promise also exposes callbacks
+inside its payload, so their parameter obligations cannot escape checking.
+
+Structural thenables currently produce an unknown fulfillment interface. Treating
+the original object's fields as the fulfilled value would be incorrect because
+JavaScript can replace that object with the value passed to its `then` callback.
+`Promises.mls` retains an explicit regression for the unsupported callback inference.
+
 ## Validation
 
 Graph tests cover bounded instance allocation and replay (`TypeInstantiationTest`), directed
@@ -541,5 +576,8 @@ published after a view exists, and observation-order independence.
 Worksheet coverage under `newres` includes `MutableArrays`, `ContextualInference`,
 `InstantiationSites`, `StoredSpecializations`, `SpecializationCaptures`,
 `TypeArgumentVariance`, `VarianceSubstitution`, `AnnotationContexts`,
-`TypeGraphTermination`, `IrrelevantBinders`, `BinderSupport`, and `ArraySpreadViews`. Deferred cases retain explicit regression expectations;
+`TypeGraphTermination`, `IrrelevantBinders`, `BinderSupport`, and `ArraySpreadViews`.
+`Promises` covers async fulfillment, nested adoption, constructor inference,
+generic call isolation, and escaping payloads. Deferred cases retain explicit
+regression expectations;
 see the [future-work reference](new-resolution-future-work.md).

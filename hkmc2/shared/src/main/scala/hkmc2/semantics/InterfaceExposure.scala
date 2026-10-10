@@ -106,13 +106,15 @@ final class InterfaceExposure(resolver: NewResolver)(using NewResolverState, TL)
       term(parent, marks, path.via(msg"This parent contributes inherited members." -> parent.toLoc))
 
   private def result(body: Term, sign: Opt[Term], marks: Ls[Marks], path: Path)(using NewResolverState): Unit = sign match
-    case N => term(body, marks, path.via(msg"This value is returned here." -> body.toLoc))
+    case N =>
+      watch((new Identity(body), marks, "result"))(resolver.listenResult(body)): shape =>
+        emit(shape.exit(marks), path.via(msg"This value is returned here." -> body.toLoc))
     case S(sign) =>
       // Check returned implementations against the declared calling interface.
       // Its parameter types constrain returned closures instead of unrestricted
       // unknowns, and consumers see only the annotated result.
       val declared = resolver.declaredType(resolver.typeResolution(sign), Map.empty).instantiate(rstate.instances)
-      watch((new Identity(body), declared, marks))(resolver.listenTerm(body)): shape =>
+      watch((new Identity(body), declared, marks))(resolver.listenResult(body)): shape =>
         resolver.constrainFunction(declared, shape, marks)
       watch((declared, marks))(resolver.listenTypeInstances(declared)): shape =>
         emit(shape.exit(marks), path)
@@ -155,7 +157,10 @@ final class InterfaceExposure(resolver: NewResolver)(using NewResolverState, TL)
       case intro: IntroShape => intro.trm match
         case Lam(_, body) =>
           parameters(shape.unappliedParams, path)
-          contextualTerm(body, marks, path.via(msg"This value is returned here." -> body.toLoc), instances)
+          watch((new Identity(body), marks, instances, "result"))(
+            listener => resolver.listenResult(body)(listener)(using rstate.withInstances(instances))): shape =>
+              emit(resolver.instantiateShape(shape, instances).exit(marks),
+                path.via(msg"This value is returned here." -> body.toLoc))
         case _ => ()
       case tuple: TupleShape => tuple.segments.foreach:
         case field: TupleShape.Fixed =>
@@ -178,10 +183,11 @@ final class InterfaceExposure(resolver: NewResolver)(using NewResolverState, TL)
             unknown.enter(marks) match
               case value: TermShape => resolver.exposeTypeHoles(input, value, marks)
               case NoShape => ()
-        callable.result.foreach: result =>
-          watch((result, marks))(resolver.listenTypeInstances(result)): shape =>
-            emit(shape.exit(marks), path)
+        watch((callable, marks, "call result"))(resolver.listenCallableResult(callable)): shape =>
+          emit(shape.exit(marks), path)
       case nominal: NominalInstanceView =>
+        watch((shape, "promise payload"))(listener => { resolver.listenPromisePayload(shape)(listener); () }): payload =>
+          emit(payload, path.via(msg"This value is fulfilled by this promise." -> nominal.toLoc))
         // Array element bindings may contain escaping closures. Follow only the
         // declared binding; concrete annotations still hide implementation shapes.
         resolver.arrayElementType(nominal).foreach: binding =>

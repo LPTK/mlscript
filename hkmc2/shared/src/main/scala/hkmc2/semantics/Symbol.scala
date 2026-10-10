@@ -396,6 +396,15 @@ end BlockMemberSymbol
 sealed abstract class MemberSymbol(using State) extends Symbol:
   def nme: Str
   def subst(using SymbolSubst): MemberSymbol
+  
+  /** Resolution publishes direct override edges; only resolver subscriptions may observe the
+    * growing graph. Erasure/lowering read the completed declaration identities, never value flow.
+    * The host uses the same consumer-local copies as other inference publishers on imported code.
+    * These edges belong to source declarations and are consumed before/while lowering. MIR
+    * symbol refreshing does not copy them: lowered selections already contain their chosen target.
+    */
+  private[semantics] val overrideLinks: OverrideLinks = new OverrideLinks
+  def overriddenMembers(using codegen.Erasure): Ls[TermSymbol] = overrideLinks.members
 
 
 class TermSymbol(val k: TermDefKind, val owner: Opt[InnerSymbol], val id: Tree.Ident)(using State)

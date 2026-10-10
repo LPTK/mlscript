@@ -4,7 +4,7 @@ declare type Any
 declare type Anything
 declare type Nothing
 
-declare class Object {
+declare open class Object {
   fun toString(): Str
 }
 declare fun Object(...args): Object // TODO: use an optional parameter when supported
@@ -49,7 +49,7 @@ declare class BigInt {
 declare fun BigInt(value: Str | Int | Bool | BigInt): BigInt
 declare module BigInt
 
-declare class Function {
+declare open class Function {
   val name: Str
   fun bind(thisArg, ...args): Function
   fun apply(thisArg, args: Array): Any
@@ -176,13 +176,23 @@ declare module BigInt64Array
 declare class BigUint64Array
 declare module BigUint64Array
 
-declare class Promise {
-  fun id"then"(onFulfilled: Function, ...onRejected): Promise
+// Awaited recursively unwraps promises, as JavaScript's promise resolution does.
+declare type Awaited[out A]
+// Follow TypeScript's Promise declarations, translating void returns to undefined.
+// Optional parameters and default type arguments are not supported yet: callers
+// must supply the first callback, and then's rejection callback uses a rest list.
+// Structural PromiseLike values and tuple-mapped all results remain unsupported.
+declare class Promise[out A](executor: ((A | Promise[A]) -> undefined, Any -> undefined) -> undefined) {
+  fun id"then"[B, C](onFulfilled: Awaited[A] -> (B | Promise[B]), ...onRejected: Array[(Any -> (C | Promise[C])) | undefined | null]): Promise[Awaited[B | C]]
+  fun id"catch"[B](onRejected: (Any -> (B | Promise[B])) | undefined | null): Promise[Awaited[A | B]]
+  fun id"finally"(onFinally: (() -> undefined) | undefined | null): Promise[A]
 }
 declare module Promise {
-  fun resolve(value): Promise
-  fun reject(reason): Promise
-  fun all(values): Promise
+  fun resolve[A](value: A | Promise[A]): Promise[Awaited[A]]
+  fun reject(reason: Any): Promise[Nothing]
+  fun all[A](values: Array[A]): Promise[Array[Awaited[A]]]
+  fun race[A](values: Array[A]): Promise[Awaited[A]]
+  fun any[A](values: Array[A]): Promise[Awaited[A]]
 }
 
 // MLscript-specific types
@@ -560,7 +570,7 @@ declare module annotations {
 }
 
 declare module handlers {
-  fun await
+  fun await[A](promise: Promise[A]): Awaited[A]
 }
 
 declare module scope {
@@ -579,7 +589,7 @@ declare module runtime {
 declare val document: dyn
 declare val customElements: dyn
 // Preserve the nominal superclass while its host members remain dynamic.
-declare class HTMLElement {
+declare open class HTMLElement {
   val textContent: dyn
   val innerHTML: dyn
   val shadowRoot: dyn

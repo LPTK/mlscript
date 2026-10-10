@@ -212,6 +212,14 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     // search for unliftable classes and build the extends graph
     new BlockTraverser:
       this.applyScopedObject(s.obj)
+      override def applyPath(p: Path): Unit = p match
+        // A direct superclass reference, like an extends or Instantiate operand, does not
+        // let the class escape as a value. Its receiver still needs ordinary capture analysis.
+        case sel @ SuperSelect(qual, RefOfDefn(S(cls: ClassSymbol), _), _) =>
+          applyPath(qual)
+          cls.traverse
+          sel.symbol.traverse
+        case _ => super.applyPath(p)
       override def applyCase(cse: Case): Unit =
         cse match
           case Case.Cls(cls: (ClassSymbol | ModuleOrObjectSymbol), _) =>

@@ -321,6 +321,15 @@ final class NewResolverState private (
   // identity so imported listeners use the consumer's private publisher data.
   val byNameResults: Cache[(TermSymbol, TypeSubstitution), ShapeHost] =
     new Cache(inherited.map(_.byNameResults), identity)
+  // Async payloads are deferred type edges, not snapshots of the body's current
+  // candidates. Register each host before following recursive function results.
+  val resultTypes: Cache[(Identity[Term], TypeSubstitution), DeclaredType] =
+    new Cache(inherited.map(_.resultTypes), identity)
+  val awaitedTypes: Cache[DeclaredType, DeclaredType] =
+    new Cache(inherited.map(_.awaitedTypes), identity)
+  // Keyed like inference candidates (see ShapeIdentity), so each candidate has one awaited type.
+  val awaitedValues: Cache[(Any, TypeSubstitution), DeclaredType] =
+    new Cache(inherited.map(_.awaitedValues), identity)
   val typeInterpretations: Cache[Identity[Term], TypeResolution] =
     new Cache(inherited.map(_.typeInterpretations), identity)
   // Qualification can deliver the same declaration in several environments.
@@ -490,9 +499,9 @@ final class NewResolverState private (
     new Cache(inherited.map(_.mutableArrays), identity)
   // Named tuple fields have stable property identities, shared with consumers
   // through the tuple's original graph rather than allocated per spread candidate.
-  val namedTupleRecords: Cache[Identity[Tup], Rcd] =
+  val namedTupleRecords: Cache[Identity[Tup | CtxTup], Rcd] =
     new Cache(inherited.map(_.namedTupleRecords), identity)
-  val aggregateProducers: Seen[Identity[Tup | Rcd]] =
+  val aggregateProducers: Seen[Identity[Tup | CtxTup | Rcd]] =
     new Seen(inherited.map(_.aggregateProducers))
   // Whether a binder is supplied is fixed by its authoritative syntactic site.
   // Each definition/site has its own parameter instances; marks distinguish the
