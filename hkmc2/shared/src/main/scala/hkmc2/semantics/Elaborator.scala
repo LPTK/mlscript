@@ -1228,15 +1228,24 @@ extends Importer:
   
   /** Record the explicit type binders in scope where `term` is written, for
     * new resolution's binder-support analysis (see NewResolver.shapeSupport).
-    * Every lambda, tuple, record, application, construction, and pattern target is recorded
-    * where it is created, before any listener can build its shape: `app` and
-    * `mkNew` install resolution listeners immediately, and a tuple is observed
-    * as soon as the application consuming it is. Legacy-resolution units record
-    * these too, since new-resolution consumers can import their syntax.
+    * Every lambda, tuple, record, application, construction, pattern target, and
+    * async expression is recorded where it is created, before any listener can
+    * build its shape: `app` and `mkNew` install resolution listeners immediately,
+    * and a tuple is observed as soon as the application consuming it is.
+    * Legacy-resolution units record these too, since new-resolution consumers
+    * can import their syntax.
     */
   private def withTypeBinders[T <: Term](term: T)(using Ctx): T =
     rstate.recordLexicalBinders(term, ctx.typeBinders)
     term
+  
+  /** An async expression wraps the values of `target` in a promise, whose payload
+    * reads the binders in scope where the expression is written (see
+    * NewResolver.resultType).
+    */
+  private def annotated(annotation: Annot, target: Term)(using Ctx): Term.Annotated = annotation match
+    case _: Annot.Async => withTypeBinders(Term.Annotated(annotation, target))
+    case _ => Term.Annotated(annotation, target)
   
   private def app(lt: Term, rt: Term)(tree: Tree.App, typ: Opt[typing.Type], resSym: FlowSymbol)(using Ctx): Term =
     val res = withTypeBinders(new Term.App(lt, rt)(tree, typ, resSym))
@@ -1915,7 +1924,7 @@ extends Importer:
         sym.ref()
     case Annotated(lhs, rhs) =>
       annot(lhs).fold(subterm(rhs, interp))(ann =>
-        Term.Annotated(ann, subterm(rhs, interp)))
+        annotated(ann, subterm(rhs, interp)))
     case Keywrd(kw) =>
       raise(ErrorReport(msg"Unexpected keyword '${kw.name}' in this position." -> tree.toLoc :: Nil))
       error
@@ -2712,7 +2721,7 @@ extends Importer:
         // TODO reject plain term statements? Currently, `(1, 2)` is allowed to elaborate (tho it should be rejected in type checking later)
         val interpretation = if sts.isEmpty then resultInterp else Trm
         val res = annotations.foldLeft(term(st, interpretation)):
-          case (acc, ann) => Term.Annotated(ann, acc)
+          case (acc, ann) => annotated(ann, acc)
         sts match
         case Nil => (mkBlk(acc, S(res), hasResult), ctx)
         case _ => go(sts, Nil, res :: acc)(N)

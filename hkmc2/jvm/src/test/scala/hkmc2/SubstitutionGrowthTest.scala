@@ -96,6 +96,34 @@ class SubstitutionGrowthTest extends AnyFunSuite:
       assert(m.largestSubstitution <= 4)
       assert(m.views < 3000)
 
+  // The branching chain above, passing a promise produced outside every generic
+  // scope. Its views are projected onto the support of its payload, which is
+  // recorded on the payload host and on the synthesized Awaited reference
+  // wrapping it. The async body is a parameter reference, a term that records no
+  // lexical scope of its own. When either scope was unknown, every view of the
+  // promise retained its callers' bindings, allocating 3 * 2^k - 1 views
+  // (3071 at k = 10) instead of one.
+  test("promises through irrelevant generic scopes stay bounded"):
+    for k <- List(2, 6, 10, 14) do
+      val definitions = (1 to k).map: i =>
+        val next = if i == k then "value" else s"f${i + 1}(value, flag)"
+        s"""private fun g$i[G$i](x) = x
+           |private fun h$i[H$i](x) = x
+           |private fun f$i(value, flag) = if flag then g$i($next) else h$i($next)""".stripMargin
+      val m = measure(s"Promise_$k",
+        s"""#lang(0.3.x)
+           |
+           |class Item(val value: Int)
+           |@annotations.async
+           |private fun produce(item) = item
+           |${definitions.mkString("\n")}
+           |fun use(flag) = f1(produce(Item(1)), flag).then(item => item.value)
+           |""".stripMargin)
+      withClue(s"promise chain of length $k: $m"):
+        assert(m.largestSubstitution <= 2)
+        assert(m.views <= 2 * k + 4)
+        assert(m.activations <= 2 * k + 4)
+
   /** Shapes and instances for the substitution laws below. */
   private class Harness:
     given owner: Elaborator.State = new Elaborator.State

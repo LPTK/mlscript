@@ -139,7 +139,7 @@ final class InterfaceExposure(resolver: NewResolver)(using NewResolverState, TL)
           case value: TermShape => valueIn(value, path, instances)
           case NoShape => ()
       case _: InstanceShape =>
-        watch((shape, "instance view"))(resolver.listenInstanceViews(shape))(emit(_, path))
+        watch((ShapeIdentity.key(shape), "instance view"))(resolver.listenInstanceViews(shape))(emit(_, path))
       case ds: DefnShape if ds.defn.sym.getState is rstate.owner =>
         parameters(shape.unappliedParams, path)
         ds.clsDef match
@@ -183,15 +183,17 @@ final class InterfaceExposure(resolver: NewResolver)(using NewResolverState, TL)
             unknown.enter(marks) match
               case value: TermShape => resolver.exposeTypeHoles(input, value, marks)
               case NoShape => ()
-        watch((callable, marks, "call result"))(resolver.listenCallableResult(callable)): shape =>
+        watch((ShapeIdentity.key(callable), marks, "call result"))(resolver.listenCallableResult(callable)): shape =>
           emit(shape.exit(marks), path)
       case nominal: NominalInstanceView =>
-        watch((shape, "promise payload"))(listener => { resolver.listenPromisePayload(shape)(listener); () }): payload =>
+        // Watch keys follow candidate identity, as `emit` does: hashing a nominal
+        // view structurally would hash its class declaration's syntax.
+        watch((ShapeIdentity.key(shape), "promise payload"))(listener => { resolver.listenPromisePayload(shape)(listener); () }): payload =>
           emit(payload, path.via(msg"This value is fulfilled by this promise." -> nominal.toLoc))
         // Array element bindings may contain escaping closures. Follow only the
         // declared binding; concrete annotations still hide implementation shapes.
         resolver.arrayElementType(nominal).foreach: binding =>
-          watch((shape, "array elements"))(listener => { resolver.listenArrayElements(shape)(listener); () }): element =>
+          watch((ShapeIdentity.key(shape), "array elements"))(listener => { resolver.listenArrayElements(shape)(listener); () }): element =>
             emit(element, path.via(msg"This value is stored in this array." -> binding.resolution.source.toLoc))
       // Structural annotations hide initializer implementations. Unknown and
       // dynamic values have no static graph.

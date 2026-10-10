@@ -1257,7 +1257,7 @@ class NewResolver:
             combinedType(previous.resolution, previous, tpe, false)))
         RecordTypeShape(fields)(left.source, right.declarations ++ left.declarations)
       publish(merged)
-    values.distinct.foreach:
+    values.distinctBy(ShapeIdentity.key).foreach:
       case Marked(_: RecordTypeShape, _) => ()
       case other => publish(other)
 
@@ -1459,19 +1459,23 @@ class NewResolver:
   /** Materialize a deferred value result as a type edge, preserving the value's
     * lexical marks until its consumer leaves the definition scope. In particular,
     * observing an async result must not mix payloads from separate generic calls.
+    * The result is produced by terms written where the binders `scope` are in
+    * scope. The host stays specific to the activation `instances`, because
+    * parameters deliver each activation's own arguments to the body.
     */
-  private def resultType(source: Term, instances: TypeSubstitution)(connect: Listener => Unit)
+  private def resultType(source: Term, scope: Set[VarSymbol], instances: TypeSubstitution)(connect: Listener => Unit)
       (using NewResolverState): DeclaredType =
     val key = (new Identity(source), instances)
     rstate.resultTypes.get(key) match
       case S(tpe) => tpe
       case N =>
         val resolution = new TypeResolution(source, messages => resolError(source, messages))
-        // The payload receives the body's result values, which can read any
-        // binder in scope at the body, including the definition's own. Leave
-        // that scope unknown, so that reading the payload through a substitution
-        // retains all of it, rather than risk dropping a binder a value reads.
-        rstate.recordTemplateBinders(resolution, N)
+        // Reading a payload value can require the binders in `scope`. A declared
+        // result arrives already instantiated by `instances` or by the observing
+        // activation, so reading it also reads the sites of the instances these
+        // select for those binders (see closure).
+        rstate.recordTemplateBinders(resolution,
+          closure(S(scope), binder => instances.get(binder).orElse(rstate.instances.get(binder))))
         val tpe = declaredType(resolution, Map.empty)
         rstate.resultTypes(key) = tpe
         connect(value => resolution.publish(TypeShape.Inferred(value)))
@@ -1494,7 +1498,15 @@ class NewResolver:
       val symbol = prelude.builtins.Awaited match
         case symbol: TypeAliasSymbol => symbol
         case _ => lastWords("The builtin Awaited must be an abstract type alias")
-      val constructor = new TypeResolution(tpe.resolution.source, tpe.resolution.fail)
+      // The synthesized `Awaited` is always applied to the payload. Give it its own
+      // source, recorded as applied to one argument and written outside every
+      // binder. Reusing the payload's source would summarize it as a bare generic
+      // use in that source's scope (see dependencies), which is unknown whenever
+      // the source records no scope, and the promise would retain whole substitutions.
+      val head = Term.Ref(symbol)(new syntax.Tree.Ident(symbol.nme).withLocOf(tpe.resolution.source), N)
+      rstate.recordLexicalBinders(head, Set.empty)
+      rstate.recordAppliedTypeArguments(head, 1)
+      val constructor = new TypeResolution(head, tpe.resolution.fail)
       constructor.publish(TypeShape.Alias(symbol, N))
       val resolution = new TypeResolution(tpe.resolution.source, tpe.resolution.fail)
       resolution.publish(TypeShape.Applied(constructor, tpe.resolution :: Nil))
@@ -1543,7 +1555,9 @@ class NewResolver:
     td.asyncAnnotation match
       case S(annotation) =>
         val source = td.sign.orElse(td.body).get
-        listener(promiseShape(annotation, resultType(source, instances)(bodyResult)))
+        // The body and signature are written inside the definition, where its own binders are in scope.
+        val scope = lexicalBinders(td.tsym) ++ definitionBinders(td)
+        listener(promiseShape(annotation, resultType(source, scope, instances)(bodyResult)))
       case N => bodyResult(listener)
 
   /** Observe one application of a declared callable. Partial application keeps
@@ -1951,7 +1965,7 @@ class NewResolver:
               case value: TermShape => receive(value)
               case NoShape => ()
         case MemberLookup.Typed(_, tpe, inner) =>
-          receive(InstanceShape(transportType(tpe.instantiate(instances), inner)))
+          receive(instanceShape(transportType(instantiateType(tpe, instances), inner)))
         case MemberLookup.Dynamic(inner) => DynShape().exit(inner) match
           case value: TermShape => receive(value)
           case NoShape => ()
@@ -3016,7 +3030,9 @@ class NewResolver:
   private def publishTyped(host: NewResolvable & ShapeHost, field: RcdField, tpe: DeclaredType,
       marks: Ls[Marks], instances: TypeSubstitution)(using NewResolverState): Unit =
     rstate.recordResolution(host, host.resolvedTargets.contains(field.tsym))(host.resolvedTargets ::= field.tsym)
-    publishActivated(host, InstanceShape(transportType(tpe.instantiate(instances), marks)))
+    // Project before transporting: transportType interns its wrapper by the whole
+    // type, so an unobservable binding would otherwise yield a distinct candidate.
+    publishActivated(host, instanceShape(transportType(instantiateType(tpe, instances), marks)))
 
   private def publishDynamic(host: NewResolvable & ShapeHost, marks: Ls[Marks])(using NewResolverState): Unit =
     DynShape().exit(marks) match
@@ -4089,8 +4105,8 @@ class NewResolver:
       val flow = resultFlow(body)
       if flow.normal then listen(body, discardMarks)(listener)
       flow.exits.getOrElse(S(label), Vector.empty).foreach(value => listen(value, discardMarks)(listener))
-    case Annotated(annotation @ Annot.Async(), body) =>
-      listener(promiseShape(annotation, resultType(body, rstate.instances)(listenResult(body))))
+    case annotated @ Annotated(annotation @ Annot.Async(), body) =>
+      listener(promiseShape(annotation, resultType(body, lexicalBinders(annotated), rstate.instances)(listenResult(body))))
     case Annotated(_, target) => listen(target, discardMarks)(listener)
     case _: Assgn | _: Drop => listener(unitResultShape)
     case _: Ret | _: Break | _: Throw | _: Continue => () // These expressions do not complete normally.
