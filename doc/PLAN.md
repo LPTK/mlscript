@@ -40,7 +40,7 @@ The implementation plan I would give Claude follows.
 
 3. **Record lexical metadata in the source graph, before eager resolution can observe it.**
 
-   Extend the approach used by [`lexicalTypeBinders`](/Users/parreaux/work/Research/code/mlscript/hkmc2/shared/src/main/scala/hkmc2/semantics/NewResolverState.scala:246) and [`Ctx.typeBinders`](/Users/parreaux/work/Research/code/mlscript/hkmc2/shared/src/main/scala/hkmc2/semantics/Elaborator.scala:123).
+   Extend the approach used by [`lexicalTypeBinders`](../hkmc2/shared/src/main/scala/hkmc2/semantics/NewResolverState.scala) and [`Ctx.typeBinders`](../hkmc2/shared/src/main/scala/hkmc2/semantics/Elaborator.scala).
 
    Use identity-keyed metadata owned by `NewResolverState`, with the existing inherited-cache/import conventions. Do not add mutable fields to symbols or introduce global state.
 
@@ -56,7 +56,7 @@ The implementation plan I would give Claude follows.
 
 4. **Implement one exhaustive binder-support policy for shape instantiation.**
 
-   Audit the cases in [`Shape.scala`](/Users/parreaux/work/Research/code/mlscript/hkmc2/shared/src/main/scala/hkmc2/semantics/Shape.scala:483). The policy should cover these categories:
+   Audit the cases in [`Shape.scala`](../hkmc2/shared/src/main/scala/hkmc2/semantics/Shape.scala). The policy should cover these categories:
 
    | Shape category | Required treatment |
    |---|---|
@@ -78,7 +78,7 @@ The implementation plan I would give Claude follows.
 
 5. **Normalize before cache lookup and avoid allocating unchanged views.**
 
-   Refactor [`instantiateShape`](/Users/parreaux/work/Research/code/mlscript/hkmc2/shared/src/main/scala/hkmc2/semantics/NewResolver.scala:701) so projection happens before the `canonicalView` lookup. Otherwise irrelevant substitutions still create cache entries even when their resulting values become equivalent.
+   Refactor [`instantiateShape`](../hkmc2/shared/src/main/scala/hkmc2/semantics/NewResolver.scala) so projection happens before the `canonicalView` lookup. Otherwise irrelevant substitutions still create cache entries even when their resulting values become equivalent.
 
    For shapes carrying flat value environments, perform the following operations in order:
 
@@ -98,7 +98,7 @@ The implementation plan I would give Claude follows.
 
 6. **Audit every propagation path, keeping activation semantics separate.**
 
-   The current implementation has more callers than the two highlighted in the analysis. Check applications, construction, member lookup, tuple fields, pattern fields, function constraints, explicit specialization, and [`InterfaceExposure`](/Users/parreaux/work/Research/code/mlscript/hkmc2/semantics/InterfaceExposure.scala:116).
+   The current implementation has more callers than the two highlighted in the analysis. Check applications, construction, member lookup, tuple fields, pattern fields, function constraints, explicit specialization, and [`InterfaceExposure`](../hkmc2/shared/src/main/scala/hkmc2/semantics/InterfaceExposure.scala).
 
    Pay particular attention to `ContextualSymShape`, `MemberLookup.Contextual`, and `TupleShape.ViewedField`. They also carry environments and must not bypass the normalization policy or reintroduce discarded bindings.
 

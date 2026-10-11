@@ -284,7 +284,7 @@ class SubstitutionGrowthTest extends AnyFunSuite:
   // recorded when the application is interpreted, not discovered by the
   // traversal that first analyzes the node (see NewResolver.dependencies).
   test("the support of a shared generic use does not depend on observation order"):
-    def alias(h: Harness, applied: Bool): (DeclaredType, DeclaredType, VarSymbol) =
+    def alias(h: Harness, suppliedAtSource: Bool): (DeclaredType, DeclaredType, VarSymbol) =
       import h.given
       val (b, formal) = (h.binder("B"), h.binder("X"))
       val symbol = TypeAliasSymbol(Tree.Ident("Identity"))
@@ -294,30 +294,25 @@ class SubstitutionGrowthTest extends AnyFunSuite:
       // The use is written where B is in scope.
       val use = Term.UnitVal()
       h.state.recordLexicalBinders(use, Set(b))
-      if applied then h.state.recordAppliedTypeArguments(use, 1)
-      val bare = new TypeResolution(use, _ => fail("Unexpected type error"))
-      bare.publish(TypeShape.Alias(symbol, S(body.resolution)))
+      if suppliedAtSource then h.state.recordAppliedTypeArguments(use, 1)
+      val reference = new TypeResolution(use, _ => fail("Unexpected type error"))
+      reference.publish(TypeShape.Alias(symbol, S(body.resolution)))
       val application = new TypeResolution(Term.UnitVal(), _ => fail("Unexpected type error"))
-      application.publish(TypeShape.Applied(bare, List(h.typeOf(h.binder("C")).resolution)))
-      (DeclaredType(bare, Map.empty, TypeSubstitution.empty, true)(N), DeclaredType(application, Map.empty, TypeSubstitution.empty, true)(N), b)
+      application.publish(TypeShape.Applied(reference, List(h.typeOf(h.binder("C")).resolution)))
+      (DeclaredType(reference, Map.empty, TypeSubstitution.empty, true)(N), DeclaredType(application, Map.empty, TypeSubstitution.empty, true)(N), b)
     def observe(h: Harness, tpe: DeclaredType, b: VarSymbol): Map[VarSymbol, TypeParameterInstance] =
       import h.given
       val d = h.binder("D")
       h.instancesOf(h.resolver.instantiateShape(h.instanceOf(tpe), TypeSubstitution(List(h.instance(b), h.instance(d)))))
-    // Bare first, then applied.
-    locally:
+    // Source metadata and observation order are independent. Merely reaching a
+    // reference through a synthesized Applied node must not change its cached
+    // support: an omitted argument still needs B, even when the application is
+    // observed first. A source use recorded as fully applied needs no B in either
+    // order, including when its reference is observed directly before the wrapper.
+    for suppliedAtSource <- List(false, true); applicationFirst <- List(false, true) do
       val h = new Harness
-      val (bare, application, b) = alias(h, applied = false)
-      assert(observe(h, bare, b).keySet == Set(b))
-      assert(observe(h, application, b).keySet == Set(b))
-    // Applied first, then bare: the bare use still reads B.
-    locally:
-      val h = new Harness
-      val (bare, application, b) = alias(h, applied = false)
-      assert(observe(h, application, b).keySet == Set(b))
-      assert(observe(h, bare, b).keySet == Set(b))
-    // A use recorded as fully applied has no hole and reads no scope.
-    locally:
-      val h = new Harness
-      val (_, application, b) = alias(h, applied = true)
-      assert(observe(h, application, b).isEmpty)
+      val (reference, application, b) = alias(h, suppliedAtSource)
+      val observations = if applicationFirst then List(application, reference) else List(reference, application)
+      val expected = if suppliedAtSource then Set.empty[VarSymbol] else Set(b)
+      withClue(s"suppliedAtSource=$suppliedAtSource, applicationFirst=$applicationFirst: "):
+        observations.foreach(tpe => assert(observe(h, tpe, b).keySet == expected))
