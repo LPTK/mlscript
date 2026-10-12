@@ -78,7 +78,7 @@ The implementation plan I would give Claude follows.
 
 5. **Normalize before cache lookup and avoid allocating unchanged views.**
 
-   Refactor [`instantiateShape`](../hkmc2/shared/src/main/scala/hkmc2/semantics/NewResolver.scala) so projection happens before the `canonicalView` lookup. Otherwise irrelevant substitutions still create cache entries even when their resulting values become equivalent.
+   In [`instantiateShape`](../hkmc2/shared/src/main/scala/hkmc2/semantics/NewResolver.scala), project before constructing a view or looking up a canonical producer. Immutable views now use semantic keys without a separate interning table; irrelevant substitutions must still be removed before they distinguish keys.
 
    For shapes carrying flat value environments, perform the following operations in order:
 

@@ -180,37 +180,44 @@ known, unambiguous identities. See `newres/Dynamic.mls`, `Records.mls`,
 
 ## Candidate identity
 
-Inference hosts compare candidates with `ShapeIdentity.candidateKey`, never with
-case-class equality: structural hashes traverse nested shapes and the syntax trees
-they refer to, and recomputing them dominated resolution of large recursive
-definitions such as `FingerTreeList`. Most shapes are compared by identity, so
-resolution must construct each one once. Tuples, records, and instances of a
-`DeclaredType` have canonical constructors keyed shallowly by source identity,
-element keys, or type. These are final classes with private constructors and
-read-only extractors; their companion factories intern every instance. They must
-not become case classes: a generated `copy` would bypass the caches and create a
-distinct candidate for an existing shape. `instantiateShape` likewise memoizes views by
-the effective substitution after projecting the ambient one onto the value's
-binder support (see [instance types](new-resolution-type-value-flow.md#shared-bodies-and-contextual-constraints)),
-so equal views reached by different substitution sequences share one identity. These
-caches live in the consumer's root state, since activation views share its hosts,
-and adopt the shape of the unit that owns the source syntax.
+Graph objects have final identity equality. Shape classes have no generated
+`equals`, `hashCode`, or `copy`: a copied producer must not silently become a new
+inference candidate, and comparing an occurrence must not traverse its syntax.
+`ShapeEvent.candidateKey` caches a typed [`ShapeKey`](../hkmc2/shared/src/main/scala/hkmc2/semantics/ShapeKey.scala).
+Both publication and shape-sensitive resolver caches use that key.
 
-Some shapes are keyed without canonical construction. Marked, contextual, and
-activated shapes view an inner shape through a normalized path or a binder
-substitution. Leaf shapes such as unknown and opaque values are determined by their
-source nodes, and nominal, callable, and record interface views by their type-level
-contents. Caches keyed by shapes use the same keys. A shape type added without
-either a canonical constructor or a key makes every rebuilt copy a new candidate,
-which can prevent a recursive flow from reaching its fixed point.
+A key contains immutable values and links to graph nodes, never the current
+contents of a publisher or an inferred bound. Immutable type references, normalized
+mark paths, aggregate elements, and lattice formulas opt into explicit value
+equality through `ValueKey`; it caches their components and hash. This prevents
+repeated hashing from expanding a shared type DAG into a tree of traversals.
+Diagnostic witnesses and formula observation order do not participate in equality.
+`ShapeIdentity.compute` exhaustively chooses the key for each shape variant.
 
-`ShapeIdentity.key` lists the identity-based variants explicitly, so adding a
-shape variant requires choosing its candidate-identity policy.
+Tuples and records retain canonical factories: their identities anchor synthesized
+inference hosts, notably the Array element type of a tuple. Instances of a
+`DeclaredType` also retain one canonical origin-free reference. These factories
+live in the consuming root and adopt inherited producers from the graph owning
+their source. Their private constructors cannot be bypassed with a generated copy.
+Instance diagnostic wrappers share the canonical reference's key but are not
+interned themselves; a witness remains attached to its observation.
 
-Instance references retain diagnostic origins on separately interned views of
-the same origin-free reference. These views share its candidate identity, so
-observing a different annotation keeps the correct source witness without
-adding an inference alternative merely because its diagnostic evidence differs.
+Contextual, nominal, callable, and record-interface views use their immutable
+semantic keys without a separate interning table. `instantiateShape` projects an
+incoming substitution onto the value's binder support before constructing a view,
+and preserves the original wrapper on a no-op. Removing a cache never substitutes
+for this projection: irrelevant bindings would otherwise still distinguish keys.
+See [instance types](new-resolution-type-value-flow.md#shared-bodies-and-contextual-constraints).
+Member lookup remains keyed by the shape object because its result carries that
+observation's diagnostic evidence. Resolver tables are allocated on demand, so
+creating an activation does not eagerly allocate every map and set.
+
+`Candidates` receives its equality policy from the publisher's payload type. Its
+hash index provides efficient deduplication and its append-only buffer preserves
+publication order during reentrant callbacks. Normal iteration and `snapshot`
+visit the candidates present when iteration begins; `foreachGrowing` explicitly
+also visits appended candidates. Subscription replay uses a snapshot because
+new publications already reach the listener through notification.
 
 ## Recursive getter results
 

@@ -7,51 +7,134 @@ import codegen.Erasure
 /** A type interpretation, separate from the value shapes of the same reference syntax.
   * Compound types retain links to their operands so forward aliases need not be expanded eagerly.
   */
-enum TypeShape:
-  case Nominal(defn: ClassLikeDef)
-  case Alias(symbol: TypeAliasSymbol, rhs: Opt[TypeResolution])
-  case Union(left: TypeResolution, right: TypeResolution)
-  case Intersection(left: TypeResolution, right: TypeResolution)
+sealed abstract class TypeShape extends ValueKey
+
+object TypeShape:
+  final class Nominal(val defn: ClassLikeDef) extends TypeShape:
+    protected val keyComponents: Product = Tuple1(new Identity(defn))
+  object Nominal:
+    def unapply(value: Nominal): S[ClassLikeDef] =
+      S(value.defn)
+  final class Alias(val symbol: TypeAliasSymbol, val rhs: Opt[TypeResolution]) extends TypeShape:
+    protected val keyComponents: Product = (symbol, rhs)
+  object Alias:
+    def unapply(value: Alias): S[(TypeAliasSymbol, Opt[TypeResolution])] =
+      S((value.symbol, value.rhs))
+  final class Union(val left: TypeResolution, val right: TypeResolution) extends TypeShape:
+    protected val keyComponents: Product = (left, right)
+  object Union:
+    def unapply(value: Union): S[(TypeResolution, TypeResolution)] =
+      S((value.left, value.right))
+  final class Intersection(val left: TypeResolution, val right: TypeResolution) extends TypeShape:
+    protected val keyComponents: Product = (left, right)
+  object Intersection:
+    def unapply(value: Intersection): S[(TypeResolution, TypeResolution)] =
+      S((value.left, value.right))
   // Negated interfaces remain opaque, but their dependencies must participate
   // in source validation, including the rejection of unguarded alias cycles.
-  case Negation(base: TypeResolution)
+  final class Negation(val base: TypeResolution) extends TypeShape:
+    protected val keyComponents: Product = Tuple1(base)
+  object Negation:
+    def unapply(value: Negation): S[TypeResolution] =
+      S(value.base)
   // Substituted unions/intersections retain whole interpreted endpoints. Keeping
   // their lattice normal form prevents repeated Boolean substitutions from
   // nesting environments, without expanding bounds or changing endpoint marks.
-  case Combined(formula: TypeFormula[DeclaredType])
-  case Tuple(fields: Ls[TypeResolution])
-  case Record(source: Term.Rcd, fields: Ls[(RcdField, TypeResolution)])
-  case Function(params: Term, result: TypeResolution)
-  case Polymorphic(params: Ls[TypeQuantifier], outer: Opt[VarSymbol], body: TypeResolution)
-  case Applied(base: TypeResolution, args: Ls[TypeResolution])
-  case Wildcard(input: Opt[TypeResolution], output: Opt[TypeResolution])
+  final class Combined(val formula: TypeFormula[DeclaredType]) extends TypeShape:
+    protected val keyComponents: Product = Tuple1(formula)
+  object Combined:
+    def unapply(value: Combined): S[TypeFormula[DeclaredType]] =
+      S(value.formula)
+  final class Tuple(val fields: Ls[TypeResolution]) extends TypeShape:
+    protected val keyComponents: Product = Tuple1(fields)
+  object Tuple:
+    def unapply(value: Tuple): S[Ls[TypeResolution]] =
+      S(value.fields)
+  final class Record(val source: Term.Rcd, val fields: Ls[(RcdField, TypeResolution)]) extends TypeShape:
+    protected val keyComponents: Product = (source, fields.map((field, tpe) => (new Identity(field), tpe)))
+  object Record:
+    def unapply(value: Record): S[(Term.Rcd, Ls[(RcdField, TypeResolution)])] =
+      S((value.source, value.fields))
+  final class Function(val params: Term, val result: TypeResolution) extends TypeShape:
+    protected val keyComponents: Product = (params, result)
+  object Function:
+    def unapply(value: Function): S[(Term, TypeResolution)] =
+      S((value.params, value.result))
+  final class Polymorphic(val params: Ls[TypeQuantifier], val outer: Opt[VarSymbol], val body: TypeResolution) extends TypeShape:
+    protected val keyComponents: Product = (params, outer, body)
+  object Polymorphic:
+    def unapply(value: Polymorphic): S[(Ls[TypeQuantifier], Opt[VarSymbol], TypeResolution)] =
+      S((value.params, value.outer, value.body))
+  final class Applied(val base: TypeResolution, val args: Ls[TypeResolution]) extends TypeShape:
+    protected val keyComponents: Product = (base, args)
+  object Applied:
+    def unapply(value: Applied): S[(TypeResolution, Ls[TypeResolution])] =
+      S((value.base, value.args))
+  final class Wildcard(val input: Opt[TypeResolution], val output: Opt[TypeResolution]) extends TypeShape:
+    protected val keyComponents: Product = (input, output)
+  object Wildcard:
+    def unapply(value: Wildcard): S[(Opt[TypeResolution], Opt[TypeResolution])] =
+      S((value.input, value.output))
   // Interpreted arguments retain both polarities in the argument's lexical environment.
-  case Argument(parts: TypeArgument)
+  final class Argument(val parts: TypeArgument) extends TypeShape:
+    protected val keyComponents: Product = Tuple1(parts)
+  object Argument:
+    def unapply(value: Argument): S[TypeArgument] =
+      S(value.parts)
   // Substitution selects one part before the type is used in further constraints.
   // The argument stays in its own lexical environment, including delayed parts.
-  case SelectedArgument(argument: DeclaredType, positive: Bool)
+  final class SelectedArgument(val argument: DeclaredType, val positive: Bool) extends TypeShape:
+    protected val keyComponents: Product = (argument, positive)
+  object SelectedArgument:
+    def unapply(value: SelectedArgument): S[(DeclaredType, Bool)] =
+      S((value.argument, value.positive))
   // A transported reference retains its context before any deferred component
   // is observed. The resolver flattens these nodes and normalizes their marks.
-  case Contextual(reference: ContextualType)
+  final class Contextual(val reference: ContextualType) extends TypeShape:
+    protected val keyComponents: Product = Tuple1(reference)
+  object Contextual:
+    def unapply(value: Contextual): S[ContextualType] =
+      S(value.reference)
   // The same third-party symbol can have different inference in two exporters.
   // Retain its originating host so importing a result needs no whole-state copy.
-  case Parameter(symbol: VarSymbol, host: Publisher.Data[ShapeEvent])
+  final class Parameter(val symbol: VarSymbol, val host: Publisher.Data[ShapeEvent]) extends TypeShape:
+    protected val keyComponents: Product = (symbol, host)
+  object Parameter:
+    def unapply(value: Parameter): S[(VarSymbol, Publisher.Data[ShapeEvent])] =
+      S((value.symbol, value.host))
   // An omitted argument owns one source inference node. It is not a quantified
   // binder and is never instantiated at a call site; marks distinguish its flows.
-  case Hole(host: Publisher.Data[TermShape])
+  final class Hole(val host: Publisher.Data[TermShape]) extends TypeShape:
+    protected val keyComponents: Product = Tuple1(host)
+  object Hole:
+    def unapply(value: Hole): S[Publisher.Data[TermShape]] =
+      S(value.host)
   // Synthesized generic arguments retain inferred value shapes, for example
   // the element union of the Array supertype of a tuple. Singleton annotations
   // also retain their literal shape; no implementation is inspected.
-  case Inferred(value: TermShape)
+  final class Inferred(val value: TermShape) extends TypeShape:
+    protected val keyComponents: Product = Tuple1(ShapeIdentity.key(value))
+  object Inferred:
+    def unapply(value: Inferred): S[TermShape] =
+      S(value.value)
   // An open type expression reached through a reference. Unlike Contextual,
   // its free binders still receive the observing declaration's substitution.
   // Qualified references retain the receiver's bindings and lexical path too.
-  case Reference(base: TypeResolution, marks: Ls[Marks], bindings: Map[VarSymbol, DeclaredType], instances: TypeSubstitution)
-  case Unit
-  case Dynamic
-  case Abstract
-  case Top
-  case Bottom
+  final class Reference(val base: TypeResolution, val marks: Ls[Marks], val bindings: Map[VarSymbol, DeclaredType], val instances: TypeSubstitution) extends TypeShape:
+    protected val keyComponents: Product = (base, marks, bindings, instances)
+  object Reference:
+    def unapply(value: Reference): S[(TypeResolution, Ls[Marks], Map[VarSymbol, DeclaredType], TypeSubstitution)] =
+      S((value.base, value.marks, value.bindings, value.instances))
+  object Unit extends TypeShape:
+    protected val keyComponents: Product = EmptyTuple
+  object Dynamic extends TypeShape:
+    protected val keyComponents: Product = EmptyTuple
+  object Abstract extends TypeShape:
+    protected val keyComponents: Product = EmptyTuple
+  object Top extends TypeShape:
+    protected val keyComponents: Product = EmptyTuple
+  object Bottom extends TypeShape:
+    protected val keyComponents: Product = EmptyTuple
 
 /** Candidates are published during elaboration. Erasure reads the resulting graph; it
   * never performs lookup or resolves an alias by inspecting an elaborated definition.
@@ -88,7 +171,7 @@ final class TypeResolution(val source: Term, report: Ls[(Message, Opt[Loc])] => 
           msg"candidate: ${member.describe}" -> member.toLoc
         case _ => declarations(this, Set.empty).distinct
       fail(msg"This type is ambiguous, as it has multiple resolved targets" -> source.toLoc :: candidates)
-    shapes.foreach:
+    shapes.foreachGrowing:
       case Alias(_, rhs) => rhs.foreach(_.validate(next))
       case Reference(base, _, _, _) => base.validate(next)
       case Applied(base, args) =>
@@ -127,45 +210,60 @@ final class TypeResolution(val source: Term, report: Ls[(Message, Opt[Loc])] => 
   * `positive` interprets substitutions in the source expression; it is not the
   * direction of a constraint subsequently applied to the interpreted type.
   */
-final case class DeclaredType(resolution: TypeResolution, bindings: Map[VarSymbol, DeclaredType],
-    instances: TypeSubstitution, positive: Bool)(val origin: Opt[TypeInterfaceReason]):
+final class DeclaredType(val resolution: TypeResolution, val bindings: Map[VarSymbol, DeclaredType],
+    val instances: TypeSubstitution, val positive: Bool)(val origin: Opt[TypeInterfaceReason]) extends ValueKey:
+  protected val keyComponents: Product = (resolution, bindings, instances, positive)
   /** Diagnostic evidence is not part of type equality or cache keys. Retain one
     * witness when normalizing/substituting the type; do not accumulate paths.
     * A use's witness takes precedence over evidence in a shared cached reference.
     */
   def withOrigin(witness: Opt[TypeInterfaceReason]): DeclaredType =
-    copy()(witness.orElse(origin))
+    DeclaredType(resolution, bindings, instances, positive)(witness.orElse(origin))
 
   /** Instantiation changes references to source binders, never expands their bounds.
     * A reference already interpreted in another call retains that interpretation.
     * The finite map contains original binders and canonical site instances only.
     */
   def instantiate(substitution: TypeSubstitution): DeclaredType =
-    copy(instances = substitution.withOverrides(instances))(origin)
+    withInstances(substitution.withOverrides(instances))
+
+  def withInstances(substitution: TypeSubstitution): DeclaredType =
+    if substitution == instances then this else DeclaredType(resolution, bindings, substitution, positive)(origin)
+  def withPolarity(polarity: Bool): DeclaredType =
+    if polarity == positive then this else DeclaredType(resolution, bindings, instances, polarity)(origin)
+  def withoutBinders(symbols: Iterable[VarSymbol]): DeclaredType =
+    DeclaredType(resolution, bindings -- symbols, instances.without(symbols), positive)(origin)
+  def withoutOrigin: DeclaredType =
+    if origin.isEmpty then this else DeclaredType(resolution, bindings, instances, positive)(N)
 
 /** A type reference observed from a common comparison scope. The marks belong
   * to this endpoint: reversing a constraint swaps endpoints, not an expanded
   * candidate's already-normalized path.
   */
-final case class ContextualType(tpe: DeclaredType, marks: Ls[Marks])
+final class ContextualType(val tpe: DeclaredType, val marks: Ls[Marks]) extends ValueKey:
+  protected val keyComponents: Product = (tpe, marks)
 
 /** An unqualified argument is interpreted separately in the two polarities;
   * these parts coincide only when substitution gives the same type in both.
   * Missing wildcard parts are Nothing on input and Any on output, never holes.
   */
-final case class TypeArgument(input: DeclaredType, output: DeclaredType)
+final class TypeArgument(val input: DeclaredType, val output: DeclaredType) extends ValueKey:
+  protected val keyComponents: Product = (input, output)
 
 /** A quantified binder belongs to the source scheme; its bounds retain graph links
   * so mutually dependent bounds do not require expanding or copying their types.
   */
-final case class TypeQuantifier(parameter: TypeShape.Parameter,
-    lower: Opt[TypeResolution], upper: Opt[TypeResolution])
+final class TypeQuantifier(val parameter: TypeShape.Parameter,
+    val lower: Opt[TypeResolution], val upper: Opt[TypeResolution]) extends ValueKey:
+  protected val keyComponents: Product = (parameter, lower, upper)
 
 /** A callable's binder and bounds interpreted in the surrounding lexical bindings. */
-final case class DeclaredTypeParameter(parameter: TypeShape.Parameter,
-    lower: Opt[DeclaredType], upper: Opt[DeclaredType])
+final class DeclaredTypeParameter(val parameter: TypeShape.Parameter,
+    val lower: Opt[DeclaredType], val upper: Opt[DeclaredType]) extends ValueKey:
+  protected val keyComponents: Product = (parameter, lower, upper)
 
 /** The owner is the original declaration, or a quantified annotation for an
   * anonymous callable. Applied and imported views retain this identity.
   */
-final case class TypeScheme(owner: AnyDefinitionSymbol | TypeResolution, parameters: Ls[DeclaredTypeParameter])
+final class TypeScheme(val owner: AnyDefinitionSymbol | TypeResolution, val parameters: Ls[DeclaredTypeParameter]) extends ValueKey:
+  protected val keyComponents: Product = (owner, parameters)

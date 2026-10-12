@@ -10,28 +10,31 @@ import hkmc2.semantics.{NewResolverState, Symbol}
 
 type ShapeListener[-A] = A => NewResolverState ?=> Unit
 
-/** Distinct candidates in publication order, compared by
-  * `semantics.ShapeIdentity.candidateKey`.
-  * TODO: shape keys allocate Identity wrappers; an identity-based set would avoid them.
-  *
-  * Appending while a listener iterates is allowed: `replay` delivers only the
-  * candidates present when it starts, and later ones reach the listener through
-  * notification.
+/** Equality policy chosen at the host's payload type, never by the collection. */
+trait CandidateKey[A]:
+  def apply(value: A): Any
+
+object CandidateKey:
+  given [A]: CandidateKey[A] = value => value
+
+/** Distinct candidates in publication order. The index provides constant-time
+  * deduplication; the append-only buffer permits bounded replay during callbacks.
   */
-final class Candidates[A] extends Iterable[A]:
+final class Candidates[A](key: CandidateKey[A]) extends Iterable[A]:
   private val keys = mutable.HashSet.empty[Any]
   private val ordered = ArrayBuffer.empty[A]
   def add(candidate: A): Bool =
-    val added = keys.add(semantics.ShapeIdentity.candidateKey(candidate))
+    val added = keys.add(key(candidate))
     if added then ordered += candidate
     added
   def ++=(other: Candidates[A]): Unit = other.ordered.foreach(add)
   override def size: Int = ordered.size
   override def knownSize: Int = ordered.size
   /** The candidates present when iteration starts. */
-  def iterator: Iterator[A] = Iterator.range(0, ordered.size).map(ordered(_))
+  def snapshot: Iterator[A] = Iterator.range(0, ordered.size).map(ordered(_))
+  def iterator: Iterator[A] = snapshot
   /** Also visits candidates appended by `f`. */
-  override def foreach[U](f: A => U): Unit =
+  def foreachGrowing[U](f: A => U): Unit =
     var i = 0
     while i < ordered.size do
       f(ordered(i))
@@ -39,11 +42,11 @@ final class Candidates[A] extends Iterable[A]:
   override def toString: Str = ordered.mkString("{", ", ", "}")
 
 object Publisher:
-  private[hkmc2] final class Data[A]:
+  private[hkmc2] final class Data[A](key: CandidateKey[A]):
     private[hkmc2] var owner: NewResolverState | Null = null
     private[hkmc2] var completed = false
     val listeners: ArrayBuffer[ShapeListener[A]] = ArrayBuffer.empty
-    val shapes: Candidates[A] = Candidates()
+    val shapes: Candidates[A] = Candidates(key)
     // Pass-local observers never become part of a copied inference graph.
     private val observers: ArrayBuffer[ShapeListener[A]] = ArrayBuffer.empty
     def observe(listener: ShapeListener[A])(using state: NewResolverState): () => Unit =
@@ -52,7 +55,7 @@ object Publisher:
       data.replay(listener)
       () => { data.observers -= listener; () }
     def copy(state: NewResolverState): Data[A] =
-      val result = new Data[A]
+      val result = new Data[A](key)
       result.owner = state
       // Preserve intermediate exporters' private graph nodes as well as the
       // listener's original registration graph when this host is re-exported.
@@ -84,13 +87,13 @@ object Publisher:
     def replay(listener: ShapeListener[A])(using state: NewResolverState): Unit =
       val candidates = state.local(this).shapes
       // Apply the contextual listener, rather than discard a contextual thunk.
-      candidates.iterator.foreach[Unit](shape => listener(shape))
+      candidates.snapshot.foreach[Unit](shape => listener(shape))
     def subscribe(listener: ShapeListener[A])(using NewResolverState): Unit =
       addListener(listener)
       replay(listener)
 
-trait Publisher[A]:
-  private[hkmc2] val originalData = new Publisher.Data[A]
+trait Publisher[A](using key: CandidateKey[A]):
+  private[hkmc2] val originalData = new Publisher.Data[A](key)
   // Syntax nodes do not all carry an elaborator owner. Bind their original host
   // on first use; subsequent consumers only mutate copies in their own state.
   private[hkmc2] def initialData(state: NewResolverState): Publisher.Data[A] =
@@ -115,7 +118,7 @@ trait Publisher[A]:
   private[hkmc2] def notifyShapeListeners(shape: A)(using NewResolverState): Unit =
     inferenceHost.notify(shape)
 
-trait Host[A] extends Publisher[A]:
+trait Host[A](using CandidateKey[A]) extends Publisher[A]:
   private[hkmc2] def subscribeToShapes(listener: ShapeListener[A])(using NewResolverState): Unit =
     addShapeListener(listener)
     replayShapes(listener)

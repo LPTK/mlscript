@@ -152,3 +152,34 @@ compiles or imports `FingerTreeList`:
   code using these constructs is affected.
 - The other suites (`cntest`, `catest`, `cwtest` and their diff-test
   counterparts), and the stress tests that exist only on the new branches.
+
+
+## Explicit keys and lazy tables (2026-10-12)
+
+The key refactor was compared with `a06dcd2fc` (the no-hashing branch after merging
+`new-resolution` and the `hkmc2` Term-identity fixes), with the same local-scrutinee
+integration fix in both versions. These are individual warmed local runs, not
+statistical speed-up estimates. The first run of each configuration was discarded.
+
+Both versions ran `hkmc2JVM/testOnly hkmc2.semantics.SubstitutionGrowthTest -- -z bounded`
+in the same SBT session. Temporary instrumentation around `measure(file)` recorded
+elapsed time and JVM test-thread allocations with `ThreadMXBean`; it was removed
+after measurement. Allocations are cumulative bytes, not retained or peak memory.
+The generated inputs and graph-growth assertions were identical.
+
+| Input | Before | Explicit keys | Allocated before | Allocated after |
+|---|---:|---:|---:|---:|
+| Plain chain, k=14 | 12.5 ms | 10.1 ms | 3.57 MiB | 3.55 MiB |
+| Branching chain, k=14 | 26.5 ms | 22.9 ms | 14.53 MiB | 14.35 MiB |
+| Promise chain, k=14 | 25.2 ms | 16.5 ms | 17.74 MiB | 17.47 MiB |
+| FingerTreeList | 1.27 s | 1.09 s | 1317.7 MiB | 1358.5 MiB |
+
+The final version removes the general view-interning table and per-witness instance
+entries, makes resolver tables lazy, and stores explicit immutable key components
+with cached hashes. Canonical tuple, record, instance, and inferred-host identities
+remain. FingerTreeList constructs 1533 substituted views instead of 1368, including
+short-lived views formerly interned; it still satisfies the existing bound of
+3000 and the unchanged limit of four retained bindings. Its
+allocation increased about 3%, while the smaller generated cases were similar.
+These measurements support keeping the simpler view construction, not a claim
+that every workload allocates less or compiles faster.

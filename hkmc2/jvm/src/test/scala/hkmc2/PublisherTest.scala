@@ -13,6 +13,23 @@ class PublisherTest extends AnyFunSuite:
     def publish(shape: Int)(using NewResolverState): Unit =
       if currentShapes.add(shape) then notifyShapeListeners(shape)
 
+  test("candidate iteration distinguishes a snapshot from draining appended values"):
+    val candidates = Candidates(summon[CandidateKey[Int]])
+    candidates.add(1)
+    val snapshot = candidates.snapshot
+    candidates.add(2)
+    assert(snapshot.toList == List(1))
+    val visited = ArrayBuffer.empty[Int]
+    candidates.foreach: value =>
+      visited += value
+      candidates.add(value + 2)
+    assert(visited.toList == List(1, 2))
+    visited.clear()
+    candidates.foreachGrowing: value =>
+      visited += value
+      if value < 6 then candidates.add(value + 1)
+    assert(visited.toList == List(1, 2, 3, 4, 5, 6))
+
   test("subscribing during notification replays each shape exactly once"):
     given NewResolverState = new Elaborator.State().newResolverState
     val host = new IntHost
@@ -177,7 +194,10 @@ class PublisherTest extends AnyFunSuite:
     val source = Term.UnitVal()
     val first = UnknownValueShape(source, fromPublicInterface = false)(provenance)
     val second = UnknownValueShape(source, fromPublicInterface = false)(provenance)
-    assert(Set(first, second).size == 1)
+    // Publication compares semantic keys; the witnesses remain distinct objects.
+    val candidates = Candidates(summon[CandidateKey[semantics.ShapeEvent]])
+    assert(candidates.add(first))
+    assert(!candidates.add(second))
     assert(RecordShape.Unknown(first) == RecordShape.Unknown(second))
     assert(evaluated == 0)
     first.provenance.diagnostic(msg"Operation failed", None)

@@ -177,8 +177,24 @@ class SubstitutionGrowthTest extends AnyFunSuite:
       assert(h.resolver.instantiateShape(literal, irrelevant) eq literal)
       assert(h.resolver.instantiateShape(rigid, irrelevant) eq rigid)
       assert(h.resolver.instantiateShape(tuple, irrelevant) eq tuple)
-      assert(h.resolver.instantiateShape(marked, irrelevant) == marked)
+      assert(h.resolver.instantiateShape(marked, irrelevant) eq marked)
     assert(h.state.allocatedShapeViewCount == before)
+
+  // Erasing diagnostic evidence is an algebraic property of candidate keys:
+  // each observation retains its witness without extending the inference graph.
+  test("diagnostic witnesses do not multiply inferred values"):
+    val h = new Harness
+    import h.given
+    val resolution = new TypeResolution(Term.UnitVal(), _ => fail("Unexpected type error"))
+    resolution.publish(TypeShape.Bottom)
+    val tpe = DeclaredType(resolution, Map.empty, TypeSubstitution.empty, true)(N)
+    val host = new TermShapeHost
+    (1 to 1000).foreach: _ =>
+      val reason = TypeInterfaceReason.Unavailable(Term.UnitVal())
+      val view = h.resolver.instanceShape(tpe.withOrigin(S(reason)))
+      assert(view.tpe.origin.contains(reason))
+      host.publish(view)
+    assert(host.currentShapes.size == 1)
 
   test("repeated substitution stabilizes on one canonical view"):
     val h = new Harness
