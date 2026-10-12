@@ -191,6 +191,8 @@ subsequent canonicalization work.
 
 ## Context separation and direct hashing (2026-10-12)
 
+This preliminary comparison is superseded by the controlled comparison below.
+
 This comparison uses `9ea9944b5` (including optionless extractors) as the baseline
 and the context split in `8d5a5c4d8` plus the canonicalization/direct-hashing
 changes in this section's commit. Both versions ran in the same SBT process on
@@ -223,3 +225,107 @@ were measured together; this comparison does not attribute the allocation
 reduction to any one of them. Both versions create 1533 substituted FingerTree
 views and retain at most four bindings, so the reduction does not come from
 changing the projection or accepting fewer candidates.
+
+
+## Controlled comparison of the context and hashing commits (2026-10-12)
+
+The larger comparison does **not reproduce the earlier FingerTree slowdown**.
+The final revision is **5.3% faster** than the baseline on the warmed FingerTree
+workload (95% interval: **4.3–6.3% faster**). Its compiler-thread CPU time is also
+5.5% lower. The preliminary two-run means were 7.6% slower for FingerTree, 35.2%
+slower for the plain chain, 17.3% for branching, and 15.5% for promises; those
+figures should not have been presented without their magnitudes or relied on as
+evidence of a regression.
+
+### Method
+
+Three revisions separate the two changes:
+
+| Label | Revision | Included changes |
+|---|---|---|
+| Baseline | `9ea9944b5` | Optionless extractors; before the context split |
+| Context | `8d5a5c4d8` | One state per unit and immutable resolution contexts |
+| Final | `f0777411e` | Also canonicalization and direct field hashing |
+
+Each revision ran in **12 fresh JVMs**, one at a time. Every JVM used **20 warmup
+iterations followed by 15 recorded iterations**: 180 measured samples per input
+per revision. An iteration creates a fresh growth-test suite and compiler cache,
+compiling all 25 inputs of the same three existing growth tests. The four inputs
+below match the earlier report. Test assertions remain enabled. All forks passed;
+no samples or outliers were removed, and GC pauses remain in wall time.
+
+The 12 blocks each contain all three revisions. All six execution orders occur
+twice, in a seeded shuffled order. Compiled classes were frozen before measurement;
+SBT and our other compilation/test work finished before timing began. The machine
+was a Mac17,6 with 18 CPUs and 36 GiB RAM, running Oracle JDK 21.0.8 with the
+repository's `-Xms2G -Xmx4G -Xss8M` settings. The timed operation includes parsing,
+resolution, lowering, optimization, and diagnostic checking. File creation and
+the growth assertions are outside it; imports are cached within each iteration.
+
+Estimates below are ratios of arithmetic means. The 95% intervals use 20,000
+paired bootstrap resamples of the **12 whole blocks**, preserving the three
+revision results together. Repeated samples in one JVM are averaged first,
+not counted as independent replicates. The intervals are per workload/comparison.
+All three revisions ran faster in later blocks, so balancing and pairing matter.
+
+### Warmed wall time
+
+Negative changes mean faster. Times are mean milliseconds per compilation.
+
+| Input | Baseline | Context | Final | Final vs baseline | 95% interval |
+|---|---:|---:|---:|---:|---:|
+| Plain chain, k=14 | 1.641 | 1.630 | 1.620 | −1.3% | −4.0% to +0.7% |
+| Branching chain, k=14 | 5.939 | 5.792 | 5.751 | −3.2% | −5.1% to −1.2% |
+| Promise chain, k=14 | 7.985 | 8.271 | 7.486 | −6.2% | −11.1% to −1.8% |
+| FingerTreeList | 512.050 | 509.497 | 484.995 | **−5.3%** | **−6.3% to −4.3%** |
+
+On FingerTree, the context commit alone changes time by −0.5% (interval −1.1%
+to +0.2%). The hashing/canonicalization commit then improves time by **4.8%**
+relative to the context commit (interval **4.1–5.5% faster**). Most of the measured
+FingerTree gain therefore belongs to the second commit.
+
+Compiler-thread CPU changes from baseline to final are −1.3% for plain, −1.5%
+for branching, −0.7% for promises, and **−5.5% for FingerTree**. In particular,
+the promise's larger wall-time gain is mainly in time outside the measured
+thread's CPU execution; it should not be interpreted as a 6.2% reduction in
+resolver computation. GC placement and scheduling affect these short timings.
+
+### Warmup and startup checks
+
+Across the recorded window, plain/branching CPU times still fall by roughly
+2–7%, depending on revision; FingerTree changes by less than 1%. Restricting
+the analysis to the last five samples per JVM gives a FingerTree improvement of
+**5.0%**, with an interval of **3.7–6.4% faster**. The other point estimates also
+remain faster, though the promise interval widens to include zero. The main
+FingerTree conclusion does not depend on the early measured samples.
+
+The first suite iteration gives a different view of warmup. These timings are
+before the 20-iteration warmup, with the same fixed workload order; they do not
+include JVM launch time:
+
+| Input | Baseline | Final | Final vs baseline | 95% interval |
+|---|---:|---:|---:|---:|
+| Plain chain, k=14 | 12.843 ms | 13.321 ms | +3.7% | −1.5% to +8.7% |
+| Branching chain, k=14 | 25.498 ms | 24.575 ms | −3.6% | −7.7% to +0.1% |
+| Promise chain, k=14 | 18.981 ms | 19.681 ms | +3.7% | −0.5% to +8.1% |
+| FingerTreeList | 1075.732 ms | 1059.337 ms | −1.5% | −3.0% to −0.1% |
+
+The plain and promise first-iteration means are about 3.7% slower, with intervals
+including zero. **A modest first-use slowdown on those inputs remains possible.**
+Whole benchmark-process elapsed time, including JVM launch, all warmup, all 25
+inputs per iteration, and the measured iterations, falls from 24.730 s to
+23.775 s: **3.9% faster**, with an interval of **3.0–4.8% faster**.
+
+### Allocation and reproducibility
+
+Warmed FingerTree allocation falls from 1164.53 MiB per compilation to
+1101.63 MiB after the context split and 956.97 MiB after hashing: **17.8% less
+overall**, or 13.1% less for the second commit. The final small-input allocation
+changes are +0.27%, −0.39%, and −0.29%, respectively. These counts are cumulative
+allocated bytes, not retained memory, and depend on the JVM's optimization state.
+
+The [retained samples, fork metadata, instrumentation, runner, and analysis](benchmarks/resolver-hashing-2026-10-12/README.md)
+make this comparison reproducible. The exact cause of the earlier two-run
+discrepancy was not isolated. These results establish the behavior of the measured
+workloads under the specified warmup and JVM; they do not establish a speed-up
+for every compiler workload.
