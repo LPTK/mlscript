@@ -74,17 +74,17 @@ class TypeRelationTest extends AnyFunSuite:
       val inside = h.resolver.transportType(outside, entry :: Nil)
       h.resolver.publishParameter(a, first)
       val observed = h.observe(ContextualType(inside, Nil))
-      def expected(values: List[TermShape], path: List[Marks]): Set[ShapeKey] =
+      def expected(values: List[TermShape], path: List[Marks]): Set[ShapeIdentity.Key] =
         values.flatMap: value =>
           value.exit(path) match
-            case shape: TermShape => Some(shape.candidateKey)
+            case shape: TermShape => Some(ShapeIdentity.key(shape))
             case NoShape => None
         .toSet
-      assert(observed.map(_.candidateKey).toSet == expected(List(first), List(exit, entry)))
+      assert(observed.map(ShapeIdentity.key(_)).toSet == expected(List(first), List(exit, entry)))
       h.resolver.publishParameter(a, second)
-      assert(observed.map(_.candidateKey).toSet == expected(List(first, second), List(exit, entry)))
+      assert(observed.map(ShapeIdentity.key(_)).toSet == expected(List(first, second), List(exit, entry)))
       val consumed = h.resolver.transportType(inside, consumer :: Nil)
-      assert(h.observe(ContextualType(consumed, Nil)).map(_.candidateKey).toSet ==
+      assert(h.observe(ContextualType(consumed, Nil)).map(ShapeIdentity.key(_)).toSet ==
         expected(List(first, second), List(exit, entry, consumer)))
 
   test("alias argument normalization reaches a fixed point without changing its marks"):
@@ -110,7 +110,7 @@ class TypeRelationTest extends AnyFunSuite:
       assert(current == original)
     val value = DynShape()
     h.resolver.publishParameter(target, value)
-    assert(seen.toList.map(_.candidateKey) == List(MarkedShape.enter(value, owner, path.id)).map(_.candidateKey))
+    assert(seen.toList.map(ShapeIdentity.key(_)) == List(MarkedShape.enter(value, owner, path.id)).map(ShapeIdentity.key(_)))
     assert(target.inferenceHost.listeners.size == before)
     assert(h.state.allocatedTypeInstanceCount == 0)
 
@@ -142,7 +142,7 @@ class TypeRelationTest extends AnyFunSuite:
     h.resolver.publishParameter(target, early)
     val seen = h.observe(ContextualType(actual, Nil))
     h.resolver.publishParameter(target, late)
-    assert(seen.toList.map(_.candidateKey) == List(early, late).map(MarkedShape.enter(_, owner, N)).map(_.candidateKey))
+    assert(seen.toList.map(ShapeIdentity.key(_)) == List(early, late).map(MarkedShape.enter(_, owner, N)).map(ShapeIdentity.key(_)))
     val count = target.inferenceHost.listeners.size
     (1 to 1000).foreach: _ =>
       assert(h.resolver.declaredType(application.resolution, Map(argument -> actual)) == expected)
@@ -171,9 +171,9 @@ class TypeRelationTest extends AnyFunSuite:
         assert(current eq first)
       val value = DynShape()
       h.resolver.publishParameter(target, value)
-      if output then assert(observed.toList.map(_.candidateKey) == List(MarkedShape.enter(value, scope, site)).map(_.candidateKey))
+      if output then assert(observed.toList.map(ShapeIdentity.key(_)) == List(MarkedShape.enter(value, scope, site)).map(ShapeIdentity.key(_)))
       else assert(!observed.exists(_.applicationHead._1.isInstanceOf[DynShape]))
-      if input then assert(inputObserved.toList.map(_.candidateKey) == List(MarkedShape.enter(value, scope, site)).map(_.candidateKey))
+      if input then assert(inputObserved.toList.map(ShapeIdentity.key(_)) == List(MarkedShape.enter(value, scope, site)).map(ShapeIdentity.key(_)))
       else assert(inputObserved.isEmpty)
       assert(target.inferenceHost.listeners.size == before)
       assert(h.state.allocatedTypeInstanceCount == 0)
@@ -200,7 +200,7 @@ class TypeRelationTest extends AnyFunSuite:
       assert(current eq expected)
       h.resolver.listenInstanceViews(h.resolver.instanceShape(current))(_ => ())
     h.resolver.publishParameter(b, late)
-    assert(seen.toSet.map(_.candidateKey) == Set(MarkedShape.enter(early, owner, path.id), late).map(_.candidateKey))
+    assert(seen.toSet.map(ShapeIdentity.key(_)) == Set(MarkedShape.enter(early, owner, path.id), late).map(ShapeIdentity.key(_)))
     assert((target.inferenceHost.listeners.size, b.inferenceHost.listeners.size) == counts)
     assert(h.state.allocatedTypeInstanceCount == 0)
 
@@ -482,9 +482,9 @@ class TypeRelationTest extends AnyFunSuite:
     h.resolver.constrainTypes(ContextualType(h.tpe(TypeShape.Inferred(bound)), Nil), ContextualType(at, targetMarks))
     assert(h.state.hasTypeConstraint(concrete, bound, Nil))
     val expected = h.resolver.instanceShape(concrete).enter(sourceMarks) match
-      case value: TermShape => value.candidateKey
+      case value: TermShape => ShapeIdentity.key(value)
       case NoShape => fail("Expected a transported value")
-    assert(b.currentShapes.map(_.candidateKey).toSet == Set(expected))
+    assert(b.currentShapes.map(ShapeIdentity.key(_)).toSet == Set(expected))
 
   test("a supplied argument receives only obligations for its marked activation"):
     val h = new Harness

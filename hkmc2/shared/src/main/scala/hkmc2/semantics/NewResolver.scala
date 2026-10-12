@@ -1008,7 +1008,7 @@ class NewResolver:
             // Own arguments are already bound; only enclosing binders acquire
             // new entries. Other dependencies instantiate the retained arguments.
             val lexical = nominalLexicalBinders(nominal.defn)
-            val bindings = projected.filter((parameter, _) => lexical(parameter)).map((parameter, instance) => parameter -> instanceType(instance)) ++
+            val bindings = projected.iterator.filter((parameter, _) => lexical(parameter)).map((parameter, instance) => parameter -> instanceType(instance)).toMap ++
               nominal.bindings.map((parameter, bound) => parameter -> instantiateType(bound, projected))
             NominalInstanceView(nominal.defn, bindings, nominal.parent.map(instantiateShape(_, projected)))(nominal.annotation, nominal.provenance)(this)
         case record: RecordTypeShape =>

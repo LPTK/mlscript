@@ -12,10 +12,11 @@ type ShapeListener[-A] = A => ResolutionContext ?=> Unit
 
 /** Equality policy chosen at the host's payload type, never by the collection. */
 trait CandidateKey[A]:
-  def apply(value: A): Any
+  def apply(value: A)(using ResolutionContext): Any
 
 object CandidateKey:
-  given [A]: CandidateKey[A] = value => value
+  given [A]: CandidateKey[A] with
+    def apply(value: A)(using ResolutionContext): Any = value
 
 /** Distinct candidates in publication order. The index provides constant-time
   * deduplication; the append-only buffer permits bounded replay during callbacks.
@@ -23,11 +24,17 @@ object CandidateKey:
 final class Candidates[A](key: CandidateKey[A]) extends Iterable[A]:
   private val keys = mutable.HashSet.empty[Any]
   private val ordered = ArrayBuffer.empty[A]
-  def add(candidate: A): Bool =
+  def add(candidate: A)(using ResolutionContext): Bool =
     val added = keys.add(key(candidate))
     if added then ordered += candidate
     added
-  def ++=(other: Candidates[A]): Unit = other.ordered.foreach(add)
+  /** Copy a host's existing candidates with their portable semantic keys. This
+    * also serves post-resolution syntax cloning, which has no inference context.
+    */
+  def copyFrom(other: Candidates[A]): Unit =
+    assert(isEmpty, "Candidate copies must start with an empty host")
+    keys ++= other.keys
+    ordered ++= other.ordered
   override def size: Int = ordered.size
   override def knownSize: Int = ordered.size
   /** The candidates present when iteration starts. */
@@ -63,7 +70,7 @@ object Publisher:
       listeners.foreach: listener =>
         result.listeners += (shape => (current: ResolutionContext) ?=>
           listener(shape)(using if origin == null then current else current.inGraph(origin.context)))
-      result.shapes ++= shapes
+      result.shapes.copyFrom(shapes)
       result
 
     def publish(shape: A)(using state: ResolutionContext): Unit =

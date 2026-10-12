@@ -1,6 +1,7 @@
-NOTE: This document was written by Claude Opus and has not been deeply reviewed.
-It records a one-off measurement taken on 2026-10-10; rerun it before relying on
-the numbers for later commits.
+NOTE: The original suite comparison was written by Claude Opus and has not been
+deeply reviewed. It records measurements taken on 2026-10-10. The dated sections
+at the end record subsequent refactors; rerun before relying on any of these
+numbers for later commits.
 
 
 # New resolution: cost on `ctest` and `dtest`
@@ -186,3 +187,39 @@ that removing view interning is beneficial. The context/state split subsequently
 removed the need for lazy table fields: activations now share the unit's tables.
 The figures above describe the earlier implementation, not that split or the
 subsequent canonicalization work.
+
+
+## Context separation and direct hashing (2026-10-12)
+
+This comparison uses `9ea9944b5` (including optionless extractors) as the baseline
+and the context split in `8d5a5c4d8` plus the canonicalization/direct-hashing
+changes in this section's commit. Both versions ran in the same SBT process on
+JDK 21, using the unchanged `SubstitutionGrowthTest` inputs and the temporary
+`ThreadMXBean` instrumentation described above. Each version was recompiled and
+warmed before two recorded runs. The table gives both runs' ranges and the
+change in their mean allocated bytes. No timing or allocation instrumentation
+is retained in the tests.
+
+| Input | Before | After | Allocated before | Allocated after | Mean allocation change |
+|---|---:|---:|---:|---:|---:|
+| Plain chain, k=14 | 13.3–13.4 ms | 13.4–22.8 ms | 3.55–3.56 MiB | 3.54–3.63 MiB | +0.8% |
+| Branching chain, k=14 | 29.1–34.2 ms | 32.8–41.5 ms | 14.24–14.26 MiB | 14.18–14.60 MiB | +1.0% |
+| Promise chain, k=14 | 23.0–26.1 ms | 27.5–29.2 ms | 17.40–17.40 MiB | 17.37–17.94 MiB | +1.5% |
+| FingerTreeList | 1.21–1.38 s | 1.37–1.41 s | 1210.64–1238.15 MiB | 1059.83–1093.55 MiB | −12.1% |
+
+The allocation reduction on FingerTree is substantial in this comparison; the
+small chains are roughly unchanged. These runs do not demonstrate a timing
+improvement: the new version was slower in most recorded comparisons. Two runs
+are insufficient to separate JVM warmup and background load from a timing
+regression. Absolute allocation counts also depend on JVM optimization, so
+these figures should not be compared directly with the earlier table's counts.
+
+The implementation now shares ordinary resolver tables across a compilation
+unit's immutable activation contexts. Immutable values hash their fields
+directly, without constructing tuple-shaped mirrors. Declared-type references,
+their binding data, substitutions, and view comparison adapters are canonicalized
+within the unit. Cache hits avoid intermediate `Option` wrappers. These changes
+were measured together; this comparison does not attribute the allocation
+reduction to any one of them. Both versions create 1533 substituted FingerTree
+views and retain at most four bindings, so the reduction does not come from
+changing the projection or accepting fewer candidates.

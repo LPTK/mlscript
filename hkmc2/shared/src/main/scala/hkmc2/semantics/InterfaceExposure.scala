@@ -27,7 +27,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
   private val detach = mutable.ArrayBuffer.empty[() => Unit]
   private val watched = mutable.Set.empty[Any]
   // Keyed by ShapeIdentity.key, like inference hosts' candidates.
-  private val exposed = mutable.Set.empty[ShapeKey]
+  private val exposed = mutable.Set.empty[ShapeIdentity.Key]
   private val flows = mutable.Map.empty[BlockMemberSymbol, FlowSymbol]
 
   /** Forwarding edges belong to the inference graph. Only the final observer

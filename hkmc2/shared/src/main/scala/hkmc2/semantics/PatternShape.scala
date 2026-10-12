@@ -38,7 +38,12 @@ final class CtorPatternShape(
   def _3: Pattern.Constructor = src
   def _4: FlowSymbol = resSym
   def _5: Ls[Marks] = marks
-  protected val keyComponents: Product = (new Identity(cls), fs, src, resSym, marks)
+  protected val valueHash: Int = ValueKey.hash(System.identityHashCode(cls), fs.hashCode,
+    System.identityHashCode(src), System.identityHashCode(resSym), marks.hashCode)
+  protected def sameValue(other: ValueKey): Bool = other match
+    case that: CtorPatternShape =>
+      (cls eq that.cls) && fs == that.fs && (src eq that.src) && (resSym eq that.resSym) && marks == that.marks
+    case _ => false
   def showDbg(using DebugPrinter): Str = src.showDbg
 
 

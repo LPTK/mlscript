@@ -10,7 +10,10 @@ import hkmc2.utils.ValueKey
   * substitutions alternate union and intersection arbitrarily often.
   */
 final class TypeFormula[A] private (val clauses: Set[Set[A]])(val orderedAtoms: Vector[A]) extends ValueKey:
-  protected val keyComponents: Product = Tuple1(clauses)
+  protected val valueHash: Int = ValueKey.hash("TypeFormula".hashCode, clauses.hashCode)
+  protected def sameValue(other: ValueKey): Boolean = other match
+    case that: TypeFormula[?] => clauses == that.clauses
+    case _ => false
   // Observation order is not part of the semantic key. Preserve the
   // first source order for observation and diagnostics without distinguishing
   // equal formulas merely because their operands were written in another order.

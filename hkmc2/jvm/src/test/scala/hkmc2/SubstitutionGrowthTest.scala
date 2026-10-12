@@ -150,7 +150,7 @@ class SubstitutionGrowthTest extends AnyFunSuite:
       DeclaredType(resolution, Map.empty, TypeSubstitution.empty, true)(N)
     def instanceOf(tpe: DeclaredType): InstanceShape = resolver.instanceShape(tpe)
     def instancesOf(shape: TermShape): Map[VarSymbol, TypeParameterInstance] = shape match
-      case InstanceShape(tpe) => tpe.instances
+      case InstanceShape(tpe) => tpe.instances.iterator.toMap
       case other => fail(s"Expected an instance, got ${other.describe}")
     /** A tuple holding `value`, written where no binder is in scope. */
     def holding(value: TermShape): TupleShape =

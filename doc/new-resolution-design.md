@@ -185,16 +185,33 @@ known, unambiguous identities. See `newres/Dynamic.mls`, `Records.mls`,
 Graph objects have final identity equality. Shape classes have no generated
 `equals`, `hashCode`, or `copy`: a copied producer must not silently become a new
 inference candidate, and comparing an occurrence must not traverse its syntax.
-`ShapeEvent.candidateKey` caches a typed [`ShapeKey`](../hkmc2/shared/src/main/scala/hkmc2/semantics/ShapeKey.scala).
-Both publication and shape-sensitive resolver caches use that key.
+`ShapeIdentity.key` uses the producer itself for those identities. Immutable views
+have one comparison adapter pointing to the existing view; it reads its fields
+directly, without a parallel `ShapeKey` hierarchy or a tuple of copied components.
+The consuming unit interns those adapters so repeated publication and cache
+lookups use the same reference. An adapter's cached hash remains portable across
+units, because inherited caches can contain an equivalent exporter's adapter.
 
 A key contains immutable values and links to graph nodes, never the current
-contents of a publisher or an inferred bound. Immutable type references, normalized
-mark paths, aggregate elements, and lattice formulas opt into explicit value
-equality through `ValueKey`; it caches their components and hash. This prevents
-repeated hashing from expanding a shared type DAG into a tree of traversals.
+contents of a publisher or an inferred bound. `ValueKey` implements explicit
+field comparisons and reads a hash computed during construction. The hash helpers
+combine integer field hashes without allocating a tuple or varargs array. Graph
+references use identity hashing; immutable components use their cached hashes.
 Diagnostic witnesses and formula observation order do not participate in equality.
-`ShapeIdentity.compute` exhaustively chooses the key for each shape variant.
+
+`DeclaredType` separates its observation's witnesses (including witnesses on bound
+arguments) from a canonical semantic reference. The consuming unit interns flat
+binding data and then references built from a resolution, those bindings, an
+instance substitution, and a polarity. Within that unit, comparing declared types
+compares their reference identities. Imported references are normalized into the
+consumer once, without changing their defining unit. Comparing types directly
+across units uses a worklist that visits each pair of shared references once;
+independent constructions of the same DAG cannot trigger exponential equality.
+
+`TypeSubstitution` retains an immutable flat map and its cached hash. Instantiation,
+activation, and type-reference construction intern it in the consuming unit.
+Composition and projection remain pure: an importer can read a cached tuple's
+layout without that read extending an exporter's mutable interning tables.
 
 Tuples and records retain canonical factories: their identities anchor synthesized
 inference hosts, notably the Array element type of a tuple. Instances of a
@@ -204,8 +221,8 @@ their source. Their private constructors cannot be bypassed with a generated cop
 Instance diagnostic wrappers share the canonical reference's key but are not
 interned themselves; a witness remains attached to its observation.
 
-Contextual, nominal, callable, and record-interface views use their immutable
-semantic keys without a separate interning table. `instantiateShape` projects an
+Contextual, nominal, callable, and record-interface views retain their own
+diagnostic witnesses while sharing canonical comparison data. `instantiateShape` projects an
 incoming substitution onto the value's binder support before constructing a view,
 and preserves the original wrapper on a no-op. Removing a cache never substitutes
 for this projection: irrelevant bindings would otherwise still distinguish keys.

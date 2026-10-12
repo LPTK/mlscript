@@ -14,6 +14,7 @@ class PublisherTest extends AnyFunSuite:
       if currentShapes.add(shape) then notifyShapeListeners(shape)
 
   test("candidate iteration distinguishes a snapshot from draining appended values"):
+    given ResolutionContext = new Elaborator.State().newResolverState.context
     val candidates = Candidates(summon[CandidateKey[Int]])
     candidates.add(1)
     val snapshot = candidates.snapshot
@@ -195,6 +196,7 @@ class PublisherTest extends AnyFunSuite:
     val first = UnknownValueShape(source, fromPublicInterface = false)(provenance)
     val second = UnknownValueShape(source, fromPublicInterface = false)(provenance)
     // Publication compares semantic keys; the witnesses remain distinct objects.
+    given ResolutionContext = new Elaborator.State().newResolverState.context
     val candidates = Candidates(summon[CandidateKey[semantics.ShapeEvent]])
     assert(candidates.add(first))
     assert(!candidates.add(second))

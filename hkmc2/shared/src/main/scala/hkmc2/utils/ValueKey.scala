@@ -1,19 +1,38 @@
 package hkmc2
 package utils
 
-/** Explicit value equality for immutable keys. Components may contain other
-  * value keys and identity references, never mutable inference contents. Store
-  * the components and cache their hash: shared type DAGs must not be rehashed
-  * recursively at every lookup. The runtime class separates different key kinds.
+/** Explicit equality for immutable construction data. Subclasses name their
+  * fields directly: no tuple or Product is allocated merely to hash or compare
+  * them. Mutable inference nodes must use IdentityEquality instead.
   */
 abstract class ValueKey:
-  protected val keyComponents: Product
-  final override lazy val hashCode: Int =
-    scala.util.hashing.MurmurHash3.productHash(keyComponents, getClass.getName.hashCode)
+  protected val valueHash: Int
+  final override def hashCode: Int = valueHash
+  protected def sameValue(other: ValueKey): Boolean
   final override def equals(other: Any): Boolean = other match
-    case that: ValueKey =>
-      (this eq that) || (getClass == that.getClass && hashCode == that.hashCode && keyComponents == that.keyComponents)
+    case that: ValueKey => (this eq that) || (hashCode == that.hashCode && sameValue(that))
     case _ => false
+
+object ValueKey:
+  /** Compose field hashes without a tuple, iterator, or varargs array. */
+  inline def mix(hash: Int, field: Int): Int = scala.util.hashing.MurmurHash3.mix(hash, field)
+
+  inline def hash(a: Int, b: Int): Int = mix(a, b)
+  inline def hash(a: Int, b: Int, c: Int): Int = mix(hash(a, b), c)
+  inline def hash(a: Int, b: Int, c: Int, d: Int): Int = mix(hash(a, b, c), d)
+  inline def hash(a: Int, b: Int, c: Int, d: Int, e: Int): Int = mix(hash(a, b, c, d), e)
+  inline def hash(a: Int, b: Int, c: Int, d: Int, e: Int, f: Int): Int = mix(hash(a, b, c, d, e), f)
+  inline def hash(a: Int, b: Int, c: Int, d: Int, e: Int, f: Int, g: Int): Int = mix(hash(a, b, c, d, e, f), g)
+  inline def hash(a: Int, b: Int, c: Int, d: Int, e: Int, f: Int, g: Int, h: Int): Int = mix(hash(a, b, c, d, e, f, g), h)
+
+  /** Hash a flat immutable map without allocating entry tuples or traversing
+    * the data behind its references. Addition makes insertion order irrelevant.
+    */
+  inline def mapHash[K, V](values: Map[K, V])(inline keyHash: K => Int, inline valueHash: V => Int): Int =
+    var sum = 0
+    values.foreachEntry: (key, value) =>
+      sum += mix(keyHash(key), valueHash(value))
+    hash(values.size, sum)
 
 /** Inference nodes denote occurrences, even when their immutable fields agree. */
 trait IdentityEquality:

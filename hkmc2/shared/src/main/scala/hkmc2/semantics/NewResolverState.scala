@@ -16,30 +16,49 @@ object NewResolverState:
     */
   final class Cache[K, V](select: NewResolverState => Cache[K, V], copy: V => V):
     private val entries = mutable.Map.empty[ResolutionContext, mutable.Map[K, V]]
-    private def peek(key: K)(using context: ResolutionContext): Opt[V] =
-      entries.get(context).flatMap(_.get(key)).orElse:
-        context.inherited.flatMap(parent => select(parent.state).peek(key)(using parent))
-    def get(key: K)(using context: ResolutionContext): Opt[V] =
+    // Null is only a lookup miss; stored values are non-null (including None).
+    // Keep hits allocation-free despite looking up both a context and a key.
+    private def own(key: K)(using context: ResolutionContext): V | Null =
+      val scope = entries.getOrElse(context, null)
+      if scope == null then null else scope.getOrElse(key, null)
+    private def peek(key: K)(using context: ResolutionContext): V | Null =
+      val value = own(key)
+      if value != null then value else context.inherited match
+        case S(parent) => select(parent.state).peek(key)(using parent)
+        case N => null
+    private def lookup(key: K)(using context: ResolutionContext): V | Null =
       assert(this eq select(context.state), "A resolver table must belong to the current consumer")
-      entries.get(context).flatMap(_.get(key)).orElse:
-        context.inherited.flatMap(parent => select(parent.state).peek(key)(using parent)).map: value =>
-          val local = copy(value)
-          update(key, local)
-          local
-    def getOrElseUpdate(key: K, value: => V)(using ResolutionContext): V = get(key).getOrElse:
-      val result = value
-      update(key, result)
-      result
+      val value = own(key)
+      if value != null then value else context.inherited match
+        case S(parent) =>
+          val inherited = select(parent.state).peek(key)(using parent)
+          if inherited == null then null else
+            val local = copy(inherited.nn)
+            update(key, local)
+            local
+        case N => null
+    def get(key: K)(using ResolutionContext): Opt[V] =
+      val value = lookup(key)
+      if value == null then N else S(value.nn)
+    def getOrElseUpdate(key: K, value: => V)(using ResolutionContext): V =
+      val previous = lookup(key)
+      if previous != null then previous.nn else
+        val result = value
+        update(key, result)
+        result
     def update(key: K, value: V)(using context: ResolutionContext): Unit =
       assert(this eq select(context.state), "A resolver table must belong to the current consumer")
+      assert(value != null, "Resolver cache values must be non-null")
       entries.getOrElseUpdate(context, mutable.Map.empty)(key) = value
 
   final class Seen[A](select: NewResolverState => Seen[A]):
     private val entries = mutable.Map.empty[ResolutionContext, mutable.Set[A]]
     def apply(value: A)(using context: ResolutionContext): Bool =
       assert(this eq select(context.state), "A resolver table must belong to the current consumer")
-      entries.get(context).exists(_(value)) ||
-        context.inherited.exists(parent => select(parent.state)(value)(using parent))
+      val scope = entries.getOrElse(context, null)
+      (scope != null && scope(value)) || (context.inherited match
+        case S(parent) => select(parent.state)(value)(using parent)
+        case N => false)
     def add(value: A)(using context: ResolutionContext): Bool =
       if apply(value) then false else entries.getOrElseUpdate(context, mutable.Set.empty).add(value)
 
@@ -53,7 +72,7 @@ final class NewResolverState(val owner: Elaborator.State):
   val context: ResolutionContext = new ResolutionContext(this, N, N, TypeSubstitution.empty)
   private[semantics] val contexts = mutable.Map.empty[(ResolutionContext, TypeSubstitution), ResolutionContext]
   private[semantics] var reporter: Raise | Null = null
-  private[semantics] val exposureInputs = mutable.LinkedHashMap.empty[(ShapeKey, ResolutionContext), InterfaceExposure.Input]
+  private[semantics] val exposureInputs = mutable.LinkedHashMap.empty[(ShapeIdentity.Key, ResolutionContext), InterfaceExposure.Input]
   private[semantics] val views = mutable.Map.empty[ResolutionContext, ResolutionContext]
   private[semantics] val inheritedViews = mutable.Map.empty[(NewResolverState, ResolutionContext), ResolutionContext]
   private[semantics] val copies = mutable.Map.empty[Publisher.Data[?], Publisher.Data[?]]
@@ -62,14 +81,17 @@ final class NewResolverState(val owner: Elaborator.State):
   private[semantics] val missingMembers = mutable.LinkedHashMap.empty[Identity[NewSel],
     mutable.ListBuffer[(Bool, () => Ls[(Message, Opt[Loc])])]]
   private[semantics] val errors = mutable.Set.empty[Identity[PossiblyErroneous]]
+  private[semantics] val shapeIdentities = mutable.HashMap.empty[ShapeIdentity.View, ShapeIdentity.View]
+  private[semantics] val substitutions = mutable.HashMap.empty[TypeSubstitution, TypeSubstitution]
+  private[semantics] val typeReferences = new DeclaredType.References(substitutions)
   val membersCache: Cache[(TermShape, Str), MemberLookup] =
     new Cache(_.membersCache, identity)
   // Shape components of cache keys use ShapeIdentity.key, like hosts' candidates.
-  val spreadInputs: Cache[Object, mutable.Set[ShapeKey]] =
+  val spreadInputs: Cache[Object, mutable.Set[ShapeIdentity.Key]] =
     new Cache(_.spreadInputs, _.clone())
   val reportedArities: Cache[Object, mutable.Set[Int]] =
     new Cache(_.reportedArities, _.clone())
-  val appShapes: Cache[(ShapeKey, FlowSymbol), AppShape] =
+  val appShapes: Cache[(ShapeIdentity.Key, FlowSymbol), AppShape] =
     new Cache(_.appShapes, identity)
   val newShapes: Cache[(ClassValueTarget, Ls[Marks], FlowSymbol, Opt[Ls[DeclaredType]]), NewShape] =
     new Cache(_.newShapes, identity)
@@ -120,7 +142,7 @@ final class NewResolverState(val owner: Elaborator.State):
   val awaitedTypes: Cache[DeclaredType, DeclaredType] =
     new Cache(_.awaitedTypes, identity)
   // Keyed like inference candidates (see ShapeIdentity), so each candidate has one awaited type.
-  val awaitedValues: Cache[(ShapeKey, TypeSubstitution), DeclaredType] =
+  val awaitedValues: Cache[(ShapeIdentity.Key, TypeSubstitution), DeclaredType] =
     new Cache(_.awaitedValues, identity)
   val typeInterpretations: Cache[Identity[Term], TypeResolution] =
     new Cache(_.typeInterpretations, identity)
@@ -181,7 +203,7 @@ final class NewResolverState(val owner: Elaborator.State):
     new Seen(_.dependencySubscriptions)
   val quantifiedTypes: Cache[(TypeResolution, Ls[VarSymbol]), TypeResolution] =
     new Cache(_.quantifiedTypes, identity)
-  val instantiatedCallables: Cache[(ShapeKey, FlowSymbol, Ls[Marks]), CallableTypeShape] =
+  val instantiatedCallables: Cache[(ShapeIdentity.Key, FlowSymbol, Ls[Marks]), CallableTypeShape] =
     new Cache(_.instantiatedCallables, identity)
   val contextualSymbols: Cache[(CoreSymShape, TypeSubstitution), ContextualSymShape] =
     new Cache(_.contextualSymbols, identity)
@@ -208,7 +230,7 @@ final class NewResolverState(val owner: Elaborator.State):
     new Cache(_.patternOutputs, identity)
   // Repeated refinement of one input must reuse its synthesized type hosts.
   // Constructor paths distinguish references to the same captured class.
-  val patternRefinements: Cache[(Identity[Pattern.Constructor], InnerSymbol, Ls[Marks], ShapeKey), DeclaredType] =
+  val patternRefinements: Cache[(Identity[Pattern.Constructor], InnerSymbol, Ls[Marks], ShapeIdentity.Key), DeclaredType] =
     new Cache(_.patternRefinements, identity)
   val primitiveTypes: Cache[ClassSymbol, DeclaredType] =
     new Cache(_.primitiveTypes, identity)
@@ -222,7 +244,7 @@ final class NewResolverState(val owner: Elaborator.State):
     new Cache(_.abstractTypes, identity)
   val omittedTypes: Cache[(TypeResolution, VarSymbol), DeclaredType] =
     new Cache(_.omittedTypes, identity)
-  val exposedTypeHoles: Seen[(DeclaredType, ShapeKey, Ls[Marks])] =
+  val exposedTypeHoles: Seen[(DeclaredType, ShapeIdentity.Key, Ls[Marks])] =
     new Seen(_.exposedTypeHoles)
   val signatureParameters: Cache[VarSymbol, DeclaredType] =
     new Cache(_.signatureParameters, identity)
@@ -246,7 +268,7 @@ final class NewResolverState(val owner: Elaborator.State):
   // A method projection or nested constraint can change the observation scope
   // without changing this property. Missing supplied positions remain inferred.
   private[semantics] val explicitTypeArguments = mutable.Set.empty[VarSymbol]
-  private[semantics] val typeConstraints: Seen[(DeclaredType, ShapeKey, Ls[Marks])] =
+  private[semantics] val typeConstraints: Seen[(DeclaredType, ShapeIdentity.Key, Ls[Marks])] =
     new Seen(_.typeConstraints)
   val typeRelations: Seen[(ContextualType, ContextualType)] =
     new Seen(_.typeRelations)
@@ -279,9 +301,10 @@ final class ResolutionContext private[semantics] (
     */
   def withInstances(substitution: TypeSubstitution): ResolutionContext =
     val base = contextBase.getOrElse(this)
-    if substitution.isEmpty then base
-    else root.contexts.getOrElseUpdate((base, substitution),
-      new ResolutionContext(root, source, S(base), substitution))
+    val canonical = TypeSubstitution.canonical(substitution)
+    if canonical.isEmpty then base
+    else root.contexts.getOrElseUpdate((base, canonical),
+      new ResolutionContext(root, source, S(base), canonical))
   def withReporter(raise: Raise): this.type =
     root.reporter = raise
     this

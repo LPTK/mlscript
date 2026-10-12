@@ -11,7 +11,7 @@ import hkmc2.utils.*, shorthands.*
   */
 class MarksTest extends AnyFunSuite:
   // Mark laws compare transported values, independently of wrapper allocation.
-  private def key(shape: TermShape | NoShape): Opt[ShapeKey] = shape match
+  private def key(shape: TermShape | NoShape)(using ResolutionContext): Opt[ShapeIdentity.Key] = shape match
     case NoShape => N
     case value: TermShape => S(ShapeIdentity.key(value))
   private class Harness:
