@@ -10,121 +10,135 @@ import codegen.Erasure
 sealed abstract class TypeShape extends ValueKey
 
 object TypeShape:
-  final class Nominal(val defn: ClassLikeDef) extends TypeShape:
+  final class Nominal(val defn: ClassLikeDef) extends TypeShape, Extractable[ClassLikeDef]:
+    def get: ClassLikeDef = defn
     protected val keyComponents: Product = Tuple1(new Identity(defn))
   object Nominal:
-    def unapply(value: Nominal): S[ClassLikeDef] =
-      S(value.defn)
-  final class Alias(val symbol: TypeAliasSymbol, val rhs: Opt[TypeResolution]) extends TypeShape:
+    def unapply(value: Nominal): Nominal = value
+  final class Alias(val symbol: TypeAliasSymbol, val rhs: Opt[TypeResolution]) extends TypeShape, Extractable.Self:
+    def _1: TypeAliasSymbol = symbol
+    def _2: Opt[TypeResolution] = rhs
     protected val keyComponents: Product = (symbol, rhs)
   object Alias:
-    def unapply(value: Alias): S[(TypeAliasSymbol, Opt[TypeResolution])] =
-      S((value.symbol, value.rhs))
-  final class Union(val left: TypeResolution, val right: TypeResolution) extends TypeShape:
+    def unapply(value: Alias): Alias = value
+  final class Union(val left: TypeResolution, val right: TypeResolution) extends TypeShape, Extractable.Self:
+    def _1: TypeResolution = left
+    def _2: TypeResolution = right
     protected val keyComponents: Product = (left, right)
   object Union:
-    def unapply(value: Union): S[(TypeResolution, TypeResolution)] =
-      S((value.left, value.right))
-  final class Intersection(val left: TypeResolution, val right: TypeResolution) extends TypeShape:
+    def unapply(value: Union): Union = value
+  final class Intersection(val left: TypeResolution, val right: TypeResolution) extends TypeShape, Extractable.Self:
+    def _1: TypeResolution = left
+    def _2: TypeResolution = right
     protected val keyComponents: Product = (left, right)
   object Intersection:
-    def unapply(value: Intersection): S[(TypeResolution, TypeResolution)] =
-      S((value.left, value.right))
+    def unapply(value: Intersection): Intersection = value
   // Negated interfaces remain opaque, but their dependencies must participate
   // in source validation, including the rejection of unguarded alias cycles.
-  final class Negation(val base: TypeResolution) extends TypeShape:
+  final class Negation(val base: TypeResolution) extends TypeShape, Extractable[TypeResolution]:
+    def get: TypeResolution = base
     protected val keyComponents: Product = Tuple1(base)
   object Negation:
-    def unapply(value: Negation): S[TypeResolution] =
-      S(value.base)
+    def unapply(value: Negation): Negation = value
   // Substituted unions/intersections retain whole interpreted endpoints. Keeping
   // their lattice normal form prevents repeated Boolean substitutions from
   // nesting environments, without expanding bounds or changing endpoint marks.
-  final class Combined(val formula: TypeFormula[DeclaredType]) extends TypeShape:
+  final class Combined(val formula: TypeFormula[DeclaredType]) extends TypeShape, Extractable[TypeFormula[DeclaredType]]:
+    def get: TypeFormula[DeclaredType] = formula
     protected val keyComponents: Product = Tuple1(formula)
   object Combined:
-    def unapply(value: Combined): S[TypeFormula[DeclaredType]] =
-      S(value.formula)
-  final class Tuple(val fields: Ls[TypeResolution]) extends TypeShape:
+    def unapply(value: Combined): Combined = value
+  final class Tuple(val fields: Ls[TypeResolution]) extends TypeShape, Extractable[Ls[TypeResolution]]:
+    def get: Ls[TypeResolution] = fields
     protected val keyComponents: Product = Tuple1(fields)
   object Tuple:
-    def unapply(value: Tuple): S[Ls[TypeResolution]] =
-      S(value.fields)
-  final class Record(val source: Term.Rcd, val fields: Ls[(RcdField, TypeResolution)]) extends TypeShape:
+    def unapply(value: Tuple): Tuple = value
+  final class Record(val source: Term.Rcd, val fields: Ls[(RcdField, TypeResolution)]) extends TypeShape, Extractable.Self:
+    def _1: Term.Rcd = source
+    def _2: Ls[(RcdField, TypeResolution)] = fields
     protected val keyComponents: Product = (source, fields.map((field, tpe) => (new Identity(field), tpe)))
   object Record:
-    def unapply(value: Record): S[(Term.Rcd, Ls[(RcdField, TypeResolution)])] =
-      S((value.source, value.fields))
-  final class Function(val params: Term, val result: TypeResolution) extends TypeShape:
+    def unapply(value: Record): Record = value
+  final class Function(val params: Term, val result: TypeResolution) extends TypeShape, Extractable.Self:
+    def _1: Term = params
+    def _2: TypeResolution = result
     protected val keyComponents: Product = (params, result)
   object Function:
-    def unapply(value: Function): S[(Term, TypeResolution)] =
-      S((value.params, value.result))
-  final class Polymorphic(val params: Ls[TypeQuantifier], val outer: Opt[VarSymbol], val body: TypeResolution) extends TypeShape:
+    def unapply(value: Function): Function = value
+  final class Polymorphic(val params: Ls[TypeQuantifier], val outer: Opt[VarSymbol], val body: TypeResolution) extends TypeShape, Extractable.Self:
+    def _1: Ls[TypeQuantifier] = params
+    def _2: Opt[VarSymbol] = outer
+    def _3: TypeResolution = body
     protected val keyComponents: Product = (params, outer, body)
   object Polymorphic:
-    def unapply(value: Polymorphic): S[(Ls[TypeQuantifier], Opt[VarSymbol], TypeResolution)] =
-      S((value.params, value.outer, value.body))
-  final class Applied(val base: TypeResolution, val args: Ls[TypeResolution]) extends TypeShape:
+    def unapply(value: Polymorphic): Polymorphic = value
+  final class Applied(val base: TypeResolution, val args: Ls[TypeResolution]) extends TypeShape, Extractable.Self:
+    def _1: TypeResolution = base
+    def _2: Ls[TypeResolution] = args
     protected val keyComponents: Product = (base, args)
   object Applied:
-    def unapply(value: Applied): S[(TypeResolution, Ls[TypeResolution])] =
-      S((value.base, value.args))
-  final class Wildcard(val input: Opt[TypeResolution], val output: Opt[TypeResolution]) extends TypeShape:
+    def unapply(value: Applied): Applied = value
+  final class Wildcard(val input: Opt[TypeResolution], val output: Opt[TypeResolution]) extends TypeShape, Extractable.Self:
+    def _1: Opt[TypeResolution] = input
+    def _2: Opt[TypeResolution] = output
     protected val keyComponents: Product = (input, output)
   object Wildcard:
-    def unapply(value: Wildcard): S[(Opt[TypeResolution], Opt[TypeResolution])] =
-      S((value.input, value.output))
+    def unapply(value: Wildcard): Wildcard = value
   // Interpreted arguments retain both polarities in the argument's lexical environment.
-  final class Argument(val parts: TypeArgument) extends TypeShape:
+  final class Argument(val parts: TypeArgument) extends TypeShape, Extractable[TypeArgument]:
+    def get: TypeArgument = parts
     protected val keyComponents: Product = Tuple1(parts)
   object Argument:
-    def unapply(value: Argument): S[TypeArgument] =
-      S(value.parts)
+    def unapply(value: Argument): Argument = value
   // Substitution selects one part before the type is used in further constraints.
   // The argument stays in its own lexical environment, including delayed parts.
-  final class SelectedArgument(val argument: DeclaredType, val positive: Bool) extends TypeShape:
+  final class SelectedArgument(val argument: DeclaredType, val positive: Bool) extends TypeShape, Extractable.Self:
+    def _1: DeclaredType = argument
+    def _2: Bool = positive
     protected val keyComponents: Product = (argument, positive)
   object SelectedArgument:
-    def unapply(value: SelectedArgument): S[(DeclaredType, Bool)] =
-      S((value.argument, value.positive))
+    def unapply(value: SelectedArgument): SelectedArgument = value
   // A transported reference retains its context before any deferred component
   // is observed. The resolver flattens these nodes and normalizes their marks.
-  final class Contextual(val reference: ContextualType) extends TypeShape:
+  final class Contextual(val reference: ContextualType) extends TypeShape, Extractable[ContextualType]:
+    def get: ContextualType = reference
     protected val keyComponents: Product = Tuple1(reference)
   object Contextual:
-    def unapply(value: Contextual): S[ContextualType] =
-      S(value.reference)
+    def unapply(value: Contextual): Contextual = value
   // The same third-party symbol can have different inference in two exporters.
   // Retain its originating host so importing a result needs no whole-state copy.
-  final class Parameter(val symbol: VarSymbol, val host: Publisher.Data[ShapeEvent]) extends TypeShape:
+  final class Parameter(val symbol: VarSymbol, val host: Publisher.Data[ShapeEvent]) extends TypeShape, Extractable.Self:
+    def _1: VarSymbol = symbol
+    def _2: Publisher.Data[ShapeEvent] = host
     protected val keyComponents: Product = (symbol, host)
   object Parameter:
-    def unapply(value: Parameter): S[(VarSymbol, Publisher.Data[ShapeEvent])] =
-      S((value.symbol, value.host))
+    def unapply(value: Parameter): Parameter = value
   // An omitted argument owns one source inference node. It is not a quantified
   // binder and is never instantiated at a call site; marks distinguish its flows.
-  final class Hole(val host: Publisher.Data[TermShape]) extends TypeShape:
+  final class Hole(val host: Publisher.Data[TermShape]) extends TypeShape, Extractable[Publisher.Data[TermShape]]:
+    def get: Publisher.Data[TermShape] = host
     protected val keyComponents: Product = Tuple1(host)
   object Hole:
-    def unapply(value: Hole): S[Publisher.Data[TermShape]] =
-      S(value.host)
+    def unapply(value: Hole): Hole = value
   // Synthesized generic arguments retain inferred value shapes, for example
   // the element union of the Array supertype of a tuple. Singleton annotations
   // also retain their literal shape; no implementation is inspected.
-  final class Inferred(val value: TermShape) extends TypeShape:
+  final class Inferred(val value: TermShape) extends TypeShape, Extractable[TermShape]:
+    def get: TermShape = value
     protected val keyComponents: Product = Tuple1(ShapeIdentity.key(value))
   object Inferred:
-    def unapply(value: Inferred): S[TermShape] =
-      S(value.value)
+    def unapply(value: Inferred): Inferred = value
   // An open type expression reached through a reference. Unlike Contextual,
   // its free binders still receive the observing declaration's substitution.
   // Qualified references retain the receiver's bindings and lexical path too.
-  final class Reference(val base: TypeResolution, val marks: Ls[Marks], val bindings: Map[VarSymbol, DeclaredType], val instances: TypeSubstitution) extends TypeShape:
+  final class Reference(val base: TypeResolution, val marks: Ls[Marks], val bindings: Map[VarSymbol, DeclaredType], val instances: TypeSubstitution) extends TypeShape, Extractable.Self:
+    def _1: TypeResolution = base
+    def _2: Ls[Marks] = marks
+    def _3: Map[VarSymbol, DeclaredType] = bindings
+    def _4: TypeSubstitution = instances
     protected val keyComponents: Product = (base, marks, bindings, instances)
   object Reference:
-    def unapply(value: Reference): S[(TypeResolution, Ls[Marks], Map[VarSymbol, DeclaredType], TypeSubstitution)] =
-      S((value.base, value.marks, value.bindings, value.instances))
+    def unapply(value: Reference): Reference = value
   object Unit extends TypeShape:
     protected val keyComponents: Product = EmptyTuple
   object Dynamic extends TypeShape:

@@ -32,12 +32,15 @@ final class CtorPatternShape(
     val src: Pattern.Constructor,
     val resSym: FlowSymbol,
     val marks: Ls[Marks],
-) extends PatternShape:
+) extends PatternShape, Extractable.Self:
+  def _1: ClassDef | ModuleOrObjectDef = cls
+  def _2: Ls[BlockMemberSymbol -> Pattern] = fs
+  def _3: Pattern.Constructor = src
+  def _4: FlowSymbol = resSym
+  def _5: Ls[Marks] = marks
   protected val keyComponents: Product = (new Identity(cls), fs, src, resSym, marks)
   def showDbg(using DebugPrinter): Str = src.showDbg
 
 
 object CtorPatternShape:
-  def unapply(value: CtorPatternShape): S[(ClassDef | ModuleOrObjectDef, Ls[BlockMemberSymbol -> Pattern],
-      Pattern.Constructor, FlowSymbol, Ls[Marks])] =
-    S((value.cls, value.fs, value.src, value.resSym, value.marks))
+  def unapply(value: CtorPatternShape): CtorPatternShape = value
