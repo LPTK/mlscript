@@ -174,12 +174,15 @@ The generated inputs and graph-growth assertions were identical.
 | Promise chain, k=14 | 25.2 ms | 16.5 ms | 17.74 MiB | 17.47 MiB |
 | FingerTreeList | 1.27 s | 1.09 s | 1317.7 MiB | 1358.5 MiB |
 
-The final version removes the general view-interning table and per-witness instance
+The measured version removes the general view-interning table and per-witness instance
 entries, makes resolver tables lazy, and stores explicit immutable key components
 with cached hashes. Canonical tuple, record, instance, and inferred-host identities
 remain. FingerTreeList constructs 1533 substituted views instead of 1368, including
 short-lived views formerly interned; it still satisfies the existing bound of
 3000 and the unchanged limit of four retained bindings. Its
 allocation increased about 3%, while the smaller generated cases were similar.
-These measurements support keeping the simpler view construction, not a claim
-that every workload allocates less or compiles faster.
+The allocation increase is a regression; these measurements do not establish
+that removing view interning is beneficial. The context/state split subsequently
+removed the need for lazy table fields: activations now share the unit's tables.
+The figures above describe the earlier implementation, not that split or the
+subsequent canonicalization work.

@@ -17,7 +17,7 @@ class MarksTest extends AnyFunSuite:
   private class Harness:
     import io.PlatformPath.given
     given owner: Elaborator.State = new Elaborator.State
-    given NewResolverState = owner.newResolverState
+    given ResolutionContext = owner.newResolverState.context
     given Raise = diagnostic => fail(diagnostic.theMsg)
     given DebugPrinter = new DebugPrinter
     given TraceLogger = new TraceLogger:

@@ -9,7 +9,7 @@ import hkmc2.semantics.*
 class TypeInstantiationTest extends AnyFunSuite:
   test("a definition and static site allocate their binder group once"):
     given owner: Elaborator.State = new Elaborator.State
-    val state = owner.newResolverState
+    val state = owner.newResolverState.context
     val scheme = new TypeResolution(Term.UnitVal(), _ => fail("Unexpected type error"))
     val otherScheme = new TypeResolution(Term.UnitVal(), _ => fail("Unexpected type error"))
     val a = new VarSymbol(new syntax.Tree.Ident("A"))
@@ -34,7 +34,7 @@ class TypeInstantiationTest extends AnyFunSuite:
 
   test("instances do not copy checking candidates or listeners and cannot be reinstantiated"):
     given owner: Elaborator.State = new Elaborator.State
-    given state: NewResolverState = owner.newResolverState
+    given state: ResolutionContext = owner.newResolverState.context
     val scheme = new TypeResolution(Term.UnitVal(), _ => fail("Unexpected type error"))
     val parameter = new VarSymbol(new syntax.Tree.Ident("A"))
     parameter.inferenceHost.publish(DynShape())
@@ -51,8 +51,8 @@ class TypeInstantiationTest extends AnyFunSuite:
     // Diff tests check recursive getter behavior; this checks that repeated
     // projections and imported activations allocate only one binder group.
     given owner: Elaborator.State = new Elaborator.State
-    val source = owner.newResolverState
-    val consumer = new Elaborator.State().newResolverState
+    val source = owner.newResolverState.context
+    val consumer = new Elaborator.State().newResolverState.context
     val field = BlockMemberSymbol("next", Nil)
     val site = source.fieldProjectionSite(field)
     assert(consumer.inGraph(source).fieldProjectionSite(field) eq site)
@@ -70,9 +70,9 @@ class TypeInstantiationTest extends AnyFunSuite:
 
   test("consumer instantiation leaves another consumer and the source untouched"):
     given owner: Elaborator.State = new Elaborator.State
-    val source = owner.newResolverState
-    val first = new Elaborator.State().newResolverState
-    val second = new Elaborator.State().newResolverState
+    val source = owner.newResolverState.context
+    val first = new Elaborator.State().newResolverState.context
+    val second = new Elaborator.State().newResolverState.context
     val scheme = new TypeResolution(Term.UnitVal(), _ => fail("Unexpected type error"))
     val parameter = new VarSymbol(new syntax.Tree.Ident("A"))
     val site = FlowSymbol.app()
@@ -86,7 +86,7 @@ class TypeInstantiationTest extends AnyFunSuite:
 
   test("activation views compose flatly and share their consumer's hosts"):
     given owner: Elaborator.State = new Elaborator.State
-    val source = owner.newResolverState
+    val source = owner.newResolverState.context
     val scheme = new TypeResolution(Term.UnitVal(), _ => fail("Unexpected type error"))
     val parameter = new VarSymbol(new syntax.Tree.Ident("A"))
     val local = new VarSymbol(new syntax.Tree.Ident("value"))
@@ -94,6 +94,8 @@ class TypeInstantiationTest extends AnyFunSuite:
     val second = source.instantiateTypeParameters(scheme, FlowSymbol.app(), List(parameter), None)
     val left = source.withInstances(first)
     val right = source.withInstances(second)
+    assert(left.state eq source.state)
+    assert(right.state eq source.state)
     (1 to 1000).foreach: _ =>
       assert(left.withInstances(second) eq right)
       assert(right.withInstances(first) eq left)
@@ -102,11 +104,30 @@ class TypeInstantiationTest extends AnyFunSuite:
     assert(local.inferenceHost(using left) eq local.inferenceHost(using right))
     assert(source.allocatedTypeInstanceCount == 2)
 
+  test("shared resolver tables isolate mutable bookkeeping between activations and importers"):
+    // Diff tests observe compiler results; they cannot detect an activation or
+    // importer accidentally extending another context's mutable cache value.
+    given owner: Elaborator.State = new Elaborator.State
+    val source = owner.newResolverState.context
+    val scheme = new TypeResolution(Term.UnitVal(), _ => fail("Unexpected type error"))
+    val parameter = new VarSymbol(new syntax.Tree.Ident("A"))
+    val first = source.withInstances(source.instantiateTypeParameters(scheme, FlowSymbol.app(), List(parameter), None))
+    val second = source.withInstances(source.instantiateTypeParameters(scheme, FlowSymbol.app(), List(parameter), None))
+    val key = new Object
+    source.state.reportedArities.update(key, scala.collection.mutable.Set(0))(using source)
+    first.state.reportedArities.get(key)(using first).get += 1
+    assert(second.state.reportedArities.get(key)(using second).get.toSet == Set(0))
+    val consumer = new Elaborator.State().newResolverState.context.inGraph(source)
+    consumer.state.reportedArities.get(key)(using consumer).get += 2
+    assert(source.state.reportedArities.get(key)(using source).get.toSet == Set(0))
+    assert(first.state.reportedArities.get(key)(using first).get.toSet == Set(0, 1))
+    assert(consumer.state.reportedArities.get(key)(using consumer).get.toSet == Set(0, 2))
+
   test("imported activation views retain consumer substitutions without mutating exporter hosts"):
     given owner: Elaborator.State = new Elaborator.State
-    val source = owner.newResolverState
-    val consumer = new Elaborator.State().newResolverState
-    val other = new Elaborator.State().newResolverState
+    val source = owner.newResolverState.context
+    val consumer = new Elaborator.State().newResolverState.context
+    val other = new Elaborator.State().newResolverState.context
     val scheme = new TypeResolution(Term.UnitVal(), _ => fail("Unexpected type error"))
     val parameter = new VarSymbol(new syntax.Tree.Ident("A"))
     val local = new VarSymbol(new syntax.Tree.Ident("value"))
@@ -127,9 +148,9 @@ class TypeInstantiationTest extends AnyFunSuite:
     assert(consumer.allocatedTypeInstanceCount == 1)
 
   test("imported callbacks return to the consumer without growing graph-view chains"):
-    val exporter = new Elaborator.State().newResolverState
-    val middle = new Elaborator.State().newResolverState
-    val consumer = new Elaborator.State().newResolverState
+    val exporter = new Elaborator.State().newResolverState.context
+    val middle = new Elaborator.State().newResolverState.context
+    val consumer = new Elaborator.State().newResolverState.context
     val imported = consumer.inGraph(middle.inGraph(exporter))
     // A worksheet can observe successful values without detecting an extra
     // import-view layer per callback. Check the graph's boundedness directly.

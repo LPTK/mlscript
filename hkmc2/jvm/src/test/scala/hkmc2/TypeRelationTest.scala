@@ -11,7 +11,7 @@ class TypeRelationTest extends AnyFunSuite:
   private class Harness:
     import io.PlatformPath.given
     given owner: Elaborator.State = new Elaborator.State
-    given state: NewResolverState = owner.newResolverState
+    given state: ResolutionContext = owner.newResolverState.context
     given Raise = diagnostic => fail(diagnostic.theMsg)
     given DebugPrinter = new DebugPrinter
     given trace: TraceLogger = new TraceLogger:
@@ -368,8 +368,8 @@ class TypeRelationTest extends AnyFunSuite:
     h.resolver.listenInstanceViews(h.resolver.instanceShape(hole))(output.publish)
     val exporter = ArrayBuffer.empty[TermShape]
     val detach = output.inferenceHost.observe(exporter += _)
-    val left = new Elaborator.State().newResolverState.inGraph(h.state)
-    val right = new Elaborator.State().newResolverState.inGraph(h.state)
+    val left = new Elaborator.State().newResolverState.context.inGraph(h.state)
+    val right = new Elaborator.State().newResolverState.context.inGraph(h.state)
     assert(h.resolver.omittedType(source, parameter)(using left) eq hole)
     assert(h.resolver.omittedType(source, parameter)(using right) eq hole)
     val leftValues = ArrayBuffer.empty[TermShape]
@@ -398,7 +398,7 @@ class TypeRelationTest extends AnyFunSuite:
     val symbol = ClassSymbol(Tree.TypeDef(Cls, name, N), name)
     val defn = ClassDef.Plain(N, Cls, symbol, BlockMemberSymbol("Closed", Nil), Nil, N,
       ObjBody(Term.Blk(Nil, Term.UnitVal())), N, Nil, Nil, N)(N)
-    h.state.lexicalTypeBinders(symbol) = Set.empty
+    h.state.state.lexicalTypeBinders(symbol) = Set.empty
     val original = NominalInstanceView(defn, Map.empty, N)(N, ShapeProvenance.empty)(h.resolver)
     val scheme = h.tpe(TypeShape.Top).resolution
     val substitutions = (1 to 16).map: index =>
@@ -551,8 +551,8 @@ class TypeRelationTest extends AnyFunSuite:
     h.resolver.listenInstanceViews(h.resolver.instanceShape(bt))(output.publish)
     val exporter = ArrayBuffer.empty[TermShape]
     val detach = output.inferenceHost.observe(exporter += _)
-    val left = new Elaborator.State().newResolverState.inGraph(h.state)
-    val right = new Elaborator.State().newResolverState.inGraph(h.state)
+    val left = new Elaborator.State().newResolverState.context.inGraph(h.state)
+    val right = new Elaborator.State().newResolverState.context.inGraph(h.state)
     val leftValues = ArrayBuffer.empty[TermShape]
     val rightValues = ArrayBuffer.empty[TermShape]
     h.resolver.listenInstanceViews(h.resolver.instanceShape(bt)(using left))(leftValues += _)(using left)

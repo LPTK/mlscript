@@ -396,7 +396,7 @@ class CompilerTest extends AnyFunSuite:
       here ::: statement.subStatements.toList.flatMap(applications)
     val calls = applications(unit.term)
     assert(calls.length == 1)
-    val state = unit.state.newResolverState
+    val state = unit.state.newResolverState.context
     assert(state.allocatedTypeInstanceCount == 1)
     val site = calls.head.lhs match
       case application: Term.TyApp => state.typeApplicationSite(application)

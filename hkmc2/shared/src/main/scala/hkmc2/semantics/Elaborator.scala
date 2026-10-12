@@ -443,12 +443,12 @@ object Elaborator:
 
     abstract class Elem:
       def nme: Str
-      def ref(id: Ident)(using Elaborator.State, Ctx, Config, NewResolver, NewResolverState): Term
+      def ref(id: Ident)(using Elaborator.State, Ctx, Config, NewResolver, ResolutionContext): Term
       def symbol: Opt[Symbol]
       def isImport: Bool
     final case class RefElem(sym: Symbol) extends Elem:
       val nme = sym.nme
-      def ref(id: Ident)(using Elaborator.State, Ctx, Config, NewResolver, NewResolverState): Term =
+      def ref(id: Ident)(using Elaborator.State, Ctx, Config, NewResolver, ResolutionContext): Term =
         if config.language.useNewResolution then
           sym match
           case sym: codegen.SimpleSymbol =>
@@ -459,7 +459,7 @@ object Elaborator:
             // A reference can invoke a by-name definition, instantiating its
             // binders at this site (see NewResolver.instantiateByName).
             val ref = Term.MemberRef(sym)(id, FlowSymbol.memSym(sym))
-            rstate.recordLexicalBinders(ref, ctx.typeBinders)
+            rctx.recordLexicalBinders(ref, ctx.typeBinders)
             ref
           // case sym: TermSymbol => // FIXME: should never happen... (currently happens for ref to ctor let)
           //   Term.MemberRef(sym)(id)
@@ -470,31 +470,31 @@ object Elaborator:
       def symbol = S(sym)
       def isImport: Bool = false
     final case class SelElem(base: Elem, nme: Str, symOpt: Opt[MemberSymbol], isImport: Bool) extends Elem:
-      def ref(id: Ident)(using Elaborator.State, Ctx, Config, NewResolver, NewResolverState): Term =
+      def ref(id: Ident)(using Elaborator.State, Ctx, Config, NewResolver, ResolutionContext): Term =
         // * Same remark as in RefElem#ref
         val prefix = base.ref(Ident(base.nme))
         val name = new Ident(nme).withLocOf(id)
         if config.language.useNewResolution then
           val res = new Term.NewSel(prefix, name, N)(FlowSymbol.synthSel(nme)).withLocOf(id)
-          rstate.recordLexicalBinders(res, ctx.typeBinders)
+          rctx.recordLexicalBinders(res, ctx.typeBinders)
           summon[NewResolver].newSel(res)
           res
         else
           Term.SynthSel(prefix, name)(symOpt, FlowSymbol.synthSel(nme), N, S(summon))
       def symbol = symOpt
     final case class WildcardElem(nme: Str, sources: Ls[OpenSource]) extends Elem:
-      def ref(id: Ident)(using Elaborator.State, Ctx, Config, NewResolver, NewResolverState): Term =
+      def ref(id: Ident)(using Elaborator.State, Ctx, Config, NewResolver, ResolutionContext): Term =
         // Each ref is fresh. Locate its outer capture at the opening site too;
         // a chained wildcard reference may already have attached this location.
         val prefixes = sources.map(source => source.elem.ref(source.id).withoutLoc.withLocOf(source.id))
         val res = new Term.UnresolvedRef(prefixes, id)(FlowSymbol.synthSel(nme)).withLocOf(id)
-        rstate.recordLexicalBinders(res, ctx.typeBinders)
+        rctx.recordLexicalBinders(res, ctx.typeBinders)
         summon[NewResolver].unresolvedRef(res)
         res
       def symbol: Opt[Symbol] = N
       def isImport: Bool = true
     final case class CaptElem(base: Elem, thru: DefinitionSymbol[?]) extends Elem:
-      def ref(id: Ident)(using Elaborator.State, Ctx, Config, NewResolver, NewResolverState): Term =
+      def ref(id: Ident)(using Elaborator.State, Ctx, Config, NewResolver, ResolutionContext): Term =
         Term.Capture(base.ref(id), thru)
       def symbol = base.symbol
       def isImport: Bool = false
@@ -619,7 +619,7 @@ object Elaborator:
     case Private(sym: BlockMemberSymbol, modulePath: Str)
 
   class State:
-    lazy val newResolverState: NewResolverState = new NewResolverState(this)
+    val newResolverState: NewResolverState = new NewResolverState(this)
     val suid = new Uid.Symbol.State
     given State = this
     private var _compilationUnit: Opt[CompilationUnit] = N
@@ -753,7 +753,7 @@ extends Importer:
   import tl.*
   given TraceLogger = tl
   private given NewResolver = this
-  private given NewResolverState = state.newResolverState.withReporter(raise)
+  private given ResolutionContext = state.newResolverState.context.withReporter(raise)
   
   val newResolution: Bool = config.language.useNewResolution
   
@@ -1237,7 +1237,7 @@ extends Importer:
     * can import their syntax.
     */
   private def withTypeBinders[T <: Term](term: T)(using Ctx): T =
-    rstate.recordLexicalBinders(term, ctx.typeBinders)
+    rctx.recordLexicalBinders(term, ctx.typeBinders)
     term
   
   /** An async expression wraps the values of `target` in a promise, whose payload
@@ -2299,7 +2299,7 @@ extends Importer:
             
             val tsym = TermSymbol(k, owner, id) // TODO?
             // Recorded before the definition's own type parameters enter scope.
-            rstate.lexicalTypeBinders(tsym) = ctx.typeBinders
+            rctx.state.lexicalTypeBinders(tsym) = ctx.typeBinders
             
             val tdf = ctx.nest(OuterCtx.NonReturnContext(S(tsym))).givenIn: newCtx ?=>
               // * Add type parameters to context
@@ -2401,8 +2401,8 @@ extends Importer:
         val sym = members.getOrElse(nme.name, lastWords(s"Symbol not found: ${nme.name}"))
         
         val outerCtx = ctx
-        rstate.lexicalTypeBinders(td.symbol) = ctx.typeBinders
-        rstate.lexicalBoundaries(td.symbol) = ctx.resolutionBoundaries
+        rctx.state.lexicalTypeBinders(td.symbol) = ctx.typeBinders
+        rctx.state.lexicalBoundaries(td.symbol) = ctx.resolutionBoundaries
         
         var newCtx = S(td.symbol).collectFirst:
             case s: InnerSymbol => s
@@ -2492,13 +2492,13 @@ extends Importer:
                 fsym.tsym = S(tsym)
                 tsym.defn = S(fdef)
                 // A generated field is written inside its class, like a member.
-                rstate.lexicalTypeBinders(tsym) = ctx.typeBinders
+                rctx.state.lexicalTypeBinders(tsym) = ctx.typeBinders
                 fsym.complete()
                 fdef :: Nil
               else
                 val psym = TermSymbol(LetBind, owner, p.sym.id)
                 psym.sourceAliases = p.sym.sourceAliases
-                rstate.lexicalTypeBinders(psym) = ctx.typeBinders
+                rctx.state.lexicalTypeBinders(psym) = ctx.typeBinders
                 val decl = LetDecl(psym, Nil)(p.toLoc) // TODO: never use term symbols on LetDecl LHS
                 val defn = defineVar(psym, p.sym.ref())(p.toLoc)
                 p.fldSym = S(psym)
@@ -2512,7 +2512,7 @@ extends Importer:
                 case _: TypeAliasSymbol => die
               val psym = TermSymbol(LetBind, owner, p.sym.id)
               psym.sourceAliases = p.sym.sourceAliases
-              rstate.lexicalTypeBinders(psym) = ctx.typeBinders
+              rctx.state.lexicalTypeBinders(psym) = ctx.typeBinders
               val decl = LetDecl(psym, Nil)(p.toLoc)
               val defn = defineVar(psym, p.sym.ref())(p.toLoc)
               p.fldSym = S(psym)
@@ -3120,7 +3120,7 @@ extends Importer:
     // TODO handle name clashes
     if newResolution then
       InterfaceExposure(this).check(exports, Nil)
-    rstate.completeBlock(res)
+    rctx.completeBlock(res)
     (res, newCtx)
   
   def topLevel(sts: Block): Ctxl[(Blk, Ctx)] =
@@ -3137,7 +3137,7 @@ extends Importer:
       else
         // Explicit annotations still check callbacks whose signatures they hide.
         InterfaceExposure(this).check(Nil, Nil)
-    rstate.completeBlock(res)
+    rctx.completeBlock(res)
     (res, ctx)
   
   def computeVariances(s: Statement): Unit =

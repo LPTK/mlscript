@@ -19,7 +19,7 @@ class Importer extends NewResolver:
   import tl.*
 
 
-  def importPath(path: Str, alias: Opt[syntax.Tree.Ident])(loc: Opt[Loc])(using cfg: Config, rs: NewResolverState): Import =
+  def importPath(path: Str, alias: Opt[syntax.Tree.Ident])(loc: Opt[Loc])(using cfg: Config, rs: ResolutionContext): Import =
     // log(s"pwd: ${os.pwd}")
     // log(s"wd: ${wd}")
     

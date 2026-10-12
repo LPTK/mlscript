@@ -157,9 +157,9 @@ final class TypeResolution(val source: Term, report: Ls[(Message, Opt[Loc])] => 
   private var reported = false
   def hasErrors: Bool = reported
   def showDbg(using DebugPrinter): Str = s"type of ${source.showDbg}"
-  def publish(shape: TypeShape)(using NewResolverState): Unit =
+  def publish(shape: TypeShape)(using ResolutionContext): Unit =
     if currentShapes.add(shape) then notifyShapeListeners(shape)
-  def listen(listener: ShapeListener[TypeShape])(using NewResolverState): Unit =
+  def listen(listener: ShapeListener[TypeShape])(using ResolutionContext): Unit =
     subscribeToShapes(listener)
   def fail(messages: Ls[(Message, Opt[Loc])]): Unit = if !reported then
     reported = true

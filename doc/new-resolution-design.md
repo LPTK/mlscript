@@ -12,9 +12,11 @@ ports and implementation gaps belong in the [migration worklist](new-resolution-
 ## Inference ownership and completed references
 
 [`NewResolverState`](../hkmc2/shared/src/main/scala/hkmc2/semantics/NewResolverState.scala)
-owns the inference graph and caches. Listeners have type
-`TermShape => NewResolverState ?=> Unit`, so imported callbacks access hosts
-through the consuming state. Importing copies accessed hosts' candidates and
+owns the inference graph and caches, once per compilation unit. Listeners have
+type `TermShape => ResolutionContext ?=> Unit`. An immutable `ResolutionContext`
+selects the consuming state, import path, and active substitution; changing the
+substitution never creates another resolver state. Imported callbacks access hosts
+through that context. Importing copies accessed hosts' candidates and
 listeners lazily; caches consult individual source entries on demand. It must
 not copy or enumerate an exporter's entire resolver maps.
 
@@ -209,8 +211,11 @@ and preserves the original wrapper on a no-op. Removing a cache never substitute
 for this projection: irrelevant bindings would otherwise still distinguish keys.
 See [instance types](new-resolution-type-value-flow.md#shared-bodies-and-contextual-constraints).
 Member lookup remains keyed by the shape object because its result carries that
-observation's diagnostic evidence. Resolver tables are allocated on demand, so
-creating an activation does not eagerly allocate every map and set.
+observation's diagnostic evidence. Resolver tables are ordinary `val`s allocated
+once per compilation unit. Each table stores entries by context, allocating a
+namespace only when it receives an entry. Reading an inherited entry copies any
+mutable bookkeeping value before the consumer can extend it; immutable graph
+identities remain shared. Contexts themselves contain no mutable collections.
 
 `Candidates` receives its equality policy from the publisher's payload type. Its
 hash index provides efficient deduplication and its append-only buffer preserves

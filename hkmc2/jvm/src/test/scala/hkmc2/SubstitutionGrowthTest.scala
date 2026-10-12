@@ -65,7 +65,7 @@ class SubstitutionGrowthTest extends AnyFunSuite:
     val artifact = cctx.getElaboratedBlock(file, prelude)(using tl, summon[Raise])
     val errors = diagnostics.collect { case error: ErrorReport => error }
     assert(errors.isEmpty, s"Unexpected errors in ${file.baseName}:\n${errors.map(_.theMsg).mkString("\n")}")
-    val state = artifact.state.newResolverState
+    val state = artifact.state.newResolverState.context
     Measurement(state.allocatedShapeViewCount, state.largestRetainedSubstitution,
       state.activationContextCount, state.allocatedTypeInstanceCount)
 
@@ -127,7 +127,7 @@ class SubstitutionGrowthTest extends AnyFunSuite:
   /** Shapes and instances for the substitution laws below. */
   private class Harness:
     given owner: Elaborator.State = new Elaborator.State
-    given state: NewResolverState = owner.newResolverState
+    given state: ResolutionContext = owner.newResolverState.context
     given Raise = diagnostic => fail(diagnostic.theMsg)
     given trace: TraceLogger = new TraceLogger:
       override def doTrace: Boolean = false
