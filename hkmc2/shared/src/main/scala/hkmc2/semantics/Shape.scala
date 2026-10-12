@@ -170,14 +170,9 @@ type ContextualSource = AppShape | NewShape | DefnShape | BaseShape | IntroShape
 /** The value's lexical substitution and any already consumed type arguments.
   * Removing these views preserves the full application chain and its marks.
   */
-final class ShapeParts(val value: CoreTermShape, val instances: TypeSubstitution,
-    val supplied: Opt[Ls[DeclaredType]]) extends Extractable.Self:
-  def _1: CoreTermShape = value
-  def _2: TypeSubstitution = instances
-  def _3: Opt[Ls[DeclaredType]] = supplied
+final case class ShapeParts(value: CoreTermShape, instances: TypeSubstitution,
+    supplied: Opt[Ls[DeclaredType]]) extends IdentityEquality
 
-object ShapeParts:
-  def unapply(value: ShapeParts): ShapeParts = value
 
 /** A lexical resolution boundary, independent of a definition's term/type interpretation.
   * A class and its companion constructor enter the same instance scope. Keeping their
@@ -228,10 +223,7 @@ sealed abstract class Marks extends ValueKey:
     case _ => false
 
 type SomeMarks = EntryMark | ExitMark
-final class EntryMark(val boundary: ResolutionBoundary, val id: Opt[FlowSymbol], val rest: Marks) extends Marks, Extractable.Self:
-  def _1: ResolutionBoundary = boundary
-  def _2: Opt[FlowSymbol] = id
-  def _3: Marks = rest
+final case class EntryMark(boundary: ResolutionBoundary, id: Opt[FlowSymbol], rest: Marks) extends Marks:
   protected val valueHash: Int = ValueKey.hash("EntryMark".hashCode, boundary.hashCode, id.hashCode, rest.hashCode)
   protected def sameValue(other: ValueKey): Bool = other match
     case that: EntryMark => boundary == that.boundary && id == that.id && rest == that.rest
@@ -246,10 +238,7 @@ sealed abstract class ExitMarks extends Marks:
   final def hasExit(boundary: ResolutionBoundary): Bool = this match
     case ExitMark(b, _, rest) => b == boundary || rest.hasExit(boundary)
     case NoMarks => false
-final class ExitMark(val boundary: ResolutionBoundary, val id: Opt[FlowSymbol], val rest: ExitMarks) extends ExitMarks, Extractable.Self:
-  def _1: ResolutionBoundary = boundary
-  def _2: Opt[FlowSymbol] = id
-  def _3: ExitMarks = rest
+final case class ExitMark(boundary: ResolutionBoundary, id: Opt[FlowSymbol], rest: ExitMarks) extends ExitMarks:
   protected val valueHash: Int = ValueKey.hash("ExitMark".hashCode, boundary.hashCode, id.hashCode, rest.hashCode)
   protected def sameValue(other: ValueKey): Bool = other match
     case that: ExitMark => boundary == that.boundary && id == that.id && rest == that.rest
@@ -261,10 +250,6 @@ object NoMarks extends ExitMarks:
   protected def sameValue(other: ValueKey): Bool = other match
     case that: NoMarks.type => true
     case _ => false
-object EntryMark:
-  def unapply(value: EntryMark): EntryMark = value
-object ExitMark:
-  def unapply(value: ExitMark): ExitMark = value
 
 sealed trait ShapeLike:
   def exit(revMarkss: Ls[Marks])(using TL): TermShape | NoShape
@@ -302,16 +287,13 @@ object Marked:
   def unapply(sh: TermShape): Parts = new Parts(sh)
 end Marked
 
-final class MarkedShape[+T <: NonMarkedShape](val sh: T, val mark: SomeMarks) extends TermShape, Extractable.Self:
-  def _1: T = sh
-  def _2: SomeMarks = mark
+final case class MarkedShape[+T <: NonMarkedShape](sh: T, mark: SomeMarks) extends TermShape:
   protected def getMemberImpl(name: Str)(using ResolutionContext): MemberLookup =
     sh.getMemberThrough(name, mark)
   override def isInstanceOfClass(cls: ClassLikeDef)(using ResolutionContext): Bool = sh.isInstanceOfClass(cls)
   def describe: Str = sh.describe
   def toLoc: Opt[Loc] = sh.toLoc
 object MarkedShape:
-  def unapply[T <: NonMarkedShape](value: MarkedShape[T]): MarkedShape[T] = value
   def enter(sh: TermShape, boundary: ResolutionBoundary, id: Opt[FlowSymbol])(using TL): MarkedShape[NonMarkedShape] =
     sh match
     case sh: NonMarkedShape => MarkedShape(sh, EntryMark(boundary, id, NoMarks))
@@ -693,9 +675,7 @@ object InstanceShape:
   * Unlike ActivatedShapeEvent.instances, this map belongs to the value, not its receiver.
   * See doc/new-resolution-type-value-flow.md, "Value views, consumed schemes, and activation events".
   */
-final class ContextualShape(val source: ContextualSource, val instances: TypeSubstitution) extends NonAppTermShape, Extractable.Self:
-  def _1: ContextualSource = source
-  def _2: TypeSubstitution = instances
+final case class ContextualShape(source: ContextualSource, instances: TypeSubstitution) extends NonAppTermShape:
   def describe: Str = source.describe
   def toLoc: Opt[Loc] = source.toLoc
   override def isInstanceOfClass(cls: ClassLikeDef)(using ResolutionContext): Bool = source.isInstanceOfClass(cls)
@@ -703,8 +683,6 @@ final class ContextualShape(val source: ContextualSource, val instances: TypeSub
   override def getMemberThrough(name: Str, receiver: Marks)(using ResolutionContext): MemberLookup =
     source.getMemberThrough(name, receiver).instantiate(instances)
 
-object ContextualShape:
-  def unapply(value: ContextualShape): ContextualShape = value
 
 /** Explicit type application, such as f[Int], has consumed this declaration's
   * scheme before any term argument list need be applied. `arguments` retains the
@@ -714,17 +692,12 @@ object ContextualShape:
   * A ContextualShape alone does not record scheme consumption. Complete annotated
   * CallableTypeShape views record consumption by substituting and clearing `scheme`.
   */
-final class SpecializedShape(val declaration: DefnShape, val arguments: Ls[DeclaredType],
-    val instances: TypeSubstitution) extends NonAppTermShape, Extractable.Self:
-  def _1: DefnShape = declaration
-  def _2: Ls[DeclaredType] = arguments
-  def _3: TypeSubstitution = instances
+final case class SpecializedShape(declaration: DefnShape, arguments: Ls[DeclaredType],
+    instances: TypeSubstitution) extends NonAppTermShape:
   def describe: Str = declaration.describe
   def toLoc: Opt[Loc] = declaration.toLoc
   protected def getMemberImpl(name: Str)(using ResolutionContext): MemberLookup = declaration.getMember(name).instantiate(instances)
 
-object SpecializedShape:
-  def unapply(value: SpecializedShape): SpecializedShape = value
 
 /** An inference-event envelope, not a value interface. `publishActivated` saves
   * the current body's original-binder-to-instance map; `listen` checks agreement
@@ -738,13 +711,9 @@ object SpecializedShape:
   * The semantic key includes the activation so distinct deliveries are not deduplicated.
   * Neither map changes the ordinary mark algebra used for lexical scope crossings.
   */
-final class ActivatedShapeEvent(val value: Shape, val instances: TypeSubstitution) extends ShapeEvent, Extractable.Self:
-  def _1: Shape = value
-  def _2: TypeSubstitution = instances
+final case class ActivatedShapeEvent(value: Shape, instances: TypeSubstitution) extends ShapeEvent:
   require(instances.nonEmpty, "Publish an activation-independent shape without an envelope")
 
-object ActivatedShapeEvent:
-  def unapply(value: ActivatedShapeEvent): ActivatedShapeEvent = value
 
 /** A nominal annotation exposes only declarations, including inherited declarations.
   * In particular, selecting an unannotated field does not inspect its initializer.
@@ -783,9 +752,7 @@ final class DeclaredParams(val params: Ls[Opt[DeclaredType]], val hasRest: Bool,
   * been applied. A separate signature can encode those lists as nested arrows,
   * so the pending wrapper must survive observing the next callable interface.
   */
-final class AsyncResult(val annotation: Annot.Async, val remainingLists: Int) extends ValueKey, Extractable.Self:
-  def _1: Annot.Async = annotation
-  def _2: Int = remainingLists
+final case class AsyncResult(annotation: Annot.Async, remainingLists: Int) extends ValueKey:
   // Every async annotation wraps the result in Promise. Its span is evidence.
   protected val valueHash: Int = ValueKey.hash("AsyncResult".hashCode, remainingLists.hashCode)
   protected def sameValue(other: ValueKey): Bool = other match
@@ -793,8 +760,6 @@ final class AsyncResult(val annotation: Annot.Async, val remainingLists: Int) ex
     case _ => false
   require(remainingLists > 0)
 
-object AsyncResult:
-  def unapply(value: AsyncResult): AsyncResult = value
 
 /** Calls through annotations expose only the declared result. Argument shapes
   * constrain type parameters in the interface; they do not recover its implementation.
@@ -959,10 +924,7 @@ class RefinedShape(val base: TermShape, val refinements: Ls[Str -> Term]) extend
   * them instead of discarding either those fields or the unresolved possibilities.
   */
 final class TupleShape private (val source: Term, val elements: Ls[TupleShape.Element],
-    val instances: TypeSubstitution)(resolver: NewResolver) extends CoreHeadShape, Extractable.Self:
-  def _1: Term = source
-  def _2: Ls[TupleShape.Element] = elements
-  def _3: TypeSubstitution = instances
+    val instances: TypeSubstitution)(resolver: NewResolver) extends CoreHeadShape:
   def arrayParent(using ResolutionContext): NominalInstanceView = resolver.tupleArrayParent(this)
   override def isInstanceOfClass(cls: ClassLikeDef)(using ResolutionContext): Bool = arrayParent.isInstanceOfClass(cls)
   private lazy val sourceSegments: Ls[TupleShape.Segment] = elements.flatMap:
@@ -1110,7 +1072,6 @@ object TupleShape:
       (using state: ResolutionContext): TupleShape =
     state.canonicalTuple((tuple.source, tuple.elements, instances)):
       new TupleShape(tuple.source, tuple.elements, instances)(resolver)
-  def unapply(tuple: TupleShape): TupleShape = tuple
   sealed abstract class Element extends ValueKey
   sealed abstract class Segment extends Element:
     /** The deferred value of one element, independently of the segment's length. */
@@ -1128,91 +1089,58 @@ object TupleShape:
       if instances.isEmpty then this else this match
         case ViewedField(source, previous, marks) => ViewedField(source, instances.withOverrides(previous), marks)
         case _ => ViewedField(this, instances, Nil)
-  final class ViewedField(val source: Fixed, val instances: TypeSubstitution, val marks: Ls[Marks]) extends Fixed, Extractable.Self:
-    def _1: Fixed = source
-    def _2: TypeSubstitution = instances
-    def _3: Ls[Marks] = marks
+  final case class ViewedField(source: Fixed, instances: TypeSubstitution, marks: Ls[Marks]) extends Fixed:
     protected val valueHash: Int = ValueKey.hash("ViewedField".hashCode, source.hashCode, instances.hashCode, marks.hashCode)
     protected def sameValue(other: ValueKey): Bool = other match
       case that: ViewedField => source == that.source && instances == that.instances && marks == that.marks
       case _ => false
-  object ViewedField:
-    def unapply(value: ViewedField): ViewedField = value
-  final class Field(val field: Fld, val marks: Ls[Marks]) extends Fixed, Extractable.Self:
-    def _1: Fld = field
-    def _2: Ls[Marks] = marks
+  final case class Field(field: Fld, marks: Ls[Marks]) extends Fixed:
     protected val valueHash: Int = ValueKey.hash("Field".hashCode, System.identityHashCode(field), marks.hashCode)
     protected def sameValue(other: ValueKey): Bool = other match
       case that: Field => (field eq that.field) && marks == that.marks
       case _ => false
-  object Field:
-    def unapply(value: Field): Field = value
-  final class ValueField(val value: TermShape, val marks: Ls[Marks]) extends Fixed, Extractable.Self:
-    def _1: TermShape = value
-    def _2: Ls[Marks] = marks
+  final case class ValueField(value: TermShape, marks: Ls[Marks]) extends Fixed:
     protected val valueHash: Int = ValueKey.hash("ValueField".hashCode, value.comparison.hashCode, marks.hashCode)
     protected def sameValue(other: ValueKey): Bool = other match
       case that: ValueField => value.comparison == that.value.comparison && marks == that.marks
       case _ => false
-  object ValueField:
-    def unapply(value: ValueField): ValueField = value
-  final class TypedField(val tpe: DeclaredType, val marks: Ls[Marks]) extends Fixed, Extractable.Self:
-    def _1: DeclaredType = tpe
-    def _2: Ls[Marks] = marks
+  final case class TypedField(tpe: DeclaredType, marks: Ls[Marks]) extends Fixed:
     protected val valueHash: Int = ValueKey.hash("TypedField".hashCode, tpe.hashCode, marks.hashCode)
     protected def sameValue(other: ValueKey): Bool = other match
       case that: TypedField => tpe == that.tpe && marks == that.marks
       case _ => false
-  object TypedField:
-    def unapply(value: TypedField): TypedField = value
   // Mutable tuple slots retain their positions, but their initializer cannot
   // supply the shape of later reads (including reads through a spread copy).
-  final class UnknownField(val source: Term, val marks: Ls[Marks]) extends Fixed, Extractable.Self:
-    def _1: Term = source
-    def _2: Ls[Marks] = marks
+  final case class UnknownField(source: Term, marks: Ls[Marks]) extends Fixed:
     protected val valueHash: Int = ValueKey.hash("UnknownField".hashCode, source.hashCode, marks.hashCode)
     protected def sameValue(other: ValueKey): Bool = other match
       case that: UnknownField => source == that.source && marks == that.marks
       case _ => false
-  object UnknownField:
-    def unapply(value: UnknownField): UnknownField = value
   /** An unknown number of elements described by the same deferred field as a
     * fixed position. Its marks and retained substitution must survive tuple
     * views, rest slicing, and spreading, even when its length is unknown.
     * Use this for typed arrays, opaque layouts, and recursive widening, never
     * for a spread whose shape has not arrived yet. */
-  final class Unknown(val source: Term, val element: Fixed) extends Segment, Extractable.Self:
-    def _1: Term = source
-    def _2: Fixed = element
+  final case class Unknown(source: Term, element: Fixed) extends Segment:
     protected val valueHash: Int = ValueKey.hash("Unknown".hashCode, source.hashCode, element.hashCode)
     protected def sameValue(other: ValueKey): Bool = other match
       case that: Unknown => source == that.source && element == that.element
       case _ => false
-  object Unknown:
-    def unapply(value: Unknown): Unknown = value
-  final class Spread(val shape: TupleShape, val marks: Marks) extends Element, Extractable.Self:
-    def _1: TupleShape = shape
-    def _2: Marks = marks
+  final case class Spread(shape: TupleShape, marks: Marks) extends Element:
     protected val valueHash: Int = ValueKey.hash("Spread".hashCode, shape.hashCode, marks.hashCode)
     protected def sameValue(other: ValueKey): Bool = other match
       case that: Spread => shape == that.shape && marks == that.marks
       case _ => false
-  object Spread:
-    def unapply(value: Spread): Spread = value
   def unknown(source: Term)(resolver: NewResolver)(using ResolutionContext): TupleShape =
     TupleShape(source, Unknown(source, UnknownField(source, Nil)) :: Nil)(resolver)
   /** Retain the original candidate as well as the selected residual segments:
     * flattening away the parent would hide recursive producer dependencies from
     * containsSpread, allowing recursion through rest slicing to evade widening. */
-  final class Rest(val shape: TupleShape, val segments: Ls[Segment]) extends Element, Extractable.Self:
-    def _1: TupleShape = shape
-    def _2: Ls[Segment] = segments
+  final case class Rest(shape: TupleShape, segments: Ls[Segment]) extends Element:
     protected val valueHash: Int = ValueKey.hash("Rest".hashCode, shape.hashCode, segments.hashCode)
     protected def sameValue(other: ValueKey): Bool = other match
       case that: Rest => shape == that.shape && segments == that.segments
       case _ => false
-  object Rest:
-    def unapply(value: Rest): Rest = value
   /** A view of `tuple` retaining only `segments`, which must be taken from
     * `tuple.segments`. A view of another view refers to that view's parent:
     * a view contributes no spreads of its own, so containsSpread gives the same
@@ -1232,22 +1160,15 @@ object TupleShape:
   * Store mutability on this lookup result: the mutable copy's initializer no longer
   * determines its value shape, while reads from an immutable r can still use it.
   */
-final class RecordMember(val field: RcdField, val mutable: Bool) extends Extractable.Self:
-  def _1: RcdField = field
-  def _2: Bool = mutable
+final case class RecordMember(field: RcdField, mutable: Bool) extends IdentityEquality
 
-object RecordMember:
-  def unapply(value: RecordMember): RecordMember = value
 
 /** Keep spread candidates and their contexts rather than flattening away their
   * provenance. Lookup follows runtime's last-write-wins order. Unknown entries
   * are barriers: an opaque spread or computed key can overwrite earlier fields.
   */
 final class RecordShape private (val source: Term.Rcd, val elements: Ls[RecordShape.Element],
-    val instances: TypeSubstitution) extends CoreHeadShape, Extractable.Self:
-  def _1: Term.Rcd = source
-  def _2: Ls[RecordShape.Element] = elements
-  def _3: TypeSubstitution = instances
+    val instances: TypeSubstitution) extends CoreHeadShape:
   def describe: Str = "record literal"
   def toLoc: Opt[Loc] = source.toLoc
   protected def getMemberImpl(name: Str)(using ResolutionContext): MemberLookup =
@@ -1294,7 +1215,6 @@ object RecordShape:
   def view(record: RecordShape, instances: TypeSubstitution)(using state: ResolutionContext): RecordShape =
     state.canonicalRecord((record.source, record.elements, instances)):
       new RecordShape(record.source, record.elements, instances)
-  def unapply(record: RecordShape): RecordShape = record
   sealed abstract class Element extends ValueKey
   object Element:
     final class Field(val field: RcdField) extends Element, Extractable[RcdField]:
@@ -1305,15 +1225,11 @@ object RecordShape:
         case _ => false
     object Field:
       def unapply(value: Field): Field = value
-    final class Spread(val shape: RecordShape, val marks: Marks) extends Element, Extractable.Self:
-      def _1: RecordShape = shape
-      def _2: Marks = marks
+    final case class Spread(shape: RecordShape, marks: Marks) extends Element:
       protected val valueHash: Int = ValueKey.hash("Spread".hashCode, shape.hashCode, marks.hashCode)
       protected def sameValue(other: ValueKey): Bool = other match
         case that: Spread => shape == that.shape && marks == that.marks
         case _ => false
-    object Spread:
-      def unapply(value: Spread): Spread = value
     final class Unknown(val shape: UnknownValueShape) extends Element, Extractable[UnknownValueShape]:
       def get: UnknownValueShape = shape
       protected val valueHash: Int = ValueKey.hash("Unknown".hashCode, shape.comparison.hashCode)

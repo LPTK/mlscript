@@ -3,7 +3,9 @@ package utils
 
 /** Explicit equality for immutable construction data. Subclasses name their
   * fields directly: no tuple or Product is allocated merely to hash or compare
-  * them. Mutable inference nodes must use IdentityEquality instead.
+  * them. Final equals/hashCode preserve this policy even for case subclasses,
+  * which can use generated extractors without generated structural equality.
+  * Mutable inference nodes must use IdentityEquality instead.
   */
 abstract class ValueKey:
   protected val valueHash: Int
@@ -34,7 +36,9 @@ object ValueKey:
       sum += mix(keyHash(key), valueHash(value))
     hash(values.size, sum)
 
-/** Inference nodes denote occurrences, even when their immutable fields agree. */
+/** Occurrences remain distinct even when their immutable fields agree.
+  * Final methods also prevent case subclasses from deriving structural equality.
+  */
 trait IdentityEquality:
   final override def equals(other: Any): Boolean = other match
     case that: AnyRef => this eq that

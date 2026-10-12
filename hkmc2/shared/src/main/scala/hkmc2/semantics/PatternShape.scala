@@ -26,18 +26,13 @@ sealed abstract class PatternShape extends ValueKey:
   def showDbg(using DebugPrinter): Str
 
 
-final class CtorPatternShape(
-    val cls: ClassDef | ModuleOrObjectDef,
-    val fs: Ls[BlockMemberSymbol -> Pattern],
-    val src: Pattern.Constructor,
-    val resSym: FlowSymbol,
-    val marks: Ls[Marks],
-) extends PatternShape, Extractable.Self:
-  def _1: ClassDef | ModuleOrObjectDef = cls
-  def _2: Ls[BlockMemberSymbol -> Pattern] = fs
-  def _3: Pattern.Constructor = src
-  def _4: FlowSymbol = resSym
-  def _5: Ls[Marks] = marks
+final case class CtorPatternShape(
+    cls: ClassDef | ModuleOrObjectDef,
+    fs: Ls[BlockMemberSymbol -> Pattern],
+    src: Pattern.Constructor,
+    resSym: FlowSymbol,
+    marks: Ls[Marks],
+) extends PatternShape:
   protected val valueHash: Int = ValueKey.hash(System.identityHashCode(cls), fs.hashCode,
     System.identityHashCode(src), System.identityHashCode(resSym), marks.hashCode)
   protected def sameValue(other: ValueKey): Bool = other match
@@ -45,7 +40,3 @@ final class CtorPatternShape(
       (cls eq that.cls) && fs == that.fs && (src eq that.src) && (resSym eq that.resSym) && marks == that.marks
     case _ => false
   def showDbg(using DebugPrinter): Str = src.showDbg
-
-
-object CtorPatternShape:
-  def unapply(value: CtorPatternShape): CtorPatternShape = value

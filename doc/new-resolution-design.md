@@ -182,9 +182,12 @@ known, unambiguous identities. See `newres/Dynamic.mls`, `Records.mls`,
 
 ## Candidate identity
 
-Graph objects have final identity equality. Shape classes have no generated
-`equals`, `hashCode`, or `copy`: a copied producer must not silently become a new
-inference candidate, and comparing an occurrence must not traverse its syntax.
+Graph objects have final identity equality: comparing an occurrence must not
+traverse its syntax. Multi-field values and views that are pattern matched use
+case classes for generated, optionless extractors. Their final inherited
+`equals` and `hashCode` retain the explicit identity or value policy; case-class
+derivation cannot override it. Canonical producers remain plain classes so a
+generated `copy` cannot bypass their factories and create a new inference candidate.
 `ShapeIdentity.key` uses the producer itself for those identities. Immutable views
 have one comparison adapter pointing to the existing view; it reads its fields
 directly, without a parallel `ShapeKey` hierarchy or a tuple of copied components.

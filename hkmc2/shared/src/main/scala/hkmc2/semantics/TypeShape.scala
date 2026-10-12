@@ -18,33 +18,21 @@ object TypeShape:
       case _ => false
   object Nominal:
     def unapply(value: Nominal): Nominal = value
-  final class Alias(val symbol: TypeAliasSymbol, val rhs: Opt[TypeResolution]) extends TypeShape, Extractable.Self:
-    def _1: TypeAliasSymbol = symbol
-    def _2: Opt[TypeResolution] = rhs
+  final case class Alias(symbol: TypeAliasSymbol, rhs: Opt[TypeResolution]) extends TypeShape:
     protected val valueHash: Int = ValueKey.hash("Alias".hashCode, System.identityHashCode(symbol), rhs.hashCode)
     protected def sameValue(other: ValueKey): Bool = other match
       case that: Alias => symbol == that.symbol && rhs == that.rhs
       case _ => false
-  object Alias:
-    def unapply(value: Alias): Alias = value
-  final class Union(val left: TypeResolution, val right: TypeResolution) extends TypeShape, Extractable.Self:
-    def _1: TypeResolution = left
-    def _2: TypeResolution = right
+  final case class Union(left: TypeResolution, right: TypeResolution) extends TypeShape:
     protected val valueHash: Int = ValueKey.hash("Union".hashCode, System.identityHashCode(left), System.identityHashCode(right))
     protected def sameValue(other: ValueKey): Bool = other match
       case that: Union => left == that.left && right == that.right
       case _ => false
-  object Union:
-    def unapply(value: Union): Union = value
-  final class Intersection(val left: TypeResolution, val right: TypeResolution) extends TypeShape, Extractable.Self:
-    def _1: TypeResolution = left
-    def _2: TypeResolution = right
+  final case class Intersection(left: TypeResolution, right: TypeResolution) extends TypeShape:
     protected val valueHash: Int = ValueKey.hash("Intersection".hashCode, System.identityHashCode(left), System.identityHashCode(right))
     protected def sameValue(other: ValueKey): Bool = other match
       case that: Intersection => left == that.left && right == that.right
       case _ => false
-  object Intersection:
-    def unapply(value: Intersection): Intersection = value
   // Negated interfaces remain opaque, but their dependencies must participate
   // in source validation, including the rejection of unguarded alias cycles.
   final class Negation(val base: TypeResolution) extends TypeShape, Extractable[TypeResolution]:
@@ -74,9 +62,7 @@ object TypeShape:
       case _ => false
   object Tuple:
     def unapply(value: Tuple): Tuple = value
-  final class Record(val source: Term.Rcd, val fields: Ls[(RcdField, TypeResolution)]) extends TypeShape, Extractable.Self:
-    def _1: Term.Rcd = source
-    def _2: Ls[(RcdField, TypeResolution)] = fields
+  final case class Record(source: Term.Rcd, fields: Ls[(RcdField, TypeResolution)]) extends TypeShape:
     protected val valueHash: Int =
       var hash = System.identityHashCode(source)
       var rest = fields
@@ -94,45 +80,26 @@ object TypeShape:
           right = right.tail
         left.isEmpty && right.isEmpty
       case _ => false
-  object Record:
-    def unapply(value: Record): Record = value
-  final class Function(val params: Term, val result: TypeResolution) extends TypeShape, Extractable.Self:
-    def _1: Term = params
-    def _2: TypeResolution = result
+  final case class Function(params: Term, result: TypeResolution) extends TypeShape:
     protected val valueHash: Int = ValueKey.hash("Function".hashCode, System.identityHashCode(params), System.identityHashCode(result))
     protected def sameValue(other: ValueKey): Bool = other match
       case that: Function => params == that.params && result == that.result
       case _ => false
-  object Function:
-    def unapply(value: Function): Function = value
-  final class Polymorphic(val params: Ls[TypeQuantifier], val outer: Opt[VarSymbol], val body: TypeResolution) extends TypeShape, Extractable.Self:
-    def _1: Ls[TypeQuantifier] = params
-    def _2: Opt[VarSymbol] = outer
-    def _3: TypeResolution = body
+  final case class Polymorphic(params: Ls[TypeQuantifier], outer: Opt[VarSymbol], body: TypeResolution) extends TypeShape:
     protected val valueHash: Int = ValueKey.hash("Polymorphic".hashCode, params.hashCode, outer.hashCode, body.hashCode)
     protected def sameValue(other: ValueKey): Bool = other match
       case that: Polymorphic => params == that.params && outer == that.outer && body == that.body
       case _ => false
-  object Polymorphic:
-    def unapply(value: Polymorphic): Polymorphic = value
-  final class Applied(val base: TypeResolution, val args: Ls[TypeResolution]) extends TypeShape, Extractable.Self:
-    def _1: TypeResolution = base
-    def _2: Ls[TypeResolution] = args
+  final case class Applied(base: TypeResolution, args: Ls[TypeResolution]) extends TypeShape:
     protected val valueHash: Int = ValueKey.hash("Applied".hashCode, base.hashCode, args.hashCode)
     protected def sameValue(other: ValueKey): Bool = other match
       case that: Applied => base == that.base && args == that.args
       case _ => false
-  object Applied:
-    def unapply(value: Applied): Applied = value
-  final class Wildcard(val input: Opt[TypeResolution], val output: Opt[TypeResolution]) extends TypeShape, Extractable.Self:
-    def _1: Opt[TypeResolution] = input
-    def _2: Opt[TypeResolution] = output
+  final case class Wildcard(input: Opt[TypeResolution], output: Opt[TypeResolution]) extends TypeShape:
     protected val valueHash: Int = ValueKey.hash("Wildcard".hashCode, input.hashCode, output.hashCode)
     protected def sameValue(other: ValueKey): Bool = other match
       case that: Wildcard => input == that.input && output == that.output
       case _ => false
-  object Wildcard:
-    def unapply(value: Wildcard): Wildcard = value
   // Interpreted arguments retain both polarities in the argument's lexical environment.
   final class Argument(val parts: TypeArgument) extends TypeShape, Extractable[TypeArgument]:
     def get: TypeArgument = parts
@@ -144,15 +111,11 @@ object TypeShape:
     def unapply(value: Argument): Argument = value
   // Substitution selects one part before the type is used in further constraints.
   // The argument stays in its own lexical environment, including delayed parts.
-  final class SelectedArgument(val argument: DeclaredType, val positive: Bool) extends TypeShape, Extractable.Self:
-    def _1: DeclaredType = argument
-    def _2: Bool = positive
+  final case class SelectedArgument(argument: DeclaredType, positive: Bool) extends TypeShape:
     protected val valueHash: Int = ValueKey.hash("SelectedArgument".hashCode, argument.hashCode, positive.hashCode)
     protected def sameValue(other: ValueKey): Bool = other match
       case that: SelectedArgument => argument == that.argument && positive == that.positive
       case _ => false
-  object SelectedArgument:
-    def unapply(value: SelectedArgument): SelectedArgument = value
   // A transported reference retains its context before any deferred component
   // is observed. The resolver flattens these nodes and normalizes their marks.
   final class Contextual(val reference: ContextualType) extends TypeShape, Extractable[ContextualType]:
@@ -165,15 +128,11 @@ object TypeShape:
     def unapply(value: Contextual): Contextual = value
   // The same third-party symbol can have different inference in two exporters.
   // Retain its originating host so importing a result needs no whole-state copy.
-  final class Parameter(val symbol: VarSymbol, val host: Publisher.Data[ShapeEvent]) extends TypeShape, Extractable.Self:
-    def _1: VarSymbol = symbol
-    def _2: Publisher.Data[ShapeEvent] = host
+  final case class Parameter(symbol: VarSymbol, host: Publisher.Data[ShapeEvent]) extends TypeShape:
     protected val valueHash: Int = ValueKey.hash("Parameter".hashCode, System.identityHashCode(symbol), System.identityHashCode(host))
     protected def sameValue(other: ValueKey): Bool = other match
       case that: Parameter => symbol == that.symbol && host == that.host
       case _ => false
-  object Parameter:
-    def unapply(value: Parameter): Parameter = value
   // An omitted argument owns one source inference node. It is not a quantified
   // binder and is never instantiated at a call site; marks distinguish its flows.
   final class Hole(val host: Publisher.Data[TermShape]) extends TypeShape, Extractable[Publisher.Data[TermShape]]:
@@ -198,17 +157,11 @@ object TypeShape:
   // An open type expression reached through a reference. Unlike Contextual,
   // its free binders still receive the observing declaration's substitution.
   // Qualified references retain the receiver's bindings and lexical path too.
-  final class Reference(val base: TypeResolution, val marks: Ls[Marks], val bindings: Map[VarSymbol, DeclaredType], val instances: TypeSubstitution) extends TypeShape, Extractable.Self:
-    def _1: TypeResolution = base
-    def _2: Ls[Marks] = marks
-    def _3: Map[VarSymbol, DeclaredType] = bindings
-    def _4: TypeSubstitution = instances
+  final case class Reference(base: TypeResolution, marks: Ls[Marks], bindings: Map[VarSymbol, DeclaredType], instances: TypeSubstitution) extends TypeShape:
     protected val valueHash: Int = ValueKey.hash("Reference".hashCode, base.hashCode, marks.hashCode, bindings.hashCode, instances.hashCode)
     protected def sameValue(other: ValueKey): Bool = other match
       case that: Reference => base == that.base && marks == that.marks && bindings == that.bindings && instances == that.instances
       case _ => false
-  object Reference:
-    def unapply(value: Reference): Reference = value
   object Unit extends TypeShape:
     protected val valueHash: Int = "Unit".hashCode
     protected def sameValue(other: ValueKey): Bool = other match
