@@ -182,67 +182,26 @@ known, unambiguous identities. See `newres/Dynamic.mls`, `Records.mls`,
 
 ## Candidate identity
 
-Graph objects have final identity equality: comparing an occurrence must not
-traverse its syntax. Multi-field values and views that are pattern matched use
-case classes for generated, optionless extractors. Their final inherited
-`equals` and `hashCode` retain the explicit identity or value policy; case-class
-derivation cannot override it. Canonical producers remain plain classes so a
-generated `copy` cannot bypass their factories and create a new inference candidate.
-`ShapeIdentity.key` uses the producer itself for those identities. Immutable views
-have one comparison adapter pointing to the existing view; it reads its fields
-directly, without a parallel `ShapeKey` hierarchy or a tuple of copied components.
-The consuming unit interns those adapters so repeated publication and cache
-lookups use the same reference. An adapter's cached hash remains portable across
-units, because inherited caches can contain an equivalent exporter's adapter.
+Graph producers compare by identity. Tuples, records, and declared-type instances
+must be built through their canonical factories because their identities anchor
+inference hosts. Immutable views use `ShapeIdentity.key` to compare their source
+and effective substitution without including diagnostic witnesses. Member lookup
+uses the observation itself so that errors retain its diagnostic evidence.
 
-A key contains immutable values and links to graph nodes, never the current
-contents of a publisher or an inferred bound. `ValueKey` implements explicit
-field comparisons and reads a hash computed during construction. The hash helpers
-combine integer field hashes without allocating a tuple or varargs array. Graph
-references use identity hashing; immutable components use their cached hashes.
-Diagnostic witnesses and formula observation order do not participate in equality.
+`ValueKey` caches hashes of immutable fields; keys must never include live
+publisher contents or inferred bounds. `DeclaredType` interns semantic references
+in the consuming unit while retaining each observation's witnesses. Importing
+normalizes references without changing the exporter, and cross-unit equality
+visits each shared reference pair once to avoid exponential traversal of type DAGs.
 
-`DeclaredType` separates its observation's witnesses (including witnesses on bound
-arguments) from a canonical semantic reference. The consuming unit interns flat
-binding data and then references built from a resolution, those bindings, an
-instance substitution, and a polarity. Within that unit, comparing declared types
-compares their reference identities. Imported references are normalized into the
-consumer once, without changing their defining unit. Comparing types directly
-across units uses a worklist that visits each pair of shared references once;
-independent constructions of the same DAG cannot trigger exponential equality.
+`instantiateShape` projects substitutions onto the value's binder support before
+constructing a view. Captured bindings take precedence over incoming bindings;
+activation environments remain separate. See
+[binder support](new-resolution-type-value-flow.md#shared-bodies-and-contextual-constraints).
 
-`TypeSubstitution` retains an immutable flat map and its cached hash. Instantiation,
-activation, and type-reference construction intern it in the consuming unit.
-Composition and projection remain pure: an importer can read a cached tuple's
-layout without that read extending an exporter's mutable interning tables.
-
-Tuples and records retain canonical factories: their identities anchor synthesized
-inference hosts, notably the Array element type of a tuple. Instances of a
-`DeclaredType` also retain one canonical origin-free reference. These factories
-live in the consuming root and adopt inherited producers from the graph owning
-their source. Their private constructors cannot be bypassed with a generated copy.
-Instance diagnostic wrappers share the canonical reference's key but are not
-interned themselves; a witness remains attached to its observation.
-
-Contextual, nominal, callable, and record-interface views retain their own
-diagnostic witnesses while sharing canonical comparison data. `instantiateShape` projects an
-incoming substitution onto the value's binder support before constructing a view,
-and preserves the original wrapper on a no-op. Removing a cache never substitutes
-for this projection: irrelevant bindings would otherwise still distinguish keys.
-See [instance types](new-resolution-type-value-flow.md#shared-bodies-and-contextual-constraints).
-Member lookup remains keyed by the shape object because its result carries that
-observation's diagnostic evidence. Resolver tables are ordinary `val`s allocated
-once per compilation unit. Each table stores entries by context, allocating a
-namespace only when it receives an entry. Reading an inherited entry copies any
-mutable bookkeeping value before the consumer can extend it; immutable graph
-identities remain shared. Contexts themselves contain no mutable collections.
-
-`Candidates` receives its equality policy from the publisher's payload type. Its
-hash index provides efficient deduplication and its append-only buffer preserves
-publication order during reentrant callbacks. Normal iteration and `snapshot`
-visit the candidates present when iteration begins; `foreachGrowing` explicitly
-also visits appended candidates. Subscription replay uses a snapshot because
-new publications already reach the listener through notification.
+`Candidates` deduplicates with the payload type's key and preserves publication
+order. Ordinary iteration and subscription replay use a snapshot; `foreachGrowing`
+also visits candidates appended during callbacks.
 
 ## Recursive getter results
 

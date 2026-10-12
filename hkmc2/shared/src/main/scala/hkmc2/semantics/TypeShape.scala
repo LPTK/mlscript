@@ -10,14 +10,11 @@ import codegen.Erasure
 sealed abstract class TypeShape extends ValueKey
 
 object TypeShape:
-  final class Nominal(val defn: ClassLikeDef) extends TypeShape, Extractable[ClassLikeDef]:
-    def get: ClassLikeDef = defn
+  final case class Nominal(defn: ClassLikeDef) extends TypeShape:
     protected val valueHash: Int = ValueKey.hash("Nominal".hashCode, System.identityHashCode(defn))
     protected def sameValue(other: ValueKey): Bool = other match
       case that: Nominal => (defn eq that.defn)
       case _ => false
-  object Nominal:
-    def unapply(value: Nominal): Nominal = value
   final case class Alias(symbol: TypeAliasSymbol, rhs: Opt[TypeResolution]) extends TypeShape:
     protected val valueHash: Int = ValueKey.hash("Alias".hashCode, System.identityHashCode(symbol), rhs.hashCode)
     protected def sameValue(other: ValueKey): Bool = other match
@@ -35,33 +32,24 @@ object TypeShape:
       case _ => false
   // Negated interfaces remain opaque, but their dependencies must participate
   // in source validation, including the rejection of unguarded alias cycles.
-  final class Negation(val base: TypeResolution) extends TypeShape, Extractable[TypeResolution]:
-    def get: TypeResolution = base
+  final case class Negation(base: TypeResolution) extends TypeShape:
     protected val valueHash: Int = ValueKey.hash("Negation".hashCode, System.identityHashCode(base))
     protected def sameValue(other: ValueKey): Bool = other match
       case that: Negation => base == that.base
       case _ => false
-  object Negation:
-    def unapply(value: Negation): Negation = value
   // Substituted unions/intersections retain whole interpreted endpoints. Keeping
   // their lattice normal form prevents repeated Boolean substitutions from
   // nesting environments, without expanding bounds or changing endpoint marks.
-  final class Combined(val formula: TypeFormula[DeclaredType]) extends TypeShape, Extractable[TypeFormula[DeclaredType]]:
-    def get: TypeFormula[DeclaredType] = formula
+  final case class Combined(formula: TypeFormula[DeclaredType]) extends TypeShape:
     protected val valueHash: Int = ValueKey.hash("Combined".hashCode, formula.hashCode)
     protected def sameValue(other: ValueKey): Bool = other match
       case that: Combined => formula == that.formula
       case _ => false
-  object Combined:
-    def unapply(value: Combined): Combined = value
-  final class Tuple(val fields: Ls[TypeResolution]) extends TypeShape, Extractable[Ls[TypeResolution]]:
-    def get: Ls[TypeResolution] = fields
+  final case class Tuple(fields: Ls[TypeResolution]) extends TypeShape:
     protected val valueHash: Int = ValueKey.hash("Tuple".hashCode, fields.hashCode)
     protected def sameValue(other: ValueKey): Bool = other match
       case that: Tuple => fields == that.fields
       case _ => false
-  object Tuple:
-    def unapply(value: Tuple): Tuple = value
   final case class Record(source: Term.Rcd, fields: Ls[(RcdField, TypeResolution)]) extends TypeShape:
     protected val valueHash: Int =
       var hash = System.identityHashCode(source)
@@ -101,14 +89,11 @@ object TypeShape:
       case that: Wildcard => input == that.input && output == that.output
       case _ => false
   // Interpreted arguments retain both polarities in the argument's lexical environment.
-  final class Argument(val parts: TypeArgument) extends TypeShape, Extractable[TypeArgument]:
-    def get: TypeArgument = parts
+  final case class Argument(parts: TypeArgument) extends TypeShape:
     protected val valueHash: Int = ValueKey.hash("Argument".hashCode, parts.hashCode)
     protected def sameValue(other: ValueKey): Bool = other match
       case that: Argument => parts == that.parts
       case _ => false
-  object Argument:
-    def unapply(value: Argument): Argument = value
   // Substitution selects one part before the type is used in further constraints.
   // The argument stays in its own lexical environment, including delayed parts.
   final case class SelectedArgument(argument: DeclaredType, positive: Bool) extends TypeShape:
@@ -118,14 +103,11 @@ object TypeShape:
       case _ => false
   // A transported reference retains its context before any deferred component
   // is observed. The resolver flattens these nodes and normalizes their marks.
-  final class Contextual(val reference: ContextualType) extends TypeShape, Extractable[ContextualType]:
-    def get: ContextualType = reference
+  final case class Contextual(reference: ContextualType) extends TypeShape:
     protected val valueHash: Int = ValueKey.hash("Contextual".hashCode, reference.hashCode)
     protected def sameValue(other: ValueKey): Bool = other match
       case that: Contextual => reference == that.reference
       case _ => false
-  object Contextual:
-    def unapply(value: Contextual): Contextual = value
   // The same third-party symbol can have different inference in two exporters.
   // Retain its originating host so importing a result needs no whole-state copy.
   final case class Parameter(symbol: VarSymbol, host: Publisher.Data[ShapeEvent]) extends TypeShape:
@@ -135,25 +117,19 @@ object TypeShape:
       case _ => false
   // An omitted argument owns one source inference node. It is not a quantified
   // binder and is never instantiated at a call site; marks distinguish its flows.
-  final class Hole(val host: Publisher.Data[TermShape]) extends TypeShape, Extractable[Publisher.Data[TermShape]]:
-    def get: Publisher.Data[TermShape] = host
+  final case class Hole(host: Publisher.Data[TermShape]) extends TypeShape:
     protected val valueHash: Int = ValueKey.hash("Hole".hashCode, System.identityHashCode(host))
     protected def sameValue(other: ValueKey): Bool = other match
       case that: Hole => host == that.host
       case _ => false
-  object Hole:
-    def unapply(value: Hole): Hole = value
   // Synthesized generic arguments retain inferred value shapes, for example
   // the element union of the Array supertype of a tuple. Singleton annotations
   // also retain their literal shape; no implementation is inspected.
-  final class Inferred(val value: TermShape) extends TypeShape, Extractable[TermShape]:
-    def get: TermShape = value
+  final case class Inferred(value: TermShape) extends TypeShape:
     protected val valueHash: Int = ValueKey.hash("Inferred".hashCode, value.comparison.hashCode)
     protected def sameValue(other: ValueKey): Bool = other match
       case that: Inferred => value.comparison == that.value.comparison
       case _ => false
-  object Inferred:
-    def unapply(value: Inferred): Inferred = value
   // An open type expression reached through a reference. Unlike Contextual,
   // its free binders still receive the observing declaration's substitution.
   // Qualified references retain the receiver's bindings and lexical path too.

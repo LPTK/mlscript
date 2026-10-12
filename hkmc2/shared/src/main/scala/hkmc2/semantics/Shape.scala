@@ -634,8 +634,7 @@ final class RecordTypeShape(val fields: Map[Str, DeclaredType])(
   * candidates would lose negative uses of generic arguments and compound types.
   * Operations obtain concrete member/call views through listenInstanceViews.
   */
-final class InstanceShape private (val tpe: DeclaredType, canonical: Opt[InstanceShape]) extends CoreHeadShape, Extractable[DeclaredType]:
-  def get: DeclaredType = tpe
+final class InstanceShape private (val tpe: DeclaredType, canonical: Opt[InstanceShape]) extends CoreHeadShape:
   /** Diagnostic views share the origin-free reference's inference identity. */
   private[semantics] def candidateIdentity: InstanceShape = canonical.getOrElse(this)
   def describe: Str = "value with a declared type"
@@ -663,7 +662,6 @@ object InstanceShape:
     val canonical = state.canonicalInstance(semanticType)(new InstanceShape(semanticType, N))
     if projected.origin.isEmpty then canonical
     else new InstanceShape(projected, S(canonical))
-  def unapply(instance: InstanceShape): InstanceShape = instance
 
 /** A deferred value view: interpret references in the shared `source` using
   * `instances`, a flat map from original binders to canonical parameter instances.
@@ -682,7 +680,6 @@ final case class ContextualShape(source: ContextualSource, instances: TypeSubsti
   protected def getMemberImpl(name: Str)(using ResolutionContext): MemberLookup = source.getMember(name).instantiate(instances)
   override def getMemberThrough(name: Str, receiver: Marks)(using ResolutionContext): MemberLookup =
     source.getMemberThrough(name, receiver).instantiate(instances)
-
 
 /** Explicit type application, such as f[Int], has consumed this declaration's
   * scheme before any term argument list need be applied. `arguments` retains the
@@ -713,7 +710,6 @@ final case class SpecializedShape(declaration: DefnShape, arguments: Ls[Declared
   */
 final case class ActivatedShapeEvent(value: Shape, instances: TypeSubstitution) extends ShapeEvent:
   require(instances.nonEmpty, "Publish an activation-independent shape without an envelope")
-
 
 /** A nominal annotation exposes only declarations, including inherited declarations.
   * In particular, selecting an unannotated field does not inspect its initializer.
@@ -760,7 +756,6 @@ final case class AsyncResult(annotation: Annot.Async, remainingLists: Int) exten
     case _ => false
   require(remainingLists > 0)
 
-
 /** Calls through annotations expose only the declared result. Argument shapes
   * constrain type parameters in the interface; they do not recover its implementation.
   * `scheme` retains binders that are still available for instantiation; capture
@@ -769,16 +764,9 @@ final case class AsyncResult(annotation: Annot.Async, remainingLists: Int) exten
   * remaining curried lists reuse the chosen instances. This is the annotated
   * counterpart of SpecializedShape, not an inference-event activation.
   */
-final class CallableTypeShape(val source: Term, val paramLists: NELs[DeclaredParams],
-    val result: Opt[DeclaredType], val scheme: Opt[TypeScheme], val supplied: Opt[Ls[DeclaredType]],
-    val declaration: Opt[TermDefinition], val asyncResult: Opt[AsyncResult]) extends CoreHeadShape:
-  def withScheme(scheme: Opt[TypeScheme]): CallableTypeShape =
-    CallableTypeShape(source, paramLists, result, scheme, supplied, declaration, asyncResult)
-  def withArguments(arguments: Ls[DeclaredType]): CallableTypeShape =
-    CallableTypeShape(source, paramLists, result, scheme, S(arguments), declaration, asyncResult)
-  def withResultLists(lists: NELs[DeclaredParams], pending: Opt[AsyncResult]): CallableTypeShape =
-    CallableTypeShape(source, lists, result, scheme, supplied, declaration, pending)
-
+final case class CallableTypeShape(source: Term, paramLists: NELs[DeclaredParams],
+    result: Opt[DeclaredType], scheme: Opt[TypeScheme], supplied: Opt[Ls[DeclaredType]],
+    declaration: Opt[TermDefinition], asyncResult: Opt[AsyncResult]) extends CoreHeadShape:
   def tparams: Ls[DeclaredTypeParameter] = scheme.toList.flatMap(_.parameters)
   def describe: Str = declaration.fold("function with a declared signature")(d => s"function '${d.bsym.nme}'")
   def toLoc: Opt[Loc] = declaration.fold(source.toLoc)(_.toLoc)
@@ -1217,35 +1205,26 @@ object RecordShape:
       new RecordShape(record.source, record.elements, instances)
   sealed abstract class Element extends ValueKey
   object Element:
-    final class Field(val field: RcdField) extends Element, Extractable[RcdField]:
-      def get: RcdField = field
+    final case class Field(field: RcdField) extends Element:
       protected val valueHash: Int = ValueKey.hash("Field".hashCode, System.identityHashCode(field))
       protected def sameValue(other: ValueKey): Bool = other match
         case that: Field => (field eq that.field)
         case _ => false
-    object Field:
-      def unapply(value: Field): Field = value
     final case class Spread(shape: RecordShape, marks: Marks) extends Element:
       protected val valueHash: Int = ValueKey.hash("Spread".hashCode, shape.hashCode, marks.hashCode)
       protected def sameValue(other: ValueKey): Bool = other match
         case that: Spread => shape == that.shape && marks == that.marks
         case _ => false
-    final class Unknown(val shape: UnknownValueShape) extends Element, Extractable[UnknownValueShape]:
-      def get: UnknownValueShape = shape
+    final case class Unknown(shape: UnknownValueShape) extends Element:
       protected val valueHash: Int = ValueKey.hash("Unknown".hashCode, shape.comparison.hashCode)
       protected def sameValue(other: ValueKey): Bool = other match
         case that: Unknown => shape.comparison == that.shape.comparison
         case _ => false
-    object Unknown:
-      def unapply(value: Unknown): Unknown = value
-    final class Dynamic(val marks: Ls[Marks]) extends Element, Extractable[Ls[Marks]]:
-      def get: Ls[Marks] = marks
+    final case class Dynamic(marks: Ls[Marks]) extends Element:
       protected val valueHash: Int = ValueKey.hash("Dynamic".hashCode, marks.hashCode)
       protected def sameValue(other: ValueKey): Bool = other match
         case that: Dynamic => marks == that.marks
         case _ => false
-    object Dynamic:
-      def unapply(value: Dynamic): Dynamic = value
   export Element.*
 
 

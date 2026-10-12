@@ -215,45 +215,22 @@ to instance-symbol substitutions through deferred tuples, records, callbacks, an
 closures. They do not copy expanded argument candidates into a new body graph.
 Shape substitution is memoized so repeated observations reuse aggregate identities.
 
-A view retains only the part of an ambient substitution that the value can
-observe, its *binder support* (`NewResolver.shapeSupport`): the explicit type
-binders in scope where a lambda, tuple, record, application, or construction is
-written (recorded by the elaborator before any listener can build its shape), the
-own binders of an applied class or partially applied function, the binders
-enclosing a definition, and the free binders of a declared type together with
-those of the types bound to its formals. This is a conservative lexical analysis,
-never an inspection of inference candidates or bounds. Bindings the value already
-captured take precedence over ambient ones, and an application that changes
-nothing returns the existing shape. Views are canonical in their source and
-effective substitution, not in the sequence of substitutions that produced them.
-A value produced outside every generic scope therefore keeps one identity across
-all the generic callers it passes through; otherwise each combination of unrelated
-caller bindings became a distinct candidate, multiplying downstream work along
-branching call paths (`SubstitutionGrowthTest` measures this).
+`NewResolver.shapeSupport` determines which ambient type binders a value can
+observe. The elaborator records lexical binders before installing listeners;
+constructed instances and partial applications also need their declaration's
+own binders. Synthesized aggregates include the support of their contents.
 
-The bounds published to a binder instance are templates written at its
-instantiation site, and so are the elements of an inferred host and the bounds
-of an omitted-argument hole. Reading them through a substitution reads the
-binders in scope at that site, so each `TypeParameterInstance` records its
-site's binders, template hosts record their scope
-(`NewResolverState.templateBinders`), and a set of dependencies is closed over
-the sites of the instances selected for them (`NewResolver.closure`). A direct
-reference to an instance contributes that instance's site without any ambient
-lookup. Two questions are kept apart: which of its retained bindings a view must
-keep is the closure of its dependencies over the substitution it retains
-(`projectType`); which further ambient bindings it needs continues that closure
-through the ambient substitution and drops what is retained (`project`). A
-nested value contributes the latter (`shapeSupport`, `typeSupport`), so the
-site of an instance saved in a captured substitution, a tuple view's field, a
-bound type, or a spread is required by every enclosing value. Whether a generic
-type reference is bare or the base of an application, and with how many
-arguments, is recorded when the application is interpreted
-(`NewResolverState.appliedTypeArguments`), so a cached dependency summary is
-intrinsic to its node rather than to the traversal that first reached it.
-Activation environments (`withInstances`, `ActivatedShapeEvent`, listener
-compatibility) are not projected: they decide which activation's events a
-listener accepts, and can require bindings that the delivered value itself does
-not use.
+Instance bounds and inferred hosts contain templates written at their source
+sites. Support is closed over those sites, including instances retained by
+nested values. `projectType` removes irrelevant retained bindings; `project`
+selects additional ambient bindings, preserving existing captures. An unknown
+scope retains every binding. The analysis follows the finite source graph,
+never live inference bounds. Applied type-argument counts are recorded when the
+application is interpreted so dependency summaries do not depend on observation
+order.
+
+Activation environments are not projected: they select which body's events a
+listener accepts, independently of what the delivered value can observe.
 
 ### Value views, consumed schemes, and activation events
 
@@ -353,8 +330,8 @@ has a next argument list, even when that list itself accepts zero arguments.
 Consuming the last list exposes the result instead of constructing an empty
 callable view. Mapping parameter types preserves nonemptiness with `ne_map`.
 
-Value captures and body activations use the opaque `TypeSubstitution`, whose
-underlying immutable map remains available for reads. Its constructor derives
+Value captures and body activations use `TypeSubstitution`, which wraps an
+immutable map with a cached hash. Its constructor derives
 each key from the instance's original binder. `withOverrides` combines two valid
 substitutions with the right operand taking precedence, `without` removes
 shadowed binders, and `restrictTo` retains only the binders in a view's support.

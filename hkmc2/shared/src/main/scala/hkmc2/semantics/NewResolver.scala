@@ -322,7 +322,7 @@ class NewResolver:
                 // This immutable declaration metadata belongs to the original
                 // graph, even when the type was reached through an imported AST.
                 if !unguardedOnly then
-                  direct = union(direct, S(nominalLexicalBinders(defn)))
+                  direct = union(direct, S(lexicalBinders(defn.sym)))
                 if throughReferences && omitsArguments(res, defn.tparams.length) then direct = union(direct, useScope(res))
               case TypeShape.Alias(symbol, rhs) =>
                 val bound = symbol.defn.get.tparams.map(_.sym).toSet
@@ -1007,7 +1007,7 @@ class NewResolver:
           if projected.isEmpty then nominal else rctx.shapeView(projected):
             // Own arguments are already bound; only enclosing binders acquire
             // new entries. Other dependencies instantiate the retained arguments.
-            val lexical = nominalLexicalBinders(nominal.defn)
+            val lexical = lexicalBinders(nominal.defn.sym)
             val bindings = projected.iterator.filter((parameter, _) => lexical(parameter)).map((parameter, instance) => parameter -> instanceType(instance)).toMap ++
               nominal.bindings.map((parameter, bound) => parameter -> instantiateType(bound, projected))
             NominalInstanceView(nominal.defn, bindings, nominal.parent.map(instantiateShape(_, projected)))(nominal.annotation, nominal.provenance)(this)
@@ -1360,7 +1360,7 @@ class NewResolver:
               case TypeShape.Hole(host) => host.subscribe: value =>
                 listenInstanceViews(instantiateShape(value, current.instances), mergeIntersections)(publish)
               case TypeShape.Nominal(defn) =>
-                val parameters = nominalLexicalBinders(defn) ++ defn.tparams.map(_.sym)
+                val parameters = lexicalBinders(defn.sym) ++ defn.tparams.map(_.sym)
                 val bindings = bind(defn.tparams, current.positive).filter((parameter, _) => parameters(parameter))
                 defn.ext match
                   case N => publish(NominalInstanceView(defn, bindings, implicitParent(defn))(S(source), ShapeProvenance.empty)(this))
@@ -1434,7 +1434,7 @@ class NewResolver:
                     param.upper.map(declaredType(_, lexical)))
                 follow(declaredType(body, lexical), args, aliases, source, shape => shape match
                   case Marked(callable: CallableTypeShape, marks) =>
-                    callable.withScheme(S(TypeScheme(current.resolution, binders ::: callable.tparams))).exit(marks) match
+                    callable.copy(scheme = S(TypeScheme(current.resolution, binders ::: callable.tparams))).exit(marks) match
                       case value: TermShape => publish(value)
                       case NoShape => ()
                   case _ => publish(shape))
@@ -1612,10 +1612,10 @@ class NewResolver:
       case pending =>
         val remaining = pending.map(info => AsyncResult(info.annotation, info.remainingLists - 1))
         callable.paramLists.tail match
-          case tail: NELs[DeclaredParams] => listener(callable.withResultLists(tail, remaining))
+          case tail: NELs[DeclaredParams] => listener(callable.copy(paramLists = tail, asyncResult = remaining))
           case Nil => callable.result match
             case S(tpe) if remaining.nonEmpty => listenTypeViews(tpe):
-              case Marked(next: CallableTypeShape, marks) => listener(Marked(next.withResultLists(next.paramLists, remaining), marks))
+              case Marked(next: CallableTypeShape, marks) => listener(Marked(next.copy(asyncResult = remaining), marks))
               case other => listener(other)
             case S(tpe) => listenTypeInstances(tpe)(listener)
             case N => listener(UnknownValueShape.at(callable.source))
@@ -2217,10 +2217,6 @@ class NewResolver:
                 // applying these marks to its members yields no candidates.
                 case NoShape => parentView.getMember(name).withMarks(inner :: receiver :: Nil)
             inherited.withAnnotation(view.annotation)
-
-  private def nominalLexicalBinders(defn: ClassLikeDef): Set[VarSymbol] =
-    defn.sym.getState.newResolverState.lexicalTypeBinders.get(defn.sym)(using defn.sym.getState.newResolverState.context).getOrElse(
-      lastWords(s"Nominal declaration ${defn.sym.nme} must record its enclosing type binders"))
 
   /** Supplied class arguments are outside the instance scope. Both member and
     * parent annotations refer to those parameters from inside that scope.
@@ -3891,7 +3887,7 @@ class NewResolver:
           case (callable: CallableTypeShape, marks) =>
             checkArity(callable, callable.tparams.length)
             val supplied = args.map(arg => declaredType(typeResolution(arg), Map.empty).instantiate(rctx.instances))
-            instantiateCallable(callable.withArguments(supplied),
+            instantiateCallable(callable.copy(supplied = S(supplied)),
               rctx.typeApplicationSite(application), S(lexicalBinders(application)), marks).exit(marks) match
               case value: TermShape => receive(value)
               case NoShape => ()
