@@ -296,8 +296,11 @@ class NewResolver:
               case TypeShape.Nominal(defn) =>
                 // This immutable declaration metadata belongs to the original
                 // graph, even when the type was reached through an imported AST.
+                // An unrecorded declaration (reported by lexicalBinders) has an
+                // unknown scope. Binding dependencies must stay finite: they then
+                // omit the enclosing binders, which may drop a needed binding.
                 if !unguardedOnly then
-                  direct = union(direct, S(lexicalBinders(defn.sym)))
+                  direct = union(direct, lexicalBinders(defn.sym).orElse(if throughReferences then N else S(Set.empty)))
                 if throughReferences && omitsArguments(res, defn.tparams.length) then direct = union(direct, useScope(res))
               case TypeShape.Alias(symbol, rhs) =>
                 val bound = symbol.defn.get.tparams.map(_.sym).toSet
@@ -983,7 +986,7 @@ class NewResolver:
             // Own arguments are already bound; only enclosing binders acquire
             // new entries. Other dependencies instantiate the retained arguments.
             val lexical = lexicalBinders(nominal.defn.sym)
-            val bindings = projected.iterator.filter((parameter, _) => lexical(parameter)).map((parameter, instance) => parameter -> instanceType(instance)).toMap ++
+            val bindings = projected.iterator.filter((parameter, _) => lexical.forall(_(parameter))).map((parameter, instance) => parameter -> instanceType(instance)).toMap ++
               nominal.bindings.map((parameter, bound) => parameter -> instantiateType(bound, projected))
             NominalInstanceView(nominal.defn, bindings, nominal.parent.map(instantiateShape(_, projected)))(nominal.annotation, nominal.provenance)(this)
         case record: RecordTypeShape =>
@@ -1131,16 +1134,16 @@ class NewResolver:
     case _: (UnknownValueShape | DynShape | OpaqueTypeShape | ErrShape) => S(Set.empty)
     case rigid: RigidTypeShape => S(Set(rigid.parameter))
     case intro: IntroShape => intro.trm match
-      case lam: Lam => S(lexicalBinders(lam))
+      case lam: Lam => lexicalBinders(lam)
       case _ => S(Set.empty)
     case definition: DefnShape =>
-      union(S(lexicalBinders(definitionSymbol(definition.defn))), definition.ext.fold(S(Set.empty))(shapeSupport))
+      union(lexicalBinders(definitionSymbol(definition.defn)), definition.ext.fold(S(Set.empty))(shapeSupport))
     case base: BaseShape =>
-      union(S(lexicalBinders(base.defn.sym) ++ ownBinders(base.defn)), base.ext.fold(S(Set.empty))(shapeSupport))
+      union(lexicalBinders(base.defn.sym).map(_ ++ ownBinders(base.defn)), base.ext.fold(S(Set.empty))(shapeSupport))
     case application: AppShape =>
-      union(S(lexicalBinders(application.src) ++ headBinders(application)), shapeSupport(application.receiver))
+      union(lexicalBinders(application.src).map(_ ++ headBinders(application)), shapeSupport(application.receiver))
     case construction: NewShape =>
-      union(S(lexicalBinders(construction.src) ++ ownBinders(construction.cls.defn.get)), shapeSupport(construction.receiver))
+      union(lexicalBinders(construction.src).map(_ ++ ownBinders(construction.cls.defn.get)), shapeSupport(construction.receiver))
     case tuple: TupleShape => tupleDependencies(tuple)
     case record: RecordShape => recordDependencies(record)
     case specialized: SpecializedShape =>
@@ -1149,7 +1152,7 @@ class NewResolver:
     case nominal: NominalInstanceView =>
       // Member signatures may use the binders enclosing the class; the class's
       // own formals are always bound by the view's bindings.
-      val declared = nominal.bindings.values.foldLeft[Binders](S(lexicalBinders(nominal.defn.sym)))((acc, bound) => union(acc, typeSupport(bound)))
+      val declared = nominal.bindings.values.foldLeft[Binders](lexicalBinders(nominal.defn.sym))((acc, bound) => union(acc, typeSupport(bound)))
       union(declared, nominal.parent.fold(S(Set.empty))(shapeSupport))
     case record: RecordTypeShape =>
       record.fields.values.foldLeft[Binders](S(Set.empty))((acc, field) => union(acc, typeSupport(field)))
@@ -1177,7 +1180,7 @@ class NewResolver:
   private def tupleDependencies(tuple: TupleShape)(using ResolutionContext): Binders =
     // Rest views and spreads retain their fields' original tuple sources.
     def segmentSupport(segment: TupleShape.Segment): Binders = segment match
-      case TupleShape.Field(_, _) => S(lexicalBinders(tuple.source))
+      case TupleShape.Field(_, _) => lexicalBinders(tuple.source)
       case TupleShape.ValueField(value, _) => shapeSupport(value)
       case TupleShape.TypedField(tpe, _) => typeSupport(tpe)
       case TupleShape.UnknownField(_, _) => S(Set.empty)
@@ -1192,7 +1195,7 @@ class NewResolver:
   private def recordDependencies(record: RecordShape)(using ResolutionContext): Binders =
     record.elements.foldLeft[Binders](S(Set.empty)): (acc, element) =>
       union(acc, element match
-        case RecordShape.Field(_) => S(lexicalBinders(record.source))
+        case RecordShape.Field(_) => lexicalBinders(record.source)
         case RecordShape.Spread(shape, _) => shapeSupport(shape)
         case _ => S(Set.empty))
 
@@ -1224,19 +1227,29 @@ class NewResolver:
         val relevant = tpe.instances.restrictTo(support)
         if relevant.size == tpe.instances.size then tpe else tpe.withInstances(relevant)
 
-  private def lexicalBinders(term: Term)(using ResolutionContext): Set[VarSymbol] =
-    rctx.lexicalBindersOf(term).getOrElse(
-      lastWords(s"${term.describe.capitalize} must record its enclosing type binders before it is observed"))
+  /** The explicit type binders in scope where `term` is written. The elaborator
+    * records them for every term whose scope resolution reads, before it can
+    * observe the term (see Elaborator.withTypeBinders), so a missing record is a
+    * compiler bug. The scope is then unknown (N), which retains every binding.
+    */
+  private def lexicalBinders(term: Term)(using ResolutionContext): Binders =
+    val binders = rctx.lexicalBindersOf(term)
+    softAssert(binders.nonEmpty, s"${term.describe.capitalize} must record its enclosing type binders before it is observed")
+    binders
 
-  /** A class and its constructor share one definition site (see ResolutionBoundary). */
-  private def lexicalBinders(symbol: AnyDefinitionSymbol): Set[VarSymbol] =
+  /** The type binders enclosing a definition, recorded by the elaborator before
+    * its members (see Elaborator.recordDefinitionScope); N if missing, as above.
+    * A class and its constructor share one definition site (see ResolutionBoundary).
+    */
+  private def lexicalBinders(symbol: AnyDefinitionSymbol): Binders =
     val origin = symbol match
       case ctor: ClassCtorSymbol => ctor.associatedCls
       case symbol => symbol
     // This immutable declaration metadata belongs to the original graph, even
     // when the definition was reached through an imported reference.
-    origin.getState.newResolverState.lexicalTypeBinders.get(origin)(using origin.getState.newResolverState.context).getOrElse(
-      lastWords(s"Definition ${origin.nme} must record its enclosing type binders"))
+    val binders = origin.getState.newResolverState.lexicalTypeBinders.get(origin)(using origin.getState.newResolverState.context)
+    softAssert(binders.nonEmpty, s"Definition ${origin.nme} must record its enclosing type binders")
+    binders
 
   /** Decode outer views only. ContextualSource excludes views and marked shapes;
     * SpecializedShape contains a DefnShape; AppShape receivers are CoreTermShapes.
@@ -1335,8 +1348,9 @@ class NewResolver:
               case TypeShape.Hole(host) => host.subscribe: value =>
                 listenInstanceViews(instantiateShape(value, current.instances), mergeIntersections)(publish)
               case TypeShape.Nominal(defn) =>
-                val parameters = lexicalBinders(defn.sym) ++ defn.tparams.map(_.sym)
-                val bindings = bind(defn.tparams, current.positive).filter((parameter, _) => parameters(parameter))
+                val enclosing = lexicalBinders(defn.sym)
+                val own = defn.tparams.map(_.sym).toSet
+                val bindings = bind(defn.tparams, current.positive).filter((parameter, _) => own(parameter) || enclosing.forall(_(parameter)))
                 defn.ext match
                   case N => publish(NominalInstanceView(defn, bindings, implicitParent(defn))(S(source), ShapeProvenance.empty)(this))
                   case S(parent) =>
@@ -1474,10 +1488,10 @@ class NewResolver:
     * lexical marks until its consumer leaves the definition scope. In particular,
     * observing an async result must not mix payloads from separate generic calls.
     * The result is produced by terms written where the binders `scope` are in
-    * scope. The host stays specific to the activation `instances`, because
+    * scope (N if unknown). The host stays specific to the activation `instances`, because
     * parameters deliver each activation's own arguments to the body.
     */
-  private def resultType(source: Term, scope: Set[VarSymbol], instances: TypeSubstitution)(connect: Listener => Unit)
+  private def resultType(source: Term, scope: Binders, instances: TypeSubstitution)(connect: Listener => Unit)
       (using ResolutionContext): DeclaredType =
     val key = (new Identity(source), instances)
     rctx.state.resultTypes.get(key) match
@@ -1489,7 +1503,7 @@ class NewResolver:
         // activation, so reading it also reads the sites of the instances these
         // select for those binders (see closure).
         rctx.recordTemplateBinders(resolution,
-          closure(S(scope), binder => instances.get(binder).orElse(rctx.instances.get(binder))))
+          closure(scope, binder => instances.get(binder).orElse(rctx.instances.get(binder))))
         val tpe = declaredType(resolution, Map.empty)
         rctx.state.resultTypes(key) = tpe
         connect(value => resolution.publish(TypeShape.Inferred(value)))
@@ -1570,7 +1584,7 @@ class NewResolver:
       case S(annotation) =>
         val source = td.sign.orElse(td.body).get
         // The body and signature are written inside the definition, where its own binders are in scope.
-        val scope = lexicalBinders(td.tsym) ++ definitionBinders(td)
+        val scope = lexicalBinders(td.tsym).map(_ ++ definitionBinders(td))
         listener(promiseShape(annotation, resultType(source, scope, instances)(bodyResult)))
       case N => bodyResult(listener)
 
@@ -2120,7 +2134,7 @@ class NewResolver:
         val elements = new TypeResolution(source, messages => resolError(source, messages))
         // The parameter host receives this allocation's elements as templates
         // written at the literal, distinguished from other allocations by marks.
-        rctx.recordTemplateBinders(elements, S(lexicalBinders(underlying)))
+        rctx.recordTemplateBinders(elements, lexicalBinders(underlying))
         elements.publish(TypeShape.Parameter(param, param.inferenceHost))
         // A nominal interface lives at the literal's use site. Its element
         // reference points back into the allocation; putting the allocation exit
@@ -2880,9 +2894,9 @@ class NewResolver:
     val captured = callerInstances.withOverrides(lexical)
     val instances = lhs match
       case Marked(definition: DefnShape, _) if supplied.isEmpty =>
-        instantiateDefinition(definition, res.resSym, S(lexicalBinders(res)), lhs.applicationHead._2, captured, N)
+        instantiateDefinition(definition, res.resSym, lexicalBinders(res), lhs.applicationHead._2, captured, N)
       case Marked(construction: NewShape, _) if construction.argss.isEmpty && !construction.isSaturated && construction.supplied.isEmpty =>
-        instantiateDefinition(construction.receiver, res.resSym, S(lexicalBinders(res)), lhs.applicationHead._2, captured, N)
+        instantiateDefinition(construction.receiver, res.resSym, lexicalBinders(res), lhs.applicationHead._2, captured, N)
       case _ => captured
     def publish(value: TermShape)(using ResolutionContext): Unit =
       publishViewed(res, value, instances)(using rctx.withInstances(callerInstances))
@@ -2916,7 +2930,7 @@ class NewResolver:
         val viewed = instantiateShape(original, instances) match
           case callable: CallableTypeShape => callable
           case _ => lastWords("A callable view must remain callable")
-        val callable = instantiateCallable(viewed, res.resSym, S(lexicalBinders(res)), context :: Nil)
+        val callable = instantiateCallable(viewed, res.resSym, lexicalBinders(res), context :: Nil)
         val ps = callable.paramLists.head
         zipArgumentShapes(context :: Nil, ps.params.length, ps.hasRest, args, res, lhs): (index, value) =>
           (if index < ps.params.length then ps.params(index) else ps.rest).foreach: tpe =>
@@ -3146,7 +3160,7 @@ class NewResolver:
         if ref.supplied.nonEmpty then selected(ref)
         else
           val instances = instantiateParameters(ref.definition.sym, ref.definition.tparams.map(_.sym),
-            rctx.typeApplicationSite(application), S(lexicalBinders(application)), ref.marks,
+            rctx.typeApplicationSite(application), lexicalBinders(application), ref.marks,
             rctx.instances.withOverrides(ref.instances), S(supplied))
           selected(ref.copy(instances = instances, supplied = S(supplied)))
       , reject)
@@ -3355,7 +3369,7 @@ class NewResolver:
         // Explicit type arguments already consumed this scheme. Otherwise an
         // unapplied constructor waits for its first term application.
         val instances = if ref.supplied.nonEmpty || (nw.args.isEmpty && dsh.unappliedParams.nonEmpty) then captured
-          else instantiateDefinition(dsh, nw.resSym, S(lexicalBinders(nw)), marks, captured, N)
+          else instantiateDefinition(dsh, nw.resSym, lexicalBinders(nw), marks, captured, N)
         val sh = newShapes.getOrElseUpdate((ref.target, marks, nw.resSym, ref.supplied),
           NewShape(dsh, ref.target, marks, nw.args, nw, ref.supplied))
         if rctx.state.constructorApplications.add((sh, instances)) then
@@ -3847,7 +3861,7 @@ class NewResolver:
             checkArity(callable, callable.tparams.length)
             val supplied = args.map(arg => declaredType(typeResolution(arg), Map.empty).instantiate(rctx.instances))
             instantiateCallable(callable.copy(supplied = S(supplied)),
-              rctx.typeApplicationSite(application), S(lexicalBinders(application)), marks).exit(marks) match
+              rctx.typeApplicationSite(application), lexicalBinders(application), marks).exit(marks) match
               case value: TermShape => receive(value)
               case NoShape => ()
           case (callee: DefnShape, marks) =>
@@ -3864,7 +3878,7 @@ class NewResolver:
             else
               val supplied = args.map(arg => declaredType(typeResolution(arg), Map.empty).instantiate(rctx.instances))
               val instances = instantiateDefinition(callee, rctx.typeApplicationSite(application),
-                S(lexicalBinders(application)), marks, rctx.instances.withOverrides(captured), S(supplied))
+                lexicalBinders(application), marks, rctx.instances.withOverrides(captured), S(supplied))
               SpecializedShape(callee, supplied, instances).exit(marks) match
                 case specialized: TermShape => receive(specialized)
                 case NoShape => ()
@@ -3914,7 +3928,7 @@ class NewResolver:
             record.withLocOf(tuple)
             // The record's fields are the tuple's own field expressions, so its
             // lexical scope is the tuple's.
-            defining.recordLexicalBinders(record, lexicalBinders(tuple))
+            lexicalBinders(tuple).foreach(defining.recordLexicalBinders(record, _))
             record
           })(using defining)
           // The synthesized record has no owning graph of its own; share the
@@ -3971,7 +3985,7 @@ class NewResolver:
                   val elements = rctx.spreadElementType(term):
                     val host = new TypeResolution(term, messages => resolError(term, messages))
                     // Elements of every operand shape are observed in the tuple's scope.
-                    rctx.recordTemplateBinders(host, S(lexicalBinders(tuple)))
+                    rctx.recordTemplateBinders(host, lexicalBinders(tuple))
                     host
                   val typed = listenArrayElements(shape)(element => elements.publish(TypeShape.Inferred(element)))
                   if typed then
