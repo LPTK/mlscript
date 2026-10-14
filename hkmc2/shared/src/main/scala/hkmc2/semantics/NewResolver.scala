@@ -5,12 +5,8 @@ import scala.collection.mutable
 import scala.annotation.tailrec
 
 import hkmc2.utils.*, shorthands.*
-import hkmc2.utils.*
 import hkmc2.Message.MessageContext
-import hkmc2.io
-import utils.TraceLogger
 import syntax.*
-// import Tree.*
 import Term.*
 
 import Elaborator.*
@@ -22,27 +18,6 @@ class NewResolver:
   import tl.*
   import ResolutionContext.Listener
   
-  /* 
-  class Constraint(val lhs: Term, val rhs: Term):
-    override def equals(obj: Any): Bool = obj match
-      case that: Constraint => (this.lhs is that.lhs) && (this.rhs is that.rhs)
-      case _ => false
-    private var _hash: Int = 0
-    override def hashCode(): Int = 
-      if _hash =/= 0 then _hash
-      else
-        var h = lhs.hashCode() * 31 + rhs.hashCode()
-        if h === 0 then h += 1
-        _hash = h
-        h
-    def showDbg(using DebugPrinter): Str =
-      s"${lhs.showDbg} <: ${rhs.showDbg}"
-  
-  val processedConstraints: mutable.Set[Constraint] = mutable.Set.empty
-  val collectedConstraints: mutable.Buffer[Constraint] = mutable.Buffer.empty
-  */
-  
-  // * The `FlowSymbol`s are currently used to uniquely identify terms
   private def appShapes(using rs: ResolutionContext) = rs.state.appShapes
   private def newShapes(using rs: ResolutionContext) = rs.state.newShapes
   private def introShapes(using rs: ResolutionContext) = rs.state.introShapes
@@ -2490,7 +2465,9 @@ class NewResolver:
               resolError(res, msg"${cls.describe.capitalize} does not take pattern arguments." -> cls.toLoc :: Nil)
             Nil
           case S(ps) =>
-            if ps.restParam.nonEmpty then TODO(ps.restParam)
+            // Elaboration reports and removes rest parameters of class-like definitions,
+            // so the arity of a constructor pattern is the number of plain parameters.
+            softAssert(ps.restParam.isEmpty, "Unexected rest parameter in class-like definition")
             if args.sizeCompare(ps.params) =/= 0 then
               rctx.markError(res)
               resolError(res,
@@ -2953,7 +2930,6 @@ class NewResolver:
         listenCallableResult(callable)(publish)
         return
       case _ => ()
-    // log(s"appShape? lhs = $lhs, args = $args, res = $res")
     val sh = appShapes.getOrElseUpdate((ShapeIdentity.key(lhs), res.resSym), {
       log(s"appShape: lhs = ${lhs.shwDbg}, args = ${args.showDbg}, res = ${res.showDbg}")
       new AppShape(lhs, args, res)
@@ -2993,11 +2969,9 @@ class NewResolver:
           // TODO: handle `mss`
           register
         case td: TermDefinition =>
-          // listenTerm(td.body, sh => newShape(sh, args, res))
           td.tsym match
           case ccs: ClassCtorSymbol => // TOOD: to avoid the special case, give this the actual body?
             softAssert(td.body.isEmpty)
-            // ccs.associatedCls
             // TODO: handle `mss`
             register
           case _ =>
@@ -3179,7 +3153,7 @@ class NewResolver:
       case Capture(base, thru) =>
         listenClass(base, recordTargets)(ref => selected(ref.copy(marks =
           ref.marks ::: EntryMark(ResolutionBoundary(thru), N, NoMarks) :: Nil)), reject)
-      case _ => listen(trm):
+      case _ => listen(trm, discardMarks = false):
         case sh: SymShape =>
           completedClass(sh)(cls => select(ClassReference(cls.sym,
             ExitMark(ResolutionBoundary(cls.sym), S(sh.resSym), NoMarks) :: sh.markss,
@@ -3418,22 +3392,9 @@ class NewResolver:
         listenTerm(rhs): sh =>
           publishActivated(rctx.memberVariable(sym), sh)
       case sym: LocalSymbol =>
-        listen(rhs): sh =>
+        listen(rhs, discardMarks = false): sh =>
           publishActivated(sym, sh)
     DefineVar(sym, rhs)(loc)
-  
-  def listenDefn(sym: TermSymbol, listener: Listener)(using ResolutionContext): Unit =
-    sym.defn match
-    case S(td: TermDefinition) if td.params.isEmpty =>
-      td.body match
-      case S(body) =>
-        listenByNameBody(td, body)(listener)
-      case N =>
-        ??? // TODO error
-    case S(d) =>
-      listener(defnShapes.getOrElseUpdate(sym, DefnShape(d, N)))
-    case N =>
-      sym.defnListeners += (d => listener(defnShapes.getOrElseUpdate(sym, DefnShape(d, N))))
   
   /** Close recursive getter dependencies before following the body. A cycle with
     * no normal result publishes nothing; a productive branch can still publish
@@ -3593,7 +3554,6 @@ class NewResolver:
             case NoShape =>
               log(s"FILTER OUT ${sh.shwDbg} for ${sym.showDbg} % ${resSym.showDbg}")
             case sh: TermShape =>
-              // if sh is sh0
               if sh0.isInstanceOf[MarkedShape[?]]
               then log(s"MATCH ${sh.shwDbg} for ${sym.showDbg} % ${resSym.showDbg}")
               else log(s"PUSH ${sh.shwDbg}")
@@ -3651,7 +3611,6 @@ class NewResolver:
         case N if sym.asTrm.exists(_.k is LetBind) =>
           listenMemberVariable(sym.asTrm.get)(wrappedListener)
         case N =>
-          // sym.defnListeners += (d => listener(defnShapes.getOrElseUpdate(sym, DefnShape(d))))
           softAssert(false, s"Symbol definition of ${sym} is not set upon completion of ${bms}")
       case _ =>
         def reportError(using ResolutionContext) = resolError(trm,
@@ -3695,7 +3654,7 @@ class NewResolver:
       // This listener validates an elaboration decision; it transports no values.
       // Keep checking late candidates in the defining block, but never mutate its
       // local bookkeeping when a completed block's listeners run in a consumer.
-      listen(trm): shape =>
+      listen(trm, discardMarks = false): shape =>
         if rctx.canResolve(trm) then shape match
           case sh: SymShape =>
             if symbols.add(sh.sym) && !collecting then fail()
@@ -3812,7 +3771,7 @@ class NewResolver:
     case Capture(base, thru) =>
       listenValue(base, receiver): shape =>
         listener(MarkedShape.enter(shape, ResolutionBoundary(thru), N))
-    case _ => listen(trm):
+    case _ => listen(trm, discardMarks = false):
       case sh: TermShape => listener(sh)
       case ss: SymShape =>
         fromSymbol(ss, listener, trm, recordValueTarget(trm, _), receiver)
@@ -3863,7 +3822,7 @@ class NewResolver:
   private def listenMemberVariable(sym: TermSymbol)(receive: Listener)(using ResolutionContext): Unit =
     listenValueHost(rctx.memberVariable(sym))(receive)
 
-  def listen(trm: Term, discardMarks: Bool = false)(receive: ShapeListener[Shape])(using ResolutionContext): Unit =
+  private def listen(trm: Term, discardMarks: Bool)(receive: ShapeListener[Shape])(using ResolutionContext): Unit =
     val listener = activationListener(receive)
     log(s"listen: trm = ${trm.showDbg}")
     trm.addShapeListener(listener)
@@ -4049,13 +4008,15 @@ class NewResolver:
           case _ :: rest => expand(rest, reversed)
         expand(record.stats, Nil)
     case intro: IntroTerm =>
-      // Literals have the declared primitive interface, including inherited
-      // members. Retain their literal shape for pattern tests and provenance.
+      // Literals and lambdas have the declared interface of their builtin class,
+      // including inherited members. Retain their own shape for calls, pattern
+      // tests, and provenance.
       val primitive = intro match
         case Lit(_: Tree.StrLit) => S(prelude.builtins.Str)
         case Lit(_: Tree.IntLit) => S(prelude.builtins.Int)
         case Lit(_: Tree.DecLit) => S(prelude.builtins.Num)
         case Lit(_: Tree.BoolLit) => S(prelude.builtins.Bool)
+        case _: Lam => S(prelude.builtins.Function)
         case _ => N
       def publish(parent: Opt[NominalInstanceView])(using ResolutionContext): Unit =
         listener(introShapes.getOrElseUpdate(new Identity(intro), {
@@ -4102,11 +4063,10 @@ class NewResolver:
       // function/class captures still enter and exit through Capture normally.
       recordValueTarget(ref, sym)
       rctx.memberVariable(sym).subscribeToShapes(listener)
-    case ref @ MemberRef(sym: TermSymbol) =>
-      listenDefn(sym, sh =>
-        MarkedShape.exit(sh, ResolutionBoundary(sym), S(ref.resSym)) match
-          case sh: TermShape => listener(sh)
-          case NoShape => ())
+    case MemberRef(_: TermSymbol) =>
+      // Ctx.RefElem only refers to let-bound term symbols directly. Other definitions,
+      // including class parameter fields, are referenced through their BlockMemberSymbol.
+      lastWords("Only let-bound term symbols can be referenced directly")
     case ref @ MemberRef(sym: BlockMemberSymbol) =>
       val fs = ref.resSym
       val sh = symShapes.getOrElseUpdate((sym, fs, Nil), CoreSymShape(sym, fs, Nil))
@@ -4158,8 +4118,7 @@ class NewResolver:
     case _: DynTy | _: FunTy | _: Forall | _: Constrained | _: WildcardTy | _: CompType | _: Neg =>
       resolError(trm, msg"A type cannot be used as a runtime value." -> N :: Nil)
     case Error() => () // Elaboration has already reported the error; it supplies no candidate.
-    case Missing =>
-      () // FIXME: Currently get this from light-elaborated Predef import
+    case Missing => () // A body skipped by lightweight elaboration (`Mode.Light`) supplies no candidate.
     case _: SynthIf | _: SynthWhile =>
       lastWords("Lowering-generated control flow must not enter resolution")
     case _: Region | _: RegRef | _: Deref | _: SetRef =>

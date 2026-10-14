@@ -91,6 +91,7 @@ final class NewResolverState(val owner: Elaborator.State):
     new Cache(_.spreadInputs, _.clone())
   val reportedArities: Cache[Object, mutable.Set[Int]] =
     new Cache(_.reportedArities, _.clone())
+  // * The `FlowSymbol`s are currently used to uniquely identify terms
   val appShapes: Cache[(ShapeIdentity.Key, FlowSymbol), AppShape] =
     new Cache(_.appShapes, identity)
   val newShapes: Cache[(ClassValueTarget, Ls[Marks], FlowSymbol, Opt[Ls[DeclaredType]]), NewShape] =

@@ -8,7 +8,6 @@ import Elaborator.State, Message.MessageContext, ucs.error
 import scala.annotation.tailrec, util.chaining.*
 import utils.{TraceLogger, tl}
 import hkmc2.document.*
-import hkmc2.document.Document.*
 
 object Pattern:
   /** The reason why a variable obtained from `Pattern.variables` is invalid. */
@@ -157,7 +156,6 @@ object Pattern:
   trait ConstructorImpl extends PatternShapeHost, PossiblyErroneous:
     self: Pattern.Constructor =>
     
-    // val resSym: FlowSymbol = FlowSymbol.app
     var resolvedTargets: Ls[DefinitionSymbol[?] | VarSymbol] = Nil
   
   /** Add a mutable field to the `Alias` pattern to store the symbol for the
@@ -263,12 +261,6 @@ enum Pattern extends AutoLocated, Describable, PatternShapePublisher:
     case _ => false
   final override def hashCode: Int = System.identityHashCode(this)
   
-  
-  // val trmHost: ShapeHost = new ShapeHost{}
-  object trmHost extends ShapeHost:
-    def showDbg(using DebugPrinter): Str = s"trmHost(${Pattern.this.showDbg})"
-  end trmHost
-  
   infix def binds(id: Ident): Pattern.Alias = Pattern.Alias(this, id)
   
   /** Annotate the pattern using the given term. If the term is `Error`, then
@@ -337,7 +329,6 @@ enum Pattern extends AutoLocated, Describable, PatternShapePublisher:
       ).toList.mkDocument("[", ", ", "]")
     case Record(fields) => doc"{${fields.map((k, v) => doc"${k.name}: ${v.show}").mkString(", ")}}"
     case Chain(first, second) => doc"${first.show} >> ${second.show}"
-    // case al @ Alias(pattern, alias) => doc"${pattern.show} as ${alias.name}‹${al.symbolOption.fold("")(_.showName)}›"
     case al @ Alias(pattern, alias) => doc"${pattern.show} as ${al.symbolOption.fold(alias.name+"ˀˀˀ")(_.showName)}"
     case Transform(pattern, _, transform) => doc"${pattern.show} => ${transform.show}"
     case Annotated(pattern, annotations) => annotations.iterator.map:

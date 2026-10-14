@@ -130,9 +130,9 @@ object Elaborator:
     lazy val resolutionBoundaries: Set[ResolutionBoundary] =
       parent.fold(Set.empty[ResolutionBoundary])(_.resolutionBoundaries) ++ outer.resolutionBoundary.map(ResolutionBoundary(_))
     
-    def +(local: Str -> Symbol): Ctx =
+    def +(local: Str -> RefSymbol): Ctx =
       copy(env = env + local.mapSecond(Ctx.RefElem(_)))
-    def ++(locals: IterableOnce[Str -> Symbol]): Ctx =
+    def ++(locals: IterableOnce[Str -> RefSymbol]): Ctx =
       copy(env = env ++ locals.mapValues(Ctx.RefElem(_)))
     def elem_++(locals: IterableOnce[Str -> Ctx.Elem]): Ctx =
       copy(env = env ++ locals.iterator.filter: kv =>
@@ -140,7 +140,7 @@ object Elaborator:
         // * but they should be allowed to shadow previous imports.
         env.get(kv._1).forall(_.isImport))
     
-    def withMembers(members: Iterable[Str -> MemberSymbol]): Ctx =
+    def withMembers(members: Iterable[Str -> BlockMemberSymbol]): Ctx =
       copy(env = env ++ members.map:
         case (nme, sym) =>
           val elem = outer.inner match
@@ -434,6 +434,8 @@ object Elaborator:
         */
       val primitivelyRepresentedRoots: Set[TypeSymbol] = Set(Num, Str, Bool)
   
+  type RefSymbol = SimpleRefSymbol | TermSymbol | BlockMemberSymbol | InnerSymbol
+  
   object Ctx:
     /** The opening site is diagnostic metadata, excluded from equality so
       * reopening the same receiver still contributes only one candidate.
@@ -446,12 +448,14 @@ object Elaborator:
       def ref(id: Ident)(using Elaborator.State, Ctx, Config, NewResolver, ResolutionContext): Term
       def symbol: Opt[Symbol]
       def isImport: Bool
-    final case class RefElem(sym: Symbol) extends Elem:
+    final case class RefElem(sym: RefSymbol) extends Elem:
       val nme = sym.nme
       def ref(id: Ident)(using Elaborator.State, Ctx, Config, NewResolver, ResolutionContext): Term =
+        // * Note: due to symbolic ops, we may have `id.name =/= nme`;
+        // * e.g., we can have `id.name = "|>"` and `nme = "pipe"`.
         if config.language.useNewResolution then
           sym match
-          case sym: codegen.SimpleSymbol =>
+          case sym: SimpleRefSymbol =>
             Term.SimpleRef(sym)(id)
           case sym: InnerSymbol =>
             Term.SelfRef(sym)(id)
@@ -461,11 +465,7 @@ object Elaborator:
             val ref = Term.MemberRef(sym)(id, FlowSymbol.memSym(sym))
             rctx.recordLexicalBinders(ref, ctx.typeBinders)
             ref
-          // case sym: TermSymbol => // FIXME: should never happen... (currently happens for ref to ctor let)
-          //   Term.MemberRef(sym)(id)
         else
-          // * Note: due to symbolic ops, we may have `id.name =/= nme`;
-          // * e.g., we can have `id.name = "|>"` and `nme = "pipe"`.
           sym.ref(id)
       def symbol = S(sym)
       def isImport: Bool = false
@@ -499,7 +499,7 @@ object Elaborator:
       def symbol = base.symbol
       def isImport: Bool = false
       def nme: Str = base.nme
-    given Conversion[Symbol, Elem] = RefElem(_)
+    given Conversion[RefSymbol, Elem] = RefElem(_)
     val empty: Ctx = Ctx(OuterCtx.LocalScope("top-level"), N, Map.empty, Mode.Full, Map.empty, Nil)
     
   /** The interpretation required by the enclosing syntax. Class and pattern
@@ -508,6 +508,13 @@ object Elaborator:
     */
   enum Interpretation:
     case Trm, Receiver, Specialization, Clss, Ptrn, Tpe
+    
+    /** The interpretation of the elements of a tuple or record with this interpretation.
+      * Elements are values, even when their aggregate is a receiver or a class operand.
+      */
+    def elements: Interpretation = this match
+      case Tpe => Tpe
+      case _ => Trm
 
   enum Mode:
     case Full
@@ -606,18 +613,18 @@ object Elaborator:
         case sym: BlockMemberSymbol if isForeign =>
           S(ExternalModuleImport.Private(sym, modulePath))
         case _ => N
-
+  
   end CompilationUnit
-
+  
   /** Immutable JavaScript ABI published after optimization has fixed the emitted definitions. */
   final case class CompilationUnitAbi(
     privateExportNames: Map[BlockMemberSymbol, Str],
   )
-
+  
   enum ExternalModuleImport:
     case Default(sym: ImportSymbol, modulePath: Str)
     case Private(sym: BlockMemberSymbol, modulePath: Str)
-
+  
   class State:
     val newResolverState: NewResolverState = new NewResolverState(this)
     val suid = new Uid.Symbol.State
@@ -724,6 +731,8 @@ object Elaborator:
     * Constructor declarations are parsed as applied round braces or tuples;
     * for example, `constructor(x, y)(u, v)` becomes
     * `App(Bra(Round, Block(x, y)), Tup(u, v))`.
+    * An empty first parameter list is parsed as the unit literal:
+    * `constructor()(x)` becomes `App(Unt(), Tup(x))`.
     */
   private object ConstructorParamDecl:
     def mkTup(inner: Tree): Tree = inner match
@@ -732,6 +741,8 @@ object Elaborator:
       case other => Tup(other :: Nil)
 
     def unapply(tree: Tree): Opt[Ls[Tree]] = tree match
+      case Unt() =>
+        S(Tup(Nil) :: Nil)
       case Bra(Round, inner) =>
         S(mkTup(inner) :: Nil)
       case App(lhs, rhs @ (_: Tup)) =>
@@ -981,11 +992,7 @@ extends Importer:
     ifLike(tree.kw.kw, form, split, tree.toLoc)
   
   protected def mkSplitLet(binding: LocalVarSymbol, term: Term): Head.Let =
-    if newResolution then
-      binding match
-      case binding: ShapeHost =>
-        if newResolution then pipeTerm(term, binding)
-      // case _ => ???
+    if newResolution then pipeTerm(term, binding)
     Head.Let(binding, term)
   
   protected def mkMatch(scrutinee: Term, pattern: Pattern, consequent: SimpleSplit) =
@@ -1267,7 +1274,6 @@ extends Importer:
   def ifLike(kw: Keyword.SplitLike, form: IfLikeForm, split: SimpleSplit, loc: Opt[Loc]): Term.IfLike =
     val res = new Term.IfLike(kw, form, split).withLoc(loc)
     if newResolution then
-      // log(s"Listening to if-like split ${res.showDbg}")
       // Imperative branches are evaluated for effects; lowering discards their
       // values and returns unit, including when a loop executes zero iterations.
       if form.isImperative then pipeTerm(unit, res)
@@ -1723,11 +1729,11 @@ extends Importer:
           , N, rs)
       ))
     case tree @ Tup(TermDef(Ins, f, N) :: fs) =>
-      withTypeBinders(Term.CtxTup((f :: fs).map(fld(_, interp)))(tree))
+      withTypeBinders(Term.CtxTup((f :: fs).map(fld(_, interp.elements)))(tree))
     case Modified(kw @ Keywrd(Keyword.`mut`), tree @ Tup(fields)) =>
-      Term.Mut(withTypeBinders(Term.Tup(fields.map(fld(_, interp)))(tree))).mkLocWith(kw)
+      Term.Mut(withTypeBinders(Term.Tup(fields.map(fld(_, interp.elements)))(tree))).mkLocWith(kw)
     case tree @ Tup(fields) =>
-      withTypeBinders(Term.Tup(fields.map(fld(_, interp)))(tree))
+      withTypeBinders(Term.Tup(fields.map(fld(_, interp.elements)))(tree))
       
     case DynamicNew(Apps(c, args)) =>
       val (mut, c2) = c match
@@ -1996,9 +2002,7 @@ extends Importer:
       ):
     
     val members = blk.definedSymbols.toMap
-    val fieldInterpretation = resultInterp match
-      case Tpe => Tpe
-      case _ => Trm
+    val fieldInterpretation = resultInterp.elements
     val newSignatureTrees = mutable.Map.empty[Str, Tree] // * Store trees of signatures
     
     // * Check for double/incompatible definitions and declarations
@@ -2215,8 +2219,10 @@ extends Importer:
           case lit: Literal =>
             reportUnusedAnnotations
             val field = Term.Lit(lit).withLocOf(lit)
-            (if fieldInterpretation == Tpe then RcdField.signature(field, rhs_t)
-             else RcdField(field, rhs_t)) :: acc
+            (if fieldInterpretation == Tpe
+              then RcdField.signature(field, rhs_t)
+              else RcdField(field, rhs_t)
+            ) :: acc
           case Bra(Round, inner) =>
             reportUnusedAnnotations
             RcdField(term(inner, Trm), rhs_t) :: acc
@@ -2303,6 +2309,7 @@ extends Importer:
             rctx.state.lexicalTypeBinders(tsym) = ctx.typeBinders
             
             val tdf = ctx.nest(OuterCtx.NonReturnContext(S(tsym))).givenIn: newCtx ?=>
+              
               // * Add type parameters to context
               val (tps, newCtx1) = td.typeParams match
                 case S(t) =>
@@ -2367,6 +2374,7 @@ extends Importer:
               if newResolution then checkDeclaredResult(tdf)
               
               tdf
+            
             go(sts, Nil, tdf :: acc)(N)
           case L(d) =>
             reportUnusedAnnotations
@@ -2450,74 +2458,71 @@ extends Importer:
         def withFields(extraParams: Ls[ParamList])(using Ctx)(fn: (Ctx) ?=> (Term.Blk, Ctx)): (Term.Blk, Ctx) =
           softAssert(pss.sizeCompare(td.clsParams) === 0,
             s"mismatched parameter list numbers ${pss} vs ${td.clsParams}")
+          
+          lazy val owner = td.symbol match
+            // Any MemberSymbol should be an InnerSymbol, except for TypeAliasSymbol,
+            // but type aliases should not call this function.
+            case s: InnerSymbol => S(s)
+            case _: TypeAliasSymbol => die
+          
+          // For class-like types, "desugar" the parameters into additional class fields.
+          // The kind of the field's term symbol `tsym` tells whether the field is mutable.
+          def paramField(p: Param, tsym: TermSymbol, isPublicField: Bool): Ls[Statement] =
+            val fsym = BlockMemberSymbol(p.sym.nme, Nil)
+            fsym.sourceAliases = p.sym.sourceAliases
+            tsym.sourceAliases = p.sym.sourceAliases
+            tsym.decl = S(p)
+            val fdef = TermDefinition(
+              tsym.k,
+              fsym,
+              tsym,
+              Nil, N, N,
+              if newResolution
+                then S(Term.Capture(Term.SimpleRef(p.sym)(Ident(p.sym.name)), tsym))
+                else S(p.sym.ref())
+              ,
+              TermDefFlags.empty,
+              p.modulefulness,
+              if isPublicField then Nil else Annot.Private :: Nil,
+              N,
+            )(p.toLoc)
+            assert(p.fldSym.isEmpty)
+            p.fldSym = S(fsym)
+            fsym.tsym = S(tsym)
+            tsym.defn = S(fdef)
+            // A generated field is written inside its class, like a member.
+            rctx.state.lexicalTypeBinders(tsym) = ctx.typeBinders
+            fsym.complete()
+            fdef :: Nil
+          
+          // Other parameters are only bound locally in the class body.
+          def paramBinding(p: Param): Ls[Statement] =
+            val psym = TermSymbol(LetBind, owner, p.sym.id)
+            psym.sourceAliases = p.sym.sourceAliases
+            rctx.state.lexicalTypeBinders(psym) = ctx.typeBinders
+            val decl = LetDecl(psym, Nil)(p.toLoc) // TODO: never use term symbols on LetDecl LHS
+            val defn = defineVar(psym, p.sym.ref())(p.toLoc)
+            p.fldSym = S(psym)
+            decl :: defn :: Nil
+          
           val fields: Ls[Statement] = pss.zip(td.clsParams).flatMap: (ps, cps) =>
             // TODO: handle this gracefully (could be caused by erroneous input code)
             softTODO(ps.params.sizeCompare(cps) === 0,
               s"mismatched param list lengths ${ps.params} vs ${cps}")
             ps.params.zip(cps).flatMap: (p, cp) =>
-              // For class-like types, "desugar" the parameters into additional class fields.
-              
-              val owner = td.symbol match
-                // Any MemberSymbol should be an InnerSymbol, except for TypeAliasSymbol,
-                // but type aliases should not call this function.
-                case s: InnerSymbol => S(s)
-                case _: TypeAliasSymbol => die
-              
               val isPublicField = p.flags.isVal || isDataClass
               if isPublicField
-                // TODO:
                 || newResolution // TODO: rm `|| newResolution`
-              then
-                val k = if p.flags.mut then MutVal else ImmutVal
-                val fsym = BlockMemberSymbol(p.sym.nme, Nil)
-                fsym.sourceAliases = p.sym.sourceAliases
-                val tsym = cp
-                tsym.sourceAliases = p.sym.sourceAliases
-                cp.decl = S(p)
-                val fdef = TermDefinition(
-                  k,
-                  fsym,
-                  tsym,
-                  Nil, N, N,
-                  if newResolution then
-                    S(Term.Capture(Term.SimpleRef(p.sym)(Ident(p.sym.name)), tsym))
-                  else S(p.sym.ref())
-                  ,
-                  TermDefFlags.empty.copy(isMethod = (k is Cls)), // FIXME?!
-                  p.modulefulness,
-                  if isPublicField then Nil else Annot.Private :: Nil,
-                  N,
-                )(p.toLoc)
-                assert(p.fldSym.isEmpty)
-                p.fldSym = S(fsym)
-                fsym.tsym = S(tsym)
-                tsym.defn = S(fdef)
-                // A generated field is written inside its class, like a member.
-                rctx.state.lexicalTypeBinders(tsym) = ctx.typeBinders
-                fsym.complete()
-                fdef :: Nil
-              else
-                val psym = TermSymbol(LetBind, owner, p.sym.id)
-                psym.sourceAliases = p.sym.sourceAliases
-                rctx.state.lexicalTypeBinders(psym) = ctx.typeBinders
-                val decl = LetDecl(psym, Nil)(p.toLoc) // TODO: never use term symbols on LetDecl LHS
-                val defn = defineVar(psym, p.sym.ref())(p.toLoc)
-                p.fldSym = S(psym)
-                decl :: defn :: Nil
+              then paramField(p, cp, isPublicField)
+              else paramBinding(p)
           
-          // Also create fields for constructor(...) params (always use LetBind path)
+          // Parameters of constructor(...) declarations become fields only when marked `val`.
           val ctorFields: Ls[Statement] = extraParams.flatMap: ps =>
             ps.params.flatMap: p =>
-              val owner = td.symbol match
-                case s: InnerSymbol => S(s)
-                case _: TypeAliasSymbol => die
-              val psym = TermSymbol(LetBind, owner, p.sym.id)
-              psym.sourceAliases = p.sym.sourceAliases
-              rctx.state.lexicalTypeBinders(psym) = ctx.typeBinders
-              val decl = LetDecl(psym, Nil)(p.toLoc)
-              val defn = defineVar(psym, p.sym.ref())(p.toLoc)
-              p.fldSym = S(psym)
-              decl :: defn :: Nil
+              if p.flags.isVal then
+                val k = if p.flags.mut then MutVal else ImmutVal
+                paramField(p, TermSymbol(k, owner, p.sym.id), isPublicField = true)
+              else paramBinding(p)
           
           val allFields = fields ::: ctorFields
           
@@ -2654,7 +2659,9 @@ extends Importer:
           val auxCtorPss = auxCtorParamTrees.map: ps =>
             val (res, newCtx2) =
               given Ctx = newCtx
-              params(ps, isDataClass, false)
+              // Unlike main parameters, constructor(...) parameters of data classes are not
+              // implicitly `val`: they only become fields when explicitly marked.
+              params(ps, false, false)
             newCtx = newCtx2
             res.restParam.foreach: rp =>
               raise(ErrorReport(
@@ -2732,7 +2739,6 @@ extends Importer:
     val res = ctx.withMembers(members).givenIn:
       go(blk.desugStmts, Nil, Nil)(N)
     
-    // if newResolution then
     members.valuesIterator.foreach(_.complete())
     members.valuesIterator.foreach: bms =>
       bms.symbols.foreach:
@@ -2758,7 +2764,6 @@ extends Importer:
               val sh = BaseShape(d, N) // TODO actually use applied shape providing generics?
               sym.notifyShapeListeners(sh)
         case sym: InnerSymbol =>
-          // println(">>> "+sym)
           // TODO: patterns
         case _ => ()
     

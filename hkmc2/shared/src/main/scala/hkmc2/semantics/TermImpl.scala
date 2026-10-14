@@ -1,19 +1,13 @@
 package hkmc2
 package semantics
 
-import scala.collection.mutable.{Buffer, Set as MutSet, LinkedHashSet}
-
 import hkmc2.utils.*, shorthands.*
 import syntax.*
 import hkmc2.utils.Scope
-import hkmc2.utils.Scope.scope
 import hkmc2.document.*
 import hkmc2.document.Document.*
 
 import Elaborator.State
-import hkmc2.typing.Type
-import hkmc2.semantics.Elaborator.{Ctx, ctx}
-import hkmc2.Message.MessageContext
 import hkmc2.codegen.Erasure
 
 import Term.*
@@ -33,7 +27,6 @@ trait AnyRefImpl:
 
 trait NewRefImpl extends AnyRefImpl:
   self: Term.SimpleRef | Term.MemberRef | Term.SelfRef =>
-  def refNum: Int = 0 // TODO: track reference counts like in the old refs?
 
 trait NewSelImpl extends NewResolvableImpl:
   self: Term.NewSel =>
@@ -64,7 +57,6 @@ trait UnresolvedRefImpl extends NewResolvableImpl:
   var dynamicPrefixes: Ls[Term] = Nil
 
 
-// trait FldImpl extends AutoLocated:
 trait FldImpl:
   self: Fld =>
   def children: Vector[Located] = self.term +: self.asc.toVector
@@ -91,9 +83,6 @@ trait LeadingDotSelImpl(using State):
   var resolvedTargets: Ls[flow.SelectionTarget.CompanionMember] = Nil // * filled during flow analysis
 
 
-type AnyResolvable = Resolvable | NewResolvableImpl
-// type AnyRef = Ref | SimpleRef | MemberRef
-
 type NewResolvable = NewResolvableImpl & Term
 
 /** Suppress follow-on diagnostics after a resolution or flow error. */
@@ -103,8 +92,6 @@ trait PossiblyErroneous:
 trait NewResolvableImpl extends PossiblyErroneous:
   self: MemberRef | NewSel | UnresolvedRef | Super =>
   var resolvedTargets: Ls[DefinitionSymbol[?]] = Nil // * filled during flow analysis
-  // val resSym: FlowSymbol = FlowSymbol.simpleRef(self.sym.name)
-  // var disamb: Opt[Disambiguation] = None // * filled during flow analysis
 
 
 trait StatementImpl extends Located, ProductWithExtraInfo, Describable:
@@ -391,7 +378,6 @@ trait StatementImpl extends Located, ProductWithExtraInfo, Describable:
         // doc"${kw.name} ${form.headStr} ${split.show}"
         given IfLikeForm = form
         doc"${form.headStr} { #{  # ${split.show} #}  # }"
-        // val fs = fomr match
       case Missing => doc"‹missing›"
       case TyApp(lhs, targs) => doc"${lhs.show}[${targs.map(_.show).mkDocument(", ")}]"
       case DynSel(prefix, field, arrayIdx, _) =>
@@ -576,6 +562,6 @@ trait StatementImpl extends Located, ProductWithExtraInfo, Describable:
     case LeadingDotSel(nme) => s"_?_.${nme.name}"
     case SetConfig(_) => "#config(...)"
   
-end StatementImpl  
+end StatementImpl
 
 
