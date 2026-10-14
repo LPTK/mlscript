@@ -1241,13 +1241,11 @@ class NewResolver:
     * its members (see Elaborator.recordDefinitionScope); N if missing, as above.
     * A class and its constructor share one definition site (see ResolutionBoundary).
     */
-  private def lexicalBinders(symbol: AnyDefinitionSymbol): Binders =
+  private def lexicalBinders(symbol: AnyDefinitionSymbol)(using ResolutionContext): Binders =
     val origin = symbol match
       case ctor: ClassCtorSymbol => ctor.associatedCls
       case symbol => symbol
-    // This immutable declaration metadata belongs to the original graph, even
-    // when the definition was reached through an imported reference.
-    val binders = origin.getState.newResolverState.lexicalTypeBinders.get(origin)(using origin.getState.newResolverState.context)
+    val binders = rctx.definitionBindersOf(origin)
     softAssert(binders.nonEmpty, s"Definition ${origin.nme} must record its enclosing type binders")
     binders
 
@@ -1674,7 +1672,7 @@ class NewResolver:
           // bindings can mention an earlier call of that same source method in
           // their values, but cannot bind the new method's local names.
           val capturedBindings = bindings -- definitionBinders(td)
-          val instances = if isByName(td) then instantiateByName(td, flow, source,
+          val instances = if isByName(td) then instantiateByName(td, flow,
             ExitMark(ResolutionBoundary(td.tsym), S(flow), NoMarks) :: receiverMarks, specialization, capturedBindings) else callerInstances
           def publish(shape: TermShape)(using ResolutionContext): Unit =
             val Marked(interface, context) = shape
@@ -2504,7 +2502,9 @@ class NewResolver:
                   resolError(res, msg"Pattern argument requires an accessible constructor field." -> p.toLoc :: Nil)
                   Nil
       if !rctx.hasError(res) then
+        // Field reads of the matched value can invoke by-name members here.
         val site = FlowSymbol.pat()(using rctx.owner)
+        lexicalBinders(lhs).foreach(rctx.recordSiteBinders(site, _))
         def publish(marks: Ls[Marks])(using ResolutionContext): Unit =
           val psh = CtorPatternShape(cls, assoc, res, site, marks)
           if res.currentShapes.add(psh) then res.notifyShapeListeners(psh)
@@ -2545,7 +2545,9 @@ class NewResolver:
                     case S(cls: (ClassDef | ModuleOrObjectDef)) => classPattern(cls)
                     case _ => softAssert(false, "Completed pattern member has no definition")
                 case N =>
-                  fromBMS(bms, FlowSymbol.pat()(using rctx.owner), sh.markss, valuePattern, lhs, _ => (), false)
+                  val site = FlowSymbol.pat()(using rctx.owner)
+                  lexicalBinders(lhs).foreach(rctx.recordSiteBinders(site, _))
+                  fromBMS(bms, site, sh.markss, valuePattern, lhs, _ => (), false)
           case sh: TermShape => valuePattern(sh)
   
   /** Pattern bodies are resolved before their runtime matching code is generated.
@@ -3526,13 +3528,25 @@ class NewResolver:
       case _ => Nil
     if td.flags.hasResultAnnotation then Nil else td.sign.toList.flatMap(signatureQuantifiers)
 
-  /** `source` is the reference or selection invoking the definition; a synthesized
-    * reference has no recorded scope, which leaves the instances' site unknown. */
-  private def instantiateByName(td: TermDefinition, site: FlowSymbol, source: Term, marks: Ls[Marks],
+  /** Instantiate a by-name definition at `site`: the reference, selection,
+    * constructor pattern, or structural projection invoking it, unless an
+    * explicit specialization supplies its own site. A symbol shape reaches its
+    * listeners with the site of the selection that produced it, possibly far
+    * from the term being observed (for `let m = MutMap.empty`, a later use of
+    * `m`), so the instances' scope is the site's, which every such site records
+    * (see NewResolverState.siteBinders).
+    */
+  private def instantiateByName(td: TermDefinition, site: FlowSymbol, marks: Ls[Marks],
       specialization: Opt[(FlowSymbol, Ls[DeclaredType])], bindings: Map[VarSymbol, DeclaredType])
       (using ResolutionContext): TypeSubstitution =
-    val instances = instantiateParameters(td.tsym, definitionBinders(td), specialization.fold(site)(_._1),
-      rctx.lexicalBindersOf(source), marks, rctx.instances, specialization.map(_._2))
+    val instantiationSite = specialization.fold(site)(_._1)
+    val binders = definitionBinders(td)
+    val siteBinders = rctx.siteBindersOf(instantiationSite)
+    // An unknown scope retains every binding when the instances are read.
+    softAssert(siteBinders.nonEmpty || binders.isEmpty,
+      s"The site instantiating '${td.tsym.nme}' must record its enclosing type binders")
+    val instances = instantiateParameters(td.tsym, binders, instantiationSite,
+      siteBinders, marks, rctx.instances, specialization.map(_._2))
     val parameters = definitionQuantifiers(td).map: parameter =>
       DeclaredTypeParameter(TypeShape.Parameter(parameter.sym, parameter.sym.inferenceHost),
         parameter.lb.map(bound => declaredType(typeResolution(bound), bindings)),
@@ -3576,7 +3590,7 @@ class NewResolver:
         case S(td: TermDefinition) if td.params.isEmpty =>
           log(s"listenTerm: td.body = ${td.body.fold("N")(_.showDbg)}")
           val callerInstances = rctx.instances
-          val instances = if isByName(td) then instantiateByName(td, resSym, trm,
+          val instances = if isByName(td) then instantiateByName(td, resSym,
             ExitMark(ResolutionBoundary(td.tsym), S(resSym), NoMarks) :: markss, specialization, Map.empty)
             else callerInstances.without(td.tparams.toList.flatten.map(_.sym))
           def receive(shape: TermShape)(using ResolutionContext): Unit =

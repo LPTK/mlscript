@@ -1261,6 +1261,14 @@ extends Importer:
     rctx.state.lexicalTypeBinders(symbol) = ctx.typeBinders
     rctx.state.lexicalBoundaries(symbol) = ctx.resolutionBoundaries
   
+  /** A record field is a term definition (see RcdField.apply) written where its
+    * record is. A structural projection of the field can instantiate a by-name
+    * member there (see NewResolverState.siteBinders).
+    */
+  private def recordFieldScope(field: RcdField)(using Ctx): RcdField =
+    rctx.state.lexicalTypeBinders(field.tsym) = ctx.typeBinders
+    field
+  
   /** An async expression wraps the values of `target` in a promise, whose payload
     * reads the binders in scope where the expression is written (see
     * NewResolver.resultType).
@@ -2223,27 +2231,27 @@ extends Importer:
           case id: Ident if fieldInterpretation == Tpe =>
             // Record type fields declare interfaces, not local value bindings.
             // Keep their types directly so lookup never follows initializer flow.
-            RcdField.signature(Term.Lit(StrLit(id.name)).withLocOf(id), rhs_t) :: acc
+            recordFieldScope(RcdField.signature(Term.Lit(StrLit(id.name)).withLocOf(id), rhs_t)) :: acc
           case id: Ident =>
             val sym = new VarSymbol(id, erasedType = N)
             newCtx += id.name -> sym
-            RcdField(Term.Lit(StrLit(id.name)).withLocOf(id), sym.ref(id))
+            recordFieldScope(RcdField(Term.Lit(StrLit(id.name)).withLocOf(id), sym.ref(id)))
               :: defineVar(sym, rhs_t)(Loc(rlhs, rhs))
               :: LetDecl(sym, annotations)(id.toLoc)
               :: acc
           case lit: Literal =>
             reportUnusedAnnotations
             val field = Term.Lit(lit).withLocOf(lit)
-            (if fieldInterpretation == Tpe
+            recordFieldScope(if fieldInterpretation == Tpe
               then RcdField.signature(field, rhs_t)
               else RcdField(field, rhs_t)
             ) :: acc
           case Bra(Round, inner) =>
             reportUnusedAnnotations
-            RcdField(term(inner, Trm), rhs_t) :: acc
+            recordFieldScope(RcdField(term(inner, Trm), rhs_t)) :: acc
           case _ =>
             raise(ErrorReport(msg"Unexpected record key shape." -> rlhs.toLoc :: Nil))
-            RcdField(Term.Error().withLocOf(rlhs), rhs_t) :: acc
+            recordFieldScope(RcdField(Term.Error().withLocOf(rlhs), rhs_t)) :: acc
         newCtx.givenIn:
           go(sts, Nil, newAcc)(N)
       case (hd @ LetLike(kw @ Keywrd(`let`), Apps(id: Ident, tups), rhso, N)) :: sts

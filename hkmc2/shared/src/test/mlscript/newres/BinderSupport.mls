@@ -66,3 +66,18 @@ fun h[A](x: A) = new E with
   fun get = x
 [h(First(3)).get.first, h(Second(4)).get.second]
 //│ = [3, 4]
+
+// A by-name generic definition read through a variable is instantiated at the
+// selection that names it, whose scope is recorded, not where the variable is
+// later used: the symbol shape reaches `m.length` with the selection's site.
+:expect [0, 0]
+module Store with
+  fun empty[A]: Array[A] = []
+fun f[B](x: B) =
+  let m = Store.empty
+  m.length
+fun g() =
+  let m = Store.empty
+  m.length
+[f(1), g()]
+//│ = [0, 0]

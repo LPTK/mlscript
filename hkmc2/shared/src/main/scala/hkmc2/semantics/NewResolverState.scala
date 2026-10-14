@@ -167,6 +167,15 @@ final class NewResolverState(val owner: Elaborator.State):
   // named fields is recorded by the resolver when it creates the record.
   private[semantics] val lexicalTermBinders: Cache[Identity[Term], Set[VarSymbol]] =
     new Cache(_.lexicalTermBinders, identity)
+  // The explicit type binders in scope at the site a flow symbol identifies,
+  // for every site where a by-name definition can be instantiated: a reference
+  // or selection (recorded with its lexicalTermBinders), a type application, a
+  // constructor pattern, or a structural field projection. A symbol shape keeps
+  // its selection's flow symbol wherever the value flows, so the term observing
+  // the shape is not the instantiation site. Recorded in, and read through, the
+  // unit that creates the flow symbol (see ResolutionContext.siteBindersOf).
+  private[semantics] val siteBinders: Cache[FlowSymbol, Set[VarSymbol]] =
+    new Cache(_.siteBinders, identity)
   // Recorded with lexicalTypeBinders: the resolution scopes enclosing a type
   // definition. Declared members are located at their class's definition.
   val lexicalBoundaries: Cache[AnyDefinitionSymbol, Set[ResolutionBoundary]] =
@@ -507,9 +516,29 @@ final class ResolutionContext private[semantics] (
   def recordLexicalBinders(term: Term, binders: Set[VarSymbol]): Unit =
     term.initialData(state)
     state.lexicalTermBinders.update(new Identity(term), binders)(using state.context)
+    // A reference or selection is also the site where it invokes a by-name definition.
+    val site = term match
+      case ref: MemberRef => S(ref.resSym)
+      case sel: NewSel => S(sel.resSym)
+      case ref: UnresolvedRef => S(ref.resSym)
+      case sup: Super => S(sup.resSym)
+      case _ => N
+    site.foreach(recordSiteBinders(_, binders))
   private[semantics] def lexicalBindersOf(term: Term): Opt[Set[VarSymbol]] =
     val graph = term.originalData.owner
     if graph == null then N else lexicalTermBinders.get(new Identity(term))(using inGraph(graph.context))
+  def recordSiteBinders(site: FlowSymbol, binders: Set[VarSymbol]): Unit =
+    assert(site.getState is owner, "A site's binders belong to the unit that creates its flow symbol")
+    state.siteBinders.update(site, binders)(using state.context)
+  private[semantics] def siteBindersOf(site: FlowSymbol): Opt[Set[VarSymbol]] =
+    val graph = site.getState.newResolverState
+    graph.siteBinders.get(site)(using graph.context)
+  /** The type binders enclosing a definition, recorded in its own unit before its
+    * members are elaborated (see Elaborator.recordDefinitionScope), even when the
+    * definition is reached through an imported reference. */
+  private[semantics] def definitionBindersOf(symbol: AnyDefinitionSymbol): Opt[Set[VarSymbol]] =
+    val graph = symbol.getState.newResolverState
+    graph.lexicalTypeBinders.get(symbol)(using graph.context)
   def recordAppliedTypeArguments(base: Term, count: Int): Unit =
     state.appliedTypeArguments.update(new Identity(base), count)(using state.context)
   private[semantics] def appliedTypeArgumentsOf(base: Term): Opt[Int] =
@@ -528,15 +557,22 @@ final class ResolutionContext private[semantics] (
     */
   def typeApplicationSite(application: TyApp): FlowSymbol =
     val key = new Identity(application)
-    state.typeApplicationSites.getOrElseUpdate(key, typeApplicationSites.get(key).getOrElse(
-      FlowSymbol("type application")(using owner)))(using state.context)
+    state.typeApplicationSites.getOrElseUpdate(key, typeApplicationSites.get(key).getOrElse:
+      val site = FlowSymbol("type application")(using owner)
+      lexicalBindersOf(application).foreach(recordSiteBinders(site, _))
+      site
+    )(using state.context)
   /** A structural field constraint is a static projection site. Recursive
     * observations share it across substitution views; ordinary receiver marks
     * distinguish activations, as they do for a written member selection.
     */
   def fieldProjectionSite(field: BlockMemberSymbol): FlowSymbol =
-    state.fieldProjectionSites.getOrElseUpdate(field, fieldProjectionSites.get(field).getOrElse(
-      FlowSymbol.memSym(field)(using owner)))(using state.context)
+    state.fieldProjectionSites.getOrElseUpdate(field, fieldProjectionSites.get(field).getOrElse:
+      val site = FlowSymbol.memSym(field)(using owner)
+      // The projection reads the field where its record type is written.
+      field.tsym.flatMap(definitionBindersOf).foreach(recordSiteBinders(site, _))
+      site
+    )(using state.context)
   private[hkmc2] def instantiateTypeParameters(scheme: AnyDefinitionSymbol | TypeResolution,
       site: FlowSymbol, parameters: Ls[VarSymbol], siteBinders: Opt[Set[VarSymbol]]): TypeSubstitution =
     require(parameters.distinct.length == parameters.length, "A scheme cannot bind a parameter twice")
