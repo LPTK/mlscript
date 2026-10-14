@@ -294,7 +294,6 @@ final class ResolutionContext private[semantics] (
 
   private given ResolutionContext = this
   def owner: Elaborator.State = state.owner
-  private def root: NewResolverState = state
   private[semantics] def inherited: Opt[ResolutionContext] = contextBase.orElse(source)
   import state.*
   /** Activations share the consuming unit's hosts and memoized source graph.
@@ -305,14 +304,14 @@ final class ResolutionContext private[semantics] (
     val base = contextBase.getOrElse(this)
     val canonical = TypeSubstitution.canonical(substitution)
     if canonical.isEmpty then base
-    else root.contexts.getOrElseUpdate((base, canonical),
-      new ResolutionContext(root, source, S(base), canonical))
+    else state.contexts.getOrElseUpdate((base, canonical),
+      new ResolutionContext(state, source, S(base), canonical))
   def withReporter(raise: Raise): this.type =
-    root.reporter = raise
+    state.reporter = raise
     this
   def report(diagnostic: Diagnostic): Unit =
-    assert(root.reporter != null, "Resolution requires a diagnostic collector")
-    root.reporter.nn(diagnostic)
+    assert(state.reporter != null, "Resolution requires a diagnostic collector")
+    state.reporter.nn(diagnostic)
   def reportResolutionError(src: Term | Pattern, messages: Ls[(Message, Opt[Loc])]): Unit =
     report(ErrorReport(msg"Resolution error in ${src.describe}" -> src.toLoc :: messages, source = Diagnostic.Source.Compilation))
 
@@ -321,59 +320,59 @@ final class ResolutionContext private[semantics] (
   // these roots before sealing resolution; they are neither copied from imports
   // nor retained across worksheet blocks. One witness suffices for each value.
   def exposeValue(shape: TermShape, provenance: ShapeProvenance): Unit =
-    root.exposureInputs.getOrElseUpdate((ShapeIdentity.key(shape), this), InterfaceExposure.Input(shape, this)(provenance))
+    state.exposureInputs.getOrElseUpdate((ShapeIdentity.key(shape), this), InterfaceExposure.Input(shape, this)(provenance))
   def takeExposureInputs(): Ls[InterfaceExposure.Input] =
-    val inputs = root.exposureInputs.values.toList
-    root.exposureInputs.clear()
+    val inputs = state.exposureInputs.values.toList
+    state.exposureInputs.clear()
     inputs
 
   // A listener carries its defining graph, not its defining mutable resolver.
   // Views share the consumer's host copies, but consult the source's bindings and
   // memoized nodes individually. Creating a view never traverses a source map.
   private[hkmc2] def inGraph(graph: ResolutionContext): ResolutionContext =
-    rebase(graph.contextBase.getOrElse(graph), root).withInstances(instances)
+    rebase(graph.contextBase.getOrElse(graph), state).withInstances(instances)
   private def rebase(graph: ResolutionContext, destination: NewResolverState): ResolutionContext =
     // A callback registered in this consuming unit already names its graph.
     // Sending it through the current import view would create X(Y(X(...)))
     // when an imported callback invokes a consumer callback and returns.
-    if graph.root eq root then graph
+    if graph.state eq state then graph
     else
       val origin = source.fold(graph)(_.rebase(graph, destination))
-      if origin.root eq root then origin
-      else if root eq destination then
-        root.views.getOrElseUpdate(origin, new ResolutionContext(root, S(origin), N, TypeSubstitution.empty))
-      else root.views.get(origin).getOrElse:
+      if origin.state eq state then origin
+      else if state eq destination then
+        state.views.getOrElseUpdate(origin, new ResolutionContext(state, S(origin), N, TypeSubstitution.empty))
+      else state.views.get(origin).getOrElse:
         // A previously unused path can require a view of an intermediate exporter.
         // Memoize that read-only view in the consumer, never in the exporter.
-        destination.inheritedViews.getOrElseUpdate((root, origin),
-          new ResolutionContext(root, S(origin), N, TypeSubstitution.empty))
+        destination.inheritedViews.getOrElseUpdate((state, origin),
+          new ResolutionContext(state, S(origin), N, TypeSubstitution.empty))
 
   private[hkmc2] def local[A](ref: Publisher.Data[A]): Publisher.Data[A] =
     // Explicit references (notably type parameters) need the same intermediate
     // exporter lookup as references through their syntax or symbol host.
     val origin = source.fold(ref)(_.peekReference(ref))
-    if (origin.owner eq root) && !origin.completed then origin
+    if (origin.owner eq state) && !origin.completed then origin
     else
       // Each key and its copy share A; recover that type when looking up the
       // heterogeneous graph-node map.
-      root.copies.getOrElseUpdate(origin, origin.copy(root)).asInstanceOf[Publisher.Data[A]]
+      state.copies.getOrElseUpdate(origin, origin.copy(state)).asInstanceOf[Publisher.Data[A]]
 
   private def peekReference[A](ref: Publisher.Data[A]): Publisher.Data[A] =
     val origin = source.fold(ref)(_.peekReference(ref))
-    root.copies.get(origin).fold(origin)(_.asInstanceOf[Publisher.Data[A]])
+    state.copies.get(origin).fold(origin)(_.asInstanceOf[Publisher.Data[A]])
 
   private def peek[A](publisher: Publisher[A]): Publisher.Data[A] =
     peekReference(publisher.originalData)
 
   private[hkmc2] def data[A](publisher: Publisher[A]): Publisher.Data[A] =
-    val ref = source.fold(publisher.initialData(root))(_.peek(publisher))
-    if ref.owner == null then publisher.initialData(root)
-    if publisher.isOwnedBy(root) && !root.completedNodes(new Identity(publisher)) then
-      root.pending.getOrElseUpdate(new Identity(publisher), ref)
+    val ref = source.fold(publisher.initialData(state))(_.peek(publisher))
+    if ref.owner == null then publisher.initialData(state)
+    if publisher.isOwnedBy(state) && !state.completedNodes(new Identity(publisher)) then
+      state.pending.getOrElseUpdate(new Identity(publisher), ref)
     local(ref)
 
   /** Number of lazily copied graph nodes, for isolation/scale regressions. */
-  private[hkmc2] def copiedHostCount: Int = root.copies.size
+  private[hkmc2] def copiedHostCount: Int = state.copies.size
 
   // A receiver shape can lack a member that another shape supplies later in
   // inference. Retain lazy witnesses by selection, including those from later
@@ -386,9 +385,9 @@ final class ResolutionContext private[semantics] (
     val key = new Identity(selection)
     // Accumulate witnesses for this block's error without replaying errors on
     // completed selections or adding follow-on errors to unrelated failures.
-    if !hasError(selection) || root.missingMembers.contains(key) then
+    if !hasError(selection) || state.missingMembers.contains(key) then
       if eager then markError(selection)
-      root.missingMembers.getOrElseUpdate(key, mutable.ListBuffer.empty) += ((eager, () => messages))
+      state.missingMembers.getOrElseUpdate(key, mutable.ListBuffer.empty) += ((eager, () => messages))
 
   /** Seal the decisions and original host data read by erasure/lowering. The
     * inference graph keeps private, live host data and all its listeners, so
@@ -437,7 +436,7 @@ final class ResolutionContext private[semantics] (
         case _ => ()
       statement.subStatements.foreach(visit)
     visit(block)
-    root.missingMembers.foreach: (key, problems) =>
+    state.missingMembers.foreach: (key, problems) =>
       val selection = key.value
       val unresolved = !hasSelectionTarget(selection)
       val messages = problems.iterator.collect:
@@ -446,18 +445,18 @@ final class ResolutionContext private[semantics] (
       if messages.nonEmpty then
         markError(selection)
         reportResolutionError(selection, messages)
-    root.missingMembers.clear()
-    root.pending.foreach: (key, value) =>
-      if !key.value.isInstanceOf[Symbol] && root.completedNodes.add(key) then value.completed = true
-    root.pending.clear()
+    state.missingMembers.clear()
+    state.pending.foreach: (key, value) =>
+      if !key.value.isInstanceOf[Symbol] && state.completedNodes.add(key) then value.completed = true
+    state.pending.clear()
 
   def canResolve(host: Publisher[?]): Bool =
     data(host)
-    host.isOwnedBy(root) && !root.completedNodes(new Identity(host))
+    host.isOwnedBy(state) && !state.completedNodes(new Identity(host))
 
-  def hasError(host: PossiblyErroneous): Bool = host.isErroneous || root.errors(new Identity(host))
+  def hasError(host: PossiblyErroneous): Bool = host.isErroneous || state.errors(new Identity(host))
   def markError(host: Publisher[?] & PossiblyErroneous): Unit =
-    root.errors += new Identity(host)
+    state.errors += new Identity(host)
     if canResolve(host) then host.isErroneous = true
 
   /** Inference may refine an imported result, but the imported code has already
@@ -470,16 +469,16 @@ final class ResolutionContext private[semantics] (
 
   private[semantics] def shapeView[A](substitution: TypeSubstitution)(make: => A): A =
     if substitution.nonEmpty then
-      root.allocatedShapeViews += 1
-      root.largestShapeViewSubstitution = root.largestShapeViewSubstitution.max(substitution.size)
+      state.allocatedShapeViews += 1
+      state.largestShapeViewSubstitution = state.largestShapeViewSubstitution.max(substitution.size)
     make
   /** Number of shape views (substituted tuples, records, instances, interface
-    * views, and contextual wrappers) newly constructed in the consuming root. */
-  private[hkmc2] def allocatedShapeViewCount: Int = root.allocatedShapeViews
+    * views, and contextual wrappers) newly constructed in the consuming unit. */
+  private[hkmc2] def allocatedShapeViewCount: Int = state.allocatedShapeViews
   /** The largest binder substitution retained by any of those views. */
-  private[hkmc2] def largestRetainedSubstitution: Int = root.largestShapeViewSubstitution
-  /** Number of activation contexts created by withInstances in the consuming root. */
-  private[hkmc2] def activationContextCount: Int = root.contexts.size
+  private[hkmc2] def largestRetainedSubstitution: Int = state.largestShapeViewSubstitution
+  /** Number of activation contexts created by withInstances in the consuming unit. */
+  private[hkmc2] def activationContextCount: Int = state.contexts.size
   /** Activation views share their consumer's hosts, so they must also share its
     * canonical shapes. As for type instances, adopt an inherited shape before
     * constructing one, and record either result in the consumer's cache.
@@ -489,8 +488,8 @@ final class ResolutionContext private[semantics] (
     */
   private def canonical[K, V](origin: Publisher[?] | Null, cache: NewResolverState => Cache[K, V], key: K)(make: => V): V =
     val graph = if origin == null then null else origin.originalData.owner
-    val state = if graph == null then this else inGraph(graph.context)
-    cache(root).getOrElseUpdate(key, cache(state.state).get(key)(using state).getOrElse(make))(using root.context)
+    val defining = if graph == null then this else inGraph(graph.context)
+    cache(state).getOrElseUpdate(key, cache(defining.state).get(key)(using defining).getOrElse(make))(using state.context)
   def canonicalTuple(key: (Term, Ls[TupleShape.Element], TypeSubstitution))(make: => TupleShape): TupleShape =
     canonical(key._1, _.tupleShapes, key)(shapeView(key._3)(make))
   def canonicalRecord(key: (Term.Rcd, Ls[RecordShape.Element], TypeSubstitution))(make: => RecordShape): RecordShape =
@@ -500,44 +499,44 @@ final class ResolutionContext private[semantics] (
   def spreadElementType(spread: Term)(make: => TypeResolution): TypeResolution =
     canonical(spread, _.spreadElements, new Identity(spread))(make)
   def memberVariable(symbol: TermSymbol): ShapeHost =
-    root.memberVariables.getOrElseUpdate(symbol,
+    state.memberVariables.getOrElseUpdate(symbol,
       symbol.getState.newResolverState.memberVariables.get(symbol)(using symbol.getState.newResolverState.context).getOrElse(
         new Host[ShapeEvent]:
           def showDbg(using DebugPrinter): Str = s"assignments to ${symbol.nme}"
-      ))(using root.context)
+      ))(using state.context)
   def recordLexicalBinders(term: Term, binders: Set[VarSymbol]): Unit =
-    term.initialData(root)
-    root.lexicalTermBinders.update(new Identity(term), binders)(using root.context)
+    term.initialData(state)
+    state.lexicalTermBinders.update(new Identity(term), binders)(using state.context)
   private[semantics] def lexicalBindersOf(term: Term): Opt[Set[VarSymbol]] =
     val graph = term.originalData.owner
     if graph == null then N else lexicalTermBinders.get(new Identity(term))(using inGraph(graph.context))
   def recordAppliedTypeArguments(base: Term, count: Int): Unit =
-    root.appliedTypeArguments.update(new Identity(base), count)(using root.context)
+    state.appliedTypeArguments.update(new Identity(base), count)(using state.context)
   private[semantics] def appliedTypeArgumentsOf(base: Term): Opt[Int] =
     val key = new Identity(base)
     val graph = base.originalData.owner
     (if graph == null then N else appliedTypeArguments.get(key)(using inGraph(graph.context))).orElse(appliedTypeArguments.get(key))
   def recordTemplateBinders(host: TypeResolution, binders: Opt[Set[VarSymbol]]): Unit =
-    host.initialData(root)
-    root.templateBinders.update(host, binders)(using root.context)
+    host.initialData(state)
+    state.templateBinders.update(host, binders)(using state.context)
   private[semantics] def templateBindersOf(host: TypeResolution): Opt[Opt[Set[VarSymbol]]] =
     val graph = host.originalData.owner
     if graph == null then N else templateBinders.get(host)(using inGraph(graph.context))
-  private[hkmc2] def allocatedTypeInstanceCount: Int = root.allocatedTypeInstances
+  private[hkmc2] def allocatedTypeInstanceCount: Int = state.allocatedTypeInstances
   /** A type application consumes a scheme even when no term argument follows.
     * Its site is shared across observations and activation views of the source.
     */
   def typeApplicationSite(application: TyApp): FlowSymbol =
     val key = new Identity(application)
-    root.typeApplicationSites.getOrElseUpdate(key, typeApplicationSites.get(key).getOrElse(
-      FlowSymbol("type application")(using owner)))(using root.context)
+    state.typeApplicationSites.getOrElseUpdate(key, typeApplicationSites.get(key).getOrElse(
+      FlowSymbol("type application")(using owner)))(using state.context)
   /** A structural field constraint is a static projection site. Recursive
     * observations share it across substitution views; ordinary receiver marks
     * distinguish activations, as they do for a written member selection.
     */
   def fieldProjectionSite(field: BlockMemberSymbol): FlowSymbol =
-    root.fieldProjectionSites.getOrElseUpdate(field, fieldProjectionSites.get(field).getOrElse(
-      FlowSymbol.memSym(field)(using owner)))(using root.context)
+    state.fieldProjectionSites.getOrElseUpdate(field, fieldProjectionSites.get(field).getOrElse(
+      FlowSymbol.memSym(field)(using owner)))(using state.context)
   private[hkmc2] def instantiateTypeParameters(scheme: AnyDefinitionSymbol | TypeResolution,
       site: FlowSymbol, parameters: Ls[VarSymbol], siteBinders: Opt[Set[VarSymbol]]): TypeSubstitution =
     require(parameters.distinct.length == parameters.length, "A scheme cannot bind a parameter twice")
@@ -548,22 +547,22 @@ final class ResolutionContext private[semantics] (
     // Graph views in one consumer must agree even when they reach the same
     // source definition through different imports. Adopt an inherited group
     // before allocating, and put either result in the consumer's canonical cache.
-    val instances = root.typeInstances.getOrElseUpdate(key, typeInstances.get(key).getOrElse {
+    val instances = state.typeInstances.getOrElseUpdate(key, typeInstances.get(key).getOrElse {
       // Construct the complete group without activating constraints. Recursive
       // subscribers may use it only after the cache contains every binder.
       val result = parameters.map: parameter =>
         new TypeParameterInstance(parameter, siteBinders)(using owner)
-      root.allocatedTypeInstances += result.length
+      state.allocatedTypeInstances += result.length
       TypeSubstitution(result)
-    })(using root.context)
+    })(using state.context)
     assert(instances.keySet == parameters.toSet, "A source scheme's binders must remain stable")
     instances
   def patternOutput(pattern: Pattern)(make: => UnknownValueShape): UnknownValueShape =
     canonical(pattern, _.patternOutputs, new Identity(pattern))(make)
   def markExplicitTypeArgument(symbol: VarSymbol): Unit =
-    root.explicitTypeArguments += symbol
+    state.explicitTypeArguments += symbol
   def hasExplicitTypeArgument(symbol: VarSymbol): Bool =
-    root.explicitTypeArguments(symbol) || source.exists(_.hasExplicitTypeArgument(symbol))
+    state.explicitTypeArguments(symbol) || source.exists(_.hasExplicitTypeArgument(symbol))
   /** Whether this constraint is new; values are keyed like inference candidates.
     * Install each constraint edge before subscribing: callback parameter/result
     * flow can revisit it immediately. Distinct instantiations retain their marks.
