@@ -1237,10 +1237,12 @@ extends Importer:
   
   /** Record the explicit type binders in scope where `term` is written, for
     * new resolution's binder-support analysis (see NewResolver.shapeSupport).
-    * Every lambda, tuple, record, application, construction, pattern target, and
-    * async expression is recorded where it is created, before any listener can
-    * build its shape: `app` and `mkNew` install resolution listeners immediately,
-    * and a tuple is observed as soon as the application consuming it is.
+    * Every lambda, tuple, record, application, construction, type application,
+    * pattern target, and async expression is recorded where it is created, before
+    * any listener can build its shape: `app` and `mkNew` install resolution
+    * listeners immediately, and a tuple is observed as soon as the application
+    * consuming it is. References and selections, which can invoke a by-name
+    * definition at their site, are recorded too.
     * Legacy-resolution units record these too, since new-resolution consumers
     * can import their syntax.
     */

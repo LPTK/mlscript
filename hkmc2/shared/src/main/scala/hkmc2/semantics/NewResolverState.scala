@@ -70,6 +70,7 @@ final class NewResolverState(val owner: Elaborator.State):
   import NewResolverState.{Cache, Seen}
 
   val context: ResolutionContext = new ResolutionContext(this, N, N, TypeSubstitution.empty)
+  def isOwnedSym(symbol: Symbol): Bool = symbol.getState is owner
   private[semantics] val contexts = mutable.Map.empty[(ResolutionContext, TypeSubstitution), ResolutionContext]
   private[semantics] var reporter: Raise | Null = null
   private[semantics] val exposureInputs = mutable.LinkedHashMap.empty[(ShapeIdentity.Key, ResolutionContext), InterfaceExposure.Input]
@@ -157,8 +158,8 @@ final class NewResolverState(val owner: Elaborator.State):
   // their own binders, which every application or specialization binds afresh.
   val lexicalTypeBinders: Cache[AnyDefinitionSymbol, Set[VarSymbol]] =
     new Cache(_.lexicalTypeBinders, identity)
-  // The explicit type binders in scope where a lambda, tuple, record,
-  // application, construction, or pattern target is written. The elaborator records them when
+  // The explicit type binders in scope where a term is written, for the terms
+  // listed at Elaborator.withTypeBinders. The elaborator records them when
   // it creates the term, before any listener can build the term's shape, and
   // binds the term's inference owner at the same time; the resolver reads them
   // through that owner (see NewResolver.lexicalBinders), so an unowned term is
@@ -315,8 +316,6 @@ final class ResolutionContext private[semantics] (
   def reportResolutionError(src: Term | Pattern, messages: Ls[(Message, Opt[Loc])]): Unit =
     report(ErrorReport(msg"Resolution error in ${src.describe}" -> src.toLoc :: messages, source = Diagnostic.Source.Compilation))
 
-  def isOwnedSym(symbol: Symbol): Bool = symbol.getState is owner
-
   // Annotation constraints record escaping implementations in the consuming
   // unit, including their activation context. The block's exposure pass drains
   // these roots before sealing resolution; they are neither copied from imports
@@ -375,7 +374,6 @@ final class ResolutionContext private[semantics] (
 
   /** Number of lazily copied graph nodes, for isolation/scale regressions. */
   private[hkmc2] def copiedHostCount: Int = root.copies.size
-
 
   // A receiver shape can lack a member that another shape supplies later in
   // inference. Retain lazy witnesses by selection, including those from later

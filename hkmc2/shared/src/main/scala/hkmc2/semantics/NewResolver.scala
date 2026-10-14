@@ -218,7 +218,7 @@ class NewResolver:
     * a node reads no ambient binding, but it does instantiate its retained
     * reference with the ambient instances, so the reference's own free binders
     * count (see instantiateShape). An inferred-element or omitted-argument host
-    * contributes the scope of its templates (ResolutionContext.state.templateBinders).
+    * contributes the scope of its templates (NewResolverState.templateBinders).
     */
   private def instanceDependencies(resolution: TypeResolution)(using ResolutionContext)
       : Either[Set[TypeResolution], Opt[Set[VarSymbol]]] = dependencies(resolution, DependencyMode.Instances)

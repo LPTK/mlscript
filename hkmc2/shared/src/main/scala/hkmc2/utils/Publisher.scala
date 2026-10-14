@@ -105,7 +105,7 @@ trait Publisher[A](using key: CandidateKey[A]):
   // on first use; subsequent consumers only mutate copies in their own state.
   private[hkmc2] def initialData(state: NewResolverState): Publisher.Data[A] =
     val foreignSymbol = this match
-      case symbol: Symbol => !(symbol.getState eq state.owner)
+      case symbol: Symbol => !state.isOwnedSym(symbol)
       case _ => false
     if originalData.owner == null && !foreignSymbol then originalData.owner = state
     originalData

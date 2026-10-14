@@ -9,7 +9,7 @@ import hkmc2.utils.*, shorthands.*
   * compilation units remains a shallow comparison of binder/instance identities.
   */
 final class TypeSubstitution private (private val bindings: Map[VarSymbol, TypeParameterInstance]) extends ValueKey:
-  export bindings.{apply, contains, get, getOrElse, isEmpty, nonEmpty, size, keySet, keysIterator, values, valuesIterator, iterator, foreach, forall, map}
+  export bindings.{apply, get, getOrElse, isEmpty, nonEmpty, size, keySet, keysIterator, values, iterator, forall, map}
   protected val valueHash: Int = ValueKey.mapHash(bindings)(System.identityHashCode, System.identityHashCode)
   protected def sameValue(other: ValueKey): Bool = other match
     case that: TypeSubstitution => bindings == that.bindings

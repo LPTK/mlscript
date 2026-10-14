@@ -154,8 +154,7 @@ sealed trait ShapeLike:
   def enter(marks: Marks)(using TL): TermShape | NoShape
   def shwDbg(using DebugPrinter): Str
 
-object NoShape extends ShapeLike:
-  override def toString: Str = "NoShape"
+case object NoShape extends ShapeLike:
   def exit(revMarkss: Ls[Marks])(using TL): TermShape | NoShape = NoShape
   def exit(marks: Marks)(using TL): TermShape | NoShape = NoShape
   def enter(revMarkss: Ls[Marks])(using TL): TermShape | NoShape = NoShape
@@ -189,8 +188,7 @@ type ContextualSource = AppShape | NewShape | DefnShape | BaseShape | IntroShape
   * Removing these views preserves the full application chain and its marks.
   */
 final case class ShapeParts(value: CoreTermShape, instances: TypeSubstitution,
-    supplied: Opt[Ls[DeclaredType]]) extends IdentityEquality
-
+    supplied: Opt[Ls[DeclaredType]])
 
 /** A lexical resolution boundary, independent of a definition's term/type interpretation.
   * A class and its companion constructor enter the same instance scope. Keeping their
@@ -624,8 +622,7 @@ object InstanceShape:
     * reports the first annotation's location. Witness wrappers are not interned;
     * retaining them in a cache would duplicate entries for the same semantic
     * value. All views share the origin-free reference's candidate identity,
-    * so diagnostic evidence cannot multiply
-    * inference flow.
+    * so diagnostic evidence cannot multiply inference flow.
     */
   def apply(tpe: DeclaredType)(resolver: NewResolver)(using state: ResolutionContext): InstanceShape =
     val projected = resolver.projectType(tpe)
@@ -665,7 +662,6 @@ final case class SpecializedShape(declaration: DefnShape, arguments: Ls[Declared
   def describe: Str = declaration.describe
   def toLoc: Opt[Loc] = declaration.toLoc
   protected def getMemberImpl(name: Str)(using ResolutionContext): MemberLookup = declaration.getMember(name).instantiate(instances)
-
 
 /** An inference-event envelope, not a value interface. `publishActivated` saves
   * the current body's original-binder-to-instance map; `listen` checks agreement
@@ -1112,8 +1108,7 @@ object TupleShape:
   * Store mutability on this lookup result: the mutable copy's initializer no longer
   * determines its value shape, while reads from an immutable r can still use it.
   */
-final case class RecordMember(field: RcdField, mutable: Bool) extends IdentityEquality
-
+final case class RecordMember(field: RcdField, mutable: Bool)
 
 /** Keep spread candidates and their contexts rather than flattening away their
   * provenance. Lookup follows runtime's last-write-wins order. Unknown entries
@@ -1142,7 +1137,7 @@ final class RecordShape private (val source: Term.Rcd, val elements: Ls[RecordSh
           case Unknown(_, fromPublicInterface, provenance) => S(Unknown(Uncertainty.RecordOverwrite, fromPublicInterface, provenance))
           case Missing => N
           case Found(member: RecordMember, inner) =>
-            S(Found(RecordMember(member.field, member.mutable || source.mut), inner ::: marks :: Nil))
+            S(Found(member.copy(mutable = member.mutable || source.mut), inner ::: marks :: Nil))
           case Found(_: BlockMemberSymbol, _) | Declared(_, _, _, _, _) | Typed(_, _, _) | Indexed(_, _) =>
             // Record spreads recursively look up RecordShapes, which only create RecordMembers.
             lastWords("Record lookup returned a nominal member")
