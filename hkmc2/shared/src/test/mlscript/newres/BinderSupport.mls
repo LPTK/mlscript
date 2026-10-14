@@ -40,3 +40,29 @@ private fun tuple[A](x: A): [A] = [x]
 private fun wrap[B](x: B) = tuple(x).map((v, ...) => v)
 [wrap(First(15)).0.first, wrap(Second(16)).0.second]
 //│ = [15, 16]
+
+// An anonymous refinement records the binders enclosing it, like a named class.
+// Viewing its instance through a generic caller's substitution reads them.
+:expect 1
+class C
+fun f[A](x: A) = new C with
+  fun foo = 1
+f(1).foo
+//│ = 1
+
+:expect 2
+class D with
+  fun bar = 2
+fun g[A](x: A) = new D with
+  fun baz = this.bar
+g(1).baz
+//│ = 2
+
+:expect [3, 4]
+class E
+class First(val first: Int)
+class Second(val second: Int)
+fun h[A](x: A) = new E with
+  fun get = x
+[h(First(3)).get.first, h(Second(4)).get.second]
+//│ = [3, 4]

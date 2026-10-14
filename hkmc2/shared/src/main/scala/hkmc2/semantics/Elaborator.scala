@@ -1250,6 +1250,17 @@ extends Importer:
     rctx.recordLexicalBinders(term, ctx.typeBinders)
     term
   
+  /** Record the type binders and resolution scopes enclosing a class-like
+    * definition before elaborating its members, for new resolution (see
+    * NewResolver.lexicalBinders and NewResolver.splitReceiverPath). Named type
+    * definitions, anonymous refinements, and effect handler classes all have
+    * members whose shapes resolution can observe. Legacy-resolution units
+    * record these too, since new-resolution consumers can import them.
+    */
+  private def recordDefinitionScope(symbol: AnyDefinitionSymbol)(using Ctx): Unit =
+    rctx.state.lexicalTypeBinders(symbol) = ctx.typeBinders
+    rctx.state.lexicalBoundaries(symbol) = ctx.resolutionBoundaries
+  
   /** An async expression wraps the values of `target` in a promise, whose payload
     * reads the binders in scope where the expression is written (see
     * NewResolver.resultType).
@@ -1425,6 +1436,7 @@ extends Importer:
       log(s"Processing `handle` statement $id (${sym}) ${ctx.outer}")
       
       val derivedClsSym = ClassSymbol(Tree.DummyTypeDef(syntax.Cls), Tree.Ident(s"Handler$$${id.name}$$"))
+      recordDefinitionScope(derivedClsSym)
       derivedClsSym.defn = S(ClassDef(
         N, syntax.Cls, derivedClsSym,
         BlockMemberSymbol(derivedClsSym.name, Nil), N,
@@ -1749,6 +1761,7 @@ extends Importer:
     case ProperNew(body, rfto) => // TODO handle Under
       lazy val bodo = rfto.map: rft =>
         val clsSym = new ClassSymbol(DummyTypeDef(syntax.Cls), Ident("$anon"))
+        recordDefinitionScope(clsSym)
         ctx.nestInner(clsSym).givenIn:
           clsSym ->
             // TODO integrate context inherited from cls
@@ -2412,8 +2425,7 @@ extends Importer:
         val sym = members.getOrElse(nme.name, lastWords(s"Symbol not found: ${nme.name}"))
         
         val outerCtx = ctx
-        rctx.state.lexicalTypeBinders(td.symbol) = ctx.typeBinders
-        rctx.state.lexicalBoundaries(td.symbol) = ctx.resolutionBoundaries
+        recordDefinitionScope(td.symbol)
         
         var newCtx = S(td.symbol).collectFirst:
             case s: InnerSymbol => s
