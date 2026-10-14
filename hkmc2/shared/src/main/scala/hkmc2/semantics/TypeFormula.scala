@@ -10,6 +10,7 @@ import hkmc2.utils.ValueKey
   * substitutions alternate union and intersection arbitrarily often.
   */
 final class TypeFormula[A] private (val clauses: Set[Set[A]])(val orderedAtoms: Vector[A]) extends ValueKey:
+  override def toString: String = s"TypeFormula($clauses)"
   protected val valueHash: Int = ValueKey.hash("TypeFormula".hashCode, clauses.hashCode)
   protected def sameValue(other: ValueKey): Boolean = other match
     case that: TypeFormula[?] => clauses == that.clauses

@@ -5,7 +5,9 @@ package utils
   * fields directly: no tuple or Product is allocated merely to hash or compare
   * them. Final equals/hashCode preserve this policy even for case subclasses,
   * which can use generated extractors without generated structural equality.
-  * Mutable inference nodes must use IdentityEquality instead.
+  * Mutable inference nodes must use IdentityEquality instead. A plain subclass
+  * has no generated toString: define one in case-class form, so that debug
+  * traces printing it stay readable and do not depend on identity hashes.
   */
 abstract class ValueKey:
   protected val valueHash: Int
@@ -38,6 +40,7 @@ object ValueKey:
 
 /** Occurrences remain distinct even when their immutable fields agree.
   * Final methods also prevent case subclasses from deriving structural equality.
+  * As for ValueKey, give a plain subclass a toString in case-class form.
   */
 trait IdentityEquality:
   final override def equals(other: Any): Boolean = other match

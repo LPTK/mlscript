@@ -139,26 +139,31 @@ object TypeShape:
       case that: Reference => base == that.base && marks == that.marks && bindings == that.bindings && instances == that.instances
       case _ => false
   object Unit extends TypeShape:
+    override def toString: Str = "Unit"
     protected val valueHash: Int = "Unit".hashCode
     protected def sameValue(other: ValueKey): Bool = other match
       case that: Unit.type => true
       case _ => false
   object Dynamic extends TypeShape:
+    override def toString: Str = "Dynamic"
     protected val valueHash: Int = "Dynamic".hashCode
     protected def sameValue(other: ValueKey): Bool = other match
       case that: Dynamic.type => true
       case _ => false
   object Abstract extends TypeShape:
+    override def toString: Str = "Abstract"
     protected val valueHash: Int = "Abstract".hashCode
     protected def sameValue(other: ValueKey): Bool = other match
       case that: Abstract.type => true
       case _ => false
   object Top extends TypeShape:
+    override def toString: Str = "Top"
     protected val valueHash: Int = "Top".hashCode
     protected def sameValue(other: ValueKey): Bool = other match
       case that: Top.type => true
       case _ => false
   object Bottom extends TypeShape:
+    override def toString: Str = "Bottom"
     protected val valueHash: Int = "Bottom".hashCode
     protected def sameValue(other: ValueKey): Bool = other match
       case that: Bottom.type => true
@@ -168,6 +173,7 @@ object TypeShape:
   * never performs lookup or resolves an alias by inspecting an elaborated definition.
   */
 final class TypeResolution(val source: Term, report: Ls[(Message, Opt[Loc])] => Unit) extends Host[TypeShape]:
+  override def toString: Str = s"TypeResolution($source)"
   private var reported = false
   def hasErrors: Bool = reported
   def showDbg(using DebugPrinter): Str = s"type of ${source.showDbg}"
@@ -243,6 +249,7 @@ final class DeclaredType private (private[semantics] val reference: DeclaredType
   def resolution: TypeResolution = reference.resolution
   def instances: TypeSubstitution = reference.instances
   def positive: Bool = reference.positive
+  override def toString: Str = s"DeclaredType($resolution, $bindings, $instances, $positive)"
   protected val valueHash: Int = reference.hashCode
   protected def sameValue(other: ValueKey): Bool = other match
     case that: DeclaredType =>
@@ -372,6 +379,7 @@ object DeclaredType:
   * candidate's already-normalized path.
   */
 final class ContextualType(val tpe: DeclaredType, val marks: Ls[Marks]) extends ValueKey:
+  override def toString: Str = s"ContextualType($tpe, $marks)"
   protected val valueHash: Int = ValueKey.hash("ContextualType".hashCode, tpe.hashCode, marks.hashCode)
   protected def sameValue(other: ValueKey): Bool = other match
     case that: ContextualType => tpe == that.tpe && marks == that.marks
@@ -382,6 +390,7 @@ final class ContextualType(val tpe: DeclaredType, val marks: Ls[Marks]) extends 
   * Missing wildcard parts are Nothing on input and Any on output, never holes.
   */
 final class TypeArgument(val input: DeclaredType, val output: DeclaredType) extends ValueKey:
+  override def toString: Str = s"TypeArgument($input, $output)"
   protected val valueHash: Int = ValueKey.hash("TypeArgument".hashCode, input.hashCode, output.hashCode)
   protected def sameValue(other: ValueKey): Bool = other match
     case that: TypeArgument => input == that.input && output == that.output
@@ -392,6 +401,7 @@ final class TypeArgument(val input: DeclaredType, val output: DeclaredType) exte
   */
 final class TypeQuantifier(val parameter: TypeShape.Parameter,
     val lower: Opt[TypeResolution], val upper: Opt[TypeResolution]) extends ValueKey:
+  override def toString: Str = s"TypeQuantifier($parameter, $lower, $upper)"
   protected val valueHash: Int = ValueKey.hash("TypeQuantifier".hashCode, parameter.hashCode, lower.hashCode, upper.hashCode)
   protected def sameValue(other: ValueKey): Bool = other match
     case that: TypeQuantifier => parameter == that.parameter && lower == that.lower && upper == that.upper
@@ -400,6 +410,7 @@ final class TypeQuantifier(val parameter: TypeShape.Parameter,
 /** A callable's binder and bounds interpreted in the surrounding lexical bindings. */
 final class DeclaredTypeParameter(val parameter: TypeShape.Parameter,
     val lower: Opt[DeclaredType], val upper: Opt[DeclaredType]) extends ValueKey:
+  override def toString: Str = s"DeclaredTypeParameter($parameter, $lower, $upper)"
   protected val valueHash: Int = ValueKey.hash("DeclaredTypeParameter".hashCode, parameter.hashCode, lower.hashCode, upper.hashCode)
   protected def sameValue(other: ValueKey): Bool = other match
     case that: DeclaredTypeParameter => parameter == that.parameter && lower == that.lower && upper == that.upper
@@ -409,6 +420,7 @@ final class DeclaredTypeParameter(val parameter: TypeShape.Parameter,
   * anonymous callable. Applied and imported views retain this identity.
   */
 final class TypeScheme(val owner: AnyDefinitionSymbol | TypeResolution, val parameters: Ls[DeclaredTypeParameter]) extends ValueKey:
+  override def toString: Str = s"TypeScheme($owner, $parameters)"
   protected val valueHash: Int = ValueKey.hash("TypeScheme".hashCode, System.identityHashCode(owner), parameters.hashCode)
   protected def sameValue(other: ValueKey): Bool = other match
     case that: TypeScheme => owner == that.owner && parameters == that.parameters

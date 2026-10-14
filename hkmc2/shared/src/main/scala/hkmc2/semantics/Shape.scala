@@ -262,6 +262,7 @@ final case class ExitMark(boundary: ResolutionBoundary, id: Opt[FlowSymbol], res
   if checkMarkPaths then
     assert(!rest.hasExit(boundary), "Repeated exit from the same lexical resolution scope")
 object NoMarks extends ExitMarks:
+  override def toString: Str = "NoMarks"
   protected val valueHash: Int = "NoMarks".hashCode
   protected def sameValue(other: ValueKey): Bool = other match
     case that: NoMarks.type => true
@@ -529,7 +530,8 @@ class NewShape(val receiver: DefnShape, val classTarget: ClassValueTarget, val c
 type ClassValueTarget = ClassSymbol | ClassCtorSymbol
 
 final class ClassValueShape(val target: ClassValueTarget, val parent: Opt[TermShape])
-    extends DefnShape(ClassValueShape.definitionOf(target), parent)
+    extends DefnShape(ClassValueShape.definitionOf(target), parent):
+  override def toString: Str = s"ClassValueShape($target, $parent)"
 
 object ClassValueShape:
   def definitionOf(target: ClassValueTarget): ClassDef = target match
@@ -593,6 +595,7 @@ class BaseShape(val defn: ClassLikeDef, val ext: Opt[TermShape]) extends CoreHea
 final class RecordTypeShape(val fields: Map[Str, DeclaredType])(
     val source: Term.Rcd, val declarations: Map[Str, RcdField]) extends CoreHeadShape:
   def describe: Str = "record type"
+  override def toString: Str = s"RecordTypeShape($fields)"
   def toLoc: Opt[Loc] = source.toLoc
   protected def getMemberImpl(name: Str)(using ResolutionContext): MemberLookup =
     fields.get(name).fold[MemberLookup](MemberLookup.Missing)(tpe =>
@@ -607,6 +610,7 @@ final class InstanceShape private (val tpe: DeclaredType, canonical: Opt[Instanc
   /** Diagnostic views share the origin-free reference's inference identity. */
   private[semantics] def candidateIdentity: InstanceShape = canonical.getOrElse(this)
   def describe: Str = "value with a declared type"
+  override def toString: Str = s"InstanceShape($tpe)"
   def toLoc: Opt[Loc] = tpe.resolution.source.toLoc
   protected def getMemberImpl(name: Str)(using ResolutionContext): MemberLookup =
     lastWords("Instance member lookup requires interpreting its type first")
@@ -688,6 +692,7 @@ final case class ActivatedShapeEvent(value: Shape, instances: TypeSubstitution) 
 final class NominalInstanceView(val defn: ClassLikeDef, val bindings: Map[VarSymbol, DeclaredType],
     val parent: Opt[TermShape])(val annotation: Opt[Term], val provenance: ShapeProvenance)(resolver: NewResolver) extends CoreHeadShape:
   def describe: Str = s"value of type '${defn.sym.nme}'"
+  override def toString: Str = s"NominalInstanceView(${defn.sym}, $bindings, $parent)"
   def toLoc: Opt[Loc] = defn.toLoc
   override def isInstanceOfClass(cls: ClassLikeDef)(using ResolutionContext): Bool =
     (defn is cls) || parent.exists(_.isInstanceOfClass(cls))
@@ -706,6 +711,7 @@ final class NominalInstanceView(val defn: ClassLikeDef, val bindings: Map[VarSym
   * an unannotated rest parameter from a fixed-arity list.
   */
 final class DeclaredParams(val params: Ls[Opt[DeclaredType]], val hasRest: Bool, val rest: Opt[DeclaredType]) extends ValueKey:
+  override def toString: Str = s"DeclaredParams($params, $hasRest, $rest)"
   protected val valueHash: Int = ValueKey.hash("DeclaredParams".hashCode, params.hashCode, hasRest.hashCode, rest.hashCode)
   protected def sameValue(other: ValueKey): Bool = other match
     case that: DeclaredParams => params == that.params && hasRest == that.hasRest && rest == that.rest
@@ -783,6 +789,7 @@ enum TypeInterfaceReason:
 final class OpaqueTypeShape(val source: Term)(val reason: TypeInterfaceReason) extends CoreHeadShape:
   override def isSelfContained: Bool = true
   def describe: Str = "value with no known interface"
+  override def toString: Str = s"OpaqueTypeShape($source)"
   def toLoc: Opt[Loc] = source.toLoc
   def provenance: ShapeProvenance = reason.provenance
   protected def getMemberImpl(name: Str)(using ResolutionContext): MemberLookup =
@@ -901,6 +908,7 @@ final class TupleShape private (val source: Term, val elements: Ls[TupleShape.El
     case TupleShape.Spread(shape, inner) =>
       ((shape.source is source) && inner == marks) || shape.containsSpread(source, marks)
   def describe: Str = "tuple literal"
+  override def toString: Str = s"TupleShape($source, $elements, $instances)"
   def toLoc: Opt[Loc] = source.toLoc
   protected def getMemberImpl(name: Str)(using ResolutionContext): MemberLookup = name.toIntOption match
     case S(index) if index >= 0 =>
@@ -931,6 +939,7 @@ final class TupleShape private (val source: Term, val elements: Ls[TupleShape.El
 final class DynShape private () extends CoreHeadShape:
   override def isSelfContained: Bool = true
   def describe: Str = "dynamic value"
+  override def toString: Str = "DynShape()"
   def toLoc: Opt[Loc] = N
   protected def getMemberImpl(name: Str)(using ResolutionContext): MemberLookup = MemberLookup.Dynamic(Nil)
 
@@ -977,6 +986,7 @@ object ShapeProvenance:
 final class UnknownValueShape(val source: Term, val fromPublicInterface: Bool)(val provenance: ShapeProvenance) extends CoreHeadShape:
   override def isSelfContained: Bool = true
   def describe: Str = "value of unknown shape"
+  override def toString: Str = s"UnknownValueShape($source, $fromPublicInterface)"
   def toLoc: Opt[Loc] = source.toLoc
   protected def getMemberImpl(name: Str)(using ResolutionContext): MemberLookup =
     MemberLookup.Unknown(MemberLookup.Uncertainty.ValueShape, fromPublicInterface, provenance)
@@ -987,6 +997,7 @@ final class UnknownValueShape(val source: Term, val fromPublicInterface: Bool)(v
 final class RigidTypeShape(val parameter: VarSymbol, val source: Term) extends CoreHeadShape:
   override def isSelfContained: Bool = true
   def describe: Str = "value of a type parameter"
+  override def toString: Str = s"RigidTypeShape($parameter, $source)"
   def toLoc: Opt[Loc] = source.toLoc
   def provenance: ShapeProvenance = ShapeProvenance(
     msg"Type parameter '${parameter.nme}' does not specify a member interface." -> parameter.toLoc :: Nil)
@@ -1117,6 +1128,7 @@ final case class RecordMember(field: RcdField, mutable: Bool)
 final class RecordShape private (val source: Term.Rcd, val elements: Ls[RecordShape.Element],
     val instances: TypeSubstitution) extends CoreHeadShape:
   def describe: Str = "record literal"
+  override def toString: Str = s"RecordShape($source, $elements, $instances)"
   def toLoc: Opt[Loc] = source.toLoc
   protected def getMemberImpl(name: Str)(using ResolutionContext): MemberLookup =
     import MemberLookup.*
