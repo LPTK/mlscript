@@ -52,7 +52,7 @@ object TypeShape:
       case _ => false
   final case class Record(source: Term.Rcd, fields: Ls[(RcdField, TypeResolution)]) extends TypeShape:
     protected val valueHash: Int =
-      var hash = System.identityHashCode(source)
+      var hash = ValueKey.hash("Record".hashCode, System.identityHashCode(source))
       var rest = fields
       while rest.nonEmpty do
         val field = rest.head
@@ -285,7 +285,7 @@ object DeclaredType:
     * Hash each flat map once at construction; later references retain this object.
     */
   private[semantics] final class Bindings private[DeclaredType] (val values: Map[VarSymbol, DeclaredType]) extends ValueKey:
-    protected val valueHash: Int = ValueKey.mapHash(values)(System.identityHashCode, _.hashCode)
+    protected val valueHash: Int = ValueKey.hash("Bindings".hashCode, ValueKey.mapHash(values)(System.identityHashCode, _.hashCode))
     protected def sameValue(other: ValueKey): Bool = other match
       case that: Bindings => values == that.values
       case _ => false
@@ -294,7 +294,7 @@ object DeclaredType:
 
   private[semantics] final class Reference private[DeclaredType] (val resolution: TypeResolution, val bindings: Bindings,
       val instances: TypeSubstitution, val positive: Bool, val pool: References) extends ValueKey:
-    protected val valueHash: Int = ValueKey.hash(System.identityHashCode(resolution),
+    protected val valueHash: Int = ValueKey.hash("Reference".hashCode, System.identityHashCode(resolution),
       bindings.hashCode, instances.hashCode, positive.hashCode)
     protected def sameValue(other: ValueKey): Bool = other match
       case that: Reference => equivalent(this, that)

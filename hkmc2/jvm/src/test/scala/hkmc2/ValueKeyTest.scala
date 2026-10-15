@@ -25,7 +25,7 @@ class ValueKeyTest extends AnyFunSuite:
 
 object ValueKeyTest:
   final class Key(val children: List[Key], val leaf: Option[Object]) extends ValueKey:
-    protected val valueHash: Int = ValueKey.hash(children.hashCode, leaf.hashCode)
+    protected val valueHash: Int = ValueKey.hash("Key".hashCode, children.hashCode, leaf.hashCode)
     protected def sameValue(other: ValueKey): Boolean = other match
       case that: Key => children == that.children && leaf == that.leaf
       case _ => false

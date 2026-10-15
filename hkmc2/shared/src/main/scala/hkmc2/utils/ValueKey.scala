@@ -3,8 +3,11 @@ package utils
 
 /** Explicit equality for immutable construction data. Subclasses name their
   * fields directly: no tuple or Product is allocated merely to hash or compare
-  * them. Final equals/hashCode preserve this policy even for case subclasses,
-  * which can use generated extractors without generated structural equality.
+  * them. Each hash starts from a tag, the hash of the class's name as a string
+  * literal, so that variants with equal fields hash differently; a name is
+  * harder to duplicate by mistake than a numeric tag. Final equals/hashCode
+  * preserve this policy even for case subclasses, which can use generated
+  * extractors without generated structural equality.
   * Mutable inference nodes must use IdentityEquality instead. A plain subclass
   * has no generated toString: define one in case-class form, so that debug
   * traces printing it stay readable and do not depend on identity hashes.

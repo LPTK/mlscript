@@ -90,21 +90,22 @@ object ShapeIdentity:
     private def parentHash(parent: Opt[TermShape]): Int = parent.fold(0)(_.comparison.hashCode)
     private def sameParent(left: Opt[TermShape], right: Opt[TermShape]): Bool =
       left.fold(right.isEmpty)(a => right.exists(b => a.comparison == b.comparison))
+    // Each case is tagged with the name of the viewed shape's class.
     protected val valueHash: Int = shape match
-      case MarkedShape(base, marks) => ValueKey.hash(1, base.comparison.hashCode, marks.hashCode)
-      case ContextualShape(source, instances) => ValueKey.hash(2, source.comparison.hashCode, instances.hashCode)
-      case view: ClassValueShape => ValueKey.hash(3, System.identityHashCode(view.target), parentHash(view.parent))
-      case view: NominalInstanceView => ValueKey.hash(4, System.identityHashCode(view.defn), ValueKey.mapHash(view.bindings)(System.identityHashCode, _.hashCode), parentHash(view.parent))
-      case view: CallableTypeShape => ValueKey.hash(5, System.identityHashCode(view.source), view.paramLists.hashCode,
+      case MarkedShape(base, marks) => ValueKey.hash("MarkedShape".hashCode, base.comparison.hashCode, marks.hashCode)
+      case ContextualShape(source, instances) => ValueKey.hash("ContextualShape".hashCode, source.comparison.hashCode, instances.hashCode)
+      case view: ClassValueShape => ValueKey.hash("ClassValueShape".hashCode, System.identityHashCode(view.target), parentHash(view.parent))
+      case view: NominalInstanceView => ValueKey.hash("NominalInstanceView".hashCode, System.identityHashCode(view.defn), ValueKey.mapHash(view.bindings)(System.identityHashCode, _.hashCode), parentHash(view.parent))
+      case view: CallableTypeShape => ValueKey.hash("CallableTypeShape".hashCode, System.identityHashCode(view.source), view.paramLists.hashCode,
         view.result.hashCode, view.scheme.hashCode, view.supplied.hashCode,
         view.declaration.fold(0)(System.identityHashCode), view.asyncResult.hashCode)
-      case view: RecordTypeShape => ValueKey.hash(6, ValueKey.mapHash(view.fields)(_.hashCode, _.hashCode))
-      case view: SpecializedShape => ValueKey.hash(7, view.declaration.comparison.hashCode,
+      case view: RecordTypeShape => ValueKey.hash("RecordTypeShape".hashCode, ValueKey.mapHash(view.fields)(_.hashCode, _.hashCode))
+      case view: SpecializedShape => ValueKey.hash("SpecializedShape".hashCode, view.declaration.comparison.hashCode,
         view.arguments.hashCode, view.instances.hashCode)
-      case view: UnknownValueShape => ValueKey.hash(8, System.identityHashCode(view.source), view.fromPublicInterface.hashCode)
-      case view: OpaqueTypeShape => ValueKey.hash(9, System.identityHashCode(view.source))
-      case view: RigidTypeShape => ValueKey.hash(10, System.identityHashCode(view.parameter), System.identityHashCode(view.source))
-      case event: ActivatedShapeEvent => ValueKey.hash(12, event.value.comparison.hashCode, event.instances.hashCode)
+      case view: UnknownValueShape => ValueKey.hash("UnknownValueShape".hashCode, System.identityHashCode(view.source), view.fromPublicInterface.hashCode)
+      case view: OpaqueTypeShape => ValueKey.hash("OpaqueTypeShape".hashCode, System.identityHashCode(view.source))
+      case view: RigidTypeShape => ValueKey.hash("RigidTypeShape".hashCode, System.identityHashCode(view.parameter), System.identityHashCode(view.source))
+      case event: ActivatedShapeEvent => ValueKey.hash("ActivatedShapeEvent".hashCode, event.value.comparison.hashCode, event.instances.hashCode)
       case _ => lastWords("A graph producer cannot be a structural view key")
     protected def sameValue(other: ValueKey): Bool = other match
       case that: View => shape match

@@ -20,7 +20,7 @@ final case class CtorPatternShape(
     resSym: FlowSymbol,
     marks: Ls[Marks],
 ) extends PatternShape:
-  protected val valueHash: Int = ValueKey.hash(System.identityHashCode(cls), fs.hashCode,
+  protected val valueHash: Int = ValueKey.hash("CtorPatternShape".hashCode, System.identityHashCode(cls), fs.hashCode,
     System.identityHashCode(src), System.identityHashCode(resSym), marks.hashCode)
   protected def sameValue(other: ValueKey): Bool = other match
     case that: CtorPatternShape =>
