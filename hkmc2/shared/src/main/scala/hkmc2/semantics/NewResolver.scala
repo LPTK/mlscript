@@ -1622,16 +1622,18 @@ class NewResolver:
     // A wildcard exit followed by an entry is not an identity: the exit
     // consumes a candidate's entry site and the new entry supplies its own.
     // Deferred references use exactly the same transport as ordinary values.
-    markCarrier.exit(previous).exit(marks) match
-      case Marked(_, NoMarks) => base
-      case Marked(_, path: SomeMarks) =>
-        val reference = ContextualType(base, path :: Nil)
-        rctx.state.contextualTypes.getOrElseUpdate(reference, {
-          val resolution = new TypeResolution(base.resolution.source, base.resolution.fail)
-          resolution.publish(TypeShape.Contextual(reference))
-          declaredType(resolution, Map.empty)
-        }).withOrigin(base.origin)
-      case NoShape => extremeType(false)
+    // The nested trace shows the carrier standing in for `base` (see markCarrier).
+    trace[DeclaredType](s"transportType ${base.resolution.showDbg} (previous = ${previous.map(_.showDbg)}, marks = ${marks.map(_.showDbg)})"):
+      markCarrier.exit(previous).exit(marks) match
+        case Marked(_, NoMarks) => base
+        case Marked(_, path: SomeMarks) =>
+          val reference = ContextualType(base, path :: Nil)
+          rctx.state.contextualTypes.getOrElseUpdate(reference, {
+            val resolution = new TypeResolution(base.resolution.source, base.resolution.fail)
+            resolution.publish(TypeShape.Contextual(reference))
+            declaredType(resolution, Map.empty)
+          }).withOrigin(base.origin)
+        case NoShape => extremeType(false)
 
   private def inverseMarks(marks: Ls[Marks])(using ResolutionContext): Ls[Marks] =
     // Reverse directions using ordinary mark operations, not a reordered list
