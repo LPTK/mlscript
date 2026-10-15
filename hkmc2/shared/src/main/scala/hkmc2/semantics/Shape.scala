@@ -90,23 +90,23 @@ object ShapeIdentity:
     private def parentHash(parent: Opt[TermShape]): Int = parent.fold(0)(_.comparison.hashCode)
     private def sameParent(left: Opt[TermShape], right: Opt[TermShape]): Bool =
       left.fold(right.isEmpty)(a => right.exists(b => a.comparison == b.comparison))
-    // Each case is tagged with the name of the viewed shape's class.
-    protected val valueHash: Int = shape match
-      case MarkedShape(base, marks) => ValueKey.hash("MarkedShape".hashCode, base.comparison.hashCode, marks.hashCode)
-      case ContextualShape(source, instances) => ValueKey.hash("ContextualShape".hashCode, source.comparison.hashCode, instances.hashCode)
-      case view: ClassValueShape => ValueKey.hash("ClassValueShape".hashCode, System.identityHashCode(view.target), parentHash(view.parent))
-      case view: NominalInstanceView => ValueKey.hash("NominalInstanceView".hashCode, System.identityHashCode(view.defn), ValueKey.mapHash(view.bindings)(System.identityHashCode, _.hashCode), parentHash(view.parent))
-      case view: CallableTypeShape => ValueKey.hash("CallableTypeShape".hashCode, System.identityHashCode(view.source), view.paramLists.hashCode,
+    // Views of different shape classes are kept apart by the viewed shape's tag.
+    protected val valueHash: Int = ValueKey.mix(ValueKey.tag(shape), shape match
+      case MarkedShape(base, marks) => ValueKey.hash(base.comparison.hashCode, marks.hashCode)
+      case ContextualShape(source, instances) => ValueKey.hash(source.comparison.hashCode, instances.hashCode)
+      case view: ClassValueShape => ValueKey.hash(System.identityHashCode(view.target), parentHash(view.parent))
+      case view: NominalInstanceView => ValueKey.hash(System.identityHashCode(view.defn), ValueKey.mapHash(view.bindings)(System.identityHashCode, _.hashCode), parentHash(view.parent))
+      case view: CallableTypeShape => ValueKey.hash(System.identityHashCode(view.source), view.paramLists.hashCode,
         view.result.hashCode, view.scheme.hashCode, view.supplied.hashCode,
         view.declaration.fold(0)(System.identityHashCode), view.asyncResult.hashCode)
-      case view: RecordTypeShape => ValueKey.hash("RecordTypeShape".hashCode, ValueKey.mapHash(view.fields)(_.hashCode, _.hashCode))
-      case view: SpecializedShape => ValueKey.hash("SpecializedShape".hashCode, view.declaration.comparison.hashCode,
+      case view: RecordTypeShape => ValueKey.mapHash(view.fields)(_.hashCode, _.hashCode)
+      case view: SpecializedShape => ValueKey.hash(view.declaration.comparison.hashCode,
         view.arguments.hashCode, view.instances.hashCode)
-      case view: UnknownValueShape => ValueKey.hash("UnknownValueShape".hashCode, System.identityHashCode(view.source), view.fromPublicInterface.hashCode)
-      case view: OpaqueTypeShape => ValueKey.hash("OpaqueTypeShape".hashCode, System.identityHashCode(view.source))
-      case view: RigidTypeShape => ValueKey.hash("RigidTypeShape".hashCode, System.identityHashCode(view.parameter), System.identityHashCode(view.source))
-      case event: ActivatedShapeEvent => ValueKey.hash("ActivatedShapeEvent".hashCode, event.value.comparison.hashCode, event.instances.hashCode)
-      case _ => lastWords("A graph producer cannot be a structural view key")
+      case view: UnknownValueShape => ValueKey.hash(System.identityHashCode(view.source), view.fromPublicInterface.hashCode)
+      case view: OpaqueTypeShape => System.identityHashCode(view.source)
+      case view: RigidTypeShape => ValueKey.hash(System.identityHashCode(view.parameter), System.identityHashCode(view.source))
+      case event: ActivatedShapeEvent => ValueKey.hash(event.value.comparison.hashCode, event.instances.hashCode)
+      case _ => lastWords("A graph producer cannot be a structural view key"))
     protected def sameValue(other: ValueKey): Bool = other match
       case that: View => shape match
         case a: MarkedShape[?] => that.shape match
@@ -196,7 +196,7 @@ final case class ShapeParts(value: CoreTermShape, instances: TypeSubstitution,
   * symbol identities distinct is still necessary for overload selection and lowering.
   */
 final class ResolutionBoundary private (val symbol: AnyDefinitionSymbol) extends ValueKey:
-  protected val valueHash: Int = ValueKey.hash("ResolutionBoundary".hashCode, System.identityHashCode(symbol))
+  protected val valueHash: Int = ValueKey.hash(ValueKey.tag(this), System.identityHashCode(symbol))
   protected def sameValue(other: ValueKey): Bool = other match
     case that: ResolutionBoundary => symbol == that.symbol
     case _ => false
@@ -241,7 +241,7 @@ sealed abstract class Marks extends ValueKey:
 
 type SomeMarks = EntryMark | ExitMark
 final case class EntryMark(boundary: ResolutionBoundary, id: Opt[FlowSymbol], rest: Marks) extends Marks:
-  protected val valueHash: Int = ValueKey.hash("EntryMark".hashCode, boundary.hashCode, id.hashCode, rest.hashCode)
+  protected val valueHash: Int = ValueKey.hash(ValueKey.tag(this), boundary.hashCode, id.hashCode, rest.hashCode)
   protected def sameValue(other: ValueKey): Bool = other match
     case that: EntryMark => boundary == that.boundary && id == that.id && rest == that.rest
     case _ => false
@@ -256,7 +256,7 @@ sealed abstract class ExitMarks extends Marks:
     case ExitMark(b, _, rest) => b == boundary || rest.hasExit(boundary)
     case NoMarks => false
 final case class ExitMark(boundary: ResolutionBoundary, id: Opt[FlowSymbol], rest: ExitMarks) extends ExitMarks:
-  protected val valueHash: Int = ValueKey.hash("ExitMark".hashCode, boundary.hashCode, id.hashCode, rest.hashCode)
+  protected val valueHash: Int = ValueKey.hash(ValueKey.tag(this), boundary.hashCode, id.hashCode, rest.hashCode)
   protected def sameValue(other: ValueKey): Bool = other match
     case that: ExitMark => boundary == that.boundary && id == that.id && rest == that.rest
     case _ => false
@@ -264,7 +264,7 @@ final case class ExitMark(boundary: ResolutionBoundary, id: Opt[FlowSymbol], res
     assert(!rest.hasExit(boundary), "Repeated exit from the same lexical resolution scope")
 object NoMarks extends ExitMarks:
   override def toString: Str = "NoMarks"
-  protected val valueHash: Int = "NoMarks".hashCode
+  protected val valueHash: Int = ValueKey.tag(this)
   protected def sameValue(other: ValueKey): Bool = other match
     case that: NoMarks.type => true
     case _ => false
@@ -713,7 +713,7 @@ final class NominalInstanceView(val defn: ClassLikeDef, val bindings: Map[VarSym
   */
 final class DeclaredParams(val params: Ls[Opt[DeclaredType]], val hasRest: Bool, val rest: Opt[DeclaredType]) extends ValueKey:
   override def toString: Str = s"DeclaredParams($params, $hasRest, $rest)"
-  protected val valueHash: Int = ValueKey.hash("DeclaredParams".hashCode, params.hashCode, hasRest.hashCode, rest.hashCode)
+  protected val valueHash: Int = ValueKey.hash(ValueKey.tag(this), params.hashCode, hasRest.hashCode, rest.hashCode)
   protected def sameValue(other: ValueKey): Bool = other match
     case that: DeclaredParams => params == that.params && hasRest == that.hasRest && rest == that.rest
     case _ => false
@@ -724,7 +724,7 @@ final class DeclaredParams(val params: Ls[Opt[DeclaredType]], val hasRest: Bool,
   */
 final case class AsyncResult(annotation: Annot.Async, remainingLists: Int) extends ValueKey:
   // Every async annotation wraps the result in Promise. Its span is evidence.
-  protected val valueHash: Int = ValueKey.hash("AsyncResult".hashCode, remainingLists.hashCode)
+  protected val valueHash: Int = ValueKey.hash(ValueKey.tag(this), remainingLists.hashCode)
   protected def sameValue(other: ValueKey): Bool = other match
     case that: AsyncResult => remainingLists == that.remainingLists
     case _ => false
@@ -1050,29 +1050,29 @@ object TupleShape:
         case ViewedField(source, previous, marks) => ViewedField(source, instances.withOverrides(previous), marks)
         case _ => ViewedField(this, instances, Nil)
   final case class ViewedField(source: Fixed, instances: TypeSubstitution, marks: Ls[Marks]) extends Fixed:
-    protected val valueHash: Int = ValueKey.hash("ViewedField".hashCode, source.hashCode, instances.hashCode, marks.hashCode)
+    protected val valueHash: Int = ValueKey.hash(ValueKey.tag(this), source.hashCode, instances.hashCode, marks.hashCode)
     protected def sameValue(other: ValueKey): Bool = other match
       case that: ViewedField => source == that.source && instances == that.instances && marks == that.marks
       case _ => false
   final case class Field(field: Fld, marks: Ls[Marks]) extends Fixed:
-    protected val valueHash: Int = ValueKey.hash("Field".hashCode, System.identityHashCode(field), marks.hashCode)
+    protected val valueHash: Int = ValueKey.hash(ValueKey.tag(this), System.identityHashCode(field), marks.hashCode)
     protected def sameValue(other: ValueKey): Bool = other match
       case that: Field => (field eq that.field) && marks == that.marks
       case _ => false
   final case class ValueField(value: TermShape, marks: Ls[Marks]) extends Fixed:
-    protected val valueHash: Int = ValueKey.hash("ValueField".hashCode, value.comparison.hashCode, marks.hashCode)
+    protected val valueHash: Int = ValueKey.hash(ValueKey.tag(this), value.comparison.hashCode, marks.hashCode)
     protected def sameValue(other: ValueKey): Bool = other match
       case that: ValueField => value.comparison == that.value.comparison && marks == that.marks
       case _ => false
   final case class TypedField(tpe: DeclaredType, marks: Ls[Marks]) extends Fixed:
-    protected val valueHash: Int = ValueKey.hash("TypedField".hashCode, tpe.hashCode, marks.hashCode)
+    protected val valueHash: Int = ValueKey.hash(ValueKey.tag(this), tpe.hashCode, marks.hashCode)
     protected def sameValue(other: ValueKey): Bool = other match
       case that: TypedField => tpe == that.tpe && marks == that.marks
       case _ => false
   // Mutable tuple slots retain their positions, but their initializer cannot
   // supply the shape of later reads (including reads through a spread copy).
   final case class UnknownField(source: Term, marks: Ls[Marks]) extends Fixed:
-    protected val valueHash: Int = ValueKey.hash("UnknownField".hashCode, source.hashCode, marks.hashCode)
+    protected val valueHash: Int = ValueKey.hash(ValueKey.tag(this), source.hashCode, marks.hashCode)
     protected def sameValue(other: ValueKey): Bool = other match
       case that: UnknownField => source == that.source && marks == that.marks
       case _ => false
@@ -1082,12 +1082,12 @@ object TupleShape:
     * Use this for typed arrays, opaque layouts, and recursive widening, never
     * for a spread whose shape has not arrived yet. */
   final case class Unknown(source: Term, element: Fixed) extends Segment:
-    protected val valueHash: Int = ValueKey.hash("Unknown".hashCode, source.hashCode, element.hashCode)
+    protected val valueHash: Int = ValueKey.hash(ValueKey.tag(this), source.hashCode, element.hashCode)
     protected def sameValue(other: ValueKey): Bool = other match
       case that: Unknown => source == that.source && element == that.element
       case _ => false
   final case class Spread(shape: TupleShape, marks: Marks) extends Element:
-    protected val valueHash: Int = ValueKey.hash("Spread".hashCode, shape.hashCode, marks.hashCode)
+    protected val valueHash: Int = ValueKey.hash(ValueKey.tag(this), shape.hashCode, marks.hashCode)
     protected def sameValue(other: ValueKey): Bool = other match
       case that: Spread => shape == that.shape && marks == that.marks
       case _ => false
@@ -1097,7 +1097,7 @@ object TupleShape:
     * flattening away the parent would hide recursive producer dependencies from
     * containsSpread, allowing recursion through rest slicing to evade widening. */
   final case class Rest(shape: TupleShape, segments: Ls[Segment]) extends Element:
-    protected val valueHash: Int = ValueKey.hash("Rest".hashCode, shape.hashCode, segments.hashCode)
+    protected val valueHash: Int = ValueKey.hash(ValueKey.tag(this), shape.hashCode, segments.hashCode)
     protected def sameValue(other: ValueKey): Bool = other match
       case that: Rest => shape == that.shape && segments == that.segments
       case _ => false
@@ -1178,22 +1178,22 @@ object RecordShape:
   sealed abstract class Element extends ValueKey
   object Element:
     final case class Field(field: RcdField) extends Element:
-      protected val valueHash: Int = ValueKey.hash("Field".hashCode, System.identityHashCode(field))
+      protected val valueHash: Int = ValueKey.hash(ValueKey.tag(this), System.identityHashCode(field))
       protected def sameValue(other: ValueKey): Bool = other match
         case that: Field => (field eq that.field)
         case _ => false
     final case class Spread(shape: RecordShape, marks: Marks) extends Element:
-      protected val valueHash: Int = ValueKey.hash("Spread".hashCode, shape.hashCode, marks.hashCode)
+      protected val valueHash: Int = ValueKey.hash(ValueKey.tag(this), shape.hashCode, marks.hashCode)
       protected def sameValue(other: ValueKey): Bool = other match
         case that: Spread => shape == that.shape && marks == that.marks
         case _ => false
     final case class Unknown(shape: UnknownValueShape) extends Element:
-      protected val valueHash: Int = ValueKey.hash("Unknown".hashCode, shape.comparison.hashCode)
+      protected val valueHash: Int = ValueKey.hash(ValueKey.tag(this), shape.comparison.hashCode)
       protected def sameValue(other: ValueKey): Bool = other match
         case that: Unknown => shape.comparison == that.shape.comparison
         case _ => false
     final case class Dynamic(marks: Ls[Marks]) extends Element:
-      protected val valueHash: Int = ValueKey.hash("Dynamic".hashCode, marks.hashCode)
+      protected val valueHash: Int = ValueKey.hash(ValueKey.tag(this), marks.hashCode)
       protected def sameValue(other: ValueKey): Bool = other match
         case that: Dynamic => marks == that.marks
         case _ => false

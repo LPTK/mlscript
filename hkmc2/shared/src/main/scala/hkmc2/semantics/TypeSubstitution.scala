@@ -11,7 +11,7 @@ import hkmc2.utils.*, shorthands.*
 final class TypeSubstitution private (private val bindings: Map[VarSymbol, TypeParameterInstance]) extends ValueKey:
   export bindings.{apply, get, getOrElse, isEmpty, nonEmpty, size, keySet, keysIterator, values, iterator, forall, map}
   override def toString: Str = bindings.iterator.map((binder, instance) => s"$binder -> $instance").mkString("TypeSubstitution(", ", ", ")")
-  protected val valueHash: Int = ValueKey.hash("TypeSubstitution".hashCode, ValueKey.mapHash(bindings)(System.identityHashCode, System.identityHashCode))
+  protected val valueHash: Int = ValueKey.hash(ValueKey.tag(this), ValueKey.mapHash(bindings)(System.identityHashCode, System.identityHashCode))
   protected def sameValue(other: ValueKey): Bool = other match
     case that: TypeSubstitution => bindings == that.bindings
     case _ => false

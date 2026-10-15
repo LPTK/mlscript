@@ -3,11 +3,10 @@ package utils
 
 /** Explicit equality for immutable construction data. Subclasses name their
   * fields directly: no tuple or Product is allocated merely to hash or compare
-  * them. Each hash starts from a tag, the hash of the class's name as a string
-  * literal, so that variants with equal fields hash differently; a name is
-  * harder to duplicate by mistake than a numeric tag. Final equals/hashCode
-  * preserve this policy even for case subclasses, which can use generated
-  * extractors without generated structural equality.
+  * them. Each hash starts from the class's tag (ValueKey.tag), so that variants
+  * with equal fields hash differently. Final equals/hashCode preserve this
+  * policy even for case subclasses, which can use generated extractors without
+  * generated structural equality.
   * Mutable inference nodes must use IdentityEquality instead. A plain subclass
   * has no generated toString: define one in case-class form, so that debug
   * traces printing it stay readable and do not depend on identity hashes.
@@ -21,6 +20,15 @@ abstract class ValueKey:
     case _ => false
 
 object ValueKey:
+  /** The hash of a value's class name. Unlike `getClass.hashCode`, an identity
+    * hash, it is the same in every run, and it cannot fall out of sync with the
+    * class as a hand-written tag can. It is computed once per value, as part of
+    * `valueHash`; on the JVM, the class's name and its hash are also cached.
+    * Only final classes and objects may tag themselves with `tag(this)`: a
+    * subclass would get another tag while possibly comparing equal.
+    */
+  def tag(value: AnyRef): Int = value.getClass.getName.hashCode
+
   /** Compose field hashes without a tuple, iterator, or varargs array. */
   inline def mix(hash: Int, field: Int): Int = scala.util.hashing.MurmurHash3.mix(hash, field)
 
