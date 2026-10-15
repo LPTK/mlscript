@@ -1246,7 +1246,7 @@ extends Importer:
     * Legacy-resolution units record these too, since new-resolution consumers
     * can import their syntax.
     */
-  private def withTypeBinders[T <: Term](term: T)(using Ctx): T =
+  private def withTypeBinders(term: Term)(using Ctx): term.type =
     rctx.recordLexicalBinders(term, ctx.typeBinders)
     term
   
@@ -1274,7 +1274,7 @@ extends Importer:
     * NewResolver.resultType).
     */
   private def annotated(annotation: Annot, target: Term)(using Ctx): Term.Annotated = annotation match
-    case _: Annot.Async => withTypeBinders(Term.Annotated(annotation, target))
+    case _: Annot.Async => withTypeBinders(new Term.Annotated(annotation, target))
     case _ => Term.Annotated(annotation, target)
   
   private def app(lt: Term, rt: Term)(tree: Tree.App, typ: Opt[typing.Type], resSym: FlowSymbol)(using Ctx): Term =
@@ -1753,7 +1753,7 @@ extends Importer:
     case tree @ Tup(TermDef(Ins, f, N) :: fs) =>
       withTypeBinders(Term.CtxTup((f :: fs).map(fld(_, interp.elements)))(tree))
     case Modified(kw @ Keywrd(Keyword.`mut`), tree @ Tup(fields)) =>
-      Term.Mut(withTypeBinders(Term.Tup(fields.map(fld(_, interp.elements)))(tree))).mkLocWith(kw)
+      Term.Mut(withTypeBinders(new Term.Tup(fields.map(fld(_, interp.elements)))(tree))).mkLocWith(kw)
     case tree @ Tup(fields) =>
       withTypeBinders(Term.Tup(fields.map(fld(_, interp.elements)))(tree))
       
@@ -2797,7 +2797,7 @@ extends Importer:
     val isRcd = acc.exists:
       case _: (RcdField | RcdSpread) => true
       case _ => false
-    if isRcd then withTypeBinders(Term.Rcd(mut = false, (res.toList ::: acc).reverse))
+    if isRcd then withTypeBinders(new Term.Rcd(mut = false, (res.toList ::: acc).reverse))
     else Blk(acc.reverse, res.getOrElse:
       if hasResult
         then unit
