@@ -21,12 +21,11 @@ open Option
 :sjs
 None isDefined()
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let inlinedReceiver2, x2;
-//│ inlinedReceiver2 = Option;
+//│ let x2;
 //│ x2 = Option.None;
-//│ if (x2 instanceof inlinedReceiver2.Some.class) {
+//│ if (x2 instanceof Option.Some.class) {
 //│   return true
-//│ } else if (x2 instanceof inlinedReceiver2.None.class) {
+//│ } else if (x2 instanceof Option.None.class) {
 //│   return false
 //│ }
 //│ throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -49,12 +48,11 @@ Some(1)
 :sjs
 (new Some(1)) isDefined()
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let tmp3, inlinedReceiver5;
+//│ let tmp3;
 //│ tmp3 = globalThis.Object.freeze(new Option.Some.class(1));
-//│ inlinedReceiver5 = Option;
-//│ if (tmp3 instanceof inlinedReceiver5.Some.class) {
+//│ if (tmp3 instanceof Option.Some.class) {
 //│   return true
-//│ } else if (tmp3 instanceof inlinedReceiver5.None.class) {
+//│ } else if (tmp3 instanceof Option.None.class) {
 //│   return false
 //│ }
 //│ throw globalThis.Object.freeze(new globalThis.Error("match error"));
@@ -85,7 +83,7 @@ None == Option.None
 :re
 Option.oops
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.86: 	Option.oops
+//│ ║  l.84: 	Option.oops
 //│ ║        	^^^^^^^^^^^
 //│ ╟── Module 'Option' does not contain member 'oops'
 //│ ║  in ../../mlscript-compile/Option.mls
@@ -96,7 +94,7 @@ Option.oops
 :e
 open Option { oops }
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.97: 	open Option { oops }
+//│ ║  l.95: 	open Option { oops }
 //│ ║        	              ^^^^
 //│ ╟── Module 'Option' does not contain member 'oops'
 //│ ║  in ../../mlscript-compile/Option.mls
@@ -107,7 +105,7 @@ open Option { oops }
 :re
 oops
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.108: 	oops
+//│ ║  l.106: 	oops
 //│ ║         	^^^^
 //│ ╟── Module 'Option' does not contain member 'oops'
 //│ ║  in ../../mlscript-compile/Option.mls
@@ -119,7 +117,7 @@ oops
 :re
 Option.None.oops
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.120: 	Option.None.oops
+//│ ║  l.118: 	Option.None.oops
 //│ ║         	^^^^^^^^^^^^^^^^
 //│ ╟── Object 'None' does not contain member 'oops'
 //│ ║  in ../../mlscript-compile/Option.mls

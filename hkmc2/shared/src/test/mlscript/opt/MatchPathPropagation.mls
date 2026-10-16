@@ -1,0 +1,81 @@
+:.
+:js
+
+open annotations { noInline }
+
+
+// Class tests must propagate aliases in the constructor path as well as the scrutinee.
+class Owner with
+  class Item
+  class Other
+
+:sjs
+@noInline fun matches(owner: Owner, value) =
+  let alias = owner
+  value is alias.Item
+//│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let matches;
+//│ matches = function matches(owner, value) {
+//│   if (value instanceof owner.Item) { return true }
+//│   return false;
+//│ };
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+:expect [true, false]
+let firstOwner = new Owner
+let secondOwner = new Owner
+[matches(firstOwner, new firstOwner.Item), matches(firstOwner, new secondOwner.Item)]
+//│ = [true, false]
+//│ firstOwner = Owner { Item: class Item, Other: class Other }
+//│ secondOwner = Owner { Item: class Item, Other: class Other }
+
+
+// Reassigning the original receiver must not redirect the saved constructor path.
+:sjs
+@noInline fun matchesBeforeAndAfter(owner: Owner, replacement: Owner, value) =
+  let original = owner
+  set owner = replacement
+  [(value is original.Item), (value is owner.Item)]
+//│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let matchesBeforeAndAfter;
+//│ matchesBeforeAndAfter = function matchesBeforeAndAfter(owner, replacement, value) {
+//│   let tmp4;
+//│   if (value instanceof owner.Item) {
+//│     tmp4 = true;
+//│   } else {
+//│     tmp4 = false;
+//│   }
+//│   if (value instanceof replacement.Item) {
+//│     return globalThis.Object.freeze([
+//│       tmp4,
+//│       true
+//│     ])
+//│   }
+//│   return globalThis.Object.freeze([ tmp4, false ]);
+//│ };
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+:expect [true, false]
+matchesBeforeAndAfter(firstOwner, secondOwner, new firstOwner.Item)
+//│ = [true, false]
+
+:expect [false, true]
+matchesBeforeAndAfter(firstOwner, secondOwner, new secondOwner.Item)
+//│ = [false, true]
+
+
+// Every constructor test uses the incoming facts, even when an arm reassigns the receiver.
+@noInline fun classify(owner: Owner, replacement: Owner, value) =
+  let alias = owner
+  if value is
+    alias.Item then
+      set owner = replacement
+      if value is owner.Item then 10 else 11
+    alias.Other then 20
+    else 0
+
+:expect [11, 20, 0]
+[classify(firstOwner, secondOwner, new firstOwner.Item),
+  classify(firstOwner, secondOwner, new firstOwner.Other),
+  classify(firstOwner, secondOwner, new secondOwner.Other)]
+//│ = [11, 20, 0]

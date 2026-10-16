@@ -1080,43 +1080,41 @@ class BlockSimplifier
           
           if !gaveUp then log(s"Filtered arms: ${arms2.map(_._1)}")
           
-          val newArms = arms2.mapConserve:
-            case arm @ (cse, body) =>
-              // * We need to visit the symbols of the cases to register the liveness of their AssignedInfo.
-              // * Normally, the Match case uses `applyCase`, which uses `applyPath`, and they both take a continuation,
-              // * making things unnecessarily awkward for the data-flow analysis.
-              cse.freeVars.foreach:
-                case sym: SimpleSymbol => applySimpleSymbol(sym)
-                case _ =>
+          applyListOf(arms2, (arm, k) =>
+            val (cse, body) = arm
+            // Rewrite constructor paths using the incoming facts, before the arm body
+            // can change them. This also records their uses for dead-assignment removal.
+            applyCase(cse): newCase =>
               val newBody = applyBlock(body)
               recordBranch(newBody)
-              if newBody is body then arm else cse -> newBody
-          val newDflt =
-            if !gaveUp && shapes.isEmpty
-            then
-              val res = S(Unreachable("exhaustive match"))
-              if dflt === res then dflt else
-                registerChange(s"Default arm is unreachable because all shapes are covered")
-                res
-            else dflt.mapConserve:
-              case body =>
-                val newBody = applyBlock(body)
-                recordBranch(newBody)
-                if newBody is body then body else newBody
-          if newDflt.isEmpty then branchAssigneds ::= oldAssigned
-          val branchKeys = branchAssigneds.iterator.flatMap(_.keysIterator).toSet
-          assignedResults =
-            branchKeys.iterator
-              .map: key =>
-                key -> mergeBranchInfos(branchAssigneds.map(_(key)))
-              .toMap
-              .withDefaultValue(Unknown)
+              k(if (newCase is cse) && (newBody is body) then arm else newCase -> newBody)
+          ): newArms =>
+            val newDflt =
+              if !gaveUp && shapes.isEmpty
+              then
+                val res = S(Unreachable("exhaustive match"))
+                if dflt === res then dflt else
+                  registerChange(s"Default arm is unreachable because all shapes are covered")
+                  res
+              else dflt.mapConserve:
+                case body =>
+                  val newBody = applyBlock(body)
+                  recordBranch(newBody)
+                  if newBody is body then body else newBody
+            if newDflt.isEmpty then branchAssigneds ::= oldAssigned
+            val branchKeys = branchAssigneds.iterator.flatMap(_.keysIterator).toSet
+            assignedResults =
+              branchKeys.iterator
+                .map: key =>
+                  key -> mergeBranchInfos(branchAssigneds.map(_(key)))
+                .toMap
+                .withDefaultValue(Unknown)
           
-          // log(s"After match: ${assignedResults}")
-          val restRewritten = applySubBlock(rest)
+            // log(s"After match: ${assignedResults}")
+            val restRewritten = applySubBlock(rest)
           
-          if (scrut2 is scrut) && (newArms is arms) && (newDflt is dflt) && (restRewritten is rest) then b
-          else Match(scrut2, newArms, newDflt, restRewritten)
+            if (scrut2 is scrut) && (newArms is arms) && (newDflt is dflt) && (restRewritten is rest) then b
+            else Match(scrut2, newArms, newDflt, restRewritten)
           
       case _ =>
         super.applyBlock(b)
@@ -1425,7 +1423,8 @@ class BlockSimplifier
         ).applyBlock(blk)
         used.exists(!bound(_))
 
-      /** Evaluate the qualifier chain once, before arguments or the inlined body can mutate it. */
+      /** Reuse immutable definition references and lexical receivers directly.
+        * Save other qualifiers before arguments or the inlined body can mutate them. */
       def bindReceivers(paths: Ls[InnerSymbol -> Path])(k: Map[InnerSymbol, Value] => Block): Block = paths match
         case Nil => k(Map.empty)
         case (owner, path) :: outer =>
@@ -1436,8 +1435,11 @@ class BlockSimplifier
               case (v: Value.This, _) => v
               case (_, Nil) => path
               case _ => lastWords("An enclosing receiver requires a nested module selection or lexical receiver.")
-            val receiver = TempSymbol(N, rhs.erasedValueType, "inlinedReceiver")
-            blockBuilder.assignScoped(receiver, rhs)(k(mapping + (owner -> receiver.asSimpleRef)))
+            rhs match
+              case v: (Value.MemberRef | Value.This) => k(mapping + (owner -> v))
+              case _ =>
+                val receiver = TempSymbol(N, rhs.erasedValueType, "inlinedReceiver")
+                blockBuilder.assignScoped(receiver, rhs)(k(mapping + (owner -> receiver.asSimpleRef)))
 
       def accessesPrivateMembers(blk: Block): Bool =
         var found = false
