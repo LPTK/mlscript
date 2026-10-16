@@ -1389,21 +1389,55 @@ class BlockSimplifier
             case _ => N
           case _ => N
 
-      /** Build a mapping from module `this` symbols to their call-site qualifier paths.
+      /** Recover a method's receivers from its qualifier, innermost first.
         *
         * For example, for `Outer.Mid.Inner.f(x)`, this records:
         * `Inner.this -> Outer.Mid.Inner`, `Mid.this -> Outer.Mid`,
-        * and `Outer.this -> Outer`. */
-      def buildThisMapping(qual: Path, ownerSym: InnerSymbol): Map[InnerSymbol, Path] =
-        def loop(currentQual: Path, currentOwner: InnerSymbol, acc: Map[InnerSymbol, Path]): Map[InnerSymbol, Path] =
-          val acc2 = acc + (currentOwner -> currentQual)
-          currentQual match
-          case s: Select =>
-            s.qual.targetSymbol match
-            case S(ds: InnerSymbol) => loop(s.qual, ds, acc2)
-            case _ => acc2
-          case _ => acc2
-        loop(qual, ownerSym, Map.empty)
+        * and `Outer.this -> Outer`. The enclosing receiver may be an instance variable;
+        * its symbol does not identify the owner. A field merely holding a module alias
+        * does not establish any relationship to that module's captured receivers. */
+      def receiverPaths(qual: Path, owner: InnerSymbol): Ls[InnerSymbol -> Path] =
+        def parent = owner.irClassContainer.asDefnSym.irClsLikeDefn.flatMap(_.owner).toList
+        val outer = qual match
+          case s: Select if s.symbol.contains(owner.asDefnSym) =>
+            parent.flatMap(receiverPaths(s.qual, _))
+          case Value.This(`owner`) =>
+            // A lexical receiver retains its enclosing captures. An arbitrary value of
+            // the same class/module type does not establish this identity.
+            parent.flatMap(p => receiverPaths(p.asThis, p))
+          case _ => Nil
+        (owner -> qual) :: outer
+
+      /** Include captures in nested functions, but exclude receivers bound by copied classes. */
+      def hasUnmappedThis(blk: Block, mapped: Set[InnerSymbol]): Bool =
+        val used = MutSet.empty[InnerSymbol]
+        val bound = MutSet.from(mapped)
+        (new BlockTraverser:
+          override def applyValue(value: Value): Unit = value match
+            case Value.This(sym) if !sym.isInstanceOf[TopLevelSymbol] => used += sym
+            case _ => super.applyValue(value)
+          override def applyClsLikeDefn(defn: ClsLikeDefn): Unit =
+            bound += defn.isym
+            super.applyClsLikeDefn(defn)
+          override def applyCompanionModule(body: ClsLikeBody): Unit =
+            bound += body.isym
+            super.applyCompanionModule(body)
+        ).applyBlock(blk)
+        used.exists(!bound(_))
+
+      /** Evaluate the qualifier chain once, before arguments or the inlined body can mutate it. */
+      def bindReceivers(paths: Ls[InnerSymbol -> Path])(k: Map[InnerSymbol, Value] => Block): Block = paths match
+        case Nil => k(Map.empty)
+        case (owner, path) :: outer =>
+          bindReceivers(outer): mapping =>
+            val rhs = (path, outer) match
+              case (s: Select, (parent, _) :: _) =>
+                Select(mapping(parent), s.name)(s.symbol, s.toLoc)(s.sanitize)
+              case (v: Value.This, _) => v
+              case (_, Nil) => path
+              case _ => lastWords("An enclosing receiver requires a nested module selection or lexical receiver.")
+            val receiver = TempSymbol(N, rhs.erasedValueType, "inlinedReceiver")
+            blockBuilder.assignScoped(receiver, rhs)(k(mapping + (owner -> receiver.asSimpleRef)))
 
       def accessesPrivateMembers(blk: Block): Bool =
         var found = false
@@ -1522,9 +1556,8 @@ class BlockSimplifier
           // mutually-exclusive generated blocks. Symbol-refreshing them as ordinary inline
           // bodies is not sound, so keep those helpers in place.
           if isPatternHelper then return false
-          // Instance methods access instance state via `this`, so they must not be
-          // inlined as if they were static calls. True modules are safe because
-          // their `this` references can be replaced by call-site qualifier paths.
+          // Instance methods require virtual dispatch. Module methods can be inlined
+          // when their captured receivers can be recovered at the particular call site.
           if isMethod && !isModuleMethod then return false
           // Instantiate nodes are rendered according to the receiving JS builder's
           // freezing policy. Moving a body across compilation units with a different
@@ -1789,7 +1822,7 @@ class BlockSimplifier
     
     object InlinerReplacer:
       
-      class Copier(resSym: LocalVarSymbol, existingMapping: Map[Symbol, Symbol], thisMapping: Map[InnerSymbol, Path])(using State):
+      class Copier(resSym: LocalVarSymbol, existingMapping: Map[Symbol, Symbol], thisMapping: Map[InnerSymbol, Value])(using State):
         val lblSym = LabelSymbol(N, "inlinedLbl")
         
         object Copier extends SymbolRefresher(existingMapping):
@@ -1810,15 +1843,9 @@ class BlockSimplifier
         
           override def applyValue(v: Value)(k: Value => Block): Block = v match
             case Value.This(sym) if thisMapping.contains(sym) =>
-              thisMapping(sym) match
-              case v2: Value => k(v2)
-              case _ => super.applyValue(v)(k)
+              k(thisMapping(sym))
             case _ => super.applyValue(v)(k)
 
-          override def applyPath(p: Path)(k: Path => Block): Block = p match
-            case Value.This(sym) if thisMapping.contains(sym) =>
-              k(thisMapping(sym))
-            case _ => super.applyPath(p)(k)
 
         def applyBlock(blk: Block) =
           Label(lblSym, false, Copier.apply(blk), _)
@@ -1888,7 +1915,7 @@ class BlockSimplifier
             call: Call,
             callee: TermSymbol,
             argss: NELs[Ls[Arg]],
-            thisMapping: => Map[InnerSymbol, Path],
+            receivers: => Ls[InnerSymbol -> Path],
         )(k: Result => Block): Block =
           val info = m(callee)
           if shouldDeferCrossUnitInline(info) || info.isLoopBreaker then
@@ -1902,8 +1929,15 @@ class BlockSimplifier
           .fold(super.applyResult(call)(k)): blk =>
             val cfg = summon[Config.Inliner]
             val threshold = if insideInlineAnnotatedFunction then cfg.altSmallThreshold else cfg.inlineThreshold
+            lazy val paths = receivers
             info.inlineCost(blk, threshold) match
             case N =>
+              super.applyResult(call)(k)
+            case S(_) if info.isMethod && hasUnmappedThis(blk, paths.iterator.map(_._1).toSet) =>
+              // Direct references to local functions retain their lexical captures.
+              // A module alias retains its own captured environment, even when another
+              // instance of the same enclosing class is in scope. Keep the call unless
+              // every captured receiver can be recovered from its qualifier.
               super.applyResult(call)(k)
             case S(cost) =>
               matchAllArgs(argss, info.defn.params) match
@@ -1915,7 +1949,8 @@ class BlockSimplifier
                 registerChange(s"inline call ${callee.showDbg}")
                 log(s"Inline call for ${callee}, with args ${argss}")
                 val extraArgss = argss.drop(info.defn.params.length)
-                def go(acc: Block => Block, args: List[(VarSymbol, Result)], mapping: Map[Symbol, Symbol]): Block =
+                def go(acc: Block => Block, args: List[(VarSymbol, Result)], mapping: Map[Symbol, Symbol])
+                    (thisMapping: Map[InnerSymbol, Value]): Block =
                   args match
                   case Nil =>
                     val resSym = TempSymbol(
@@ -1935,8 +1970,8 @@ class BlockSimplifier
                           ), call.toLoc)))))
                   case (sym, value) :: argRest =>
                     val newSym = VarSymbol(sym.id, erasedType = sym.erasedType)
-                    go(acc.assignScoped(newSym, value), argRest, mapping + (sym -> newSym))
-                go(blockBuilder, matchedArgs, Map.empty)
+                    go(acc.assignScoped(newSym, value), argRest, mapping + (sym -> newSym))(thisMapping)
+                bindReceivers(paths)(go(blockBuilder, matchedArgs, Map.empty))
         
         override def applyResult(r: Result)(k: Result => Block): Block = r match
           case c @ Call(MethodCallQualifier(qual, ts), argss) if m.contains(ts) && argss.nonEmpty =>
@@ -1945,12 +1980,12 @@ class BlockSimplifier
             if qual.isInstanceOf[Value.This] then return super.applyResult(r)(k)
             inlineCall(c, ts, argss,
               ts.owner match
-              case S(ownerSym: InnerSymbol) => buildThisMapping(qual, ownerSym)
-              case _ => Map.empty,
+              case S(ownerSym: InnerSymbol) => receiverPaths(qual, ownerSym)
+              case _ => Nil,
             )(k)
 
           case c @ Call(TermSymbolPath(ts), argss) if m.contains(ts) && argss.nonEmpty =>
-            inlineCall(c, ts, argss, Map.empty)(k)
+            inlineCall(c, ts, argss, Nil)(k)
           case _ => super.applyResult(r)(k)
       
       def replace(m: InlinerMap, prog: Program): Program =

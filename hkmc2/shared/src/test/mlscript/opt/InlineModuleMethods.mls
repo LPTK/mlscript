@@ -95,9 +95,9 @@ Outer.Mid.h(42)
 //│ = 170
 
 
-// TODO: inlining a module nested in an instance must preserve its captured outer receiver.
+// Inlining a module nested in an instance preserves its captured outer receiver.
 // This is independent of private storage: both the module and its selected field are public.
-:fixme
+:soir
 :expect 107
 class InstanceModules with
   val value = 107
@@ -105,5 +105,120 @@ class InstanceModules with
     fun read() = value
 let instanceModules = new InstanceModules
 instanceModules.Nested.read()
-//│ ═══[RUNTIME ERROR] Expected: '107', got: 'undefined'
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let inlinedReceiver;
+//│ define InstanceModules⁰ as class InstanceModules¹ {
+//│   val value⁰;
+//│   constructor() {
+//│     define value⁰ as val value¹ = 107;
+//│     define Nested⁰ as class Nested¹
+//│     module Nested² {
+//│       method read⁰ = fun read¹() {
+//│         return InstanceModules¹.this.value¹
+//│       }
+//│     };
+//│     end
+//│   }
+//│ };
+//│ set instanceModules⁰ = new InstanceModules¹();
+//│ set inlinedReceiver = instanceModules⁰;
+//│ return inlinedReceiver.value¹
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 107
 //│ instanceModules = InstanceModules { value: 107, Nested: class Nested }
+
+
+open annotations { inline, noInline }
+
+
+// Inherited modules capture the particular base instance, through multiple nesting levels.
+:expect [11, 23]
+class ModuleBase(val value: Int) with
+  module Mid with
+    module Inner with
+      @inline fun read() = value
+class ModuleChild(value: Int) extends ModuleBase(value)
+let firstModuleOwner = new ModuleChild(11)
+let secondModuleOwner = new ModuleChild(23)
+[firstModuleOwner.Mid.Inner.read(), secondModuleOwner.Mid.Inner.read()]
+//│ = [11, 23]
+//│ firstModuleOwner = ModuleChild(_)
+//│ secondModuleOwner = ModuleChild(_)
+
+
+// A module alias can escape its owner. Its call must keep the captured environment,
+// even when a different instance of the enclosing class is in scope.
+:expect [31, 37, 31, 37, 31]
+class AliasOwner(val value: Int) with
+  module Nested with
+    @inline fun read() = value
+    @inline fun reader(): Function = () => value
+  fun readAlias(other: Nested) = other.read()
+  fun readClosure(other: Nested) = other.reader()()
+let aliasFirst = new AliasOwner(31)
+let aliasSecond = new AliasOwner(37)
+@noInline fun escapedAlias() = aliasFirst.Nested
+let escapedModule = escapedAlias()
+class ModuleAliasHolder(val nested: aliasFirst.Nested)
+let aliasHolder = new ModuleAliasHolder(escapedModule)
+[escapedModule.read(), aliasFirst.readAlias(aliasSecond.Nested),
+  aliasSecond.readAlias(escapedModule), aliasFirst.readClosure(aliasSecond.Nested), aliasHolder.nested.read()]
+//│ = [31, 37, 31, 37, 31]
+//│ aliasFirst = AliasOwner(31)
+//│ aliasHolder = ModuleAliasHolder(class Nested)
+//│ aliasSecond = AliasOwner(37)
+//│ escapedModule = class Nested
+
+
+// Copying a local class must preserve its own receiver as well as outer captures.
+:expect 41
+class LocalClassOwner(val value: Int) with
+  module Nested with
+    @inline fun make() =
+      class Result with
+        val extra = 2
+        fun read() = value + extra
+      new Result
+let localClassOwner = new LocalClassOwner(39)
+localClassOwner.Nested.make().read()
+//│ = 41
+//│ localClassOwner = LocalClassOwner(39)
+
+
+// Inlined bodies and returned closures retain the receiver when its variable changes.
+:expect [43, 43, 47]
+class MutableReceiver(val value: Int) with
+  module Nested with
+    @inline fun reader(): Function = () => value
+    @inline fun readAfter(action) =
+      action()
+      value
+let oldReceiver = new MutableReceiver(43)
+let newReceiver = new MutableReceiver(47)
+let currentReceiver = oldReceiver
+fun changeReceiver() = set currentReceiver = newReceiver
+let savedReader = currentReceiver.Nested.reader()
+let savedValue = currentReceiver.Nested.readAfter(changeReceiver)
+[savedValue, savedReader(), currentReceiver.value]
+//│ = [43, 43, 47]
+//│ currentReceiver = MutableReceiver(47)
+//│ newReceiver = MutableReceiver(47)
+//│ oldReceiver = MutableReceiver(43)
+//│ savedReader = fun
+//│ savedValue = 43
+
+
+// An effectful receiver expression is evaluated once, including when its captured value is reused.
+:expect [106, 1]
+class CountedReceiver(val value: Int) with
+  module Nested with
+    @inline fun twice() = value + value
+let countedReceiver = new CountedReceiver(53)
+let receiverCalls = 0
+@noInline fun getReceiver() =
+  set receiverCalls += 1
+  countedReceiver
+[getReceiver().Nested.twice(), receiverCalls]
+//│ = [106, 1]
+//│ countedReceiver = CountedReceiver(53)
+//│ receiverCalls = 1

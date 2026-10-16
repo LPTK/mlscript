@@ -16,11 +16,12 @@ open Option
 :sjs
 None isDefined()
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let x;
+//│ let inlinedReceiver, x;
+//│ inlinedReceiver = Option;
 //│ x = Option.None;
-//│ if (x instanceof Option.Some.class) {
+//│ if (x instanceof inlinedReceiver.Some.class) {
 //│   return true
-//│ } else if (x instanceof Option.None.class) {
+//│ } else if (x instanceof inlinedReceiver.None.class) {
 //│   return false
 //│ }
 //│ throw globalThis.Object.freeze(new globalThis.Error("match error"));

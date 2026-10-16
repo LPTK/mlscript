@@ -54,7 +54,8 @@ case class Scope
   
   private def thisError(thisSym: InnerSymbol)(using Raise): Str =
     raise:
-      InternalError(msg"`this` not in scope: ${thisSym.toString}" -> N :: Nil,
+      InternalError(msg"Receiver of ${thisSym.asDefnSym.describeKind} '${thisSym.nme}' is not in scope"
+        -> thisSym.toLoc :: Nil,
         extraInfo = Some(this, thisSym),
         source = Diagnostic.Source.Compilation)
     "‹MISSING_THIS›"
@@ -84,10 +85,11 @@ case class Scope
       else thisError(thisSym)
     )
     curThis match
-    case S(S(sym: TopLevelSymbol)) if sym === State.globalThisSymbol =>
+    case S(S(sym: TopLevelSymbol)) if sym === State.globalThisSymbol && thisSym.isInstanceOf[TopLevelSymbol] =>
       // `this` at the top level evaluates to `undefined` in strict mode.
       // We need this because we generate some code that uses `this`/`globalThis`,
       // for example the symbol loading code.
+      // An unavailable class receiver must still report an error rather than access globals.
       "globalThis"
     case S(S(`thisSym`)) => "this" // no need to qualify `this`
     case S(_) => getParent(_.findThisProxy_!(thisSym))

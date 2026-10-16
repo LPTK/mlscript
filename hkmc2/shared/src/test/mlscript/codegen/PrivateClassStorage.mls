@@ -42,8 +42,7 @@ class PairBase with
   class Entry with
     fun value = 23
   module Entry with
-    // Inlining an outer-instance capture is tracked separately in InlineModuleMethods.mls.
-    @noInline fun make() = new Entry
+    fun make() = new Entry
 class PairChild extends PairBase with
   private class Entry with
     fun value = 29
