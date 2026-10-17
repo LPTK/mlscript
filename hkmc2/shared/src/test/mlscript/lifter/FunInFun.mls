@@ -178,8 +178,10 @@ f(1, 2, 1000)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let g, h, Capture$f;
 //│ define g as fun g²(f$cap, immutable) {
+//│   let tmp;
 //│   set f$cap.mutated$0⁰ = 2;
-//│   return +⁰(immutable, f$cap.mutated$0⁰)
+//│   set tmp = f$cap.mutated$0⁰;
+//│   return +⁰(immutable, tmp)
 //│ };
 //│ define h as fun h⁰(f$cap) {
 //│   return f$cap.mutated$0⁰
@@ -270,9 +272,12 @@ g()(1)
 //│   }
 //│ };
 //│ define h as fun h¹(scope0$cap, x, k) {
+//│   let tmp, tmp1;
 //│   set k = 5;
 //│   set x = 4;
-//│   return +⁰(x, scope0$cap.y$0¹)
+//│   set tmp = x;
+//│   set tmp1 = scope0$cap.y$0¹;
+//│   return +⁰(tmp, tmp1)
 //│ };
 //│ @inline
 //│ define f$ as fun f$⁰(scope0$cap)(x) {
@@ -374,20 +379,22 @@ f(0)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let g;
 //│ define g as fun g⁵(x) {
-//│   let tmp;
-//│   set tmp = +⁰(x, 1);
-//│   set x = tmp;
+//│   let tmp, tmp1;
+//│   set tmp = x;
+//│   set tmp1 = +⁰(tmp, 1);
+//│   set x = tmp1;
 //│   return x
 //│ };
 //│ define f⁷ as fun f⁸(x) {
-//│   let scrut, tmp;
+//│   let scrut, tmp, tmp1;
 //│   set scrut = true;
 //│   match scrut
 //│     true =>
 //│       return g⁵(x)
 //│     else
-//│       set tmp = +⁰(x, 1);
-//│       set x = tmp;
+//│       set tmp = x;
+//│       set tmp1 = +⁰(tmp, 1);
+//│       set x = tmp1;
 //│       return x
 //│   end
 //│ };
@@ -459,12 +466,13 @@ fun f(x) =
 //│   }
 //│ };
 //│ define f¹¹ as fun f¹²(x) {
-//│   let a, tmp, f$cap, g$here;
+//│   let a, tmp, tmp1, f$cap, g$here;
 //│   set f$cap = new mut Capture$f³(x);
 //│   set g$here = g$²(f$cap);
 //│   set a = g$here;
-//│   set tmp = +⁰(f$cap.x$0⁰, 1);
-//│   set f$cap.x$0⁰ = tmp;
+//│   set tmp = f$cap.x$0⁰;
+//│   set tmp1 = +⁰(tmp, 1);
+//│   set f$cap.x$0⁰ = tmp1;
 //│   set g$here = g$²(f$cap);
 //│   return [a, g$here]
 //│ };

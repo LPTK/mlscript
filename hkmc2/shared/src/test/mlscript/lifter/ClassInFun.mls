@@ -131,11 +131,13 @@ f().foo()
 //│     end
 //│   }
 //│   method foo⁰ = fun foo¹() {
-//│     let tmp1, tmp2;
+//│     let tmp1, tmp2, tmp3, tmp4;
 //│     set Good¹.this.scope0$cap⁰.z$0¹ = 100;
 //│     set tmp1 = +⁰(Good¹.this.x¹, Good¹.this.y²);
-//│     set tmp2 = +⁰(tmp1, Good¹.this.scope0$cap⁰.z$0¹);
-//│     return +⁰(tmp2, Good¹.this.scope0$cap⁰.w$1¹)
+//│     set tmp2 = Good¹.this.scope0$cap⁰.z$0¹;
+//│     set tmp3 = +⁰(tmp1, tmp2);
+//│     set tmp4 = Good¹.this.scope0$cap⁰.w$1¹;
+//│     return +⁰(tmp3, tmp4)
 //│   }
 //│ };
 //│ define Bad as class Bad¹ {
@@ -246,19 +248,19 @@ let res = f(0)
 res.a
 res.b
 //│ ╔══[COMPILATION ERROR] Spread parameters are not supported in class parameters.
-//│ ║  l.241: 	  class A(...r) with
+//│ ║  l.243: 	  class A(...r) with
 //│ ╙──       	          ^^^^
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'r'
-//│ ║  l.242: 	    fun a = r.push_back(x)
+//│ ║  l.244: 	    fun a = r.push_back(x)
 //│ ║         	            ^
 //│ ╟── which references the symbol introduced here
-//│ ║  l.241: 	  class A(...r) with
+//│ ║  l.243: 	  class A(...r) with
 //│ ╙──       	             ^
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'r'
-//│ ║  l.243: 	    fun b = r
+//│ ║  l.245: 	    fun b = r
 //│ ║         	            ^
 //│ ╟── which references the symbol introduced here
-//│ ║  l.241: 	  class A(...r) with
+//│ ║  l.243: 	  class A(...r) with
 //│ ╙──       	             ^
 //│ ═══[RUNTIME ERROR] ReferenceError: r is not defined
 //│ res = A()
@@ -291,7 +293,7 @@ fun main() =
 //│   }
 //│ };
 //│ define main⁰ as fun main¹() {
-//│   let c, d, e;
+//│   let c, d, e, tmp, tmp1, tmp2, tmp3;
 //│   set c = new mut C²(123);
 //│   set c.a﹖ = 0;
 //│   set c.b﹖ = "hi";
@@ -299,7 +301,11 @@ fun main() =
 //│   set d.a﹖ = 0;
 //│   set e = C¹(789);
 //│   set e.a﹖ = 0;
-//│   return [c.a﹖, c.b﹖, d.a﹖, e.a﹖]
+//│   set tmp = c.a﹖;
+//│   set tmp1 = c.b﹖;
+//│   set tmp2 = d.a﹖;
+//│   set tmp3 = e.a﹖;
+//│   return [tmp, tmp1, tmp2, tmp3]
 //│ };
 //│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -352,7 +358,7 @@ fun main(x) =
 //│   }
 //│ };
 //│ define main² as fun main³(x) {
-//│   let c, d, e;
+//│   let c, d, e, tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6;
 //│   set c = new mut C⁴(123, x);
 //│   set c.a﹖ = 0;
 //│   set c.b﹖ = "hi";
@@ -360,7 +366,14 @@ fun main(x) =
 //│   set d.a﹖ = 0;
 //│   set e = new C⁴(789, x);
 //│   set e.a﹖ = 0;
-//│   return [c.a﹖, c.b﹖, d.a﹖, e.a﹖, c.get﹖, d.get﹖, e.get﹖]
+//│   set tmp = c.a﹖;
+//│   set tmp1 = c.b﹖;
+//│   set tmp2 = d.a﹖;
+//│   set tmp3 = e.a﹖;
+//│   set tmp4 = c.get﹖;
+//│   set tmp5 = d.get﹖;
+//│   set tmp6 = e.get﹖;
+//│   return [tmp, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6]
 //│ };
 //│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -452,9 +465,10 @@ fun f(x, y, z) =
 //│     return C⁶.this.f$cap⁰.y$0⁰
 //│   }
 //│   method setY⁰ = fun setY¹ {
-//│     let tmp;
-//│     set tmp = +⁰(C⁶.this.f$cap⁰.y$0⁰, 1);
-//│     set C⁶.this.f$cap⁰.y$0⁰ = tmp;
+//│     let tmp, tmp1;
+//│     set tmp = C⁶.this.f$cap⁰.y$0⁰;
+//│     set tmp1 = +⁰(tmp, 1);
+//│     set C⁶.this.f$cap⁰.y$0⁰ = tmp1;
 //│     return runtime⁰.Unit⁰
 //│   }
 //│ };
@@ -462,7 +476,9 @@ fun f(x, y, z) =
 //│   private val f$cap¹;
 //│   private val x⁴;
 //│   constructor(f$cap, x) {
-//│     do super⁰(f$cap.y$0⁰, f$cap, x);
+//│     let tmp;
+//│     set tmp = f$cap.y$0⁰;
+//│     do super⁰(tmp);
 //│     end;
 //│     set D⁰.this.f$cap¹ = f$cap;
 //│     set D⁰.this.x⁴ = x;
@@ -538,9 +554,10 @@ fun f(x, y, z) =
 //│     return C⁸.this.f$cap².y$0²
 //│   }
 //│   method setY² = fun setY³ {
-//│     let tmp;
-//│     set tmp = +⁰(C⁸.this.f$cap².y$0², 1);
-//│     set C⁸.this.f$cap².y$0² = tmp;
+//│     let tmp, tmp1;
+//│     set tmp = C⁸.this.f$cap².y$0²;
+//│     set tmp1 = +⁰(tmp, 1);
+//│     set C⁸.this.f$cap².y$0² = tmp1;
 //│     return runtime⁰.Unit⁰
 //│   }
 //│ };

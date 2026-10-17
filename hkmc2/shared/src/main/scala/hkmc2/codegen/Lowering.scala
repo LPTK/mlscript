@@ -36,6 +36,21 @@ object Thrw extends TailOp(transfersControl = true):
   def apply(r: Result): Block = Throw(r)
 
 
+/** What lowering needs to know about the local variables of a compilation unit to tell whether reading them
+  * is stable (see `Lowering.isStable`). `reassigned` are the local variables that the unit reassigns (with `set`).
+  * `shared` are the local variables that other compilation units can access, and may thus reassign: in a REPL,
+  * the top-level ones of previous units and of the unit itself. `ownTopLevel` are the top-level local variables
+  * of the unit itself: until the top-level code of the unit has run, no other unit can access them. */
+final case class LoweringUnit(
+  reassigned: Set[LocalVarSymbol],
+  shared: Set[LocalVarSymbol],
+  ownTopLevel: Set[LocalVarSymbol],
+):
+  /** Whether reading `sym` always yields the same value, where `deferred` tells whether the read
+    * happens in code that may run after the top-level code of the unit (see `LoweringCtx.deferred`). */
+  def isStable(sym: LocalVarSymbol, deferred: Bool): Bool =
+    !reassigned(sym) && (!shared(sym) || !deferred && ownTopLevel(sym))
+
 class LoweringCtx(
   val localVals: Map[TermSymbol, VarSymbol],
   val symbolsToPreserve: Set[ScopedSymbol],
@@ -43,9 +58,13 @@ class LoweringCtx(
   private val definedSymsDuringLowering: collection.mutable.Set[ScopedSymbol], // used to create Scoped blocks
   val returnType: Opt[ErasedType], // the declared return type of the enclosing function, used to coerce `return`s
   val superBases: Map[InnerSymbol, Path], // evaluated parents of the enclosing class definitions
+  val unit: LoweringUnit,
+  // Whether the code being lowered may run after the top-level code of the compilation unit, interleaved with
+  // the code of other units: this is the case of function and lambda bodies, and of class-like bodies.
+  val deferred: Bool,
 ):
   def withLocalVals(syms: IterableOnce[TermSymbol -> VarSymbol]): LoweringCtx =
-    LoweringCtx(localVals ++ syms, symbolsToPreserve, mayRet, definedSymsDuringLowering, returnType, superBases)
+    LoweringCtx(localVals ++ syms, symbolsToPreserve, mayRet, definedSymsDuringLowering, returnType, superBases, unit, deferred)
   def collectScopedSym(s: ScopedSymbol) = definedSymsDuringLowering.add(s)
   def collectScopedSyms(s: ScopedSymbol*) = definedSymsDuringLowering.addAll(s)
   def registerTempSymbol(trm: Option[Term], erasedType: Opt[ErasedValueType], dbgNme: Str = "tmp")(using State) =
@@ -59,14 +78,19 @@ class LoweringCtx(
     case _ => v
 object LoweringCtx:
   def loweringCtx(using sub: LoweringCtx): LoweringCtx = sub
-  def empty(symbolsToPreserve: Set[ScopedSymbol]) =
-    LoweringCtx(Map.empty, symbolsToPreserve, mayRet = false, collection.mutable.Set.empty, returnType = N, superBases = Map.empty)
+  def empty(symbolsToPreserve: Set[ScopedSymbol], unit: LoweringUnit) =
+    LoweringCtx(Map.empty, symbolsToPreserve, mayRet = false, collection.mutable.Set.empty, returnType = N, superBases = Map.empty,
+      unit, deferred = false)
   def nestFunc(returnType: Opt[ErasedType])(using sub: LoweringCtx): LoweringCtx =
-    LoweringCtx(sub.localVals, sub.symbolsToPreserve, mayRet = true, sub.definedSymsDuringLowering, returnType, sub.superBases)
+    LoweringCtx(sub.localVals, sub.symbolsToPreserve, mayRet = true, sub.definedSymsDuringLowering, returnType, sub.superBases,
+      sub.unit, deferred = true)
   def nestScoped(using sub: LoweringCtx): LoweringCtx =
-    LoweringCtx(sub.localVals, sub.symbolsToPreserve, sub.mayRet, collection.mutable.Set.empty, sub.returnType, sub.superBases)
+    LoweringCtx(sub.localVals, sub.symbolsToPreserve, sub.mayRet, collection.mutable.Set.empty, sub.returnType, sub.superBases,
+      sub.unit, sub.deferred)
+  // * Used for the bodies of class-like definitions, which are thus considered deferred.
   def withSuperBase(owner: InnerSymbol, parent: Path)(using sub: LoweringCtx): LoweringCtx =
-    LoweringCtx(sub.localVals, sub.symbolsToPreserve, sub.mayRet, sub.definedSymsDuringLowering, sub.returnType, sub.superBases + (owner -> parent))
+    LoweringCtx(sub.localVals, sub.symbolsToPreserve, sub.mayRet, sub.definedSymsDuringLowering, sub.returnType,
+      sub.superBases + (owner -> parent), sub.unit, deferred = true)
 end LoweringCtx
 
 import LoweringCtx.loweringCtx
@@ -1249,7 +1273,11 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
       case Resolved(sel @ SelProj(prefix, _, nme), sym) =>
         subTerm(prefix): p =>
           conclude(Select(p, definitionIdent(nme, sym))(S(sym), trm.toLoc)(false).withLocOf(sel))
-      case _ => subTerm(baseF)(conclude)
+      case DynSel(prefix, fld, ai, _) =>
+        subTerm(prefix): p =>
+          subTerm_nonTail(fld): f =>
+            conclude(DynSelect(p, f, ai)(baseF.toLoc))
+      case _ => subCallee(baseF)(conclude)
     case h @ Handle(lhs, rhs, as, cls, defs, bod) =>
       if config.effectHandlers.isEmpty then
         return fail:
@@ -1767,18 +1795,32 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
     subTerm(t, inStmtPos = inStmtPos)(k)
   
   inline def subTerm(t: st, inStmtPos: Bool = false)(k: Path => Block)(using LoweringCtx): Block =
-    term(t, inStmtPos = inStmtPos):
-      case v: Value => k(v)
-      case p: Path => k(p)
-      case lam @ Lambda(params, body) =>
-        val lamSym = BlockMemberSymbol("lambda", Nil, false)
-        loweringCtx.collectScopedSym(lamSym)
-        val lamDef = FunDefn.withFreshSymbol(N, lamSym, params :: Nil, body)(configOverride = N, annotations = lam.annot)
-        Define(lamDef, k(lamDef.asPath))
-      case r =>
-        val l = loweringCtx.registerTempSymbol(N, erasedType = r.erasedValueType)
-        Assign(l, r, k(l.asSimpleRef))
+    term(t, inStmtPos = inStmtPos)(stablePath(_)(k))
+  
+  /** Turns a lowered result into a stable path (see `isStable`), defining lambdas and binding other results to
+    * temporaries. Stateful paths are read into temporaries, so that they are read where they are evaluated. */
+  def stablePath(r: Result)(k: Path => Block)(using LoweringCtx): Block = r match
+    case p: Path if isStable(p) => k(p)
+    case lam @ Lambda(params, body) =>
+      val lamSym = BlockMemberSymbol("lambda", Nil, false)
+      loweringCtx.collectScopedSym(lamSym)
+      val lamDef = FunDefn.withFreshSymbol(N, lamSym, params :: Nil, body)(configOverride = N, annotations = lam.annot)
+      Define(lamDef, k(lamDef.asPath))
+    case r =>
+      val l = loweringCtx.registerTempSymbol(N, erasedType = r.erasedValueType)
+      Assign(l, r, k(l.asSimpleRef))
 
+  /** Lowers the callee of a call. A callee may be a selection of a member that is not stable from a stable prefix,
+    * since the selection determines the `this` of the call (see `isStable`): reading the member into a temporary
+    * would lose it. So only the prefix (and the selected field, for dynamic selections) is stabilized. */
+  def subCallee(t: st)(k: Path => Block)(using LoweringCtx): Block =
+    term(t):
+      case sel: Select =>
+        stablePath(sel.qual)(q => k(if q is sel.qual then sel else Select(q, sel.name)(sel.symbol, sel.toLoc)(sel.sanitize)))
+      case sel @ DynSelect(qual, fld, ai) =>
+        stablePath(qual)(q => stablePath(fld)(f => k(if (q is qual) && (f is fld) then sel else DynSelect(q, f, ai)(sel.toLoc))))
+      case r => stablePath(r)(k)
+  
   /** Wraps the lowered result `r` with a [[Cast]] when it must be downcasted to fit the `expected` erased type of the
     * slot it flows into.
     *
@@ -1800,7 +1842,50 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
     ps.params.map(_.sym.erasedType)
 
 
-  def program(main: st.Blk, symbolsToPreserve: Set[ScopedSymbol]): Program =
+  /** The local variables that some `set` in `stmt` reassigns (see `Assign.reassign`). */
+  private def reassignedLocals(stmt: Statement): Set[LocalVarSymbol] =
+    val res = collection.mutable.Set.empty[LocalVarSymbol]
+    def go(stmt: Statement): Unit =
+      stmt match
+      // * This follows how the `Assgn` case of `term` determines the assigned symbol.
+      case Assgn(lhs, _) =>
+        val target = lhs.withoutCaptures.instantiated match
+          case Resolved(inner, _) => inner
+          case target => target
+        target match
+          case SimpleRef(sym: LocalVarSymbol) => res += sym
+          case Ref(sym: LocalVarSymbol) => res += sym
+          case _ => ()
+      case _ => ()
+      stmt match
+      // * Note that the `subTerms` of a block are those of its statements, not the statements themselves.
+      case blk: Blk => blk.stats.foreach(go); go(blk.res)
+      case _ => stmt.subTerms.foreach(go)
+    go(stmt)
+    res.toSet
+  
+  /** Whether evaluating `p` always yields the same value, wherever it is evaluated (possibly throwing an
+    * exception, as when selecting a field of `null` or when a checked cast fails). Lowering only puts stable
+    * paths in the nested positions of the IR (call arguments and callees, operands, selection prefixes,
+    * tuple and record elements), reading other paths into temporaries where they are evaluated:
+    * optimizations can thus move and duplicate the evaluation of nested paths.
+    * Note that the callee of a call may be a selection `p.m` of a stable `p` whose member `m` is not stable:
+    * the selection is then part of the call, whose `this` it determines. */
+  def isStable(p: Path)(using LoweringCtx): Bool = p match
+    case _: Value.Lit | _: Value.This => true
+    case Value.SimpleRef(sym) => sym match
+      case _: BuiltinSymbol => true
+      case sym: LocalVarSymbol => loweringCtx.unit.isStable(sym, loweringCtx.deferred)
+    case Value.MemberRef(_, disamb) => disamb.isStable
+    case sel: Select => isStable(sel.qual) && sel.symbol.exists(_.isStable)
+    case sel: SuperSelect => isStable(sel.qual) && isStable(sel.base) && sel.symbol.isStable
+    case _: DynSelect => false
+    case Cast(value: Path, _, _) => isStable(value)
+    case _: Cast => false
+  
+  /** `sharedLocals` are the local variables that other compilation units can access and reassign:
+    * in a REPL, the top-level local variables of all the units (see `LoweringUnit`). */
+  def program(main: st.Blk, symbolsToPreserve: Set[ScopedSymbol], sharedLocals: Set[LocalVarSymbol]): Program =
     summon[Erasure].requireCompleted(main)
     
     val (imps, funs, rest) = splitBlock(main.stats, Nil, Nil, Nil)
@@ -1810,8 +1895,13 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
     inline def topLevelVals = rest.iterator.collect:
         case td: TermDefinition if td.k.isInstanceOf[syntax.Val] => td.sym
     
+    val unit = LoweringUnit(
+      reassigned = reassignedLocals(main),
+      shared = sharedLocals,
+      ownTopLevel = main.stats.iterator.collect { case LetDecl(sym: LocalVarSymbol, _) => sym }.toSet,
+    )
     val blk =
-      inScopedBlockExcept(symbolsToPreserve)(using LoweringCtx.empty(symbolsToPreserve ++ topLevelVals)):
+      inScopedBlockExcept(symbolsToPreserve)(using LoweringCtx.empty(symbolsToPreserve ++ topLevelVals, unit)):
         block(funs ::: rest, R(main.res))(ImplctRet)
     
     Program(

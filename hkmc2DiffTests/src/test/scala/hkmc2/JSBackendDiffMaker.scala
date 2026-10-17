@@ -54,6 +54,9 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
     override def doTrace = debugOptimizations.isSet
     override def emitDbg(str: String): Unit = output(str)
   
+  // * The top-level local variables of the previous blocks, which later blocks can reassign (see `Lowering.program`).
+  private var replTopLevelLocals: Set[LocalVarSymbol] = Set.empty
+  
   val replTL = new TraceLogger:
     override def doTrace = showRepl.isSet
     override def emitDbg(str: String): Unit = output(str)
@@ -131,8 +134,10 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
         new codegen.Lowering()(using summon[Config], ltl, summon[Raise], loweringState, curCtx, summon[SymbolPrinter])
           with codegen.LoweringTraceLog(traceJS.isSet)
       
+      val topLevelLocals = blk.stats.collect { case LetDecl(sym: LocalVarSymbol, _) => sym }
+      replTopLevelLocals ++= topLevelLocals
       val lowered = ltl.givenIn:
-        low.program(blk, symbolsToPreserve = symbolsToPreserve)
+        low.program(blk, symbolsToPreserve = symbolsToPreserve, sharedLocals = replTopLevelLocals)
       
       val optimized = ltl.givenIn:
         val customPipeline = new CompilationPipeline:

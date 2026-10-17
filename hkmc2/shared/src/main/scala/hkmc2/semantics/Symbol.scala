@@ -562,6 +562,26 @@ sealed trait DefinitionSymbol[Defn <: Definition] extends MemberSymbol:
           true // References to functions are only guaranteed to be pure when the functions have parameter lists
         case _ => false
   
+  /** Whether references to and selections of this definition always yield the same value, so that they may
+    * appear in nested positions of the IR, such as call arguments (see `codegen.Lowering.isStable`).
+    * Classes, modules, objects, functions with parameter lists, and `val`s are stable. Note that the plain `val`
+    * fields of an instance created with `new mut` may be assigned after its construction, as when building a list
+    * in place: such assignments are considered to initialize the field, and observing the field before its final
+    * assignment is undefined behavior (similarly to the initialization of variables; see `codegen.Assign`).
+    * On the other hand, `let` bindings and `mut val`s may be reassigned, functions without parameter lists
+    * (other than foreign ones, whose signatures are unknown) are evaluated anew on each access,
+    * and the fields of foreign (`declare`d) definitions may be modified by foreign code. */
+  def isStable: Bool = this match
+    case _: ModuleOrObjectSymbol => true
+    case _ =>
+      defn.exists:
+        case _: ClassDef => true
+        case td: TermDefinition => td.k match
+          case syntax.ImmutVal => !td.isForeign
+          case syntax.Fun => td.params.nonEmpty || td.isForeign
+          case _ => false
+        case _ => false
+  
   def subst(using sub: SymbolSubst): DefinitionSymbol[Defn]
   
   def describeKind: Str =

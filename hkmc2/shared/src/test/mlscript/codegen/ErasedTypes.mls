@@ -263,9 +263,10 @@ fun counter(x: Int) =
 //│   }
 //│ };
 //│ define bump as fun bump⁰(scope0$cap: Capture$scope0¹, x: Int⁰): ? {
-//│   let tmp: ?;
-//│   set tmp = +⁰(scope0$cap.n$0¹, x);
-//│   set scope0$cap.n$0¹ = tmp;
+//│   let tmp: ?, tmp1: ?;
+//│   set tmp = scope0$cap.n$0¹;
+//│   set tmp1 = +⁰(tmp, x);
+//│   set scope0$cap.n$0¹ = tmp1;
 //│   return runtime⁰.Unit⁰
 //│ };
 //│ define counter⁰ as fun counter¹(x: Int⁰): ? {
@@ -291,9 +292,10 @@ resetCounter(41)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let reset, Capture$resetCounter;
 //│ define reset as fun reset⁰(resetCounter$cap: Capture$resetCounter⁰): ? {
-//│   let tmp: ?;
-//│   set tmp = +⁰(resetCounter$cap.x$0⁰, 1);
-//│   set resetCounter$cap.x$0⁰ = (tmp as! Int⁰);
+//│   let tmp: Int⁰, tmp1: ?;
+//│   set tmp = resetCounter$cap.x$0⁰;
+//│   set tmp1 = +⁰(tmp, 1);
+//│   set resetCounter$cap.x$0⁰ = (tmp1 as! Int⁰);
 //│   return runtime⁰.Unit⁰
 //│ };
 //│ define Capture$resetCounter as class Capture$resetCounter⁰ {
@@ -326,16 +328,16 @@ fun f(o: Object, i: Int, x: Int32) =
   useObj(x)
   useInt32(o)
 //│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Int' at an unrelated type 'Object'
-//│ ║  l.324: 	  useObj(i)
+//│ ║  l.326: 	  useObj(i)
 //│ ╙──       	         ^
 //│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Object' at an unrelated type 'Int'
-//│ ║  l.325: 	  useInt(o)
+//│ ║  l.327: 	  useInt(o)
 //│ ╙──       	         ^
 //│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Int32' at an unrelated type 'Object'
-//│ ║  l.326: 	  useObj(x)
+//│ ║  l.328: 	  useObj(x)
 //│ ╙──       	         ^
 //│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Object' at an unrelated type 'Int32'
-//│ ║  l.327: 	  useInt32(o)
+//│ ║  l.329: 	  useInt32(o)
 //│ ╙──       	           ^
 //│ ═══[COMPILATION ERROR] Cannot use a value of type 'Int32' at an unrelated type 'Unknown'
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
@@ -362,7 +364,7 @@ fun f(o: Object, i: Int, x: Int32) =
 fun id(x: Anything) = ()
 fun f(x: Int32) = id(x)
 //│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Int32' at an unrelated type 'Unknown'
-//│ ║  l.363: 	fun f(x: Int32) = id(x)
+//│ ║  l.365: 	fun f(x: Int32) = id(x)
 //│ ╙──       	                     ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define id⁰ as fun id¹(x: Unknown): ? {
@@ -399,7 +401,7 @@ module Encl with
   class Shape
   fun bad(x: Shape) = useShape(x)
 //│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Encl.Shape' at an unrelated type 'Shape'
-//│ ║  l.400: 	  fun bad(x: Shape) = useShape(x)
+//│ ║  l.402: 	  fun bad(x: Shape) = useShape(x)
 //│ ╙──       	                               ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useShape⁰ as fun useShape¹(x: Shape⁰): ? {
@@ -558,7 +560,7 @@ fun mixedThree(x: Int32 | Str | Bool) = 0
 :ge
 fun intoMixed(n: Int32) = mixed(n)
 //│ ╔══[COMPILATION ERROR] Types 'Int32' and 'Str' have no common representation
-//│ ║  l.559: 	fun intoMixed(n: Int32) = mixed(n)
+//│ ║  l.561: 	fun intoMixed(n: Int32) = mixed(n)
 //│ ╙──       	                                ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define intoMixed⁰ as fun intoMixed¹(n: Int32): ? { return mixed¹(n) }; end
@@ -807,7 +809,7 @@ val over: Int = thunk(2)
 :ge
 val bad: Str = thunk
 //│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Function' at an unrelated type 'Str'
-//│ ║  l.808: 	val bad: Str = thunk
+//│ ║  l.810: 	val bad: Str = thunk
 //│ ╙──       	               ^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let tmp: Function⁰; set tmp = thunk¹(); define bad² as val bad³: Str⁰ = tmp; end
@@ -819,7 +821,7 @@ val bad: Str = thunk
 fun called() = 3
 val notCalled: Str = called
 //│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Function' at an unrelated type 'Str'
-//│ ║  l.820: 	val notCalled: Str = called
+//│ ║  l.822: 	val notCalled: Str = called
 //│ ╙──       	                     ^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define called⁰ as fun called¹(): ? {
@@ -863,7 +865,7 @@ fun callMember: Int = M.memberGetter()
 :ge
 fun badInst() = useInt(new Bar("x"))
 //│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Bar' at an unrelated type 'Int'
-//│ ║  l.864: 	fun badInst() = useInt(new Bar("x"))
+//│ ║  l.866: 	fun badInst() = useInt(new Bar("x"))
 //│ ╙──       	                       ^^^^^^^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define badInst⁰ as fun badInst¹(): ? {
@@ -920,7 +922,7 @@ val g: Int -> Int = (x: Int) => x
 :ge
 fun badFn() = applyF(42)
 //│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Int' at an unrelated type 'Function'
-//│ ║  l.921: 	fun badFn() = applyF(42)
+//│ ║  l.923: 	fun badFn() = applyF(42)
 //│ ╙──       	                     ^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define badFn⁰ as fun badFn¹(): ? { return applyF¹(42) }; end
@@ -949,7 +951,7 @@ fun useAdd() = useInt(addInts(1, 2))
 :ge
 fun badAdd() = useStr(addInts(1, 2))
 //│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Int' at an unrelated type 'Str'
-//│ ║  l.950: 	fun badAdd() = useStr(addInts(1, 2))
+//│ ║  l.952: 	fun badAdd() = useStr(addInts(1, 2))
 //│ ╙──       	                      ^^^^^^^^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define badAdd⁰ as fun badAdd¹(): ? {
@@ -1070,7 +1072,12 @@ fun useExt() = useFn(Ext.member)
 
 fun usePlain() = useFn(Plain.f)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define usePlain⁰ as fun usePlain¹(): ? { return useFn¹(Plain².f⁷) }; end
+//│ define usePlain⁰ as fun usePlain¹(): ? {
+//│   let tmp: Function⁰;
+//│   set tmp = Plain².f⁷;
+//│   return useFn¹(tmp)
+//│ };
+//│ end
 
 
 // *Applying* the selected member is a call on that function value, and since `Function` does not store its
@@ -1262,7 +1269,7 @@ fun tagged(x: Int) =
   fun describe() = Tag.label()
   describe()
 //│ ╔══[WARNING] Objects are not yet lifted.
-//│ ║  l.1260: 	  object Tag with
+//│ ║  l.1267: 	  object Tag with
 //│ ╙──        	         ^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let describe;
@@ -1289,7 +1296,7 @@ fun mk() =
     fun get() = Tag.label()
   new Holder
 //│ ╔══[WARNING] Objects are not yet lifted.
-//│ ║  l.1286: 	  object Tag with
+//│ ║  l.1293: 	  object Tag with
 //│ ╙──        	         ^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let Holder;

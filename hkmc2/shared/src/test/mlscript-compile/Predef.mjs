@@ -39,10 +39,12 @@ lambda1 = (undefined, function (Predef2, b, a, i, ..._) {
   return Predef2.equals(a, tmp)
 });
 lambda = (undefined, function (Predef2, a, b, field) {
-  let scrut, scrut1;
+  let scrut, scrut1, tmp, tmp1;
   scrut = field !== null;
   if (scrut === true) {
-    scrut1 = Predef2.equals(a[field], b[field]);
+    tmp = a[field];
+    tmp1 = b[field];
+    scrut1 = Predef2.equals(tmp, tmp1);
     if (scrut1 === true) {
       return true
     }
@@ -55,14 +57,20 @@ lambda = (undefined, function (Predef2, a, b, field) {
     Predef1 = this
   }
   static {
+    let tmp, tmp1, tmp2;
     (class Symbols {
       static {
         new this
       }
       constructor() {
         Predef.Symbols = this;
-        this.prettyPrint = RuntimeJS.symbols.prettyPrint;
-        this.definitionMetadata = RuntimeJS.symbols.definitionMetadata;
+        let tmp3, tmp4, tmp5, tmp6;
+        tmp3 = RuntimeJS.symbols;
+        tmp4 = tmp3.prettyPrint;
+        this.prettyPrint = tmp4;
+        tmp5 = RuntimeJS.symbols;
+        tmp6 = tmp5.definitionMetadata;
+        this.definitionMetadata = tmp6;
         Object.defineProperty(this, "class", {
           value: Symbols
         });
@@ -106,8 +114,11 @@ lambda = (undefined, function (Predef2, a, b, field) {
       toString() { return runtime.render(this); }
       static [definitionMetadata] = ["object", "Refl"];
     });
-    Predef.js_assert = globalThis.console["assert"];
-    Predef.foldl = Predef.fold;
+    tmp = globalThis.console;
+    tmp1 = tmp["assert"];
+    Predef.js_assert = tmp1;
+    tmp2 = Predef.fold;
+    Predef.foldl = tmp2;
     (class meta {
       static {
         Predef.meta = this
@@ -182,14 +193,16 @@ lambda = (undefined, function (Predef2, a, b, field) {
     }
   }
   static equals(a, b) {
-    let scrut, scrut1, scrut2, ac, scrut3, md, scrut4, scrut5, scrut6, scrut7, scrut8, scrut9, lambda$here;
+    let scrut, scrut1, scrut2, ac, scrut3, md, scrut4, scrut5, scrut6, scrut7, scrut8, scrut9, tmp, tmp1, tmp2, tmp3, tmp4;
     scrut = a === b;
     if (scrut === true) {
       return true
     }
     if (a instanceof globalThis.Array) {
       if (b instanceof globalThis.Array) {
-        scrut1 = a.length === b.length;
+        tmp3 = a.length;
+        tmp4 = b.length;
+        scrut1 = tmp3 === tmp4;
         if (scrut1 === true) {
           return runtime.safeCall(a.every(lambda$1(Predef, b)))
         }
@@ -206,13 +219,15 @@ lambda = (undefined, function (Predef2, a, b, field) {
             ac = a["constructor"];
             scrut3 = ac !== undefined;
             if (scrut3 === true) {
-              scrut6 = ac === b["constructor"];
+              tmp = b["constructor"];
+              scrut6 = ac === tmp;
               if (scrut6 === true) {
                 md = ac[Predef.Symbols.definitionMetadata];
                 scrut4 = md !== undefined;
                 if (scrut4 === true) {
-                  lambda$here = lambda$(Predef, a, b);
-                  scrut5 = runtime.safeCall(md[2].every(lambda$here));
+                  tmp1 = md[2];
+                  tmp2 = lambda$(Predef, a, b);
+                  scrut5 = runtime.safeCall(tmp1.every(tmp2));
                   if (scrut5 === true) {
                     return true
                   }
@@ -317,9 +332,9 @@ lambda = (undefined, function (Predef2, a, b, field) {
     }
   }
   static mkStr(...xs) {
-    let callPrefix, lambda$here;
-    lambda$here = lambda$2(Predef);
-    callPrefix = runtime.safeCall(Predef.fold(lambda$here));
+    let tmp, callPrefix;
+    tmp = lambda$2(Predef);
+    callPrefix = runtime.safeCall(Predef.fold(tmp));
     return runtime.safeCall(callPrefix(...xs))
   }
   static use(instance) {
@@ -329,7 +344,9 @@ lambda = (undefined, function (Predef2, a, b, field) {
     return runtime.safeCall(runtime.enterHandleBlock(handler, body))
   }
   static raiseUnhandledEffect() {
-    return runtime.safeCall(runtime.mkEffect(runtime.FatalEffect, null))
+    let tmp;
+    tmp = runtime.FatalEffect;
+    return runtime.safeCall(runtime.mkEffect(tmp, null))
   }
   toString() { return runtime.render(this); }
   static [definitionMetadata] = ["class", "Predef"];

@@ -73,7 +73,7 @@ f.y
 
 :re
 f.y()
-//│ ═══[RUNTIME ERROR] TypeError: f.y is not a function
+//│ ═══[RUNTIME ERROR] TypeError: tmp2.y is not a function
 
 :expect 3
 f.z

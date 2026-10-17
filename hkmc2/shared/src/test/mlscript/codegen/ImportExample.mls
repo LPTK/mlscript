@@ -39,7 +39,7 @@ let n = 42
 :sjs
 n / 2
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ return n / 2
+//│ let tmp; tmp = n; return tmp / 2
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 21
 
@@ -60,9 +60,9 @@ inc / 2
 :re
 n / 2
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ return runtime.safeCall(n(2))
+//│ let tmp1; tmp1 = n; return runtime.safeCall(tmp1(2))
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ ═══[RUNTIME ERROR] TypeError: n is not a function
+//│ ═══[RUNTIME ERROR] TypeError: tmp1 is not a function
 
 funnySlash(inc, 123)
 //│ = 124

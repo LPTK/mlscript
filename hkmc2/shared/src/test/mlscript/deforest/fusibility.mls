@@ -733,9 +733,9 @@ c(mk(7))
 //│   return AA⁰(tmp1)
 //│ };
 //│ define c⁴ as fun c⁵(p) {
-//│   let lambda$here;
-//│   set lambda$here = lambda$⁰(p);
-//│   return callTwice⁰(lambda$here)
+//│   let tmp1;
+//│   set tmp1 = lambda$⁰(p);
+//│   return callTwice⁰(tmp1)
 //│ };
 //│ set tmp = mk⁵(7);
 //│ return c⁵(tmp)

@@ -14,34 +14,36 @@ arr.map(=> _ === false)
 :sjs
 arr.map((e, ...) => e === false)
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let lambda1;
+//│ let tmp1, lambda1;
+//│ tmp1 = arr;
 //│ lambda1 = (undefined, function (e, ..._) {
 //│   return e === false
 //│ });
-//│ return runtime.safeCall(arr.map(lambda1))
+//│ return runtime.safeCall(tmp1.map(lambda1))
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = [false, true]
 
 :sjs
 arr.map((_, ...) => 1)
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let lambda2;
+//│ let tmp2, lambda2;
+//│ tmp2 = arr;
 //│ lambda2 = (undefined, function (_, ..._1) { return 1 });
-//│ return runtime.safeCall(arr.map(lambda2))
+//│ return runtime.safeCall(tmp2.map(lambda2))
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = [1, 1]
 
 :e
 arr.map((..., ...) => 1)
 //│ ╔══[COMPILATION ERROR] A parameter list cannot have more than one variadic parameter.
-//│ ║  l.35: 	arr.map((..., ...) => 1)
+//│ ║  l.37: 	arr.map((..., ...) => 1)
 //│ ╙──      	              ^^^
 //│ ╔══[COMPILATION ERROR] Resolution error in function type
 //│ ║  l.260: 	  fun map[U](f: (T, drop Int, drop Array[T]) -> U): Array[U]
 //│ ║         	                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── Callback parameter list does not match its declared function type.
-//│ ║  in Arrays.mls:35
-//│ ║  l.35: 	arr.map((..., ...) => 1)
+//│ ║  in Arrays.mls:37
+//│ ║  l.37: 	arr.map((..., ...) => 1)
 //│ ╙──      	        ^^^^^^^^^^^^^^^
 //│ = [1, 1]
 
@@ -51,8 +53,8 @@ arr.map((..., e) => e)
 //│ ║  l.260: 	  fun map[U](f: (T, drop Int, drop Array[T]) -> U): Array[U]
 //│ ║         	                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── Callback parameter list does not match its declared function type.
-//│ ║  in Arrays.mls:49
-//│ ║  l.49: 	arr.map((..., e) => e)
+//│ ║  in Arrays.mls:51
+//│ ║  l.51: 	arr.map((..., e) => e)
 //│ ╙──      	        ^^^^^^^^^^^^^
 //│ = [[true, false], [true, false]]
 
@@ -77,7 +79,7 @@ Array(1)
 :e
 Array()
 //│ ╔══[COMPILATION ERROR] Resolution error in application
-//│ ║  l.78: 	Array()
+//│ ║  l.80: 	Array()
 //│ ║        	^^^^^^^
 //│ ╟── Class 'Array' expected 1 argument, but got 0
 //│ ║  in ../decls/Prelude.mls
@@ -96,7 +98,7 @@ Array()
 :e
 Array(1, 2, 3)
 //│ ╔══[COMPILATION ERROR] Resolution error in application
-//│ ║  l.97: 	Array(1, 2, 3)
+//│ ║  l.99: 	Array(1, 2, 3)
 //│ ║        	^^^^^^^^^^^^^^
 //│ ╟── Class 'Array' expected 1 argument, but got 3
 //│ ║  in ../decls/Prelude.mls

@@ -57,12 +57,13 @@ xs |.
 //│ ║  l.42: 	fun map(xs: Array, f) = xs.map((x, ...bs) => f(x))
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let lambda5, tmp;
+//│ let tmp10, lambda5, tmp11;
+//│ tmp10 = xs1;
 //│ lambda5 = (undefined, function (x) {
 //│   return x * 2
 //│ });
-//│ tmp = map(lambda5);
-//│ return Predef.passTo(xs1, tmp)
+//│ tmp11 = map(lambda5);
+//│ return Predef.passTo(tmp10, tmp11)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ ═══[RUNTIME ERROR] Error: Function 'map' expected at least 2 arguments but got 1
 
@@ -71,7 +72,7 @@ xs |.
 xs|.
   map(x => x * 2)
 //│ ╔══[COMPILATION ERROR] Resolution error in application
-//│ ║  l.72: 	  map(x => x * 2)
+//│ ║  l.73: 	  map(x => x * 2)
 //│ ║        	  ^^^^^^^^^^^^^^^
 //│ ╟── Function 'map' expected 2 arguments, but got 1
 //│ ║  l.42: 	fun map(xs: Array, f) = xs.map((x, ...bs) => f(x))

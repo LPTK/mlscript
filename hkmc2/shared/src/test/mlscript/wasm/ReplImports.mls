@@ -32,10 +32,14 @@ counter
 //│   (import "repl" "counter" (global $counter (mut (ref null any))))
 //│   (import "repl" "step" (global $step (mut (ref null any))))
 //│   (func $entry (export "entry") (type $entry) (result (ref null any))
-//│     (return
-//│       (call $plus_impl
-//│         (global.get $counter)
-//│         (global.get $step))))
+//│     (local $tmp (ref null any))
+//│     (block (result (ref null any))
+//│       (local.set $tmp
+//│         (global.get $counter))
+//│       (return
+//│         (call $plus_impl
+//│           (local.get $tmp)
+//│           (global.get $step)))))
 //│   (elem $entry declare func $entry))
 //│ Wasm result:
 //│ = 3

@@ -58,7 +58,7 @@ let config(useModules) =
 //│ config = fun
 
 config(true)
-//│ = {ext: "mjs", base: "main", full: "main.mjs"}
+//│ = {ext: "js", base: "main", full: "main.mjs"}
 
 config(false)
 //│ = {ext: "js", base: "main", full: "main.js"}

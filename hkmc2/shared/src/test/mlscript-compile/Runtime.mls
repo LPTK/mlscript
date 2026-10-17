@@ -185,7 +185,8 @@ mut val resumePc = -1
 object FatalEffect
 object PrintStackEffect
 
-data class FunctionContFrame(next: FunctionContFrame | null, saved: Array) with
+// The runtime links continuation frames by mutating these fields.
+data class FunctionContFrame(mut val next: FunctionContFrame | null, saved: Array) with
   fun resume(value) =
     let
       i = 0
@@ -229,14 +230,14 @@ data class FunctionContFrame(next: FunctionContFrame | null, saved: Array) with
       loc is null then "pc=" + saved.[1]
       else loc
 
-data class HandlerContFrame(next: FunctionContFrame | null, nextHandler: HandlerContFrame | null, handler: Any)
+data class HandlerContFrame(mut val next: FunctionContFrame | null, mut val nextHandler: HandlerContFrame | null, handler: Any)
 
 data class ContTrace(
-  next: FunctionContFrame | null,
-  last: ContTrace | HandlerContFrame | FunctionContFrame | null,
-  nextHandler: HandlerContFrame | null,
-  lastHandler: ContTrace | HandlerContFrame | null,
-  resumed: Bool
+  mut val next: FunctionContFrame | null,
+  mut val last: ContTrace | HandlerContFrame | FunctionContFrame | null,
+  mut val nextHandler: HandlerContFrame | null,
+  mut val lastHandler: ContTrace | HandlerContFrame | null,
+  mut val resumed: Bool
 )
 // PrintStackEffect stores the showLocals flag; FatalEffect has no handler function.
 data class EffectSig(contTrace: ContTrace, handler: Any, handlerFun: Function | Bool | null)

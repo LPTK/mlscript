@@ -9,11 +9,13 @@ fun f(x, ...xs, y) = [x, xs, y]
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let f;
 //│ f = function f(x, ...args) {
-//│   let y, inlinedVal, tmp, tmp1;
-//│   tmp1 = 1 + args.length;
-//│   runtime.checkArgs("f", 2, tmp1);
-//│   tmp = args.length - 1;
-//│   inlinedVal = runtime.safeCall(args.slice(0, tmp));
+//│   let y, inlinedVal, tmp, tmp1, tmp2, tmp3;
+//│   tmp2 = args.length;
+//│   tmp3 = 1 + tmp2;
+//│   runtime.checkArgs("f", 2, tmp3);
+//│   tmp = args.length;
+//│   tmp1 = tmp - 1;
+//│   inlinedVal = runtime.safeCall(args.slice(0, tmp1));
 //│   y = runtime.Tuple.get(args, -1);
 //│   return globalThis.Object.freeze([ x, inlinedVal, y ])
 //│ };
@@ -26,7 +28,7 @@ fun f(x, ...xs, y) = [x, xs, y]
 :e
 f(1)
 //│ ╔══[COMPILATION ERROR] Resolution error in application
-//│ ║  l.27: 	f(1)
+//│ ║  l.29: 	f(1)
 //│ ║        	^^^^
 //│ ╟── Function 'f' expected at least 2 arguments, but got 1
 //│ ║  l.8: 	fun f(x, ...xs, y) = [x, xs, y]
@@ -53,25 +55,29 @@ fun h(x, y?, z?, ...xs, w) = [x, y, z, xs, w]
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let h;
 //│ h = function h(x, ...args7) {
-//│   let w, inlinedVal12, inlinedVal13, inlinedVal14, tmp14, scrut, tmp15, scrut1, tmp16, tmp17;
-//│   tmp17 = 1 + args7.length;
-//│   runtime.checkArgs("h", 2, tmp17);
-//│   tmp16 = args7.length - 1;
-//│   scrut1 = 0 < tmp16;
+//│   let w, inlinedVal12, inlinedVal13, inlinedVal14, tmp28, tmp29, scrut, tmp30, tmp31, scrut1, tmp32, tmp33, tmp34, tmp35;
+//│   tmp34 = args7.length;
+//│   tmp35 = 1 + tmp34;
+//│   runtime.checkArgs("h", 2, tmp35);
+//│   tmp32 = args7.length;
+//│   tmp33 = tmp32 - 1;
+//│   scrut1 = 0 < tmp33;
 //│   if (scrut1 === true) {
 //│     inlinedVal12 = args7.at(0);
 //│   } else {
 //│     inlinedVal12 = undefined;
 //│   }
-//│   tmp15 = args7.length - 1;
-//│   scrut = 1 < tmp15;
+//│   tmp30 = args7.length;
+//│   tmp31 = tmp30 - 1;
+//│   scrut = 1 < tmp31;
 //│   if (scrut === true) {
 //│     inlinedVal13 = args7.at(1);
 //│   } else {
 //│     inlinedVal13 = undefined;
 //│   }
-//│   tmp14 = args7.length - 1;
-//│   inlinedVal14 = runtime.safeCall(args7.slice(2, tmp14));
+//│   tmp28 = args7.length;
+//│   tmp29 = tmp28 - 1;
+//│   inlinedVal14 = runtime.safeCall(args7.slice(2, tmp29));
 //│   w = runtime.Tuple.get(args7, -1);
 //│   return globalThis.Object.freeze([ x, inlinedVal12, inlinedVal13, inlinedVal14, w ])
 //│ };
@@ -117,10 +123,10 @@ lastA(B(0), B(1), A(2))
 private fun lastB(...xs, y) = y.b
 lastB(B(0), A(1))
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.117: 	private fun lastB(...xs, y) = y.b
+//│ ║  l.123: 	private fun lastB(...xs, y) = y.b
 //│ ║         	                              ^^^
 //│ ╟── Instance of class 'A' does not contain member 'b'
-//│ ║  l.118: 	lastB(B(0), A(1))
+//│ ║  l.124: 	lastB(B(0), A(1))
 //│ ╙──       	            ^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
@@ -137,20 +143,20 @@ app((x, ...xs, s) => s)
 :e
 app((x, s) => s)
 //│ ╔══[COMPILATION ERROR] Resolution error in function type
-//│ ║  l.130: 	fun app(f: (Int, ...Array[Int], Str) -> Str) = f(1, 2, 3, "a")
+//│ ║  l.136: 	fun app(f: (Int, ...Array[Int], Str) -> Str) = f(1, 2, 3, "a")
 //│ ║         	           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── Callback parameter list does not match its declared function type.
-//│ ║  l.138: 	app((x, s) => s)
+//│ ║  l.144: 	app((x, s) => s)
 //│ ╙──       	    ^^^^^^^^^^^
 //│ = 2
 
 :e
 app((x, ...xs) => "b")
 //│ ╔══[COMPILATION ERROR] Resolution error in function type
-//│ ║  l.130: 	fun app(f: (Int, ...Array[Int], Str) -> Str) = f(1, 2, 3, "a")
+//│ ║  l.136: 	fun app(f: (Int, ...Array[Int], Str) -> Str) = f(1, 2, 3, "a")
 //│ ║         	           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── Callback parameter list does not match its declared function type.
-//│ ║  l.148: 	app((x, ...xs) => "b")
+//│ ║  l.154: 	app((x, ...xs) => "b")
 //│ ╙──       	    ^^^^^^^^^^^^^^^^^
 //│ = "b"
 
@@ -169,29 +175,29 @@ sum(0, 1, 2, 3)
 :e
 fun bad(...xs, ...ys) = 0
 //│ ╔══[COMPILATION ERROR] A parameter list cannot have more than one variadic parameter.
-//│ ║  l.170: 	fun bad(...xs, ...ys) = 0
+//│ ║  l.176: 	fun bad(...xs, ...ys) = 0
 //│ ╙──       	               ^^^^^
 
 :e
 fun bad(...xs, y?) = 0
 //│ ╔══[COMPILATION ERROR] Optional parameters cannot follow a variadic parameter.
-//│ ║  l.176: 	fun bad(...xs, y?) = 0
+//│ ║  l.182: 	fun bad(...xs, y?) = 0
 //│ ╙──       	               ^^
 
 :e
 fun bad(f: (...Array[Int], ...Array[Int]) -> Int) = 0
 //│ ╔══[COMPILATION ERROR] A parameter list cannot have more than one variadic parameter.
-//│ ║  l.182: 	fun bad(f: (...Array[Int], ...Array[Int]) -> Int) = 0
+//│ ║  l.188: 	fun bad(f: (...Array[Int], ...Array[Int]) -> Int) = 0
 //│ ╙──       	                           ^^^^^^^^^^^^^
 
 :e
 fun bad(f: (...Array[Int], Int?) -> Int) = 0
 //│ ╔══[COMPILATION ERROR] Optional parameters cannot follow a variadic parameter.
-//│ ║  l.188: 	fun bad(f: (...Array[Int], Int?) -> Int) = 0
+//│ ║  l.194: 	fun bad(f: (...Array[Int], Int?) -> Int) = 0
 //│ ╙──       	                           ^^^^
 
 :e
 class C(x, ...xs, y)
 //│ ╔══[COMPILATION ERROR] Spread parameters are not supported in class parameters.
-//│ ║  l.194: 	class C(x, ...xs, y)
+//│ ║  l.200: 	class C(x, ...xs, y)
 //│ ╙──       	           ^^^^^

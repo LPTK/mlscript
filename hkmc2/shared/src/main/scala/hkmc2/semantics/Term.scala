@@ -996,6 +996,12 @@ sealed abstract class Definition extends Declaration, Statement, PossiblyErroneo
   def bsym: BlockMemberSymbol
   def visibility: Visibility = Visibility.of(annotations)
   def hasDeclareModifier: Opt[Annot.Modifier] = Annot.declareModifierOf(annotations)
+  /** Whether this definition is foreign: declared with `declare`, or a member of a foreign definition
+    * (members of declared classes and modules need no `declare` modifier of their own). */
+  def isForeign: Bool = hasDeclareModifier.isDefined || (this match
+    case td: TermDefinition => td.owner.exists(_.asDefnSym.defn.exists(_.isForeign))
+    case cd: ClassLikeDef => cd.owner.exists(_.asDefnSym.defn.exists(_.isForeign))
+    case _ => false)
   def hasStagedModifier: Opt[Annot.Modifier] = annotations.collectFirst:
     case mod @ Annot.Modifier(Keyword.`staged`) => mod
   def describeRef: Str = this match

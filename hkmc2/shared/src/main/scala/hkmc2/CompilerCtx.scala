@@ -167,7 +167,8 @@ class CompilerCtx(
           given codegen.Erasure = codegen.Erasure(blk)(using artifactConfig, prelude, state)
           val low = backendTL.givenIn:
             new codegen.Lowering()(using artifactConfig, backendTL, summon[Raise], state, prelude, summon[SymbolPrinter])
-          optimize(low.program(blk, Set.empty))
+          // * Other files cannot access the local variables of a file.
+          optimize(low.program(blk, Set.empty, sharedLocals = Set.empty))
 
       state.publishCompilationUnitAbi:
         CompilationUnitAbi:

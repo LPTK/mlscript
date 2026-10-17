@@ -1,0 +1,129 @@
+:js
+:.
+
+// * Nested positions of the IR (call arguments and callees, operands, selection prefixes, etc.) only contain
+// * stable paths, which always yield the same value: stateful paths are read into temporaries where they are
+// * evaluated, so that optimizations can freely move the evaluation of nested paths.
+// * See https://github.com/hkust-taco/mlscript/issues/571
+
+
+// * Mutable fields are read before evaluating subsequent operands.
+
+class A(mut val x)
+
+fun update(o: A) =
+  set o.x = 3
+  o
+
+:expect 7
+:noInline
+:soir
+let o = new A(4)
+o.x + update(o).x
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let tmp, tmp1, tmp2;
+//│ set o⁰ = new A⁰(4);
+//│ set tmp = o⁰.x⁰;
+//│ set tmp1 = update⁰((o⁰ as! A⁰));
+//│ set tmp2 = tmp1.x⁰;
+//│ return +⁰(tmp, tmp2)
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 7
+//│ o = A(3)
+
+// * The plain `val` fields of an instance created with `new mut` may be assigned after its construction:
+// * this initializes them, and observing them before their final assignment is undefined behavior.
+
+class B(val x)
+
+:expect 3
+let b = new mut B(4)
+set b.x = 3
+b.x
+//│ = 3
+//│ b = B(3)
+
+
+// * Local variables reassigned in nested functions are read where they are evaluated.
+
+fun first(x)(y) = x
+
+:soir
+:noInline
+:expect 1
+fun main() =
+  let y = 1
+  fun update() =
+    set y = 2
+  let p = first(y)
+  update()
+  p(0)
+main()
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ define main⁰ as fun main¹() {
+//│   let update, y, tmp;
+//│   define update as fun update¹() {
+//│     set y = 2;
+//│     return runtime⁰.Unit⁰
+//│   };
+//│   set y = 1;
+//│   set tmp = y;
+//│   do update¹();
+//│   return first⁰(tmp)(0)
+//│ };
+//│ return main¹()
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 1
+
+
+// * Stateful callees are read before evaluating the arguments.
+
+:expect 1
+:sir
+let g = x => x + 1
+fun change() =
+  set g = x => x + 100
+  0
+g(change())
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let tmp, tmp1, g;
+//│ define change⁰ as fun change¹() {
+//│   let lambda;
+//│   define lambda as fun lambda⁰(x) {
+//│     return +⁰(x, 100)
+//│   };
+//│   set g⁰ = lambda⁰;
+//│   return 0
+//│ };
+//│ @private
+//│ define g as fun g¹(x) {
+//│   return +⁰(x, 1)
+//│ };
+//│ set g⁰ = g¹;
+//│ set tmp = g⁰;
+//│ set tmp1 = change¹();
+//│ return tmp(tmp1)
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 1
+//│ g = fun
+
+
+// * Top-level variables may be reassigned by later compilation units.
+
+let counter = 1
+fun bump() =
+  set counter = counter + 1
+  0
+//│ counter = 1
+
+:expect 1
+:sir
+counter + bump()
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let tmp, tmp1; set tmp = counter⁰; set tmp1 = bump⁰(); return +⁰(tmp, tmp1)
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 1
+
+:expect 2
+counter
+//│ = 2

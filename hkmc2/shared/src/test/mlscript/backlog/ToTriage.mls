@@ -317,8 +317,10 @@ module Foo(x) with
 //│   }
 //│   static #x;
 //│   static {
+//│     let tmp8;
 //│     Foo4.#x = x;
-//│     Predef.print(Foo4.#x);
+//│     tmp8 = Foo4.#x;
+//│     Predef.print(tmp8);
 //│   }
 //│   toString() { return runtime.render(this); }
 //│   static [definitionMetadata] = ["class", "Foo"];
@@ -335,7 +337,7 @@ module Foo(x) with
 module Foo(val x)
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'x'
 //│ ╟── which references the symbol introduced here
-//│ ║  l.335: 	module Foo(val x)
+//│ ║  l.337: 	module Foo(val x)
 //│ ╙──       	               ^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let Foo7;
@@ -351,7 +353,7 @@ module Foo(val x)
 //│ });
 //│ ╔══[COMPILATION ERROR] No definition found in scope for member 'x'
 //│ ╟── which references the symbol introduced here
-//│ ║  l.335: 	module Foo(val x)
+//│ ║  l.337: 	module Foo(val x)
 //│ ╙──       	               ^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
@@ -360,7 +362,7 @@ module Foo(val x)
 // TODO support syntax?
 data class Foo(mut x)
 //│ ╔══[COMPILATION ERROR] Expected a valid parameter, found 'mut'-modified identifier
-//│ ║  l.361: 	data class Foo(mut x)
+//│ ║  l.363: 	data class Foo(mut x)
 //│ ╙──       	                   ^
 
 // ——— ——— ———
@@ -369,16 +371,16 @@ data class Foo(mut x)
 :e
 class Id(name: UnboundName)
 //│ ╔══[COMPILATION ERROR] Name not found: UnboundName
-//│ ║  l.370: 	class Id(name: UnboundName)
+//│ ║  l.372: 	class Id(name: UnboundName)
 //│ ╙──       	               ^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Expected a type, got a non-type ‹error›
-//│ ║  l.370: 	class Id(name: UnboundName)
+//│ ║  l.372: 	class Id(name: UnboundName)
 //│ ╙──       	               ^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Expected a type, got ‹error›
-//│ ║  l.370: 	class Id(name: UnboundName)
+//│ ║  l.372: 	class Id(name: UnboundName)
 //│ ╙──       	               ^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Expected a type, got a non-type ‹error›
-//│ ║  l.370: 	class Id(name: UnboundName)
+//│ ║  l.372: 	class Id(name: UnboundName)
 //│ ╙──       	               ^^^^^^^^^^^
 
 // ——— ——— ———
