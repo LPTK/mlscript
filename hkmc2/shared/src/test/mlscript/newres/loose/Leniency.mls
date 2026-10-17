@@ -134,10 +134,11 @@ discard(x => x.value)
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.133: 	discard(x => x.value)
 //│ ║         	             ^^^^^^^
+//│ ╟── Cannot resolve member 'value' of a value with unknown shape.
 //│ ╟── Parameter 'x' admits values of unknown shape.
 //│ ║  l.133: 	discard(x => x.value)
 //│ ║         	        ^
-//│ ╟── Cannot resolve member 'value' of a value with unknown shape.
+//│ ╟── The available type information comes from this annotation.
 //│ ║  l.132: 	private fun discard(f: Function) = ()
 //│ ║         	                       ^^^^^^^^
 //│ ╙── The 'Function' type does not specify parameter types.
@@ -147,10 +148,11 @@ discard(x => x.value)
 fun noCandidate(x) = x.absent
 [noCandidate(M2 as Any), noCandidate(M1)]
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.147: 	fun noCandidate(x) = x.absent
+//│ ║  l.148: 	fun noCandidate(x) = x.absent
 //│ ║         	                     ^^^^^^^^
 //│ ╟── Cannot resolve member 'absent' of a value with unknown shape.
-//│ ║  l.148: 	[noCandidate(M2 as Any), noCandidate(M1)]
+//│ ╟── The available type information comes from this annotation.
+//│ ║  l.149: 	[noCandidate(M2 as Any), noCandidate(M1)]
 //│ ║         	                   ^^^
 //│ ╟── Type 'Any' is declared without a member interface.
 //│ ║  in ../../decls/Prelude.mls
@@ -174,11 +176,11 @@ computed.value
 :e
 {(key): 0}.value
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.175: 	{(key): 0}.value
+//│ ║  l.177: 	{(key): 0}.value
 //│ ║         	 ^^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'value' across a computed key or unknown record spread.
 //│ ╟── This computed key can overwrite the selected member.
-//│ ║  l.175: 	{(key): 0}.value
+//│ ║  l.177: 	{(key): 0}.value
 //│ ╙──       	  ^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
@@ -187,10 +189,11 @@ computed.value
 let eagerUnknown = if hide(true) then M1 else (M2 as Any)
 eagerUnknown.u
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.188: 	eagerUnknown.u
+//│ ║  l.190: 	eagerUnknown.u
 //│ ║         	^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'u' of a value with unknown shape.
-//│ ║  l.187: 	let eagerUnknown = if hide(true) then M1 else (M2 as Any)
+//│ ╟── The available type information comes from this annotation.
+//│ ║  l.189: 	let eagerUnknown = if hide(true) then M1 else (M2 as Any)
 //│ ║         	                                                     ^^^
 //│ ╟── Type 'Any' is declared without a member interface.
 //│ ║  in ../../decls/Prelude.mls

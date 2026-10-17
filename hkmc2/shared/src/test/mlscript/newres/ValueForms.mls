@@ -49,6 +49,7 @@ promise.answer
 //│ ║  l.47: 	promise.answer
 //│ ║        	^^^^^^^^^^^^^^
 //│ ╟── Value of type 'Promise' does not contain member 'answer'
+//│ ╟── The available type information comes from this annotation.
 //│ ║  l.46: 	let promise = @annotations.async {answer: 42}
 //│ ║        	              ^^^^^^^^^^^^^^^^^^
 //│ ╙── This async annotation wraps the body's result in a promise.

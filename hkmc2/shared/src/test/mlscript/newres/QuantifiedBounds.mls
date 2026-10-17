@@ -117,6 +117,7 @@ private fun read(provider: Provider[Item]) = provider.make.value
 //│ ║  l.115: 	private fun read(provider: Provider[Item]) = provider.make.value
 //│ ║         	                                             ^^^^^^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'value' of a value with unknown shape.
+//│ ╟── The available type information comes from this annotation.
 //│ ║  l.113: 	  fun make: [A restricts T] -> A
 //│ ║         	                         ^
 //│ ╟── Type parameter 'T' does not specify the structure of its values.

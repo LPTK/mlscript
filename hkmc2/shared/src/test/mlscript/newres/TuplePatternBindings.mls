@@ -32,6 +32,7 @@ opaque([{name: "hidden"}, 1])
 //│ ║  l.29: 	fun opaque[A](pair: [A, Int]) = if pair is [item, _] then item.name
 //│ ║        	                                                          ^^^^^^^^^
 //│ ╟── Cannot resolve member 'name' of a value with unknown shape.
+//│ ╟── The available type information comes from this annotation.
 //│ ║  l.29: 	fun opaque[A](pair: [A, Int]) = if pair is [item, _] then item.name
 //│ ║        	                     ^
 //│ ╟── Type parameter 'A' does not specify the structure of its values.

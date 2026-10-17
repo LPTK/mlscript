@@ -25,11 +25,11 @@ sealed trait Shape extends ShapeEvent:
   def describe: Str
   /** Origin of the value or symbol described by this shape, independently of its use site. */
   def toLoc: Opt[Loc]
-  /** Keep the operation's explanation at its interface witness, after any path
-    * from the observed value to that witness. Wrappers preserve this ordering.
-    * An annotation restricting a value and its class declaration are different
-    * witnesses: interface errors use the annotation, while toLoc identifies the
-    * declaration. Diagnostic witnesses do not change semantic keys.
+  /** Explain an operation using the shape's declaration or interface witnesses.
+    * An annotation can describe an enclosing value from which this shape was
+    * inferred, so provenance reports it as separate evidence about the available
+    * type information. Wrappers preserve that evidence, while toLoc identifies
+    * the declaration. Diagnostic witnesses do not change semantic keys.
     */
   final def diagnostic(message: Message): Ls[(Message, Opt[Loc])] = this match
     case value: TermShape => value.applicationHead._1 match
@@ -956,13 +956,15 @@ final class ShapeProvenance private (path: => Ls[(Message, Opt[Loc])], notes: =>
     typeOrigin: Opt[Located]):
   private lazy val pathNotes = path
   private lazy val originNotes = notes
-  /** A type origin anchors the operation's explanation: first trace the value
-    * back to that annotation, then explain the interface it provides. Without
-    * an annotation witness, report the operation at its fallback location first
-    * and follow it with the reasons the value's shape is unknown.
+  /** The enclosing resolution error locates the failed operation. An annotation
+    * explains its type information separately: it may describe a container whose
+    * components were inferred later, so placing the operation's message there
+    * would wrongly attribute a component's missing member to the container type.
+    * Keep the path to that annotation and the explanation of its interface.
     */
   def diagnostic(message: Message, fallback: Opt[Loc]): Ls[(Message, Opt[Loc])] = typeOrigin match
-    case S(source) => pathNotes ::: (message -> source.toLoc.orElse(fallback)) :: originNotes
+    case S(source) => (message -> N) :: pathNotes :::
+      (msg"The available type information comes from this annotation." -> source.toLoc.orElse(fallback)) :: originNotes
     case N => (message -> fallback) :: pathNotes ::: originNotes
   def via(note: => (Message, Opt[Loc])): ShapeProvenance =
     new ShapeProvenance(note :: pathNotes, originNotes, typeOrigin)

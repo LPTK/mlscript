@@ -109,6 +109,7 @@ fun stillUnknown(value: Any) =
 //│ ║  l.107: 	  if value is ~TextBox as other then other.text else ""
 //│ ║         	                                     ^^^^^^^^^^
 //│ ╟── Cannot resolve member 'text' of a value with unknown shape.
+//│ ╟── The available type information comes from this annotation.
 //│ ║  l.106: 	fun stillUnknown(value: Any) =
 //│ ║         	                        ^^^
 //│ ╟── Type 'Any' is declared without a member interface.
@@ -121,10 +122,10 @@ fun stillUnknown(value: Any) =
 fun stillNull(value: Str | null) =
   if value is ~(null & Str) as text then text.length else 0
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.122: 	  if value is ~(null & Str) as text then text.length else 0
+//│ ║  l.123: 	  if value is ~(null & Str) as text then text.length else 0
 //│ ║         	                                         ^^^^^^^^^^^
 //│ ╟── Null literal does not contain member 'length'
-//│ ║  l.121: 	fun stillNull(value: Str | null) =
+//│ ║  l.122: 	fun stillNull(value: Str | null) =
 //│ ╙──       	                           ^^^^
 
 // A negated loop condition is checked again after assigning the next link.
