@@ -51,6 +51,7 @@ print("Hi")
 //│           Arg:
 //│             value = Lit of StrLit of "Hi"
 //│     rest = Return of Lit of IntLit of 2
+//│     reassign = false
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ Predef.print("Hi"); return 2
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -62,10 +63,10 @@ print("Hi")
 :re
 2(2)
 //│ ╔══[COMPILATION ERROR] Resolution error in application
-//│ ║  l.63: 	2(2)
+//│ ║  l.64: 	2(2)
 //│ ║        	^^^^
 //│ ╟── Integer literal cannot be called like a function.
-//│ ║  l.63: 	2(2)
+//│ ║  l.64: 	2(2)
 //│ ╙──      	^
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ throw "This code cannot be run as its compilation yielded an error."

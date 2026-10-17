@@ -136,7 +136,7 @@ class FlowAnalysisBasedRewrite(
       case _ => super.applyValue(v)(k)
     
     override def applyBlock(b: Block): Block = b match
-      case Assign(lhs: VarSymbol, rhs, rst) if activeEliminatedParams(lhs) =>
+      case Assign(lhs: VarSymbol, rhs, rst, _) if activeEliminatedParams(lhs) =>
         applyResult(rhs): rhs2 =>
           Assign.discard(rhs2, applySubBlock(rst))
       case Return(res) if activeEtaArgss.nonEmpty =>

@@ -219,7 +219,7 @@ class BlockSimplifier
               localVars ++= syms
             case Break(lbl) => usedLabels += lbl
             case Continue(lbl) => usedLabels += lbl
-            case Assign(lhs: LocalVarSymbol, rhs, rst) =>
+            case Assign(lhs: LocalVarSymbol, rhs, rst, _) =>
               definedVars += lhs
             case _ =>
           super.applyBlock(b)
@@ -294,7 +294,7 @@ class BlockSimplifier
     
     override def applyBlock(b: Block): Block = b match
       // * Discard assignments to local variables that are never read (and are not preserved)
-      case Assign(lhs: LocalVarSymbol, rhs, rst) if localVars(lhs) && !usedVars(lhs) && !symbolsToPreserve(lhs) =>
+      case Assign(lhs: LocalVarSymbol, rhs, rst, _) if localVars(lhs) && !usedVars(lhs) && !symbolsToPreserve(lhs) =>
         registerChange(s"rm ${lhs.showDbg} = ${rhs.showDbg}")
         applyResult(rhs)(r => Assign.discard(r, applyBlock(rst)))
       
@@ -526,7 +526,7 @@ class BlockSimplifier
           
           override def applyBlock(b: Block): Block =
             b match
-            case ass @ Assign(lhs: LocalVar, rhs, rst)
+            case ass @ Assign(lhs: LocalVar, rhs, rst, _)
             if localVars(lhs) && !capturedVars(lhs) && !symbolsToPreserve(lhs)
               && !impreciselyTrackedVars(lhs) && !liveAssigns.containsKey(ass)
             =>
@@ -857,22 +857,22 @@ class BlockSimplifier
       
       // * Collapse immediately-invoked path aliases.
       // * This can often arise due to inlining and forwarding functions like `fun i = id`.
-      case ass @ Assign(lhs: LocalVar, path: Path, Assign(nextLhs, call @ Call(Value.SimpleRef(fun: LocalVar), argss), rst))
+      case ass @ Assign(lhs: LocalVar, path: Path, Assign(nextLhs, call @ Call(Value.SimpleRef(fun: LocalVar), argss), rst, nextRe), _)
         if canCollapseImmediateCallPrefix(lhs, path, fun, argss) && path.isPure
       =>
           registerChange(s"immediate assigned call prefix ${lhs.showDbg} ~> ${path.showDbg}")
           applyPath(path): path2 =>
             val lhs2 = recordAssignmentFact(lhs, path2, ass)
             val combined = Call(path2, argss)(call.metadata, call.toLoc)
-            val res = applyBlock(Assign(nextLhs, combined, rst))
+            val res = applyBlock(Assign(nextLhs, combined, rst, nextRe))
             // * Note that it is incorrect to eliminate the `lhs` assignment even if `!rst.freeVars(lhs)`,
             // * because the assignment may be visible from an outer block
             // * (eg, the current block could be inside a Label or Match).
-            Assign(lhs2, path2, res)
+            Assign(lhs2, path2, res, ass.reassign)
       // * Note the following case does not necessarily assume evaluating the path is pure.
       // * Since there is no intervening statement and the local has no other use,
       // * this preserves both the number and order of evaluations.
-      case ass @ Assign(lhs: LocalVar, path: Path, Return(call @ Call(Value.SimpleRef(fun: LocalVar), argss)))
+      case ass @ Assign(lhs: LocalVar, path: Path, Return(call @ Call(Value.SimpleRef(fun: LocalVar), argss)), _)
         if canCollapseImmediateCallPrefix(lhs, path, fun, argss) && (path.isPure || !symbolsToPreserve(lhs))
       =>
           registerChange(s"immediate returned call prefix ${lhs.showDbg} ~> ${path.showDbg}")
@@ -880,26 +880,26 @@ class BlockSimplifier
             val lhs2 = recordAssignmentFact(lhs, path2, ass)
             val combined = Call(path2, argss)(call.metadata, call.toLoc)
             val res = applyBlock(Return(combined))
-            if symbolsToPreserve(lhs) then Assign(lhs2, path2, res) else res
+            if symbolsToPreserve(lhs) then Assign(lhs2, path2, res, ass.reassign) else res
 
       // * Discard local variables that are assigned just to be returned
       // * Note: the reason we do this here and not in DeadCodeElim is that we need to check `capturedVars`
-      case Assign(lhs: LocalVar, rhs, Return(Value.SimpleRef(ret)))
+      case Assign(lhs: LocalVar, rhs, Return(Value.SimpleRef(ret)), _)
         if !inDryRun && (ret is lhs) && !capturedVars(lhs) && !symbolsToPreserve(lhs)
       =>
         registerChange(s"tail-return ${lhs.showDbg} ~> ${rhs.showDbg}")
         applyBlock(Return(rhs))
       
-      case ass @ Assign(lhs: LocalVar, rhs, rst) if !capturedVars(lhs) =>
+      case ass @ Assign(lhs: LocalVar, rhs, rst, _) if !capturedVars(lhs) =>
         // log(s"Propagating ${lhs.showDbg} := ${rhs.showDbg} (${assignedResults.get(lhs)})")
         
         applyResult(rhs): rhs2 =>
         
           val lhs2 = recordAssignmentFact(lhs, rhs2, ass)
           val rst2 = applyBlock(rst)
-          if (lhs2 is lhs) && (rhs2 is rhs) && (rst2 is rst) then ass else Assign(lhs, rhs2, rst2)
+          if (lhs2 is lhs) && (rhs2 is rhs) && (rst2 is rst) then ass else Assign(lhs, rhs2, rst2, ass.reassign)
         
-      case Assign(lhs, rhs, rst) =>
+      case Assign(lhs, rhs, rst, _) =>
         // log(s"Not propagating ${lhs } := ${rhs}")
         
         super.applyBlock(b)
@@ -1264,8 +1264,8 @@ class BlockSimplifier
     def getAssignedShape(body: Block, target: LocalVarSymbol): Opt[Shape] =
       def loop(body: Block, shape: Opt[Shape])(k: Opt[Shape] => Opt[Shape]): Opt[Shape] = body match
         case _: End => k(shape)
-        case Assign(`target`, rhs, rest) => loop(rest, getShape(rhs))(k)
-        case Assign(_, rhs, rest) if rhs.isPure => loop(rest, shape)(k)
+        case Assign(`target`, rhs, rest, _) => loop(rest, getShape(rhs))(k)
+        case Assign(_, rhs, rest, _) if rhs.isPure => loop(rest, shape)(k)
         case AssignField(_, _, _, rest) => loop(rest, shape)(k)
         case AssignDynField(_, _, _, _, rest) => loop(rest, shape)(k)
         case Define(_, rest) => loop(rest, shape)(k)
@@ -1294,8 +1294,8 @@ class BlockSimplifier
     
     def canMove(prefix: Block): Bool = prefix match
       case _: End => true
-      case Assign(_, _: Value, rest) => canMove(rest)
-      case Assign(_, path: Select, rest) => path.isPure && canMove(rest)
+      case Assign(_, _: Value, rest, _) => canMove(rest)
+      case Assign(_, path: Select, rest, _) => path.isPure && canMove(rest)
       case Define(defn: ValDefn, rest) =>
         defn.rhs.isPure && defn.tsym.owner.isEmpty && canMove(rest)
       case Define(defn: FunDefn, rest) => defn.owner.isEmpty && canMove(rest)

@@ -111,8 +111,8 @@ class TailRecOpt(checkAnnotations: Bool)(using Config, State, TL, Raise, Ctx):
     def unapply(b: Block): Opt[(TermSymbol, Call, Opt[ErasedValueType])] = b match
       case Return(c @ CallToFun(r)) => S((r, c, N))
       case Return(Cast(c @ CallToFun(r), t, _)) => S((r, c, S(t)))
-      case Assign(a, c @ CallToFun(r), Return(Value.SimpleRef(b))) if a === b => S((r, c, N))
-      case Assign(a, c @ CallToFun(r), Return(Cast(Value.SimpleRef(b), t, _))) if a === b => S((r, c, S(t)))
+      case Assign(a, c @ CallToFun(r), Return(Value.SimpleRef(b)), _) if a === b => S((r, c, N))
+      case Assign(a, c @ CallToFun(r), Return(Cast(Value.SimpleRef(b), t, _)), _) if a === b => S((r, c, S(t)))
       case _ => N
     
   
@@ -565,7 +565,7 @@ class TailRecOpt(checkAnnotations: Bool)(using Config, State, TL, Raise, Ctx):
                     Match(
                       o.flag.asSimpleRef,
                       Case.Lit(Tree.BoolLit(true)) ->
-                        Assign(slot, Cast(ref, o.tpe, config.checkCasts)(N), End()) :: Nil,
+                        Assign.reassign(slot, Cast(ref, o.tpe, config.checkCasts)(N), End()) :: Nil,
                       N,
                       acc)))
       
@@ -593,12 +593,12 @@ class TailRecOpt(checkAnnotations: Bool)(using Config, State, TL, Raise, Ctx):
               val cont =
                 val resume =
                   if funsLen === 1 then Continue(loopSym)
-                  else Assign(curIdSym, Value.Lit(Tree.IntLit(dSymIds(calleeSym)))(N), Continue(loopSym))
+                  else Assign.reassign(curIdSym, Value.Lit(Tree.IntLit(dSymIds(calleeSym)))(N), Continue(loopSym))
                 // Directly emitting the jump causes the return coercion to be dropped, so we record the cast and defer
                 // its emission to the loop's exit.
                 deferredCasts.get(f.dSym) match
                   case S(o) if retCoercion.exists(t => !alwaysSucceedsAtExits(t)) =>
-                    Assign(o.flag, Value.Lit(Tree.BoolLit(true))(N), resume)
+                    Assign.reassign(o.flag, Value.Lit(Tree.BoolLit(true))(N), resume)
                   case _ => resume
               // In some cases, we could have assignments like this:
               // param0 = whatever
@@ -661,8 +661,9 @@ class TailRecOpt(checkAnnotations: Bool)(using Config, State, TL, Raise, Ctx):
                       // Note that we already rewrote the result with symbols pointing to the merged function parameters
                       // in `rewrite`. Also note that `paramRewriter` will add all encountered rewritten variables
                       // to `requiredTmps`.
-                      val ret = paramRewriter.applyResult(res)(Assign(sym, _, acc)) match
-                        case Assign(sym, Value.SimpleRef(sym1), rest) if sym === sym1 => rest // avoid useless assignments
+                      // * Parameters are reassigned in each iteration of the loop.
+                      val ret = paramRewriter.applyResult(res)(Assign.reassign(sym, _, acc)) match
+                        case Assign(sym, Value.SimpleRef(sym1), rest, _) if sym === sym1 => rest // avoid useless assignments
                         case x => x
                       ret
                   case CallArgsResult.ForceSpread =>
@@ -673,7 +674,7 @@ class TailRecOpt(checkAnnotations: Bool)(using Config, State, TL, Raise, Ctx):
                     paramRewriter.applyArgs(ogArgs): newArgs =>
                       val (initialBlk, pathList) = forceSpread(ogParamList, newArgs)
                       val paramAssignments = (thisParamSyms zip pathList).foldRight[Block](rest):
-                        case ((sym, path), restBlk) => Assign(sym, path, restBlk)
+                        case ((sym, path), restBlk) => Assign.reassign(sym, path, restBlk)
                     
                       initialBlk.rest(paramAssignments)
               end assignments

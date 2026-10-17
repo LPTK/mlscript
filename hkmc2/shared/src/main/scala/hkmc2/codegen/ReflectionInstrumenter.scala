@@ -289,7 +289,7 @@ class ReflectionInstrumenter(using State, Raise, Ctx) extends BlockTransformer(n
     case Return(res) =>
       transformResult(res): x =>
         blockCtor("Return", Ls(x), "return")(k(_, ctx))
-    case Assign(x, r, b) =>
+    case Assign(x, r, b, _) =>
       transformResult(r): y =>
         transformSymbol(x): xSym =>
           blockCtor("ValueSimpleRef", Ls(xSym)): xStaged =>

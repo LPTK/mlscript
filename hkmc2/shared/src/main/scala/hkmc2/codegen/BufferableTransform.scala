@@ -48,7 +48,7 @@ class BufferableTransform()(using State, Raise):
               new BlockTransformer(SymbolSubst.Id):
                 override def applySimpleSymbol(sym: SimpleSymbol): SimpleSymbol = symMap.getOrElse(sym, sym)
                 override def applyBlock(b: Block): Block = b match
-                  case Assign(l: (LocalVarSymbol | TermSymbol), r, rst) =>
+                  case Assign(l: (LocalVarSymbol | TermSymbol), r, rst, _) =>
                     fieldMap.get(l).fold(super.applyBlock(b)): off =>
                       applyResult(r): r2 =>
                         assignToOffset(off, r2, applyBlock(rst))

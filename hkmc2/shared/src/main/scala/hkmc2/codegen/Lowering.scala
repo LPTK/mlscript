@@ -677,7 +677,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
       case S(owner) => AssignField(owner.asThis, sym.id, castTo(rhs, sym.erasedType, loco), rest)(S(sym))
       case N => nope
     case sym: LocalVarSymbol =>
-      Assign(sym, castTo(rhs, sym.erasedType, loco), rest)
+      Assign.reassign(sym, castTo(rhs, sym.erasedType, loco), rest)
     case sym => nope
 
   private def defineSymbol(sym: Symbol, rhs: Result, rest: Block)(using LoweringCtx): Block =
@@ -2061,8 +2061,8 @@ object TrivialStatementsAndMatch:
       S(S(newK), m)
     b match
     case m: Match => S(N, m)
-    case Assign(lhs, rhs, TrivialStatementsAndMatch(k, m)) if rhs.isPure =>
-      handleAssignAndMatch(r => Assign(lhs, rhs, r), m, k)
+    case Assign(lhs, rhs, TrivialStatementsAndMatch(k, m), re) if rhs.isPure =>
+      handleAssignAndMatch(r => Assign(lhs, rhs, r, re), m, k)
     case Define(defn, TrivialStatementsAndMatch(k, m)) if defn.isPure =>
       handleAssignAndMatch(r => Define(defn, r), m, k)
     case _ => N

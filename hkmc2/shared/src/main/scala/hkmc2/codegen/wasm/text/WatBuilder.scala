@@ -1063,7 +1063,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
   ): Set[ScopedSymbol] =
     def restOf(block: Block): Opt[Block] = block match
       case Define(_, rst) => S(rst)
-      case Assign(_, _, rst) => S(rst)
+      case Assign(_, _, rst, _) => S(rst)
       case AssignField(_, _, _, rst) => S(rst)
       case AssignDynField(_, _, _, _, rst) => S(rst)
       case Match(_, _, _, rst) => S(rst)
@@ -1080,7 +1080,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
         recur(rst) + defn.sym
       case Define(_, rst) =>
         recur(rst)
-      case Assign(sym: LocalVarSymbol, _, rst) if sessionExportCtx.shouldExport(sym) =>
+      case Assign(sym: LocalVarSymbol, _, rst, _) if sessionExportCtx.shouldExport(sym) =>
         recur(rst) + sym
       case _: BlockTail =>
         Set.empty
@@ -1414,7 +1414,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       case Scoped(syms, _) => Scoped(syms, rest)
       case Begin(sub, _) => Begin(sub, rest)
       case TryBlock(sub, finallyDo, _) => TryBlock(sub, finallyDo, rest)
-      case Assign(lhs, rhs, _) => Assign(lhs, rhs, rest)
+      case Assign(lhs, rhs, _, _) => Assign(lhs, rhs, rest)
       case af @ AssignField(lhs, nme, rhs, _) => AssignField(lhs, nme, rhs, rest)(af.symbol)
       case AssignDynField(lhs, fld, arrayIdx, rhs, _) => AssignDynField(lhs, fld, arrayIdx, rhs, rest)
       case Define(defn, _) => Define(defn, rest)
@@ -1423,7 +1423,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
 
     def splitSuperTail(block: Block): Opt[Block -> Ls[Arg]] = block match
       case End(_) => N
-      case Assign(NoSymbol, Call(Value.SimpleRef(State.superSymbol), argss), _: End) =>
+      case Assign(NoSymbol, Call(Value.SimpleRef(State.superSymbol), argss), _: End, _) =>
         S(End("") -> argss.flatten)
       case b: NonBlockTail =>
         splitSuperTail(b.rest).map: (prefix, args) =>
@@ -2143,7 +2143,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
 
   def returningTerm(t: Block)(using FunctionCtx, Raise, SessionExportCtx): Vector[Expr] =
     t match
-      case Assign(NoSymbol, r, rst) =>
+      case Assign(NoSymbol, r, rst, _) =>
         val rExpr = result(r)
         val evalExpr = rExpr.resultType match
           case S(_) => drop(rExpr)
@@ -2151,7 +2151,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
         val rstBlk = returningTerm(rst)
         evalExpr +: rstBlk
 
-      case Assign(l: LocalVarSymbol, r, rst) =>
+      case Assign(l: LocalVarSymbol, r, rst, _) =>
         val assignExpr = setVar(l, r, l.toLoc)
         val rstBlk = returningTerm(rst)
         assignExpr +: rstBlk

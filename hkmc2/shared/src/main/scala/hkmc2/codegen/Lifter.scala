@@ -528,8 +528,8 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
           if (sub2 is sub) && (fin2 is fin) && (rst2 is rst) then rewritten else TryBlock(sub2, fin2, rst2)
         
         // Assignment to variables
-        case Assign(NoSymbol, _, _) => super.applyBlock(rewritten)
-        case Assign(lhs: LocalVarSymbol, rhs, rest) => ctx.symbolsMap.get(lhs) match
+        case Assign(NoSymbol, _, _, _) => super.applyBlock(rewritten)
+        case Assign(lhs: LocalVarSymbol, rhs, rest, _) => ctx.symbolsMap.get(lhs) match
           case Some(path) => applyResult(rhs): rhs2 =>
             path.assign(rhs2, applySubBlock(rest))
           case _ => super.applyBlock(rewritten)

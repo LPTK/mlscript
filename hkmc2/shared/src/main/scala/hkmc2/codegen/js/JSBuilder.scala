@@ -448,7 +448,7 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
   object IfIntChain:
     @tailrec
     private def lastBlkAssign(b: Block): Opt[Assign] = b match
-      case a @ Assign(lhs, rhs, End(_)) => S(a)
+      case a @ Assign(lhs, rhs, End(_), _) => S(a)
       case b: NonBlockTail => lastBlkAssign(b.rest)
       case _: BlockTail => N
     
@@ -471,7 +471,7 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
         =>
           lastBlkAssign(b) match
           // the one branch ends by assigning `nextInt` to `scrutSym`
-          case S(Assign(`scrutSym_`, Value.Lit(Tree.IntLit(nextInt)), _)) =>
+          case S(Assign(`scrutSym_`, Value.Lit(Tree.IntLit(nextInt)), _, _)) =>
             unapplyImpl(rest, (curVal_, b) :: acc, S(scrut_), S(nextInt))
           case _ =>
             S((scrut_, (curVal_, b) :: acc, rest))
@@ -487,9 +487,9 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
   def returningTerm(t: Block, endSemi: Bool)(using Raise, Scope): Document =
     def mkSemi = if endSemi then ";" else ""
     t match
-    case Assign(NoSymbol, r, rst) =>
+    case Assign(NoSymbol, r, rst, _) =>
       doc" # ${result(r)};${returningTerm(rst, endSemi)}"
-    case Assign(l: (LocalVarSymbol | TermSymbol), r, rst) =>
+    case Assign(l: (LocalVarSymbol | TermSymbol), r, rst, _) =>
       doc" # ${
           result(l.asPath.withLoc(N)) // TODO: improve location
         } = ${result(r)};${returningTerm(rst, endSemi)}"

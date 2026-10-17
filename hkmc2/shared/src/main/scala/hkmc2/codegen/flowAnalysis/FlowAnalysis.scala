@@ -534,7 +534,7 @@ class FlowPreAnalyzer(val pgrm: Program)(using
       ctxTracker.inBeginBody(bgn):
         applyBlock(sub)
       applyBlock(rest)
-    case Assign(lhs, rhs, rest) =>
+    case Assign(lhs, rhs, rest, _) =>
       lhs match
         case l: (LocalVarSymbol | TermSymbol) => recordRefInCaptures(l)
         case _ => ()
@@ -958,7 +958,7 @@ class FlowConstraintsCollector(
       case Begin(sub, rest) =>
         processBlock(sub)
         processBlock(rest)
-      case Assign(lhs, rhs, rest) =>
+      case Assign(lhs, rhs, rest, _) =>
         val rhsStrat = processResult(rhs)
         lhs.match
           case NoSymbol => ()

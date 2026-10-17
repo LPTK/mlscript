@@ -115,7 +115,7 @@ sealed abstract class Block extends Product:
           |${finallyDo.showDbg}
           |}
           |${rest.showDbg}""".stripMargin
-    case Assign(lhs, rhs, rest) =>
+    case Assign(lhs, rhs, rest, _) =>
       s"""|Assign(${lhs.showDbg} = ${rhs.showDbg})
           |${rest.showDbg}""".stripMargin
     case AssignField(lhs, nme, rhs, rest) =>
@@ -139,7 +139,7 @@ sealed abstract class Block extends Product:
     case _: Throw | _: Break | _: Continue | _: Unreachable => true
     case _: Return => true
     case Begin(sub, rst) => sub.isAbortive || rst.isAbortive
-    case Assign(_, _, rst) => rst.isAbortive
+    case Assign(_, _, rst, _) => rst.isAbortive
     case AssignField(_, _, _, rst) => rst.isAbortive
     case AssignDynField(_, _, _, _, rst) => rst.isAbortive
     case Match(_, arms, dflt, rst) => rst.isAbortive || arms.forall(_._2.isAbortive) && dflt.exists(_.isAbortive)
@@ -157,8 +157,8 @@ sealed abstract class Block extends Product:
   lazy val definedVars: Set[ScopedSymbol] = this match
     case _: Return | _: Throw | _: Unreachable => Set.empty
     case Begin(sub, rst) => sub.definedVars ++ rst.definedVars
-    case Assign(NoSymbol, r, rst) => rst.definedVars
-    case Assign(l: LocalVarSymbol, r, rst) => rst.definedVars + l
+    case Assign(NoSymbol, r, rst, _) => rst.definedVars
+    case Assign(l: LocalVarSymbol, r, rst, _) => rst.definedVars + l
     case AssignField(l, n, r, rst) => rst.definedVars
     case AssignDynField(l, n, ai, r, rst) => rst.definedVars
     case Match(scrut, arms, dflt, rst) =>
@@ -178,7 +178,7 @@ sealed abstract class Block extends Product:
     case Throw(r: Result) => r.size
     case _: End | _: Break | _: Continue | _: Unreachable => 0
     case Begin(sub, rst) => sub.size + rst.size
-    case Assign(_, r, rst) => r.size + rst.size
+    case Assign(_, r, rst, _) => r.size + rst.size
     case AssignField(p, _, r, rst) => p.size + r.size + rst.size
     case AssignDynField(p, fld, _, r, rst) => p.size + fld.size + r.size + rst.size
     case Match(p, arms, dflt, rst) =>
@@ -210,8 +210,8 @@ sealed abstract class Block extends Product:
     case Continue(label) => Set.single(label)
     case Begin(sub, rest) => sub.freeVars ++ rest.freeVars
     case TryBlock(sub, finallyDo, rest) => sub.freeVars ++ finallyDo.freeVars ++ rest.freeVars
-    case Assign(NoSymbol, rhs, rest) => rhs.freeVars ++ rest.freeVars
-    case Assign(lhs: LocalVarSymbol, rhs, rest) => Set.single(lhs) ++ rhs.freeVars ++ rest.freeVars
+    case Assign(NoSymbol, rhs, rest, _) => rhs.freeVars ++ rest.freeVars
+    case Assign(lhs: LocalVarSymbol, rhs, rest, _) => Set.single(lhs) ++ rhs.freeVars ++ rest.freeVars
     case AssignField(lhs, nme, rhs, rest) => lhs.freeVars ++ rhs.freeVars ++ rest.freeVars
     case AssignDynField(lhs, fld, arrayIdx, rhs, rest) => lhs.freeVars ++ fld.freeVars ++ rhs.freeVars ++ rest.freeVars
     case Define(defn, rest) => defn.freeVars ++ rest.freeVars
@@ -227,7 +227,7 @@ sealed abstract class Block extends Product:
     case Match(p, arms, dflt, rest) => p.subBlocks ++ arms.map(_._2) ++ dflt.toList :+ rest
     case Begin(sub, rest) => sub :: rest :: Nil
     case TryBlock(sub, finallyDo, rest) => sub :: finallyDo :: rest :: Nil
-    case Assign(_, rhs, rest) => rhs.subBlocks ::: rest :: Nil
+    case Assign(_, rhs, rest, _) => rhs.subBlocks ::: rest :: Nil
     case AssignField(_, _, rhs, rest) => rhs.subBlocks ::: rest :: Nil
     case AssignDynField(_, _, _, rhs, rest) => rhs.subBlocks ::: rest :: Nil
     case Define(d, rest) => d.subBlocks ::: rest :: Nil
@@ -302,11 +302,11 @@ sealed abstract class Block extends Product:
       then this
       else TryBlock(newSub, newFinallyDo, newRest)
       
-    case Assign(lhs, rhs, rest) =>
+    case Assign(lhs, rhs, rest, re) =>
       val newRest = rest.flatten(k)
       if newRest is rest
       then this
-      else Assign(lhs, rhs, newRest)
+      else Assign(lhs, rhs, newRest, re)
       
     case a @ AssignField(lhs, nme, rhs, rest) =>
       val newRest = rest.flatten(k)
@@ -432,7 +432,13 @@ case class Begin(sub: Block, rest: Block) extends Block with ProductWithTail wit
 
 case class TryBlock(sub: Block, finallyDo: Block, rest: Block) extends Block with ProductWithTail with NonBlockTail
 
-case class Assign(lhs: Assignable, rhs: Result, rest: Block) extends Block with ProductWithTail with NonBlockTail
+/** `reassign` distinguishes reassignments of a variable (`set x = v` in the source language), which may
+  * overwrite a value that was previously observed, from initializations (`x = v` in the source language, and
+  * the assignments of temporaries introduced by the compiler). An initialization happens before any read of the
+  * variable in its scope: observing a variable before its initialization is undefined behavior. So reads of
+  * variables that are never reassigned are stable: they denote the same value wherever they are evaluated.
+  * Note that a temporary assigned in the body of a loop is (re)initialized in each iteration. */
+case class Assign(lhs: Assignable, rhs: Result, rest: Block, reassign: Bool) extends Block with ProductWithTail with NonBlockTail
 
 case class AssignField(lhs: Path, nme: Tree.Ident, rhs: Result, rest: Block)(val symbol: Opt[MemberSymbol])
   extends Block with ProductWithTail with NonBlockTail
@@ -473,15 +479,19 @@ object TryBlock:
       case Scoped(syms, innerRest) => Scoped(syms, TryBlock(body, finallyDo, innerRest))
       case _ => new TryBlock(body, finallyDo, rest)
 object Assign:
-  def apply(lhs: Assignable, rhs: Result, rest: Block): Block = rest match
+  /** An initialization (see `Assign`). */
+  def apply(lhs: Assignable, rhs: Result, rest: Block): Block = apply(lhs, rhs, rest, reassign = false)
+  /** A reassignment (see `Assign`). */
+  def reassign(lhs: Assignable, rhs: Result, rest: Block): Block = apply(lhs, rhs, rest, reassign = true)
+  def apply(lhs: Assignable, rhs: Result, rest: Block, reassign: Bool): Block = rest match
     case _: Unreachable =>
-      if rhs.isPure then rest else new Assign(lhs, rhs, rest)
-    case Scoped(syms, body) => Scoped(syms, Assign(lhs, rhs, body))
+      if rhs.isPure then rest else new Assign(lhs, rhs, rest, reassign)
+    case Scoped(syms, body) => Scoped(syms, Assign(lhs, rhs, body, reassign))
     case _ =>
       lhs match
       case NoSymbol =>
-        if rhs.isPure then rest else new Assign(lhs, rhs, rest)
-      case _ => new Assign(lhs, rhs, rest)
+        if rhs.isPure then rest else new Assign(lhs, rhs, rest, reassign)
+      case _ => new Assign(lhs, rhs, rest, reassign)
   def discard(res: Result, rest: Block)(using State): Block =
     res match
     case _: Value | _: Lambda => rest
@@ -553,7 +563,7 @@ object Begin:
       case Match(scrut, arms, dflt, rst) => Match(scrut, arms, dflt, Begin(rst, rest))
       case Label(lbl, loop, body, rst) => Label(lbl, loop, body, Begin(rst, rest))
       case TryBlock(sub, fin, rst) => TryBlock(sub, fin, Begin(rst, rest))
-      case Assign(lhs, rhs, rst) => Assign(lhs, rhs, Begin(rst, rest))
+      case Assign(lhs, rhs, rst, re) => Assign(lhs, rhs, Begin(rst, rest), re)
       case Define(defn, rst) => Define(defn, Begin(rst, rest))
       case _: End => rest
       case Begin(sub, rst) => Begin(sub, Begin(rst, rest))
@@ -1465,6 +1475,7 @@ extension (k: Block => Block)
   def transform(f: (Block => Block) => (Block => Block)) = f(k)
   
   def assign(l: Assignable, r: Result) = k.chain(Assign(l, r, _))
+  def reassign(l: Assignable, r: Result) = k.chain(Assign.reassign(l, r, _))
   def assignScoped(l: LocalVarSymbol, r: Result) = k.scopedVars(Set.single(l)).assign(l, r)
   def assignFieldN(lhs: Path, nme: Tree.Ident, rhs: Result) = k.chain(AssignField(lhs, nme, rhs, _)(N))
   def break(l: LabelSymbol): Block = k.rest(Break(l))

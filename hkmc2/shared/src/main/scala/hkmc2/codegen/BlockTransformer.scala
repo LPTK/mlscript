@@ -79,11 +79,11 @@ class BlockTransformer(subst: SymbolSubst):
       val fin2 = applySub(fin)
       val rst2 = applySubBlock(rst)
       if (sub2 is sub) && (fin2 is fin) && (rst2 is rst) then b else TryBlock(sub2, fin2, rst2)
-    case Assign(l, r, rst) =>
+    case Assign(l, r, rst, re) =>
       applyResult(r): r2 =>
         val l2 = applyAssignLhs(l)
         val rst2 = applySubBlock(rst)
-        if (l2 is l) && (r2 is r) && (rst2 is rst) then b else Assign(l2, r2, rst2)
+        if (l2 is l) && (r2 is r) && (rst2 is rst) then b else Assign(l2, r2, rst2, re)
     case b @ AssignField(l, n, r, rst) =>
       applyResult(r): r2 =>
         applyPath(l): l2 =>

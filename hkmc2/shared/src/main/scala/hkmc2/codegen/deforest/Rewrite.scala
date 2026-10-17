@@ -255,7 +255,7 @@ class DeforestRewriter(val solver: DeforestFusionSolver, additionalTopLevelSymbo
             if !inCtx(fv)
           do freeVars.add(fv)
           super.applyPath(m.scrut)
-        case Assign(lhs: LocalVarSymbol, rhs, rest) =>
+        case Assign(lhs: LocalVarSymbol, rhs, rest, _) =>
           if !inCtx(lhs) then freeVars.add(lhs)
           applyResult(rhs)
           applyBlock(rest)

@@ -150,8 +150,8 @@ private[codegen] final class PostCondAnalysis extends CachedAnalysis[Block, Post
     case Scoped(syms, body) => analyze(body)
     case Begin(sub, rest) => analyze(sub) >=> analyze(rest)
     case TryBlock(sub, finallyDo, rest) => analyze(sub) >=> analyze(finallyDo) >=> analyze(rest)
-    case Assign(NoSymbol, rhs, rest) => res(N, rhs, rest)
-    case Assign(lhs: ValueSymbol, rhs, rest) => res(S(lhs), rhs, rest)
+    case Assign(NoSymbol, rhs, rest, _) => res(N, rhs, rest)
+    case Assign(lhs: ValueSymbol, rhs, rest, _) => res(S(lhs), rhs, rest)
     case AssignField(path, _, rhs, rest) => res(N, rhs, rest)
     case AssignDynField(lhs, fld, arrayIdx, rhs, rest) => res(N, rhs, rest)
     case Define(defn, rest) => defn match

@@ -306,7 +306,7 @@ class HandlerLowering(paths: HandlerPaths, opt: Opt[EffectHandlers])(using TL, R
       // identity cases
 
       case Define(defn, rest) => Define(defn, go(rest))
-      case Assign(lhs, rhs, rest) => Assign(lhs, rhs, go(rest))
+      case Assign(lhs, rhs, rest, re) => Assign(lhs, rhs, go(rest), re)
       case blk @ AssignField(lhs, nme, rhs, rest) => AssignField(lhs, nme, rhs, go(rest))(blk.symbol)
       case AssignDynField(lhs, fld, arrayIdx, rhs, rest) => AssignDynField(lhs, fld, arrayIdx, rhs, go(rest))
       case _: Return => blk
@@ -388,7 +388,7 @@ class HandlerLowering(paths: HandlerPaths, opt: Opt[EffectHandlers])(using TL, R
             outgoing += labelMap(label)._2
           case Continue(label) =>
             outgoing += labelMap(label)._1
-          case Assign(lhs, rhs, rest) =>
+          case Assign(lhs, rhs, rest, _) =>
             applyResult(rhs)
             lhs match
             case lhs: LocalVarSymbol => assignToSym(lhs)
@@ -641,7 +641,8 @@ class HandlerLowering(paths: HandlerPaths, opt: Opt[EffectHandlers])(using TL, R
           AssignField(paths.runtimePath, paths.stackDepthIdent, curDepth.asSimpleRef, super.applyResult(r)(k))(N)
         case _ => super.applyResult(r)(k)
     // The fallback form which always works
-    val fallbackPostTransform = postTransform(id => Assign(pcVar, intLit(id), Continue(mainLoopLbl)))
+    // * The state variable `pcVar` is initialized on entry and reassigned on each state transition.
+    val fallbackPostTransform = postTransform(id => Assign.reassign(pcVar, intLit(id), Continue(mainLoopLbl)))
     // Note: `line` has the last state as the head, and the first state at the end
     def straightLineToArms(line: List[StateId]): Block => Block =
       def transformState(state: StateId) =
@@ -655,14 +656,14 @@ class HandlerLowering(paths: HandlerPaths, opt: Opt[EffectHandlers])(using TL, R
         val transform = postTransform: uid =>
           assert(uid === nextState)
           if isSimple then
-            Assign(pcVar, Value.Lit(Tree.IntLit(uid))(N), End())
+            Assign.reassign(pcVar, Value.Lit(Tree.IntLit(uid))(N), End())
           else
             Break(lblSym)
         val transformed = transform.applyBlock(blk.blk)
         if isSimple then transformed
         else Label(
           lblSym, false, transformed,
-          Assign(pcVar, Value.Lit(Tree.IntLit(nextState))(N), End())
+          Assign.reassign(pcVar, Value.Lit(Tree.IntLit(nextState))(N), End())
         )
       line match
         case head :: next =>
@@ -702,7 +703,7 @@ class HandlerLowering(paths: HandlerPaths, opt: Opt[EffectHandlers])(using TL, R
     def getSaved(off: BigInt): (Block => Block, Path) =
       if off == 0 then
         return (id, DynSelect(paths.runtimePath.selSN("resumeArr"), paths.runtimePath.selSN("resumeIdx"), true)(N))
-      val addOne = Assign(getSavedTmp, Call(State.builtinOpsMap("+").asSimpleRef, (paths.runtimePath.selSN("resumeIdx").asArg :: intLit(off).asArg :: Nil) ne_:: Nil)(CallMetadata.defaultFun, N), _)
+      val addOne = Assign.reassign(getSavedTmp, Call(State.builtinOpsMap("+").asSimpleRef, (paths.runtimePath.selSN("resumeIdx").asArg :: intLit(off).asArg :: Nil) ne_:: Nil)(CallMetadata.defaultFun, N), _)
       (addOne, DynSelect(paths.runtimePath.selSN("resumeArr"), getSavedTmp.asSimpleRef, true)(N))
 
     val resumeArrIndexed = DynSelect(paths.runtimePath.selSN("resumeArr"), getSavedTmp.asSimpleRef, true)(N)
@@ -712,7 +713,9 @@ class HandlerLowering(paths: HandlerPaths, opt: Opt[EffectHandlers])(using TL, R
         .scopedVars(Set(getSavedTmp))
     val restoreVars = vars.zipWithIndex.foldLeft(preRestore):
       case (builder, (local, idx)) => builder
-        .assign(getSavedTmp, if idx == 0 then paths.resumeIdx else Call(plus, (getSavedTmp.asSimpleRef.asArg :: intLit(1).asArg :: Nil) ne_:: Nil)(CallMetadata.defaultFun, N))
+        .transform: builder =>
+          if idx == 0 then builder.assign(getSavedTmp, paths.resumeIdx)
+          else builder.reassign(getSavedTmp, Call(plus, (getSavedTmp.asSimpleRef.asArg :: intLit(1).asArg :: Nil) ne_:: Nil)(CallMetadata.defaultFun, N))
         .assign(local, resumeArrIndexed)
     
     if needsStackSafety then
@@ -777,7 +780,7 @@ class HandlerLowering(paths: HandlerPaths, opt: Opt[EffectHandlers])(using TL, R
         .rest(rst)
     val topLevelPostTransform = new BlockTransformerShallow(SymbolSubst.Id):
       override def applyBlock(b: Block) = b match
-        case Assign(lhs, r @ EffectfulResult(), rest) =>
+        case Assign(lhs, r @ EffectfulResult(), rest, _) =>
           // Optimization to reuse lhs instead of fresh local
           effectCheck(lhs, r, applyBlock(rest))
         case _ => super.applyBlock(b)
