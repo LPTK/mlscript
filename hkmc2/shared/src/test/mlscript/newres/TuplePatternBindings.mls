@@ -34,7 +34,7 @@ opaque([{name: "hidden"}, 1])
 //│ ╟── Cannot resolve member 'name' of a value with unknown shape.
 //│ ║  l.29: 	fun opaque[A](pair: [A, Int]) = if pair is [item, _] then item.name
 //│ ║        	                     ^
-//│ ╟── Type parameter 'A' does not specify a member interface.
+//│ ╟── Type parameter 'A' does not specify the structure of its values.
 //│ ║  l.29: 	fun opaque[A](pair: [A, Int]) = if pair is [item, _] then item.name
 //│ ╙──      	           ^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.

@@ -1385,11 +1385,11 @@ class NewResolver:
                     // Report the use of an abstract parameter in a signature, not
                     // just its declaration. This survives substitution through
                     // generic members and nested tuple or function annotations.
+                    // An already inferred unknown keeps its original witness:
+                    // forwarding it through another binder supplies no new type.
                     val annotated = value match
                       case Marked(rigid: RigidTypeShape, marks) =>
                         UnknownValueShape(rigid.source, fromPublicInterface = false)(rigid.provenance.withTypeOrigin(source)).exit(marks)
-                      case Marked(unknown: UnknownValueShape, marks) =>
-                        UnknownValueShape(unknown.source, unknown.fromPublicInterface)(unknown.provenance.withTypeOrigin(source)).exit(marks)
                       case _ => value
                     annotated match
                       case value: TermShape => listenInstanceViews(instantiateShape(value, current.instances), mergeIntersections)(publish)
@@ -1881,8 +1881,10 @@ class NewResolver:
           case value: TermShape => host.publish(value)
           case NoShape => ()
         case TypeShape.Tuple(fields) => observe:
-          case unknown @ Marked(_: UnknownValueShape, _) =>
-            fields.foreach(field => inferTypeArguments(declaredType(field, tpe), unknown, marks))
+          case unknown @ Marked(_: UnknownStructure, _) =>
+            fields.zipWithIndex.foreach: (field, index) =>
+              inferUnknownComponent(declaredType(field, tpe), unknown, marks,
+                msg"Cannot infer the type of tuple element $index without a known tuple type." -> tpe.resolution.source.toLoc)
           case Marked(tuple: TupleShape, context) =>
             fields.zipWithIndex.foreach: (field, index) =>
               tuple.getMember(index.toString) match
@@ -1948,10 +1950,11 @@ class NewResolver:
                 case value: TermShape => constrainNominal(value)
                 case NoShape => ()
             head match
-              case _: UnknownValueShape =>
+              case _: UnknownStructure =>
                 cls.tparams.zip(arguments).foreach: (param, argument) =>
                   listenArgumentParts(argumentType(argument, param)): parts =>
-                    inferTypeArguments(parts.output, value, marks)
+                    inferUnknownComponent(parts.output, value, marks,
+                      msg"Cannot infer the type arguments of '${cls.sym.nme}' without a known '${cls.sym.nme}' type." -> annotation.toLoc)
               case ds: DefnShape =>
                 if ds.clsDef.contains(cls) then originalParameters() else ds.ext.foreach(parent)
               case base: BaseShape =>
@@ -1973,6 +1976,27 @@ class NewResolver:
     // Alias expansion guards only unproductive cycles. Descending into a tuple,
     // nominal argument, or arrow installs another edge with its own cycle guard.
     withCanonicalType(tpe)(follow(_, noTypeArguments, Nil, Set.empty))
+
+  private type UnknownStructure = UnknownValueShape | OpaqueTypeShape | RigidTypeShape
+
+  /** A component of an unknown value remains unknown for a different reason
+    * than the whole value: inference could not establish the enclosing structure.
+    * Opaque annotations must also propagate this uncertainty, rather than leave
+    * the component without any bound or explanation. Record the failed
+    * decomposition before forwarding the bound. Keep the source, exposure
+    * obligation, and marks; diagnostic paths are excluded from semantic keys,
+    * so repeated decompositions cannot grow recursive constraint graphs.
+    */
+  private def inferUnknownComponent(expected: DeclaredType, source: TermShape, marks: Ls[Marks],
+      note: => (Message, Opt[Loc]))(using ResolutionContext): Unit = source match
+    case Marked(unknown: UnknownStructure, context) =>
+      val (origin, exposed, provenance) = unknown match
+        case unknown: UnknownValueShape => (unknown.source, unknown.fromPublicInterface, unknown.provenance)
+        case opaque: OpaqueTypeShape => (opaque.source, false, opaque.provenance)
+        case rigid: RigidTypeShape => (rigid.source, false, rigid.provenance)
+      val component = UnknownValueShape(origin, exposed)(provenance.via(note))
+      inferTypeArguments(expected, Marked(component, context), marks)
+    case _ => lastWords("An unknown component must originate from an unknown value")
 
   /** Structural constraints follow declared fields only. This supplies generic
     * argument inference and callback checking without refining the annotation
@@ -2000,7 +2024,9 @@ class NewResolver:
           case NoShape => ()
         case _ => ()
       actual match
-        case Marked(_: UnknownValueShape, _) => receive(actual)
+        case Marked(_: UnknownStructure, _) =>
+          inferUnknownComponent(expected, actual, marks,
+            msg"Cannot infer the type of field '${field.sym.nme}' without a known record type." -> field.toLoc)
         case _ => member(actual.getMember(field.sym.nme), TypeSubstitution.empty)
 
   /** Function constraints reverse the parameter flow and preserve result flow.
@@ -2060,10 +2086,12 @@ class NewResolver:
             actual, marks)
         case _ => ()
     actual match
-      case Marked(_: UnknownValueShape, _) =>
+      case Marked(_: UnknownStructure, _) =>
         listenTypeViews(expected):
           case Marked(callable: CallableTypeShape, _) =>
-            callable.result.foreach(ret => inferTypeArguments(ret, actual, marks))
+            callable.result.foreach: ret =>
+              inferUnknownComponent(ret, actual, marks,
+                msg"Cannot infer the result type without a known function type." -> expected.resolution.source.toLoc)
           case _ => ()
       case Marked(givenType: CallableTypeShape, actualContext) =>
         listenTypeViews(expected):

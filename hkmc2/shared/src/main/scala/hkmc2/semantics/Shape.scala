@@ -1001,7 +1001,7 @@ final class RigidTypeShape(val parameter: VarSymbol, val source: Term) extends C
   override def toString: Str = s"RigidTypeShape($parameter, $source)"
   def toLoc: Opt[Loc] = source.toLoc
   def provenance: ShapeProvenance = ShapeProvenance(
-    msg"Type parameter '${parameter.nme}' does not specify a member interface." -> parameter.toLoc :: Nil)
+    msg"Type parameter '${parameter.nme}' does not specify the structure of its values." -> parameter.toLoc :: Nil)
   protected def getMemberImpl(name: Str)(using ResolutionContext): MemberLookup =
     MemberLookup.Unknown(MemberLookup.Uncertainty.ValueShape, false, provenance)
 

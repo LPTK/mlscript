@@ -21,7 +21,7 @@ generic({a: 1})
 //│ ╟── Cannot resolve member 'a' of a value with unknown shape.
 //│ ║  l.16: 	fun generic[A](x: A) = x.a
 //│ ║        	                  ^
-//│ ╟── Type parameter 'A' does not specify a member interface.
+//│ ╟── Type parameter 'A' does not specify the structure of its values.
 //│ ║  l.16: 	fun generic[A](x: A) = x.a
 //│ ╙──      	            ^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -35,7 +35,7 @@ generic({a: 1})
 //│ ╟── Cannot resolve member 'a' of a value with unknown shape.
 //│ ║  l.30: 	private fun generic[A](x: A) = x.a
 //│ ║        	                          ^
-//│ ╟── Type parameter 'A' does not specify a member interface.
+//│ ╟── Type parameter 'A' does not specify the structure of its values.
 //│ ║  l.30: 	private fun generic[A](x: A) = x.a
 //│ ╙──      	                    ^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -50,7 +50,7 @@ generic[Item](Item(1))
 //│ ╟── Cannot resolve member 'a' of a value with unknown shape.
 //│ ║  l.45: 	private fun generic[A](x: A) = x.a
 //│ ║        	                          ^
-//│ ╟── Type parameter 'A' does not specify a member interface.
+//│ ╟── Type parameter 'A' does not specify the structure of its values.
 //│ ║  l.45: 	private fun generic[A](x: A) = x.a
 //│ ╙──      	                    ^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -70,6 +70,6 @@ private fun unused[A](x: A) = x.a
 //│ ╟── Cannot resolve member 'a' of a value with unknown shape.
 //│ ║  l.66: 	private fun unused[A](x: A) = x.a
 //│ ║        	                         ^
-//│ ╟── Type parameter 'A' does not specify a member interface.
+//│ ╟── Type parameter 'A' does not specify the structure of its values.
 //│ ║  l.66: 	private fun unused[A](x: A) = x.a
 //│ ╙──      	                   ^

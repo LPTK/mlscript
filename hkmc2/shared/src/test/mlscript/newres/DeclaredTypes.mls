@@ -251,7 +251,7 @@ invoke[() -> Int](() => 42)
 //│ ╟── Value of unknown shape cannot be called like a function.
 //│ ║  l.246: 	private fun invoke[T](value: T) = value()
 //│ ║         	                             ^
-//│ ╟── Type parameter 'T' does not specify a member interface.
+//│ ╟── Type parameter 'T' does not specify the structure of its values.
 //│ ║  l.246: 	private fun invoke[T](value: T) = value()
 //│ ╙──       	                   ^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -586,7 +586,7 @@ fun foo[A](x: Box[A]) = x.value.0.oops
 //│ ╟── Cannot resolve member 'oops' of a value with unknown shape.
 //│ ║  l.582: 	fun foo[A](x: Box[A]) = x.value.0.oops
 //│ ║         	                  ^
-//│ ╟── Type parameter 'A' does not specify a member interface.
+//│ ╟── Type parameter 'A' does not specify the structure of its values.
 //│ ║  l.582: 	fun foo[A](x: Box[A]) = x.value.0.oops
 //│ ╙──       	        ^
 
@@ -603,7 +603,7 @@ foo[Item](Box[Item]([new Item, new Item]))
 //│ ╟── Cannot resolve member 'oops' of a value with unknown shape.
 //│ ║  l.598: 	private fun foo[A](x: Box[A]) = x.value.0.oops
 //│ ║         	                          ^
-//│ ╟── Type parameter 'A' does not specify a member interface.
+//│ ╟── Type parameter 'A' does not specify the structure of its values.
 //│ ║  l.598: 	private fun foo[A](x: Box[A]) = x.value.0.oops
 //│ ╙──       	                ^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -619,7 +619,7 @@ fun foo[A](factory: () -> Wrapped[A]) = factory().value.1.oops
 //│ ╟── Cannot resolve member 'oops' of a value with unknown shape.
 //│ ║  l.615: 	fun foo[A](factory: () -> Wrapped[A]) = factory().value.1.oops
 //│ ║         	                                  ^
-//│ ╟── Type parameter 'A' does not specify a member interface.
+//│ ╟── Type parameter 'A' does not specify the structure of its values.
 //│ ║  l.615: 	fun foo[A](factory: () -> Wrapped[A]) = factory().value.1.oops
 //│ ╙──       	        ^
 
@@ -632,7 +632,7 @@ fun foo[A](x: [A, A]) = x.0.oops
 //│ ╟── Cannot resolve member 'oops' of a value with unknown shape.
 //│ ║  l.628: 	fun foo[A](x: [A, A]) = x.0.oops
 //│ ║         	               ^
-//│ ╟── Type parameter 'A' does not specify a member interface.
+//│ ╟── Type parameter 'A' does not specify the structure of its values.
 //│ ║  l.628: 	fun foo[A](x: [A, A]) = x.0.oops
 //│ ╙──       	        ^
 
@@ -681,7 +681,7 @@ fun foo[A](factory: () -> [A, A]) = factory().0.oops
 //│ ╟── Cannot resolve member 'oops' of a value with unknown shape.
 //│ ║  l.677: 	fun foo[A](factory: () -> [A, A]) = factory().0.oops
 //│ ║         	                           ^
-//│ ╟── Type parameter 'A' does not specify a member interface.
+//│ ╟── Type parameter 'A' does not specify the structure of its values.
 //│ ║  l.677: 	fun foo[A](factory: () -> [A, A]) = factory().0.oops
 //│ ╙──       	        ^
 

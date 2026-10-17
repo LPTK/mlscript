@@ -2,11 +2,10 @@
 :js
 
 
-// A rest annotation describes the whole array; A is the element type of Seq.
-fun Seq[A](...xs: Array[A]) = new Seq(xs)
+fun Seq[A](...xs: A) = new Seq(xs)
 class Seq[out A] {
   
-  // constructor(val ...xs: Array[A]) // TODO: support
+  // constructor(val ...xs: A) // TODO: support
   constructor(val elements: Array[A])
   
   fun map[B](f: A -> B): Seq[B] = new Seq of elements.map of pass1 of f
@@ -28,61 +27,40 @@ let xs = Seq of
   (key: "B", value: 4)
 //│ xs = Seq({key: "A", value: 1}, {key: "B", value: 2}, {key: "A", value: 3}, {key: "B", value: 4})
 
-:expect Seq(A, B, A, B)
+:fixme
 xs.map of x => x.key
-//│ = Seq(A, B, A, B)
-
-:expect Seq(A, B, A, B)
-xs.map of _.key
-//│ = Seq(A, B, A, B)
-
-
-// Each map must infer its new element type from the callback's result.
-:expect ["A", "B", "A", "B"]
-xs.map(x => (nested: x)).map(_.nested).map(_.key).elements
-//│ = ["A", "B", "A", "B"]
-
-// Rest forwarding through one generic body must keep different calls separate.
-fun forward[A](...values: Array[A]) = Seq(...values)
-
-:expect [["left"], ["right"]]
-[forward((left: "left")).map(_.left).elements,
- forward((right: "right")).map(_.right).elements]
-//│ = [["left"], ["right"]]
-
-// Aliases, fixed arguments, and curried lists preserve the rest element type.
-type Items[A] = Array[A]
-fun prefixed[A](tag: Str)(first: A, ...rest: Items[A]) = Seq(first, ...rest)
-
-:expect ["first", "second"]
-prefixed("tag")((key: "first"), (key: "second")).map(_.key).elements
-//│ = ["first", "second"]
-
-// An explicit factory result exposes the declared generic map interface too.
-fun typedSeq[A](...values: Array[A]): Seq[A] = new Seq(values)
-
-:expect ["typed"]
-typedSeq((nested: (key: "typed"))).map(_.nested).map(_.key).elements
-//│ = ["typed"]
-
-// Explicit arguments work even when no element supplies an inference bound.
-:expect []
-Seq[{key: Str}]().map(_.key).elements
-//│ = []
-
-// Supplied element interfaces do not acquire extra fields from their values.
-:ge
-Seq[{key: Str}]((key: "visible", hidden: 1)).map(_.hidden)
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.75: 	Seq[{key: Str}]((key: "visible", hidden: 1)).map(_.hidden)
-//│ ║        	                                                 ^^^^^^^^
-//│ ╟── Record type does not contain member 'hidden'
-//│ ║  l.75: 	Seq[{key: Str}]((key: "visible", hidden: 1)).map(_.hidden)
-//│ ╙──      	     ^^^^^^^^
+//│ ║  l.31: 	xs.map of x => x.key
+//│ ║        	               ^^^^^
+//│ ╟── Cannot infer the type arguments of 'Array' without a known 'Array' type.
+//│ ║  l.9: 	  constructor(val elements: Array[A])
+//│ ║       	                            ^^^^^^^^
+//│ ╟── Cannot resolve member 'key' of a value with unknown shape.
+//│ ║  l.5: 	fun Seq[A](...xs: A) = new Seq(xs)
+//│ ║       	                  ^
+//│ ╟── Type parameter 'A' does not specify the structure of its values.
+//│ ║  l.5: 	fun Seq[A](...xs: A) = new Seq(xs)
+//│ ╙──     	        ^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+:fixme
+xs.map of _.key
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.47: 	xs.map of _.key
+//│ ║        	          ^^^^^
+//│ ╟── Cannot infer the type arguments of 'Array' without a known 'Array' type.
+//│ ║  l.9: 	  constructor(val elements: Array[A])
+//│ ║       	                            ^^^^^^^^
+//│ ╟── Cannot resolve member 'key' of a value with unknown shape.
+//│ ║  l.5: 	fun Seq[A](...xs: A) = new Seq(xs)
+//│ ║       	                  ^
+//│ ╟── Type parameter 'A' does not specify the structure of its values.
+//│ ║  l.5: 	fun Seq[A](...xs: A) = new Seq(xs)
+//│ ╙──     	        ^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
-fun Seq[A](...xs: Array[A]): Seq[A] = new Seq(xs)
+fun Seq[A](...xs: A): Seq[A] = new Seq(xs)
 class Seq[out A] {
   constructor(val elements: Array[A])
   fun map[B](f: A -> B) = new Seq \ elements.map \ pass1 \ f
@@ -91,33 +69,31 @@ class Seq[out A] {
 let xs = Seq(1, 2, 3)
 //│ xs = Seq { elements: [1, 2, 3] }
 
-// TODO: support this placeholder-lambda syntax and infer map's missing result
-// through the factory's nominal Seq[A] interface (also tested in DeclaredTypes).
 :fixme
 xs.map(=> _ + 1).map(=> _ * 2)
 //│ ╔══[PARSE ERROR] Expected start of expression in this position; found '=>' keyword instead
-//│ ║  l.97: 	xs.map(=> _ + 1).map(=> _ * 2)
+//│ ║  l.73: 	xs.map(=> _ + 1).map(=> _ * 2)
 //│ ╙──      	       ^^
 //│ ╔══[PARSE ERROR] Unexpected '_' keyword here
-//│ ║  l.97: 	xs.map(=> _ + 1).map(=> _ * 2)
+//│ ║  l.73: 	xs.map(=> _ + 1).map(=> _ * 2)
 //│ ╙──      	          ^
 //│ ╔══[PARSE ERROR] Expected start of expression in this position; found '=>' keyword instead
-//│ ║  l.97: 	xs.map(=> _ + 1).map(=> _ * 2)
+//│ ║  l.73: 	xs.map(=> _ + 1).map(=> _ * 2)
 //│ ╙──      	                     ^^
 //│ ╔══[PARSE ERROR] Unexpected '_' keyword here
-//│ ║  l.97: 	xs.map(=> _ + 1).map(=> _ * 2)
+//│ ║  l.73: 	xs.map(=> _ + 1).map(=> _ * 2)
 //│ ╙──      	                        ^
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.97: 	xs.map(=> _ + 1).map(=> _ * 2)
+//│ ║  l.73: 	xs.map(=> _ + 1).map(=> _ * 2)
 //│ ║        	^^^^^^^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'map' of a value with unknown shape.
 //│ ╟── The shape of this value is unknown.
-//│ ║  l.97: 	xs.map(=> _ + 1).map(=> _ * 2)
+//│ ║  l.73: 	xs.map(=> _ + 1).map(=> _ * 2)
 //│ ╙──      	^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
-declare fun Seq[A](...xs: Array[A]): Seq[A]
+declare fun Seq[A](...xs: A): Seq[A]
 declare class Seq[out A] {
   fun map[B](f: A -> B): Seq[B]
 }

@@ -26,7 +26,7 @@ foo({a: 1})
 //│ ╟── Cannot resolve member 'a' of a value with unknown shape.
 //│ ║  l.21: 	fun foo[A](x: A) = x.a
 //│ ║        	              ^
-//│ ╟── Type parameter 'A' does not specify a member interface.
+//│ ╟── Type parameter 'A' does not specify the structure of its values.
 //│ ║  l.21: 	fun foo[A](x: A) = x.a
 //│ ╙──      	        ^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -41,7 +41,7 @@ privateGeneric({a: 1})
 //│ ╟── Cannot resolve member 'a' of a value with unknown shape.
 //│ ║  l.36: 	private fun privateGeneric[A](x: A) = x.a
 //│ ║        	                                 ^
-//│ ╟── Type parameter 'A' does not specify a member interface.
+//│ ╟── Type parameter 'A' does not specify the structure of its values.
 //│ ║  l.36: 	private fun privateGeneric[A](x: A) = x.a
 //│ ╙──      	                           ^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -57,7 +57,7 @@ private class GenericClass[A](value: A) with
 //│ ╟── Cannot resolve member 'a' of a value with unknown shape.
 //│ ║  l.51: 	private class GenericClass[A](value: A) with
 //│ ║        	                                     ^
-//│ ╟── Type parameter 'A' does not specify a member interface.
+//│ ╟── Type parameter 'A' does not specify the structure of its values.
 //│ ║  l.51: 	private class GenericClass[A](value: A) with
 //│ ╙──      	                           ^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -255,7 +255,7 @@ spreadRecord({a: 1})
 //│ ╟── Cannot resolve member 'a' across a computed key or unknown record spread.
 //│ ║  l.247: 	fun spreadRecord[A](x: A) = ({...x}).a
 //│ ║         	                       ^
-//│ ╟── Type parameter 'A' does not specify a member interface.
+//│ ╟── Type parameter 'A' does not specify the structure of its values.
 //│ ║  l.247: 	fun spreadRecord[A](x: A) = ({...x}).a
 //│ ╙──       	                 ^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -273,7 +273,7 @@ spreadTuple([{a: 1}])
 //│ ╟── Cannot resolve member 'a' of a value with unknown shape.
 //│ ║  l.265: 	fun spreadTuple[A](x: A) = [...x].0.a
 //│ ║         	                      ^
-//│ ╟── Type parameter 'A' does not specify a member interface.
+//│ ╟── Type parameter 'A' does not specify the structure of its values.
 //│ ║  l.265: 	fun spreadTuple[A](x: A) = [...x].0.a
 //│ ╙──       	                ^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.

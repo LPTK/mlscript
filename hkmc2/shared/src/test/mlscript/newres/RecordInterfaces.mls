@@ -30,7 +30,7 @@ opaque(value: {answer: 42})
 //│ ╟── Cannot resolve member 'answer' of a value with unknown shape.
 //│ ║  l.25: 	private fun opaque[A](fields: {value: A}) = fields.value.answer
 //│ ║        	                                      ^
-//│ ╟── Type parameter 'A' does not specify a member interface.
+//│ ╟── Type parameter 'A' does not specify the structure of its values.
 //│ ║  l.25: 	private fun opaque[A](fields: {value: A}) = fields.value.answer
 //│ ╙──      	                   ^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.

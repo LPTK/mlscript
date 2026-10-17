@@ -1,0 +1,291 @@
+:.
+:js
+
+// Inferring an element from an opaque whole value must identify the missing
+// array structure, including for ordinary parameters rather than rest tuples.
+:e
+fun head[B](xs: Array[B]): B = xs.0
+fun erasedHead[A](xs: A) = head(xs)
+erasedHead([(key: "array")]).key
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.9: 	erasedHead([(key: "array")]).key
+//│ ║       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Cannot infer the type arguments of 'Array' without a known 'Array' type.
+//│ ║  l.7: 	fun head[B](xs: Array[B]): B = xs.0
+//│ ║       	                ^^^^^^^^
+//│ ╟── Cannot resolve member 'key' of a value with unknown shape.
+//│ ║  l.8: 	fun erasedHead[A](xs: A) = head(xs)
+//│ ║       	                      ^
+//│ ╟── Type parameter 'A' does not specify the structure of its values.
+//│ ║  l.8: 	fun erasedHead[A](xs: A) = head(xs)
+//│ ╙──     	               ^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// An element annotation supplies the structure needed by the same constraint.
+:expect "array"
+fun head[B](xs: Array[B]): B = xs.0
+fun knownHead[A](xs: Array[A]) = head(xs)
+knownHead([(key: "array")]).key
+//│ = "array"
+
+// Nominal argument inference has the same obligation for user-defined classes.
+:e
+class Box[out B](val value: B)
+fun unbox[B](box: Box[B]): B = box.value
+fun erasedBox[A](box: A) = unbox(box)
+erasedBox(new Box((key: "nominal"))).key
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.36: 	erasedBox(new Box((key: "nominal"))).key
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Cannot infer the type arguments of 'Box' without a known 'Box' type.
+//│ ║  l.34: 	fun unbox[B](box: Box[B]): B = box.value
+//│ ║        	                  ^^^^^^
+//│ ╟── Cannot resolve member 'key' of a value with unknown shape.
+//│ ║  l.35: 	fun erasedBox[A](box: A) = unbox(box)
+//│ ║        	                      ^
+//│ ╟── Type parameter 'A' does not specify the structure of its values.
+//│ ║  l.35: 	fun erasedBox[A](box: A) = unbox(box)
+//│ ╙──      	              ^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// Structural fields also need the record interface of the enclosing value.
+:e
+fun field[B](x: {value: B}): B = x.value
+fun erasedField[A](x: A) = field(x)
+erasedField((value: (key: "record"))).key
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.55: 	erasedField((value: (key: "record"))).key
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Cannot infer the type of field 'value' without a known record type.
+//│ ║  l.53: 	fun field[B](x: {value: B}): B = x.value
+//│ ║        	                 ^^^^^^^^
+//│ ╟── Cannot resolve member 'key' of a value with unknown shape.
+//│ ║  l.54: 	fun erasedField[A](x: A) = field(x)
+//│ ║        	                      ^
+//│ ╟── Type parameter 'A' does not specify the structure of its values.
+//│ ║  l.54: 	fun erasedField[A](x: A) = field(x)
+//│ ╙──      	                ^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+:expect "record"
+fun field[B](x: {value: B}): B = x.value
+fun knownField[A](x: {value: A}) = field(x)
+knownField((value: (key: "record"))).key
+//│ = "record"
+
+// A tuple element is distinct from the tuple's whole-value type parameter.
+:e
+fun first[B](xs: [B]): B = xs.0
+fun erasedFirst[A](xs: A) = first(xs)
+erasedFirst([(key: "tuple")]).key
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.80: 	erasedFirst([(key: "tuple")]).key
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Cannot infer the type of tuple element 0 without a known tuple type.
+//│ ║  l.78: 	fun first[B](xs: [B]): B = xs.0
+//│ ║        	                 ^^^
+//│ ╟── Cannot resolve member 'key' of a value with unknown shape.
+//│ ║  l.79: 	fun erasedFirst[A](xs: A) = first(xs)
+//│ ║        	                       ^
+//│ ╟── Type parameter 'A' does not specify the structure of its values.
+//│ ║  l.79: 	fun erasedFirst[A](xs: A) = first(xs)
+//│ ╙──      	                ^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+:expect "tuple"
+fun first[B](xs: [B]): B = xs.0
+fun knownFirst[A](xs: [A]) = first(xs)
+knownFirst([(key: "tuple")]).key
+//│ = "tuple"
+
+// Inferring a callback result requires its function signature.
+:e
+fun invoke[B](f: Int -> B): B = f(1)
+fun erasedInvoke[A](f: A) = invoke(f)
+erasedInvoke(x => (key: "function")).key
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.105: 	erasedInvoke(x => (key: "function")).key
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Cannot infer the result type without a known function type.
+//│ ║  l.103: 	fun invoke[B](f: Int -> B): B = f(1)
+//│ ║         	                 ^^^^^^^^
+//│ ╟── Cannot resolve member 'key' of a value with unknown shape.
+//│ ║  l.104: 	fun erasedInvoke[A](f: A) = invoke(f)
+//│ ║         	                       ^
+//│ ╟── Type parameter 'A' does not specify the structure of its values.
+//│ ║  l.104: 	fun erasedInvoke[A](f: A) = invoke(f)
+//│ ╙──       	                 ^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+:expect "function"
+fun invoke[B](f: Int -> B): B = f(1)
+fun knownInvoke[A](f: Int -> A) = invoke(f)
+knownInvoke(x => (key: "function")).key
+//│ = "function"
+
+// Aliases and multiple nominal arguments use the same inference path.
+:e
+class Pair[out K, out V](val left: K, val right: V)
+type IntPair[V] = Pair[Int, V]
+fun right[V](pair: IntPair[V]): V = pair.right
+fun erasedPair[A](pair: A) = right(pair)
+erasedPair(new Pair(1, (key: "alias"))).key
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.132: 	erasedPair(new Pair(1, (key: "alias"))).key
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Cannot infer the type arguments of 'Pair' without a known 'Pair' type.
+//│ ║  l.129: 	type IntPair[V] = Pair[Int, V]
+//│ ║         	                  ^^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'key' of a value with unknown shape.
+//│ ║  l.131: 	fun erasedPair[A](pair: A) = right(pair)
+//│ ║         	                        ^
+//│ ╟── Type parameter 'A' does not specify the structure of its values.
+//│ ║  l.131: 	fun erasedPair[A](pair: A) = right(pair)
+//│ ╙──       	               ^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+:expect "alias"
+fun knownPair[A](pair: IntPair[A]) = right(pair)
+knownPair(new Pair(1, (key: "alias"))).key
+//│ = "alias"
+
+// Any and abstract declarations also lack the structure needed for inference.
+// Their bounds must carry an explanation instead of disappearing entirely.
+:e
+fun head[B](xs: Array[B]): B = xs.0
+fun erasedAny(xs: Any) = head(xs)
+erasedAny([(key: "any")]).key
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.157: 	erasedAny([(key: "any")]).key
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Cannot infer the type arguments of 'Array' without a known 'Array' type.
+//│ ║  l.155: 	fun head[B](xs: Array[B]): B = xs.0
+//│ ║         	                ^^^^^^^^
+//│ ╟── Cannot resolve member 'key' of a value with unknown shape.
+//│ ║  l.156: 	fun erasedAny(xs: Any) = head(xs)
+//│ ║         	                  ^^^
+//│ ╟── Type 'Any' is declared without a member interface.
+//│ ║  in ../../decls/Prelude.mls
+//│ ║  l.2: 	declare type Any
+//│ ╙──     	             ^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+:e
+declare type Hidden
+fun field[B](xs: {value: B}): B = xs.value
+fun erasedHidden(xs: Hidden) = field(xs)
+erasedHidden((value: (key: "hidden"))).key
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.177: 	erasedHidden((value: (key: "hidden"))).key
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Cannot infer the type of field 'value' without a known record type.
+//│ ║  l.175: 	fun field[B](xs: {value: B}): B = xs.value
+//│ ║         	                  ^^^^^^^^
+//│ ╟── Cannot resolve member 'key' of a value with unknown shape.
+//│ ║  l.176: 	fun erasedHidden(xs: Hidden) = field(xs)
+//│ ║         	                     ^^^^^^
+//│ ╟── Type 'Hidden' is declared without a member interface.
+//│ ║  l.174: 	declare type Hidden
+//│ ╙──       	             ^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+:e
+fun first[B](xs: [B]): B = xs.0
+fun erasedAnyTuple(xs: Any) = first(xs)
+erasedAnyTuple([(key: "any tuple")]).key
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.195: 	erasedAnyTuple([(key: "any tuple")]).key
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Cannot infer the type of tuple element 0 without a known tuple type.
+//│ ║  l.193: 	fun first[B](xs: [B]): B = xs.0
+//│ ║         	                 ^^^
+//│ ╟── Cannot resolve member 'key' of a value with unknown shape.
+//│ ║  l.194: 	fun erasedAnyTuple(xs: Any) = first(xs)
+//│ ║         	                       ^^^
+//│ ╟── Type 'Any' is declared without a member interface.
+//│ ║  in ../../decls/Prelude.mls
+//│ ║  l.2: 	declare type Any
+//│ ╙──     	             ^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+:e
+fun invoke[B](f: Int -> B): B = f(1)
+fun erasedAnyFunction(f: Any) = invoke(f)
+erasedAnyFunction(x => (key: "any result")).key
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.214: 	erasedAnyFunction(x => (key: "any result")).key
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Cannot infer the result type without a known function type.
+//│ ║  l.212: 	fun invoke[B](f: Int -> B): B = f(1)
+//│ ║         	                 ^^^^^^^^
+//│ ╟── Cannot resolve member 'key' of a value with unknown shape.
+//│ ║  l.213: 	fun erasedAnyFunction(f: Any) = invoke(f)
+//│ ║         	                         ^^^
+//│ ╟── Type 'Any' is declared without a member interface.
+//│ ║  in ../../decls/Prelude.mls
+//│ ║  l.2: 	declare type Any
+//│ ╙──     	             ^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// Forwarding the failed inference through another generic result must retain
+// both the failed decomposition and the original whole-value annotation.
+:e
+fun identity[C](x: C): C = x
+fun head[B](xs: Array[B]): B = xs.0
+fun forwarded[A](xs: A) = identity(head(xs))
+forwarded([(key: "forwarded")]).key
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.236: 	forwarded([(key: "forwarded")]).key
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Cannot infer the type arguments of 'Array' without a known 'Array' type.
+//│ ║  l.234: 	fun head[B](xs: Array[B]): B = xs.0
+//│ ║         	                ^^^^^^^^
+//│ ╟── Cannot resolve member 'key' of a value with unknown shape.
+//│ ║  l.235: 	fun forwarded[A](xs: A) = identity(head(xs))
+//│ ║         	                     ^
+//│ ╟── Type parameter 'A' does not specify the structure of its values.
+//│ ║  l.235: 	fun forwarded[A](xs: A) = identity(head(xs))
+//│ ╙──       	              ^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// Nested components retain each required structure without inventing a member
+// requirement on the original type parameter.
+:e
+fun nested[B](xs: Array[Array[B]]): B = xs.0.0
+fun erasedNested[A](xs: A) = nested(xs)
+erasedNested([[(key: "nested")]]).key
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.256: 	erasedNested([[(key: "nested")]]).key
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Cannot infer the type arguments of 'Array' without a known 'Array' type.
+//│ ║  l.254: 	fun nested[B](xs: Array[Array[B]]): B = xs.0.0
+//│ ║         	                        ^^^^^^^^
+//│ ╟── Cannot infer the type arguments of 'Array' without a known 'Array' type.
+//│ ║  l.254: 	fun nested[B](xs: Array[Array[B]]): B = xs.0.0
+//│ ║         	                  ^^^^^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'key' of a value with unknown shape.
+//│ ║  l.255: 	fun erasedNested[A](xs: A) = nested(xs)
+//│ ║         	                        ^
+//│ ╟── Type parameter 'A' does not specify the structure of its values.
+//│ ║  l.255: 	fun erasedNested[A](xs: A) = nested(xs)
+//│ ╙──       	                 ^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// A recursive expected structure must terminate with the original source
+// witness even though each projection could add another diagnostic step.
+:e
+type Link[T] = {item: T, next: Link[T]}
+fun item[T](link: Link[T]): T = link.item
+fun erasedLink[A](link: A) = item(link).key
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.279: 	fun erasedLink[A](link: A) = item(link).key
+//│ ║         	                             ^^^^^^^^^^^^^^
+//│ ╟── Cannot infer the type of field 'item' without a known record type.
+//│ ║  l.277: 	type Link[T] = {item: T, next: Link[T]}
+//│ ║         	                ^^^^^^^
+//│ ╟── Cannot resolve member 'key' of a value with unknown shape.
+//│ ║  l.279: 	fun erasedLink[A](link: A) = item(link).key
+//│ ║         	                        ^
+//│ ╟── Type parameter 'A' does not specify the structure of its values.
+//│ ║  l.279: 	fun erasedLink[A](link: A) = item(link).key
+//│ ╙──       	               ^
