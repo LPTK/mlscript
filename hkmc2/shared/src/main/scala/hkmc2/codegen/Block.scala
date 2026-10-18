@@ -47,6 +47,9 @@ Nested positions of the IR (call arguments and callees, operands, selection pref
 only contain stable paths, which always yield the same value wherever they are evaluated (see `Lowering.isStable`):
 stateful paths, such as reads of reassigned variables (see `Assign.reassign`) and of mutable fields, are read into
 temporaries where they are evaluated. So optimizations can move and duplicate the evaluation of nested paths.
+Arrays that are not mutable, ie, non-`mut` tuples and arrays (and the arrays bound to rest parameters), are assumed
+never to be mutated: mutating them is undefined behavior, which the type system is meant to rule out. (The JS backend
+happens to freeze non-`mut` tuples, but this is an implementation detail that the IR does not rely on.)
 Similarly, argument lists only spread arrays that no other code can observe: lowering materializes the arguments
 of argument lists with spreads into fresh arrays right before their calls (see `Lowering.materializeSpreads`), and
 `SpreadArgsFusion`, which runs after all optimizations, puts them back into their calls.
