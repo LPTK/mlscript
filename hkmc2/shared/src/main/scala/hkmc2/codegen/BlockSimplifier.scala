@@ -1179,8 +1179,13 @@ class BlockSimplifier
       * replaces a rest parameter. Lowering and optimizations rely on this knowledge to avoid copying arrays
       * (see `Lowering.materializeSpreads`), and checking the invariant that spread arguments are pure relies on it
       * (see `SpreadArgsFusion.checkPureArgs`). As both references denote the same value, the cast is unchecked.
-      * Other erased types are not kept this way: they describe the representations of values, which backends
-      * coerce values to where needed, and casting to them would hinder optimizations that inspect references. */
+      *
+      * TODO: This is a workaround: substituting a reference should keep its erased type in general, not only this
+      * refinement. Doing so with unchecked casts to all erased types currently breaks things: the casts make Wasm
+      * validation fail (as in `wasm/Casts.mls`) and hinder optimizations that inspect references, such as the
+      * simplification of matches on known values (as in `ucs/patterns/CompiledClassPatterns.mls`).
+      * These problems should be addressed by https://github.com/hkust-taco/mlscript/pull/575,
+      * after which this should keep all erased types. */
     private def withErasedTypeOf(original: Path, replacement: Path): Path =
       original.erasedValueType.map(_.canonicalize) match
       case S(ErasedType.ImmutableArray) if !(replacement.erasedValueType_!.canonicalize is ErasedType.ImmutableArray) =>
