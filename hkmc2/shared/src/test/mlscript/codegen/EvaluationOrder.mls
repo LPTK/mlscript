@@ -127,3 +127,23 @@ counter + bump()
 :expect 2
 counter
 //│ = 2
+
+
+// * Spreads are evaluated as part of the call: their arguments are materialized into a fresh array right before
+// * the call, which is then put back into the call after optimizations, so that no array is allocated.
+
+fun three(a, b, c) = [a, b, c]
+
+:sir
+:sjs
+:expect [1, 2, 3]
+let xs = [2]
+three(1, ...xs, 3)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let spreadArgs; set xs⁰ = [2]; set spreadArgs = [1, ...xs⁰, 3]; return three⁰(...spreadArgs)
+//│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let xs; xs = globalThis.Object.freeze([ 2 ]); return three(1, ...xs, 3)
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = [1, 2, 3]
+//│ xs = [2]
+

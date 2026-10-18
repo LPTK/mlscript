@@ -285,13 +285,17 @@ class TailRecOpt(checkAnnotations: Bool)(using Config, State, TL, Raise, Ctx):
     val paramList = plist.params
     val restParam = plist.restParam
     
-    val tupleSym = TempSymbol(N, erasedType = S(ErasedType.Array), "argList")
-  
-    val tupleRes = Tuple(false, args)(N)
+    // * Spread arguments only spread arrays that no other code can observe (see `Lowering.materializeSpreads`),
+    // * so an argument list consisting of a single spread can be read directly rather than copied.
+    val (tupleInit: (Block => Block), tuple: Path) = args match
+      case Arg(S(SpreadKind.Eager), arr) :: Nil => (identity[Block], arr)
+      case _ =>
+        val tupleSym = TempSymbol(N, erasedType = S(ErasedType.Array), "argList")
+        (blockBuilder.assignScoped(tupleSym, Tuple(false, args)(N)), tupleSym.asSimpleRef)
     
     // Main args
     def mainArgs(rest: List[Path]) = (0 until paramList.size).toList.foldRight(rest):
-      case (n, acc) => DynSelect(tupleSym.asSimpleRef, Value.Lit(Tree.IntLit(n))(N), true)(N) :: acc
+      case (n, acc) => DynSelect(tuple, Value.Lit(Tree.IntLit(n))(N), true)(N) :: acc
     
     // If the rest param exists, append a slice
     val (initialBlk: (Block => Block), pathList: List[Path]) =
@@ -302,17 +306,15 @@ class TailRecOpt(checkAnnotations: Bool)(using Config, State, TL, Raise, Ctx):
           State.runtimeSymbol.asSimpleRef
             .sel(Tree.Ident("Tuple"), State.tupleSymbol)
             .sel(Tree.Ident("slice"), State.tupleSliceSymbol),
-          (tupleSym.asSimpleRef.asArg
+          (tuple.asArg
             :: Value.Lit(Tree.IntLit(paramList.length))(N).asArg
             :: Value.Lit(Tree.IntLit(0))(N).asArg
             :: Nil) ne_:: Nil
         )(CallMetadata.defaultMlsFun, N)
-        val blk = blockBuilder
-          .assignScoped(tupleSym, tupleRes)
-          .assignScoped(sliceResSym, sliceRes)
+        val blk = tupleInit.assignScoped(sliceResSym, sliceRes)
         (blk, mainArgs(sliceResSym.asSimpleRef :: Nil))
       else
-        (blockBuilder.assignScoped(tupleSym, tupleRes), mainArgs(Nil))
+        (tupleInit, mainArgs(Nil))
     end val
     (initialBlk, pathList)
   

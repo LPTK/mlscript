@@ -34,7 +34,11 @@ A::x
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let lambda;
 //│ @private
-//│ define lambda as fun lambda⁰(self, ...args) { return self.x¹(...args) };
+//│ define lambda as fun lambda⁰(self, ...args) {
+//│   let spreadArgs;
+//│   set spreadArgs = [...args];
+//│   return self.x¹(...spreadArgs)
+//│ };
 //│ return lambda⁰
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = fun
@@ -89,7 +93,11 @@ A::x
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let lambda;
 //│ @private
-//│ define lambda as fun lambda²(self, ...args) { return self.x³(...args) };
+//│ define lambda as fun lambda²(self, ...args) {
+//│   let spreadArgs;
+//│   set spreadArgs = [...args];
+//│   return self.x³(...spreadArgs)
+//│ };
 //│ return lambda²
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = fun

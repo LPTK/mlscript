@@ -559,7 +559,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
             raise(ErrorReport(
               msg"Extending a partially applied class is not supported" -> loc :: Nil,
               source = Diagnostic.Source.Compilation))
-          k(Call(fr, acc.reverse.ne_!)(CallMetadata(isMlsFun, true, Nil), loc))
+          materializeSpreads(acc.reverse, loc)(argss => k(Call(fr, argss.ne_!)(CallMetadata(isMlsFun, true, Nil), loc)))
       zipArgs(ctorParamLists, args, Nil)
     case Nil =>
       if !ctorParamLists.isEmpty then
@@ -578,16 +578,18 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
       case (ps :: remainingParams, args :: remainingArgs) =>
         lowerArgs(args, expectedParamTypes(ps))(as => zipArgs(remainingParams, remainingArgs, as :: acc, mayRaiseEffects))
       case (Nil, Nil) =>
-        k(Call(fr, acc.reverse.ne_!)(CallMetadata(isMlsFun, mayRaiseEffects, annotations), loc))
+        materializeSpreads(acc.reverse, loc): argss =>
+          k(Call(fr, argss.ne_!)(CallMetadata(isMlsFun, mayRaiseEffects, annotations), loc))
       case (Nil, args :: remainingArgss) =>
         acc.reverse match
         case Nil => lowerRemainingCalls(fr, args, remainingArgss, annotations, loc)(k)
-        case acc: NELs[Ls[Arg]] =>
-          val call = Call(fr, acc)(CallMetadata(isMlsFun, mayRaiseEffects, Nil), loc)
+        case acc => materializeSpreads(acc, loc): argss =>
+          val call = Call(fr, argss.ne_!)(CallMetadata(isMlsFun, mayRaiseEffects, Nil), loc)
           val tmp = loweringCtx.registerTempSymbol(N, erasedType = call.erasedValueType, "baseCall")
           Assign(tmp, call, lowerRemainingCalls(tmp.asSimpleRef, args, remainingArgss, annotations, loc)(k))
       case (_ :: _, Nil) =>
-        k(Call(fr, acc.reverse.ne_!)(CallMetadata(isMlsFun, mayRaiseEffects, annotations), loc))
+        materializeSpreads(acc.reverse, loc): argss =>
+          k(Call(fr, argss.ne_!)(CallMetadata(isMlsFun, mayRaiseEffects, annotations), loc))
     fr.targetSymbol match
     case S(fs: TermSymbol) =>
       fs.defn match
@@ -598,14 +600,14 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
   
   def lowerRemainingCalls(base: Path, args: Term, remainingArgss: Ls[Term], annotations: Ls[Annot], loc: Opt[Loc])
         (k: Result => Block)(using LoweringCtx): Block =
-    lowerArgs(args, Nil): as =>
-      val call = Call(base, as ne_:: Nil)(CallMetadata(false, true, annotations), loc)
+    lowerArgs(args, Nil)(as => materializeSpreads(as :: Nil, loc): argss =>
+      val call = Call(base, argss.ne_!)(CallMetadata(false, true, annotations), loc)
       remainingArgss match
       case Nil => k(call)
       case args :: remainingArgss =>
         val tmp = loweringCtx.registerTempSymbol(N, erasedType = call.erasedValueType, "callPrefix")
         Assign(tmp, call,
-          lowerRemainingCalls(tmp.asSimpleRef, args, remainingArgss, annotations, loc)(k))
+          lowerRemainingCalls(tmp.asSimpleRef, args, remainingArgss, annotations, loc)(k)))
   
   /** Lower an instantiation with multiple argument lists into `Instantiate` and `Call` nodes,
     * trying to group as many as possible into a single `Instantiate`
@@ -625,9 +627,9 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
       case (ps :: remainingParams, args :: remainingArgs) =>
         lowerArgs(args, expectedParamTypes(ps))(as => zipArgs(remainingParams, remainingArgs, as :: acc))
       case (Nil, Nil) =>
-        k(buildInstantiate(acc.reverse))
-      case (Nil, args :: remainingArgss) =>
-        val inst = buildInstantiate(acc.reverse)
+        materializeSpreads(acc.reverse, loc)(argss => k(buildInstantiate(argss)))
+      case (Nil, args :: remainingArgss) => materializeSpreads(acc.reverse, loc): argss =>
+        val inst = buildInstantiate(argss)
         val tmp = loweringCtx.registerTempSymbol(N, erasedType = inst.erasedValueType, "baseInst")
         Assign(tmp, inst,
           lowerRemainingCalls(tmp.asSimpleRef, args, remainingArgss, annotations, N)(k))
@@ -643,7 +645,15 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
             val freshParams = (ps.params zip freshSyms).map((p, s) => Param(p.flags, s, N, p.modulefulness)(p.toLoc))
             val freshParamList = ParamList(ps.flags, freshParams, N)(ps.toLoc)
             val freshArgs = freshSyms.map(s => Arg(N, s.asSimpleRef))
-            Lambda(freshParamList, Return(etaExpand(rest, accArgss :+ freshArgs)))(Nil, loc)
+            val body = rest match
+              case Nil =>
+                // * Spreads are evaluated as part of the instantiation, in the body of the innermost lambda
+                // * (see `materializeSpreads`).
+                val argsSyms = collection.mutable.Set.empty[ScopedSymbol]
+                val inst = materializeSpreadsIn(accArgss :+ freshArgs, loc, argsSyms += _)(argss => Return(buildInstantiate(argss)))
+                if argsSyms.isEmpty then inst else Scoped(argsSyms, inst)
+              case _ => Return(etaExpand(rest, accArgss :+ freshArgs))
+            Lambda(freshParamList, body)(Nil, loc)
         k(etaExpand(remainingParamss, acc.reverse))
     if ctorParamLists.isEmpty then
       // * Need to specially handle no-param classes
@@ -651,17 +661,19 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
       case Nil =>
         k(buildInstantiate(Nil))
       case args :: remainingArgss =>
-        lowerArgs(args, Nil): as =>
+        lowerArgs(args, Nil)(as => materializeSpreads(as :: Nil, loc): argss =>
           remainingArgss match
           case Nil =>
-            k(buildInstantiate(as :: Nil))
+            k(buildInstantiate(argss))
           case remainingArgss =>
-            val inst = buildInstantiate(as :: Nil)
+            val inst = buildInstantiate(argss)
             val tmp = loweringCtx.registerTempSymbol(N, erasedType = inst.erasedValueType, "baseInst")
             Assign(tmp, inst,
-              lowerRemainingCalls(tmp.asSimpleRef, remainingArgss.head, remainingArgss.tail, annotations, N)(k))
+              lowerRemainingCalls(tmp.asSimpleRef, remainingArgss.head, remainingArgss.tail, annotations, N)(k)))
     else zipArgs(ctorParamLists, args, Nil)
   
+  /** Lowers the arguments of a call or instantiation, whose spreads must then be materialized
+    * with `materializeSpreads` right before building the call or instantiation. */
   def lowerArgs(arg: Term, expectedTypes: Ls[Opt[ErasedType]])(k: Ls[Arg] => Block)(using LoweringCtx): Block =
     arg match
     case Tup(fs) =>
@@ -672,11 +684,32 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
         raise(ErrorReport(
           msg"Lazy spreads are not supported in call arguments" -> arg.toLoc :: Nil, S(arg),
           source = Diagnostic.Source.Compilation))
-      args(fs, expectedTypes)(as => k(as))
+      args(fs, expectedTypes)(k)
     case _ =>
       // Application arguments that are not tuples represent spreads, as in `f(...arg)`
       subTerm_nonTail(arg): ar =>
         k(Arg(spread = S(SpreadKind.Eager), ar) :: Nil)
+  
+  /** Materializes the argument lists with spreads of a call or instantiation, whose arguments have been lowered.
+    * Spreading an argument, as in `f(a, ...xs, b)`, iterates over it, which may have effects and depends on the
+    * state of `xs`. So that argument lists remain pure (like other nested positions; see `isStable`), the arguments
+    * of an argument list with spreads are materialized into a fresh array `args` (`args = [a, ...xs, b]`), which is
+    * then the only (spread) argument of the list (`f(...args)`): since no other code can observe `args`, spreading
+    * it is pure. The materializations of the argument lists of a call immediately precede it, after the evaluation
+    * of all their operands, so that spreads are evaluated as part of the call. `SpreadArgsFusion` puts the
+    * materialized arguments back into the call before code generation, so this does not allocate any array. */
+  def materializeSpreads(argss: Ls[Ls[Arg]], loc: Opt[Loc])(k: Ls[Ls[Arg]] => Block)(using LoweringCtx): Block =
+    materializeSpreadsIn(argss, loc, loweringCtx.collectScopedSym(_))(k)
+  
+  private def materializeSpreadsIn(argss: Ls[Ls[Arg]], loc: Opt[Loc], register: SpreadArgsSymbol => Unit)
+      (k: Ls[Ls[Arg]] => Block): Block = argss match
+    case Nil => k(Nil)
+    case as :: rest if as.forall(_.spread.isEmpty) => materializeSpreadsIn(rest, loc, register)(rs => k(as :: rs))
+    case as :: rest =>
+      val argsSym = new SpreadArgsSymbol
+      register(argsSym)
+      Assign(argsSym, Tuple(mut = false, as)(loc),
+        materializeSpreadsIn(rest, loc, register)(rs => k((Arg(S(SpreadKind.Eager), argsSym.asSimpleRef) :: Nil) :: rs)))
   
   def warnPureExprInStmtPos(loc: Opt[Loc], extraInfo: => Opt[Any] = N)(using Line): Unit =
     raise:

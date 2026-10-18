@@ -255,6 +255,13 @@ class TempSymbol(val trm: Opt[Term], override var erasedType: Opt[ErasedType], d
   override def toLoc: Option[Loc] = trm.flatMap(_.toLoc)
   override def prefix: Str = "tmp:"
   override def subst(using s: SymbolSubst): TempSymbol = s.mapTempSym(this)
+  /** A fresh symbol of the same kind, used when duplicating the code that binds this one. */
+  def refreshed: TempSymbol = new TempSymbol(trm, erasedType, nme)
+
+/** A temporary holding an array of arguments materialized by lowering, whose only use is to be spread as an
+  * argument of a call or instantiation (see `codegen.Lowering.materializeSpreads` and `codegen.SpreadArgsFusion`). */
+final class SpreadArgsSymbol(using State) extends TempSymbol(N, S(ErasedType.Array), "spreadArgs"):
+  override def refreshed: TempSymbol = new SpreadArgsSymbol
 
 
 // * When instantiating forall-qualified TVs, we need to duplicate the information
