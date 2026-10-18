@@ -260,10 +260,13 @@ class TailRecOpt(checkAnnotations: Bool)(using Config, State, TL, Raise, Ctx):
     val hdPadded = hd ++ List.fill(paramList.params.length - hd.length)(Value.Lit(Tree.UnitLit(false))(N))
     
     if paramList.restParam.isDefined then
+      // * Rest parameters are bound to arrays that are never mutated (see the IR design notes in `Block.scala`),
+      // * and spread arguments spread such arrays (see `Lowering.materializeSpreads`), so a single spread
+      // * argument can be bound to the rest parameter directly.
       val rest =
         restArgs match
           case Arg(S(SpreadKind.Eager), value) :: Nil => value
-          case _ => Tuple(true, restArgs)(N)
+          case _ => Tuple(false, restArgs)(N)
       CallArgsResult.Success(hdPadded.appended(rest))
     else
       CallArgsResult.Success(hdPadded)
@@ -290,7 +293,7 @@ class TailRecOpt(checkAnnotations: Bool)(using Config, State, TL, Raise, Ctx):
     val (tupleInit: (Block => Block), tuple: Path) = args match
       case Arg(S(SpreadKind.Eager), arr) :: Nil => (identity[Block], arr)
       case _ =>
-        val tupleSym = TempSymbol(N, erasedType = S(ErasedType.Array), "argList")
+        val tupleSym = TempSymbol(N, erasedType = S(ErasedType.ImmutableArray), "argList")
         (blockBuilder.assignScoped(tupleSym, Tuple(false, args)(N)), tupleSym.asSimpleRef)
     
     // Main args
@@ -300,7 +303,7 @@ class TailRecOpt(checkAnnotations: Bool)(using Config, State, TL, Raise, Ctx):
     // If the rest param exists, append a slice
     val (initialBlk: (Block => Block), pathList: List[Path]) =
       if restParam.isDefined then
-        val sliceResSym = TempSymbol(N, erasedType = S(ErasedType.Array), "sliceRes")
+        val sliceResSym = TempSymbol(N, erasedType = S(ErasedType.ImmutableArray), "sliceRes")
         // runtime.Tuple.slice(tupleSym, paramList.length, 0)
         val sliceRes = Call(
           State.runtimeSymbol.asSimpleRef

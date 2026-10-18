@@ -97,7 +97,9 @@ class FlowAnalysisBasedRewrite(
               val params = (0 until targets.paramCount).iterator.filterNot(eliminable).map: i =>
                 if i < targets.requiredParamCount then etaParam(i.toString) else optionalEtaParam(i.toString)
               .toList
-              val restParam = Option.when(targets.hasRestParam)(etaParam("rest"))
+              // * Rest parameters are bound to arrays that are never mutated (see the IR design notes in `Block.scala`).
+              val restParam = Option.when(targets.hasRestParam):
+                Param.simple(new VarSymbol(new Tree.Ident(s"eta$$$idx$$rest"), erasedType = S(ErasedType.ImmutableArray)))
               EtaParamList(
                 ParamList.withRest(ParamListFlags.empty, params, restParam)(N),
                 params.map(p => Arg(N, p.sym.asSimpleRef)) :::

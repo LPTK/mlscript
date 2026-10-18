@@ -17,9 +17,9 @@ lambda2 = (undefined, function (Predef2, acc, x) {
   } else {
     tmp = false;
   }
-  args = [
+  args = globalThis.Object.freeze([
     tmp
-  ];
+  ]);
   runtime.safeCall(Predef2.js_assert(...args));
   return acc + x
 });

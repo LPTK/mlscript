@@ -198,6 +198,7 @@ class BlockSimplifier
         def markCastTarget(target: ErasedValueType): Unit =
           target.canonicalize match
             case ErasedType.AnyRef(_, tpeSym) => usedVars += tpeSym.bms.get
+            case ErasedType.ImmutableArray => markCastTarget(ErasedType.ImmutableArray.asArray)
             case _ =>
 
         override def applyResult(r: Result): Unit =
@@ -1474,8 +1475,9 @@ class BlockSimplifier
           else
             if args.size < params.params.size then return N
             val (fixedArgs, restArgs) = args.splitAt(params.params.size)
+            // * Rest parameters are bound to arrays that are never mutated (see the IR design notes in `Block.scala`).
             S(fixedArgs.zip(params.params).map((arg, param) => (param.sym, arg.value)) ++
-              List((params.restParam.get.sym, Tuple(true, restArgs)(N))))
+              List((params.restParam.get.sym, Tuple(false, restArgs)(N))))
       
       /** Match multiple argument lists against multiple parameter lists.
         * Returns None if any arg list fails to match its corresponding param list,
@@ -1897,7 +1899,12 @@ class BlockSimplifier
           newFunctionBody.get(callee)
           .getOrElse:
             newFunctionBody(callee) = N
-            val newBdy = enterFunctionBody(info.defn, applyBlock(info.defn.body))
+            // * The IR of functions from earlier compilation units has its spread arguments fused (see
+            // * `SpreadArgsFusion.unfuse`), which is not tracked: such functions may come from earlier blocks
+            // * sharing the same `State`, and a non-local registration may be refined into a local one.
+            // * Unfusing the IR of local functions only materializes the spreads whose erased types were lost.
+            val body = SpreadArgsFusion.unfuse(info.defn.body)
+            val newBdy = enterFunctionBody(info.defn, applyBlock(body))
             newFunctionBody(callee) = S(newBdy)
             S(newBdy)
           .fold(super.applyResult(call)(k)): blk =>

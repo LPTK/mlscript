@@ -49,10 +49,14 @@ stateful paths, such as reads of reassigned variables (see `Assign.reassign`) an
 temporaries where they are evaluated. So optimizations can move and duplicate the evaluation of nested paths.
 Arrays that are not mutable, ie, non-`mut` tuples and arrays (and the arrays bound to rest parameters), are assumed
 never to be mutated: mutating them is undefined behavior, which the type system is meant to rule out. (The JS backend
-happens to freeze non-`mut` tuples, but this is an implementation detail that the IR does not rely on.)
-Similarly, argument lists only spread arrays that no other code can observe: lowering materializes the arguments
-of argument lists with spreads into fresh arrays right before their calls (see `Lowering.materializeSpreads`), and
-`SpreadArgsFusion`, which runs after all optimizations, puts them back into their calls.
+happens to freeze non-`mut` tuples, and rest parameters when sanity checks are enabled, but this is an implementation
+detail that the IR does not rely on.) Such arrays have the erased type `ErasedType.ImmutableArray`.
+Similarly, argument lists only spread arrays that are never mutated, so that spreading them is pure: lowering
+materializes the arguments of the other argument lists with spreads into fresh arrays right before their calls
+(see `Lowering.materializeSpreads`), and `SpreadArgsFusion`, which runs after all optimizations, puts them back into
+their calls. So optimizations may bind an array that is spread in a call directly to a rest parameter of the callee.
+The IR of definitions that is kept for later compilation units (see `DefinitionSymbol.irDefn`) is fused, so they
+must first undo this fusion (see `SpreadArgsFusion.unfuse`).
 
 */
 
@@ -1187,8 +1191,9 @@ sealed abstract class Result extends Located, HasErasedType:
     case Instantiate(_, cls, _) => cls.targetSymbol.flatMap:
       case ctor: ClassCtorSymbol => ctor.associatedCls.erasedType
       case sym => sym.asCls.flatMap(_.erasedType)
-    // * A tuple literal is typed as `Array` at runtime.
-    case Tuple(_, _) => S(ErasedType.Array)
+    // * A tuple literal is typed as `Array` at runtime; non-`mut` tuples are never mutated.
+    case Tuple(false, _) => S(ErasedType.ImmutableArray)
+    case Tuple(true, _) => S(ErasedType.Array)
     case _ => N
 
   /** Coerces this result to `expected`, yielding it unchanged when no coercion is required.

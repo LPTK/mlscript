@@ -650,7 +650,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
                 // * Spreads are evaluated as part of the instantiation, in the body of the innermost lambda
                 // * (see `materializeSpreads`).
                 val argsSyms = collection.mutable.Set.empty[ScopedSymbol]
-                val inst = materializeSpreadsIn(accArgss :+ freshArgs, loc, argsSyms += _)(argss => Return(buildInstantiate(argss)))
+                val inst = SpreadArgsFusion.materializeSpreads(accArgss :+ freshArgs, loc, argsSyms += _)(argss => Return(buildInstantiate(argss)))
                 if argsSyms.isEmpty then inst else Scoped(argsSyms, inst)
               case _ => Return(etaExpand(rest, accArgss :+ freshArgs))
             Lambda(freshParamList, body)(Nil, loc)
@@ -697,19 +697,13 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
     * then the only (spread) argument of the list (`f(...args)`): since no other code can observe `args`, spreading
     * it is pure. The materializations of the argument lists of a call immediately precede it, after the evaluation
     * of all their operands, so that spreads are evaluated as part of the call. `SpreadArgsFusion` puts the
-    * materialized arguments back into the call before code generation, so this does not allocate any array. */
+    * materialized arguments back into the call before code generation, so this does not allocate any array.
+    *
+    * An argument list whose spreads all spread immutable arrays (see `SpreadArgsFusion.isPureArg`) is already pure,
+    * and is kept as is. So after lowering, every spread argument spreads an array that is never mutated:
+    * this lets optimizations bind such an array directly to a rest parameter, which is never mutated either. */
   def materializeSpreads(argss: Ls[Ls[Arg]], loc: Opt[Loc])(k: Ls[Ls[Arg]] => Block)(using LoweringCtx): Block =
-    materializeSpreadsIn(argss, loc, loweringCtx.collectScopedSym(_))(k)
-  
-  private def materializeSpreadsIn(argss: Ls[Ls[Arg]], loc: Opt[Loc], register: SpreadArgsSymbol => Unit)
-      (k: Ls[Ls[Arg]] => Block): Block = argss match
-    case Nil => k(Nil)
-    case as :: rest if as.forall(_.spread.isEmpty) => materializeSpreadsIn(rest, loc, register)(rs => k(as :: rs))
-    case as :: rest =>
-      val argsSym = new SpreadArgsSymbol
-      register(argsSym)
-      Assign(argsSym, Tuple(mut = false, as)(loc),
-        materializeSpreadsIn(rest, loc, register)(rs => k((Arg(S(SpreadKind.Eager), argsSym.asSimpleRef) :: Nil) :: rs)))
+    SpreadArgsFusion.materializeSpreads(argss, loc, loweringCtx.collectScopedSym(_))(k)
   
   def warnPureExprInStmtPos(loc: Opt[Loc], extraInfo: => Opt[Any] = N)(using Line): Unit =
     raise:
@@ -1988,7 +1982,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
     ps.variadic match
     case S(Variadic(variadicParam, trailing @ (_ :: _))) =>
       val (required, optional) = ps.params.splitAt(ps.leadingRequiredCount)
-      val argsSym = VarSymbol(Tree.Ident("args"), erasedType = S(ErasedType.Array))
+      val argsSym = VarSymbol(Tree.Ident("args"), erasedType = S(ErasedType.ImmutableArray))
       val loweredParams = ParamList.withRest(ps.flags, required, S(Param.simple(argsSym)))(ps.toLoc)
       val args = argsSym.asSimpleRef
       def int(n: Int): Path = Value.Lit(Tree.IntLit(n))(N)

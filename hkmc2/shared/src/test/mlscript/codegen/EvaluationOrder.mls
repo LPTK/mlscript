@@ -147,3 +147,46 @@ three(1, ...xs, 3)
 //│ = [1, 2, 3]
 //│ xs = [2]
 
+
+// * Spreading an array that is never mutated is pure, so it is passed as is.
+
+:sir
+fun spreadRest(...xs) = three(...xs)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define spreadRest⁰ as fun spreadRest¹(...xs) { return three⁰(...xs) }; end
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+:expect [1, 2, 3]
+spreadRest(1, 2, 3)
+//│ = [1, 2, 3]
+
+// * Functions from earlier compilation units have their spread arguments put back into their calls,
+// * so they are materialized again when inlined (see `SpreadArgsFusion.unfuse`): otherwise, inlining both
+// * `copyRest` and `gather` could bind the rest parameter of `gather` to the mutable array `arr`.
+
+fun gather(...xs) = xs
+
+:soir
+:noInline
+fun copyRest(ys) = gather(...ys)
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ define copyRest⁰ as fun copyRest¹(ys) { return gather⁰(...ys) }; end
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+:expect [1, 2]
+let arr = mut [1, 2]
+let copied = copyRest(arr)
+set arr.0 = 5
+copied
+//│ = [1, 2]
+//│ arr = [5, 2]
+//│ copied = [1, 2]
+
+
+// * Rest parameters are never mutated; when sanity checks are enabled, they are frozen.
+
+:re
+:noInline
+fun pushRest(...xs) = xs.push(0)
+pushRest(1)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot add property 1, object is not extensible

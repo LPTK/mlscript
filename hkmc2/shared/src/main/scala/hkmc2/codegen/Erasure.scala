@@ -108,6 +108,10 @@ final class Erasure private (using Config, Ctx, State)(using Raise):
     val visited = mutable.Set.empty[Identity[Statement]]
     val statements = mutable.ArrayBuffer.empty[Statement]
     val parameters = mutable.ArrayBuffer.empty[Param]
+    // * Variadic parameters are always bound to arrays that are never mutated (see the IR design notes in `Block.scala`),
+    // * whatever their annotation says: they are erased to `ImmutableArray`, which lets lowering pass them to spreads
+    // * as is (see `Lowering.materializeSpreads`).
+    val variadicParams = mutable.Set.empty[Identity[Param]]
     val parentConstructions = mutable.Set.empty[Identity[Statement]]
     def parentHead(term: Term): Unit = if parentConstructions.add(Identity(term)) then term match
       // Legacy resolution can expand a parent reference to an implicit constructor call.
@@ -117,7 +121,9 @@ final class Erasure private (using Config, Ctx, State)(using Raise):
       case App(lhs, _) => parentHead(lhs)
       case TyApp(lhs, _) => parentHead(lhs)
       case _ => ()
-    def params(ps: ParamList): Unit = ps.foreach(parameters += _)
+    def params(ps: ParamList): Unit =
+      ps.foreach(parameters += _)
+      ps.variadic.foreach(v => variadicParams += Identity(v.param))
     // Handler continuations and rejected class rest parameters can survive as references after their
     // parameter list has been removed. The symbol retains the source declaration needed for erasure.
     def referencedParameter(sym: VarSymbol): Unit = sym.decl match
@@ -250,7 +256,9 @@ final class Erasure private (using Config, Ctx, State)(using Raise):
       case _ => ()
 
     parameters.foreach: p =>
-      if !p.sym.isErased then p.sym.erasedType = declaredType(p.sign, p.modulefulness)
+      if !p.sym.isErased then p.sym.erasedType =
+        if variadicParams(Identity(p)) then S(ErasedType.ImmutableArray)
+        else declaredType(p.sign, p.modulefulness)
       // Public fields have a BlockMemberSymbol; private/auxiliary constructor fields have a TermSymbol.
       // Their source signatures belong to the parameter, not to the synthesized field definition.
       val field = p.fldSym.flatMap:

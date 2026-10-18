@@ -101,6 +101,16 @@ object ErasedType:
         case single :: Nil => single
         case ms => Union(ms)
 
+  /** The type of arrays that are not mutable: non-`mut` tuples, the arrays bound to rest parameters, and the
+    * arrays of arguments materialized by lowering, which are assumed never to be mutated (see the IR design notes
+    * in `Block.scala`). It is a subtype of the builtin `Array` type, with the same runtime representation:
+    * so a cast to it is a cast to `Array`, and coercing an `Array` to it trusts that the array is not mutated.
+    * Spreading an immutable array is pure, which lets lowering pass it as is (see `Lowering.materializeSpreads`). */
+  case object ImmutableArray extends ErasedValueType, CanonicalErasedType:
+    override def sym(using Ctx, State): TypeSymbol = ctx.builtins.Array
+    /** The builtin `Array` type, for consumers that only care about the representation of values. */
+    def asArray(using Ctx, State): AnyRef = AnyRef(rsc = S(false), ctx.builtins.Array)
+
   /** The top type of reference types, i.e. any value on JS and `anyref` on Wasm.
     *
     * Reached by an absent annotation (`erasedType_!` folds `N` here), by an alias the IR cannot resolve, and

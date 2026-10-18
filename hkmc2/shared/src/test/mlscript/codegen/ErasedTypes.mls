@@ -43,7 +43,7 @@ val s: Str = "str"
 val b: Bool = true
 val a: Array[Int] = [1, 2, 3]
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let tmp: Array⁰;
+//│ let tmp: immutable Array⁰;
 //│ define i⁰ as val i¹: Int⁰ = 1;
 //│ define f⁰ as val f¹: Num⁰ = 1.5;
 //│ define s⁰ as val s¹: Str⁰ = "str";
@@ -61,7 +61,7 @@ firstOf([9])
 class ArrBox(val arr: Array[Str])
 val box: ArrBox = new ArrBox(["x"])
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let tmp: Array⁰, tmp1: Array⁰, tmp2: ArrBox⁰;
+//│ let tmp: immutable Array⁰, tmp1: immutable Array⁰, tmp2: ArrBox⁰;
 //│ define firstOf⁰ as fun firstOf¹(a: Array⁰): Int⁰ {
 //│   return 0
 //│ };
@@ -240,10 +240,10 @@ class Cell(mut val v: Int) with
 //│ end
 
 
-// A rest parameter has no annotation to erase, so both it and the list it binds stay `?`.
+// A rest parameter is always bound to an array that is never mutated, whatever its annotation.
 fun rest(a, ...xs) = xs
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define rest⁰ as fun rest¹(a: ?, ...xs: ?): ? { return xs }; end
+//│ define rest⁰ as fun rest¹(a: ?, ...xs: immutable Array⁰): ? { return xs }; end
 
 
 // Closure capture (`:lift`): the captured local `n` is unannotated, so the generated capture class and its

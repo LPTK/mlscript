@@ -282,7 +282,7 @@ _ - _ of 1, 2
 //│ lambda33 = (undefined, function (_0) {
 //│   return _0 - 2
 //│ });
-//│ args = [];
+//│ args = globalThis.Object.freeze([]);
 //│ return runtime.safeCall(lambda33(1, ...args))
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = -1

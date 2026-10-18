@@ -130,13 +130,13 @@ f(1, 2, 3, 4)
 //│   do Predef⁰.print⁰(tmp);
 //│   return Predef⁰.print⁰(c3)
 //│ };
-//│ set c = mut [];
+//│ set c = [];
 //│ do Predef⁰.print⁰(3);
 //│ do Predef⁰.print⁰(c);
-//│ set c1 = mut [3];
+//│ set c1 = [3];
 //│ do Predef⁰.print⁰(3);
 //│ do Predef⁰.print⁰(c1);
-//│ set c2 = mut [3, 4];
+//│ set c2 = [3, 4];
 //│ do Predef⁰.print⁰(3);
 //│ return Predef⁰.print⁰(c2)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————

@@ -1861,7 +1861,8 @@ extends Importer:
               Nil
           N
       val self = VarSymbol(Ident("self"), erasedType = N)
-      val args = VarSymbol(Ident("args"), erasedType = N)
+      // * Rest parameters are bound to arrays that are never mutated (see the IR design notes in `Block.scala`).
+      val args = VarSymbol(Ident("args"), erasedType = S(codegen.ErasedType.ImmutableArray))
       val ps = ParamList.withRest(ParamListFlags.empty,
         Param.simple(self) :: Nil,
         S:

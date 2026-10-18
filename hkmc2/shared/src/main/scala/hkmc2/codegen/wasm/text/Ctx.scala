@@ -62,6 +62,7 @@ object SessionBinding:
         result match
           case Cast(_, target, _) => target.canonicalize match
             case ErasedType.AnyRef(_, tpeSym) => applySymbol(tpeSym)
+            case ErasedType.ImmutableArray => applySymbol(ErasedType.ImmutableArray.sym)
             case _ => ()
           case _ => ()
         super.applyResult(result)

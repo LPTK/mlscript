@@ -1229,13 +1229,22 @@ trait JSBuilderArgNumSanityChecks(using TL, Config, Elaborator.State)
         case S(p) => doc"\nlet $p = $runtimeVar.Tuple.slice($paramsStr, ${params.paramCountLB}, 0);"
       (doc"...$paramsStr", doc"$checkArgsNum$paramsAssign$restAssign${this.body(body, endSemi = false)}")
     */
-    if instrument && !isLambda then
-      val functionName = JSBuilder.makeStringLiteral(name.fold("")(n => s"${JSBuilder.escapeStringCharacters(n)}"))
-      val checkArgsNum = doc"\n$runtimeVar.checkArgs($functionName, ${params.paramCountLB}, arguments.length);"
-      val paramsList = params.params.map(p => scope.allocateName(p.sym))
-        .++(params.restParam.map(p => "..." + scope.allocateName(p.sym)))
-        .mkDocument(", ")
+    if instrument then
+      val checkArgsNum =
+        if isLambda then doc""
+        else
+          val functionName = JSBuilder.makeStringLiteral(name.fold("")(n => s"${JSBuilder.escapeStringCharacters(n)}"))
+          doc"\n$runtimeVar.checkArgs($functionName, ${params.paramCountLB}, arguments.length);"
+      val paramNames = params.params.map(p => scope.allocateName(p.sym))
+      val restName = params.restParam.map(p => scope.allocateName(p.sym))
+      val paramsList = (paramNames ++ restName.map("..." + _)).mkDocument(", ")
+      // * Rest parameters are assumed never to be mutated (see the IR design notes in `Block.scala`),
+      // * which lets optimizations bind the arrays passed as spread arguments to them directly.
+      // * Freezing them makes any mutation fail (in strict mode), which checks this assumption.
+      val freezeRest = restName match
+        case S(rest) if !config.noFreeze => doc"\n$freeze($rest);"
+        case _ => doc""
       (paramsList,
-        doc"$checkArgsNum${this.body(body, endSemi = false)}")
+        doc"$checkArgsNum$freezeRest${this.body(body, endSemi = false)}")
     else
       super.setupFunction(name, params, body, isLambda = isLambda)

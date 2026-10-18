@@ -58,6 +58,7 @@ extension (et: ErasedType)
     val elabCtx = ctx.elabCtx
     elabCtx.givenIn:
       et.canonicalize match
+        case ErasedType.ImmutableArray => ErasedType.ImmutableArray.asArray.wasmType
         case ErasedType.AnyRef(_, tpeSym) =>
           if tpeSym eq elabCtx.builtins.Object then
             S(RefType.anyref)
