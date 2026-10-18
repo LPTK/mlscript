@@ -103,17 +103,26 @@ if xs is
 //│ let element0$, tmp59, tmp60, tmp61;
 //│ tmp59 = xs1;
 //│ if (runtime.Tuple.isArrayLike(tmp59) && tmp59.length >= 1) {
-//│   let inlinedVal27, tmp62, tmp63;
+//│   let inlinedVal27, res, tmp62, tmp63;
 //│   tmp60 = xs1;
 //│   element0$ = runtime.Tuple.get(tmp60, 0);
 //│   tmp61 = xs1;
 //│   tmp62 = tmp61.length;
 //│   tmp63 = tmp62 - 0;
-//│   inlinedVal27 = runtime.safeCall(tmp61.slice(1, tmp63));
+//│   res = runtime.safeCall(tmp61.slice(1, tmp63));
+//│   if (res instanceof globalThis.Array) {
+//│     return globalThis.Object.freeze([
+//│       element0$,
+//│       res
+//│     ])
+//│   }
+//│   inlinedVal27 = globalThis.Object.freeze([
+//│     ...res
+//│   ]);
 //│   return globalThis.Object.freeze([
 //│     element0$,
 //│     inlinedVal27
-//│   ])
+//│   ]);
 //│ }
 //│ throw globalThis.Object.freeze(new globalThis.Error("match error"));
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -184,8 +193,14 @@ LazyFingerTree.equals(zs1, zs)
 LazyFingerTree.equals(zs2, zs)
 //│ = true
 
+// Eager spread patterns always bind arrays, while lazy ones bind what the `slice` method of the scrutinee returns.
+
 (if FingerTreeList.mk(1,2,3) is
   [a, ...ls, b] then ls) |> FingerTreeList.isFingerTree
+//│ = false
+
+(if FingerTreeList.mk(1,2,3) is
+  [a, ..ls, b] then ls) |> FingerTreeList.isFingerTree
 //│ = true
 
 :expect 1

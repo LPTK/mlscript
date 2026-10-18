@@ -197,13 +197,20 @@ fun f() = case [...x, y, z] then x
 //│ define lambda as fun lambda⁰(caseScrut) {
 //│   match caseScrut
 //│     Array(2+) =>
-//│       let inlinedVal, tmp, tmp1;
+//│       let inlinedVal, res, tmp, tmp1;
 //│       set tmp = caseScrut.length⁰;
 //│       set tmp1 = -⁰(tmp, 2);
-//│       set inlinedVal = caseScrut.slice⁰(0, tmp1);
+//│       set res = caseScrut.slice⁰(0, tmp1);
+//│       match res
+//│         Array⁰ =>
+//│           set inlinedVal = res;
+//│           end
+//│         else
+//│           set inlinedVal = [...res];
+//│           end
 //│       do runtime⁰.Tuple⁰.get⁰(caseScrut, -2);
 //│       do runtime⁰.Tuple⁰.get⁰(caseScrut, -1);
-//│       return inlinedVal
+//│       return (inlinedVal as!! immutable Array⁰)
 //│     else
 //│       throw new globalThis⁰.Error⁰("match error")
 //│   end
@@ -482,28 +489,28 @@ handle h = Eff with
   fun perform()(k) = k(())
 foo(h)
 //│ ╔══[WARNING] Modules are not yet lifted.
-//│ ║  l.477: 	    module A with
+//│ ║  l.484: 	    module A with
 //│ ╙──       	           ^
 //│ ╔══[WARNING] Modules are not yet lifted.
-//│ ║  l.473: 	    module A with
+//│ ║  l.480: 	    module A with
 //│ ╙──       	           ^
 //│ ╔══[WARNING] Modules are not yet lifted.
-//│ ║  l.469: 	    module A with
+//│ ║  l.476: 	    module A with
 //│ ╙──       	           ^
 //│ ╔══[WARNING] Modules are not yet lifted.
-//│ ║  l.465: 	    module A with
+//│ ║  l.472: 	    module A with
 //│ ╙──       	           ^
 //│ ╔══[INTERNAL ERROR] Unexpected nested class: lambdas may not function correctly.
-//│ ║  l.465: 	    module A with
+//│ ║  l.472: 	    module A with
 //│ ╙──       	           ^
 //│ ╔══[INTERNAL ERROR] Unexpected nested class: lambdas may not function correctly.
-//│ ║  l.469: 	    module A with
+//│ ║  l.476: 	    module A with
 //│ ╙──       	           ^
 //│ ╔══[INTERNAL ERROR] Unexpected nested class: lambdas may not function correctly.
-//│ ║  l.473: 	    module A with
+//│ ║  l.480: 	    module A with
 //│ ╙──       	           ^
 //│ ╔══[INTERNAL ERROR] Unexpected nested class: lambdas may not function correctly.
-//│ ║  l.477: 	    module A with
+//│ ║  l.484: 	    module A with
 //│ ╙──       	           ^
 //│ = 123
 

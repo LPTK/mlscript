@@ -25,6 +25,23 @@ object SpreadArgsFusion:
   def isPureArg(arg: Arg)(using Ctx, State): Bool =
     arg.spread.isEmpty || arg.value.erasedType.exists(_.canonicalize is ErasedType.ImmutableArray)
   
+  /** Checks the invariant that the spread arguments of calls and instantiations only spread materialized argument lists
+    * or arrays that are never mutated, so that argument lists are pure (see `Lowering.materializeSpreads`).
+    * Spreads in tuple literals are not concerned: a tuple literal evaluates its spreads, as when materializing an
+    * argument list. Optimizations must preserve the erased types that make this invariant observable. */
+  def checkPureArgs(blk: Block)(using Ctx, State, Raise): Unit =
+    def check(arg: Arg): Unit = arg match
+      case Arg(S(_), Value.SimpleRef(_: SpreadArgsSymbol)) => ()
+      case _ => softAssert(isPureArg(arg), s"A spread argument does not spread an array that is never mutated: $arg")
+    new BlockTraverser:
+      override def applyResult(r: Result): Unit =
+        r match
+          case Call(_, argss) => argss.foreach(_.foreach(check))
+          case Instantiate(_, _, argss) => argss.foreach(_.foreach(check))
+          case _ => ()
+        super.applyResult(r)
+    .applyBlock(blk)
+  
   /** Materializes the argument lists `argss` that are not pure (see `Lowering.materializeSpreads`), registering the
     * symbols of the materialized arrays with `register`, so that they can be declared in an enclosing `Scoped`. */
   def materializeSpreads(argss: Ls[Ls[Arg]], loc: Opt[Loc], register: SpreadArgsSymbol => Unit)

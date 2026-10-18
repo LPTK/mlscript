@@ -3,7 +3,7 @@ package semantics
 package ucs
 
 import hkmc2.utils.*, shorthands.*
-import syntax.Tree, Tree.*, Elaborator.{Ctx, State, ctx}
+import syntax.{SpreadKind, Tree}, Tree.*, Elaborator.{Ctx, State, ctx}
 
 /** This trait includes some helpers for synthesizing `Term`s which look like 
   * they have already been processed by the `Resolver`. Its methods should only
@@ -56,7 +56,7 @@ trait TermSynthesizer(using State):
     val parameters = parametersOpt.map(_.map(_ -> N))
     FlatPattern.ClassLike(matchFailureClass, State.matchFailureClsSymbol, parameters, false)(Tree.Dummy)
 
-  protected lazy val tupleSlice = sel(sel(runtimeRef, "Tuple", State.tupleSymbol), "slice", State.tupleSliceSymbol)
+  protected lazy val tupleEagerSlice = sel(sel(runtimeRef, "Tuple", State.tupleSymbol), "eagerSlice", State.tupleEagerSliceSymbol)
   protected lazy val tupleLazySlice = sel(sel(runtimeRef, "Tuple", State.tupleSymbol), "lazySlice", State.tupleLazySliceSymbol)
   protected lazy val tupleGet = sel(sel(runtimeRef, "Tuple", State.tupleSymbol), "get", State.tupleGetSymbol)
   protected lazy val stringStartsWith = sel(sel(runtimeRef, "Str", State.strSymbol), "startsWith", State.strStartsWithSymbol)
@@ -72,9 +72,14 @@ trait TermSynthesizer(using State):
   protected final def callTupleGet(t: Term, i: Int, s: FlowSymbol): Term =
     app(tupleGet, tup(fld(t), fld(int(i))), s)
   
-  /** Make a term that looks like `runtime.Tuple.slice(t, i, j)`. */
-  protected final def callTupleSlice(t: Term, i: Int, j: Int, label: Str): Term =
-    app(tupleSlice, tup(fld(t), fld(int(i)), fld(int(j))), label)
+  /** Make a term that looks like `runtime.Tuple.eagerSlice(t, i, j)` or `runtime.Tuple.lazySlice(t, i, j)`,
+    * giving the elements matched by a spread pattern of kind `kind`: as in construction, eager spread patterns
+    * create fresh arrays, while lazy ones use views when possible. */
+  protected final def callTupleSlice(kind: SpreadKind, t: Term, i: Int, j: Int, label: Str): Term =
+    val slice = kind match
+      case SpreadKind.Eager => tupleEagerSlice
+      case SpreadKind.Lazy => tupleLazySlice
+    app(slice, tup(fld(t), fld(int(i)), fld(int(j))), label)
 
   /** Make a term that looks like `runtime.Str.startsWith(t, p)`. */
   protected final def callStringStartsWith(t: Term.Ref, p: Term, label: Str) =
@@ -141,6 +146,7 @@ trait TermSynthesizer(using State):
   protected final def makeTupleBranch(
     scrut: => Term.Ref,
     leading: Ls[LocalVarSymbol],
+    spreadKind: SpreadKind,
     spread: LocalVarSymbol,
     trailing: Ls[LocalVarSymbol],
     consequent: => Split,
@@ -152,7 +158,7 @@ trait TermSynthesizer(using State):
         val label = s"the last $reverseIndex-th element of the tuple"
         Split.Let(arg, callTupleGet(scrut, -reverseIndex, label), innerSplit)
     val split1 = Split.Let(spread, callTupleSlice(
-      scrut, leading.size, trailing.size, "the middle part of the tuple"), split0)
+      spreadKind, scrut, leading.size, trailing.size, "the middle part of the tuple"), split0)
     val split2 = leading.iterator.zipWithIndex.foldRight(split1):
       case ((arg, index), innerSplit) =>
         val label = s"the first ${index + 1}-th element of the tuple"

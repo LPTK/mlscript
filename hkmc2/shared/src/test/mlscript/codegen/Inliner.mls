@@ -98,16 +98,19 @@ fun f(a, ...b) =
 f(1, ...[2])
 f(1, ...[2], ...[3])
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let tmp, tmp1, tmp2;
-//│ define f¹⁰ as fun f¹¹(a, ...b) {
+//│ let tmp, tmp1, tmp2, b;
+//│ define f¹⁰ as fun f¹¹(a, ...b1) {
 //│   do Predef⁰.print⁰(a);
-//│   return Predef⁰.print⁰(b)
+//│   return Predef⁰.print⁰(b1)
 //│ };
 //│ set tmp = [2];
-//│ do f¹¹(1, ...tmp);
+//│ do Predef⁰.print⁰(1);
+//│ do Predef⁰.print⁰(tmp);
 //│ set tmp1 = [2];
 //│ set tmp2 = [3];
-//│ return f¹¹(1, ...tmp1, ...tmp2)
+//│ set b = [...tmp1, ...tmp2];
+//│ do Predef⁰.print⁰(1);
+//│ return Predef⁰.print⁰(b)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ > 1
 //│ > [2]
@@ -159,12 +162,12 @@ f(1, ...[2, 3])
 f(1, 2, ...[3])
 f(1, 2, 3, ...[4])
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let f7, tmp5, tmp6, tmp7;
-//│ f7 = function f(a, b, ...c3) {
+//│ let f7, tmp5, tmp6, tmp7, c3;
+//│ f7 = function f(a, b1, ...c4) {
 //│   let tmp8;
-//│   tmp8 = a + b;
+//│   tmp8 = a + b1;
 //│   Predef.print(tmp8);
-//│   return Predef.print(c3)
+//│   return Predef.print(c4)
 //│ };
 //│ tmp5 = globalThis.Object.freeze([
 //│   2,
@@ -174,9 +177,14 @@ f(1, 2, 3, ...[4])
 //│ tmp6 = globalThis.Object.freeze([
 //│   3
 //│ ]);
-//│ f7(1, 2, ...tmp6);
-//│ tmp7 = globalThis.Object.freeze([ 4 ]);
-//│ return f7(1, 2, 3, ...tmp7)
+//│ Predef.print(3);
+//│ Predef.print(tmp6);
+//│ tmp7 = globalThis.Object.freeze([
+//│   4
+//│ ]);
+//│ c3 = globalThis.Object.freeze([ 3, ...tmp7 ]);
+//│ Predef.print(3);
+//│ return Predef.print(c3)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ > 3
 //│ > [3]
@@ -228,14 +236,14 @@ fun f1(a, b, c) = (a + b + c + 1) * 2
 f(1)(2)(3)
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let f10, f11;
-//│ f11 = function f1(a, b, c3) {
+//│ f11 = function f1(a, b1, c4) {
 //│   let tmp8, tmp9, tmp10;
-//│   tmp8 = a + b;
-//│   tmp9 = tmp8 + c3;
+//│   tmp8 = a + b1;
+//│   tmp9 = tmp8 + c4;
 //│   tmp10 = tmp9 + 1;
 //│   return tmp10 * 2
 //│ };
-//│ f10 = function f(a) { return (b) => { return (c3) => { return f11(a, b, c3) } } };
+//│ f10 = function f(a) { return (b1) => { return (c4) => { return f11(a, b1, c4) } } };
 //│ return 14
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 14

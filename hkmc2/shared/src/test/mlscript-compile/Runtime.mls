@@ -101,8 +101,19 @@ module Tuple with
   @pure
   fun slice(xs: Indexable, i: Int, j: Int) = xs.slice(i, xs.length - j)
   
+  // The elements of `xs` but its first `i` and last `j` ones, as a fresh array.
+  // This gives the arrays bound by eager spread patterns (as `xs` in `[x, ...xs]`), which, like eager spreads in
+  // construction, create fresh arrays, even when matching lazy arrays (whose `slice` methods return views).
   @pure
-  fun lazySlice(xs: Indexable, i: Int, j: Int) = LazyArray.dropLeftRight(i, j)(xs)
+  fun eagerSlice(xs: Indexable, i: Int, j: Int) =
+    let res = xs.slice(i, xs.length - j)
+    if res is Array then res else [...res]
+  
+  // The elements of `xs` but its first `i` and last `j` ones, as a view when possible.
+  // This gives the values bound by lazy spread patterns (as `xs` in `[x, ..xs]`): views of arrays and lazy arrays,
+  // and what the `slice` methods of other array-like values return (as finger trees).
+  @pure
+  fun lazySlice(xs: Indexable, i: Int, j: Int) = LazyArray.lazySlice(i, j)(xs)
   @pure
   fun lazyConcat(...args) = LazyArray.__concat(...args)
   

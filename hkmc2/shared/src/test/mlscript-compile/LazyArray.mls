@@ -163,6 +163,13 @@ fun dropLeftRight(beg: Int, fin: Int)(xs: Indexable) =
     throw RangeError("LazyArray.dropLeftRight: indices out of bounds")
   sliceHelper(beg, xs.length - fin, xs)
 
+// Like `dropLeftRight`, but also accepting array-like values other than arrays and lazy arrays (as finger trees),
+// for which this returns what their `slice` methods return.
+// This gives the values bound by lazy spread patterns (as `xs` in `[x, ..xs]`; see `Runtime.Tuple.lazySlice`).
+fun lazySlice(beg: Int, fin: Int)(xs: Indexable) =
+  if xs is (LazyArr | Array) then dropLeftRight(beg, fin)(xs)
+  else xs.slice(beg, xs.length - fin)
+
 fun equals(xs: Indexable, ys: Indexable) =
   xs.length === ys.length &&
     let idx = 0

@@ -55,6 +55,8 @@ Similarly, argument lists only spread arrays that are never mutated, so that spr
 materializes the arguments of the other argument lists with spreads into fresh arrays right before their calls
 (see `Lowering.materializeSpreads`), which code generation puts back into their calls (see `SpreadArgsFusion`).
 So optimizations may bind an array that is spread in a call directly to a rest parameter of the callee.
+When `Config.checkInvariants` is set, this invariant is checked after each pass (see `SpreadArgsFusion.checkPureArgs`),
+which requires optimizations to keep the `ImmutableArray` erased types of the arrays they spread.
 
 */
 

@@ -5,7 +5,7 @@ package ups
 import hkmc2.utils.*, shorthands.*
 import Message.MessageContext
 import ucs.{TermSynthesizer, FlatPattern, error, warn, safeRef}, ucs.extractors.*
-import syntax.{Fun, Keyword, Tree}, Tree.{Ident, StrLit}, Keyword.{`as`, `=>`}
+import syntax.{Fun, Keyword, SpreadKind, Tree}, Tree.{Ident, StrLit}, Keyword.{`as`, `=>`}
 import collection.mutable.{Buffer, HashMap}, collection.immutable.SeqMap
 import codegen.{ErasedType, PrimitiveType}
 import Elaborator.{Ctx, State, ctx}, utils.TL
@@ -771,11 +771,16 @@ class SplitCompiler(using codegen.Erasure)(using tl: TL)(using State, Ctx, Raise
           elements.folded(makeConsequent)(scrutinee.getTupleLeadSubScrutinee)
         val consequent = makeChainedConsequent(scrutinee, SeqMap.empty)
         makeTupleBranch(scrutinee(), subScrutinees.map(_._1), consequent, alternative)
-      case Tuple(leading, S((_, spread, trailing))) => (makeConsequent, alternative) =>
+      case Tuple(leading, S((spreadKind, spread, trailing))) => (makeConsequent, alternative) =>
         val trailingSize = trailing.size
         val (trailSubScrutinees, makeConsequent0) = trailing.folded(makeConsequent):
           index => scrutinee.getTupleLastSubScrutinee(trailingSize - index)
-        val spreadSubScrutinee = TempSymbol(N, erasedType = S(ErasedType.Array), "middleElements")
+        // * Eager spread patterns bind fresh arrays, which are never mutated, while lazy ones may bind views
+        // * of the scrutinee, which may be mutable (see `TermSynthesizer.callTupleSlice`).
+        val spreadType = spreadKind match
+          case SpreadKind.Eager => S(ErasedType.ImmutableArray)
+          case SpreadKind.Lazy => N
+        val spreadSubScrutinee = TempSymbol(N, erasedType = spreadType, "middleElements")
         val makeConsequent1: MakeConsequent = (outerOutput, outerBindings) =>
           makeMatchSplit(spreadSubScrutinee.toScrut, spread, false)(
             (spreadOutput, spreadBindings) => makeConsequent0(
@@ -787,6 +792,7 @@ class SplitCompiler(using codegen.Erasure)(using tl: TL)(using State, Ctx, Raise
         makeTupleBranch(
           scrutinee(),
           leadingSubScrutinees.map(_._1),
+          spreadKind,
           spreadSubScrutinee,
           trailSubScrutinees.map(_._1),
           makeConsequent2(scrutinee, SeqMap.empty),

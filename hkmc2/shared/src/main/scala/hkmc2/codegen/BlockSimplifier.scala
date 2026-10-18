@@ -10,7 +10,7 @@ import hkmc2.utils.*
 
 import semantics.*
 import semantics.Elaborator.{State, Ctx, ctx}
-import hkmc2.syntax.Literal
+import hkmc2.syntax.{Literal, SpreadKind}
 import hkmc2.{codegen => argss}
 
 
@@ -194,10 +194,11 @@ class BlockSimplifier
           *
           * Both traversal entry points must call this: `applyResult` matches `Cast` before its `Path` case, so
           * `applyPath` never sees a returned or assigned cast, only the ones a `ValDefn` binds.
+          * A class without a definition (as one imported from another compilation unit) has nothing to keep.
           */
         def markCastTarget(target: ErasedValueType): Unit =
           target.canonicalize match
-            case ErasedType.AnyRef(_, tpeSym) => usedVars += tpeSym.bms.get
+            case ErasedType.AnyRef(_, tpeSym) => tpeSym.bms.foreach(usedVars += _)
             case ErasedType.ImmutableArray => markCastTarget(ErasedType.ImmutableArray.asArray)
             case _ =>
 
@@ -1168,10 +1169,23 @@ class BlockSimplifier
           case N => k(v)
           case S(v2) =>
             registerChange(s"${loc.showDbg} ~> ${v2.showDbg} (via ${refs.map(_.showDbg).mkString(", ")})")
-            k(v2)
+            k(withErasedTypeOf(v, v2))
         
       case _ => super.applyPath(v)(k)
     
+    
+    /** The reference `replacement`, which denotes the same value as the reference `original`, keeping the knowledge
+      * that it is an array that is never mutated (see `ErasedType.ImmutableArray`), as when an untyped temporary
+      * replaces a rest parameter. Lowering and optimizations rely on this knowledge to avoid copying arrays
+      * (see `Lowering.materializeSpreads`), and checking the invariant that spread arguments are pure relies on it
+      * (see `SpreadArgsFusion.checkPureArgs`). As both references denote the same value, the cast is unchecked.
+      * Other erased types are not kept this way: they describe the representations of values, which backends
+      * coerce values to where needed, and casting to them would hinder optimizations that inspect references. */
+    private def withErasedTypeOf(original: Path, replacement: Path): Path =
+      original.erasedValueType.map(_.canonicalize) match
+      case S(ErasedType.ImmutableArray) if !(replacement.erasedValueType_!.canonicalize is ErasedType.ImmutableArray) =>
+        Cast(replacement, ErasedType.ImmutableArray, check = false)(replacement.toLoc)
+      case _ => replacement
     
     private def assignedPureCallPrefix(loc: LocalVar): Opt[Call] =
       // * Only expose prefixes whose dependency facts still match the current
@@ -1457,27 +1471,24 @@ class BlockSimplifier
         ).applyFunDefn(fun)
         found
 
+      /** Matches the arguments `args` of an inlined call against the parameters `params` of its callee.
+        * The leading parameters must each receive an argument that is not spread (omitted optional arguments are
+        * not supported), and the rest parameter, if any, receives the remaining arguments. */
       def matchArgs(args: List[Arg], params: ParamList): Option[List[(VarSymbol, Result)]] =
-        if args.exists(_.spread.isDefined) then
-          // we require a precise match when any arg is a spread arg
-          if params.restParam.isEmpty then return N
-          if args.exists(_.spread.exists(!_.isEager)) then return N
-          if args.size =/= params.params.size then return N
-          val pairs = args.zip(params.params.iterator.map((_, false)) ++ params.restParam.map((_, true)))
-          if pairs.exists((arg, param) => arg.spread.isDefined =/= param._2) then return N
-          S(pairs.map((arg, param) => (param._1.sym, arg.value)))
-        else
-          // otherwise arg list is a simple list, and
-          // we can perform manual array instantiation if params contain a spread param
-          if params.restParam.isEmpty then
-            if args.size =/= params.params.size then return N
-            S(args.zip(params.params).map((arg, param) => (param.sym, arg.value)))
-          else
-            if args.size < params.params.size then return N
-            val (fixedArgs, restArgs) = args.splitAt(params.params.size)
-            // * Rest parameters are bound to arrays that are never mutated (see the IR design notes in `Block.scala`).
-            S(fixedArgs.zip(params.params).map((arg, param) => (param.sym, arg.value)) ++
-              List((params.restParam.get.sym, Tuple(false, restArgs)(N))))
+        if args.exists(_.spread.exists(!_.isEager)) then return N
+        val (fixedArgs, restArgs) = args.splitAt(params.params.size)
+        if fixedArgs.size < params.params.size || fixedArgs.exists(_.spread.isDefined) then return N
+        val fixed = fixedArgs.zip(params.params).map((arg, param) => (param.sym, arg.value))
+        params.restParam match
+        case N => Option.when(restArgs.isEmpty)(fixed)
+        case S(restParam) =>
+          // * Rest parameters are bound to arrays that are never mutated, and spread arguments only spread such
+          // * arrays (see the IR design notes in `Block.scala`), so a single spread argument can be bound to the
+          // * rest parameter directly. Otherwise, the remaining arguments are gathered into a non-`mut` tuple.
+          val rest = restArgs match
+            case Arg(S(SpreadKind.Eager), value) :: Nil => value
+            case _ => Tuple(false, restArgs)(N)
+          S(fixed :+ (restParam.sym, rest))
       
       /** Match multiple argument lists against multiple parameter lists.
         * Returns None if any arg list fails to match its corresponding param list,

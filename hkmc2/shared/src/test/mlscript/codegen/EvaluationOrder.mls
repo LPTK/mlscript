@@ -160,9 +160,53 @@ fun spreadRest(...xs) = three(...xs)
 spreadRest(1, 2, 3)
 //│ = [1, 2, 3]
 
+// * Eager spread patterns bind fresh arrays, which are never mutated, so spreading them is pure;
+// * lazy spread patterns may bind views of mutable arrays.
+
+:sir
+fun restOf(xs) = if xs is [_, ...rest] then three(...rest)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define restOf⁰ as fun restOf¹(xs) {
+//│   let rest, middleElements, element0$;
+//│   match xs
+//│     Array(1+) =>
+//│       set element0$ = runtime⁰.Tuple⁰.get⁰(xs, 0);
+//│       set middleElements = runtime⁰.Tuple⁰.eagerSlice⁰(xs, 1, 0);
+//│       set rest = middleElements;
+//│       return three⁰(...rest)
+//│     else
+//│       throw new globalThis⁰.Error⁰("match error")
+//│   end
+//│ };
+//│ end
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+:sir
+fun lazyRestOf(xs) = if xs is [_, ..rest] then three(...rest)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define lazyRestOf⁰ as fun lazyRestOf¹(xs) {
+//│   let rest, middleElements, element0$, spreadArgs;
+//│   match xs
+//│     Array(1+) =>
+//│       set element0$ = runtime⁰.Tuple⁰.get⁰(xs, 0);
+//│       set middleElements = runtime⁰.Tuple⁰.lazySlice⁰(xs, 1, 0);
+//│       set rest = middleElements;
+//│       set spreadArgs = [...rest];
+//│       return three⁰(...spreadArgs)
+//│     else
+//│       throw new globalThis⁰.Error⁰("match error")
+//│   end
+//│ };
+//│ end
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+:expect [[2, 3, 4], [2, 3, 4]]
+[restOf([1, 2, 3, 4]), lazyRestOf([1, 2, 3, 4])]
+//│ = [[2, 3, 4], [2, 3, 4]]
+
 // * Spread arguments are only put back into their calls by code generation, so the IR of functions reused by
-// * later compilation units still has its spread arguments materialized: otherwise, inlining both `copyRest` and
-// * `gather` could bind the rest parameter of `gather` to the mutable array `arr`.
+// * later compilation units still has its spread arguments materialized: inlining both `copyRest` and `gather`
+// * binds the rest parameter of `gather` to a copy of `arr`, rather than to the mutable array `arr` itself.
 
 fun gather(...xs) = xs
 
@@ -178,11 +222,21 @@ fun copyRest(ys) = gather(...ys)
 //│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
+:soir
 :expect [1, 2]
 let arr = mut [1, 2]
 let copied = copyRest(arr)
 set arr.0 = 5
 copied
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let ys, spreadArgs;
+//│ set arr⁰ = mut [1, 2];
+//│ set ys = arr⁰;
+//│ set spreadArgs = [...ys];
+//│ set copied⁰ = spreadArgs;
+//│ set arr⁰.0 = 5;
+//│ return spreadArgs
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = [1, 2]
 //│ arr = [5, 2]
 //│ copied = [1, 2]

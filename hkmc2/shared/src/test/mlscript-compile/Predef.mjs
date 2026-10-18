@@ -25,7 +25,9 @@ lambda2 = (undefined, function (Predef2, acc, x) {
 });
 lambda$1 = (undefined, function (Predef2, b) {
   return (a, i, ..._) => {
-    return lambda1(Predef2, b, a, i, ..._)
+    let tmp;
+    tmp = runtime.safeCall(b.at(i));
+    return Predef2.equals(a, tmp)
   }
 });
 lambda$ = (undefined, function (Predef2, a, b) {

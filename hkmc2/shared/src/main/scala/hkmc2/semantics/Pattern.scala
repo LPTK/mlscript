@@ -36,10 +36,15 @@ object Pattern:
    *  @param varMap A map from variable names to their valid aliases. Multiple
    *                aliases are allowed when they are in different disjunctions.
    *  @param invalidVars A list of variables and the reason why they are invalid.
+   *  @param arrayAliases The aliases bound to the arrays matched by eager spread
+   *                      patterns, as `xs` in `[x, ...xs]`, which are fresh arrays
+   *                      that are never mutated (see `Tuple.eagerSlice` in
+   *                      `Runtime.mls`), unlike those matched by lazy spread patterns.
    */
   final case class Variables(
       varMap: HashMap[Str, Ls[Pattern.Alias]],
-      invalidVars: Ls[(Pattern.Alias, InvalidReason)]
+      invalidVars: Ls[(Pattern.Alias, InvalidReason)],
+      arrayAliases: Set[Pattern.Alias],
   ):
     /** Allocate symbols for all variables. */
     def allocate(using State, TraceLogger): Seq[(Str, VarSymbol)] = allocate(Map.empty)
@@ -61,7 +66,9 @@ object Pattern:
         preallocated.get(name).foreach: expected =>
           assert(symbols.forall(_ is expected), "Guard bindings must retain their extraction parameter symbol")
         // If no symbol had been created before, create a new symbol now.
-        val symbol = symbols.headOption.orElse(preallocated.get(name)).getOrElse(VarSymbol(Ident(name), erasedType = N))
+        // A variable bound to arrays matched by eager spread patterns in all alternatives is never mutated.
+        val erasedType = if aliases.forall(arrayAliases) then S(codegen.ErasedType.ImmutableArray) else N
+        val symbol = symbols.headOption.orElse(preallocated.get(name)).getOrElse(VarSymbol(Ident(name), erasedType))
         aliases.foreach: alias =>
           // For guarded patterns (`p where t`), the variables in `p` have to be
           // allocated before `t` is elaborated. In that case, we don't need to
@@ -79,11 +86,12 @@ object Pattern:
     def +(alias: Pattern.Alias): Variables =
       varMap.get(alias.id.name) match
         // Add the alias to the variable set if the name has not been used.
-        case N => Variables(varMap + (alias.id.name -> Ls(alias)), invalidVars)
+        case N => Variables(varMap + (alias.id.name -> Ls(alias)), invalidVars, arrayAliases)
         case S(oldAliases) => Variables(
           varMap.updated(alias.id.name, Ls(alias)),
           // Append the invalid reason: `alias` shadows `oldAliases`.
-          invalidVars :+ (alias -> Duplicated(oldAliases.map(_.id))))
+          invalidVars :+ (alias -> Duplicated(oldAliases.map(_.id))),
+          arrayAliases)
     
     /** Union two variable sets. If the latter contains a variable that is
      *  already present in the former, the variable is considered duplicated. */
@@ -94,7 +102,8 @@ object Pattern:
           case ((name, previous), (_, aliases)) =>
             duplicated ++= aliases.map(_ -> Duplicated(previous.map(_.id)))
             (name, aliases),
-        invalidVars ::: that.invalidVars ::: duplicated.toList)
+        invalidVars ::: that.invalidVars ::: duplicated.toList,
+        arrayAliases ++ that.arrayAliases)
     
     /** For debugging purpose only. */
     def display: Str = varMap.iterator.map:
@@ -117,11 +126,16 @@ object Pattern:
         // Add variables that only present in one side to the invalid variables.
         invalidVars :::
           notInThis.iterator.flatMap(_._2.map(_ -> Inconsistent(pattern, true))).toList :::
-          notInThat.iterator.flatMap(_._2.map(_ -> Inconsistent(pattern, false))).toList)
+          notInThat.iterator.flatMap(_._2.map(_ -> Inconsistent(pattern, false))).toList,
+        arrayAliases ++ that.arrayAliases)
     
     /** Mark all variables in this set as invalid. */
     def invalidated(reason: InvalidReason): Variables =
-      Variables(HashMap.empty, invalidVars appendedAll varMap.iterator.flatMap(_._2.map(_ -> reason)))
+      Variables(HashMap.empty, invalidVars appendedAll varMap.iterator.flatMap(_._2.map(_ -> reason)), arrayAliases)
+    
+    /** Mark `aliases` as bound to the arrays matched by eager spread patterns. */
+    def withArrayAliases(aliases: Iterable[Pattern.Alias]): Variables =
+      copy(arrayAliases = arrayAliases ++ aliases)
     
     /** Report all invalid variables. */
     def report(using Raise): Unit = invalidVars.foreach:
@@ -144,7 +158,7 @@ object Pattern:
         msg"It is bound in this pattern." -> p.toLoc)
     
   object Variables:
-    lazy val empty: Variables = Variables(HashMap.empty, Nil)
+    lazy val empty: Variables = Variables(HashMap.empty, Nil, Set.empty)
   
   extension (patterns: IterableOnce[Pattern])
     def variables: Variables = patterns.iterator.foldLeft(Variables.empty):
@@ -290,12 +304,22 @@ enum Pattern extends AutoLocated, Describable, PatternShapePublisher:
     case _: (Wildcard | Literal | Range | Transform) => Variables.empty
     case Concatenation(left, right) => left.variables ++ right.variables
     case Tuple(leading, spread) => leading.variables ++ spread.fold(Variables.empty):
-      case (_, middle, trailing) => middle.variables ++ trailing.variables
+      case (SpreadKind.Eager, middle, trailing) =>
+        middle.variables.withArrayAliases(middle.ownAliases) ++ trailing.variables
+      case (SpreadKind.Lazy, middle, trailing) => middle.variables ++ trailing.variables
     case Record(fields) => fields.iterator.map(_._2).variables
     case alias @ Alias(pattern, _) => pattern.variables + alias
     case Chain(first, second) => first.variables ++ second.variables
     case Annotated(pattern, _) => pattern.variables
     case Guarded(pattern, _) => pattern.variables
+  
+  /** The aliases bound to the values matched by this pattern itself, as `x` and `y` in `(p as x) as y`. */
+  lazy val ownAliases: Ls[Alias] = this match
+    case alias @ Alias(pattern, _) => alias :: pattern.ownAliases
+    case Composition(_, left, right) => left.ownAliases ::: right.ownAliases
+    case Annotated(pattern, _) => pattern.ownAliases
+    case Guarded(pattern, _) => pattern.ownAliases
+    case _ => Nil
   
   /** Collect the names of pattern variables that are actually referenced
     * as free variables inside guard terms of `Guarded` patterns. Only

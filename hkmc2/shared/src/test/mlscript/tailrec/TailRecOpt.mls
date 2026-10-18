@@ -186,7 +186,7 @@ fun g(n) =
 //│         do argList.2;
 //│         do argList.3;
 //│         do argList.4;
-//│         set param5 = inlinedVal;
+//│         set param5 = (inlinedVal as!! immutable Array⁰);
 //│         set id = 0;
 //│         continue loopLabel
 //│       else

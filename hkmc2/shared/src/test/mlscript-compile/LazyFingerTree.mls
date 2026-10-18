@@ -141,11 +141,12 @@ fun dropLeftRight(beg: Int, fin: Int)(xs: Indexable) =
     throw RangeError("LazyFingerTree.dropLeftRight: indices out of bounds")
   sliceHelper(beg, xs.length - fin, xs)
 
+// Lazy spread patterns use the `slice` methods of finger trees, rather than copying them into arrays.
 fun equals(xs: Indexable, ys: Indexable) =
   if xs is
-    [x, ...xs] then
+    [x, ..xs] then
       if ys is
-        [b, ...bs] then x == b && equals(xs, bs)
+        [b, ..bs] then x == b && equals(xs, bs)
         [] then false
     [] then ys.length === 0
 

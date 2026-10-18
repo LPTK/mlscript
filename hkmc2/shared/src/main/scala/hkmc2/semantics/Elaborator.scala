@@ -543,6 +543,7 @@ object Elaborator:
       tupleGet: TermSymbol,
       tupleGetLeading: TermSymbol,
       tupleSlice: TermSymbol,
+      tupleEagerSlice: TermSymbol,
       tupleLazySlice: TermSymbol,
       strStartsWith: TermSymbol,
       strGet: TermSymbol,
@@ -596,6 +597,7 @@ object Elaborator:
         tupleGet = moduleMember(tuple, "get"),
         tupleGetLeading = moduleMember(tuple, "getLeading"),
         tupleSlice = moduleMember(tuple, "slice"),
+        tupleEagerSlice = moduleMember(tuple, "eagerSlice"),
         tupleLazySlice = moduleMember(tuple, "lazySlice"),
         strStartsWith = moduleMember(str, "startsWith"),
         strGet = moduleMember(str, "get"),
@@ -707,6 +709,7 @@ object Elaborator:
     def tupleGetSymbol: TermSymbol = runtimeSymbols.tupleGet
     def tupleGetLeadingSymbol: TermSymbol = runtimeSymbols.tupleGetLeading
     def tupleSliceSymbol: TermSymbol = runtimeSymbols.tupleSlice
+    def tupleEagerSliceSymbol: TermSymbol = runtimeSymbols.tupleEagerSlice
     def tupleLazySliceSymbol: TermSymbol = runtimeSymbols.tupleLazySlice
     def strStartsWithSymbol: TermSymbol = runtimeSymbols.strStartsWith
     def strGetSymbol: TermSymbol = runtimeSymbols.strGet

@@ -31,6 +31,7 @@ class CompilationPipeline(using Config, Raise, State, Ctx, SymbolPrinter):
     inline def runPass(passName: Str)(inline transform: Program => Program) =
       val before = result
       result = transform(before)
+      if config.checkInvariants then SpreadArgsFusion.checkPureArgs(result.main)
       passHook(passName, before, result)
     
     runPass("LambdaRewriter")(LambdaRewriter.desugar)

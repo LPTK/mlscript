@@ -252,7 +252,7 @@ fun g(n)(m) =
 //│         do argList.1;
 //│         do argList.2;
 //│         do argList.3;
-//│         set param5 = inlinedVal;
+//│         set param5 = (inlinedVal as!! immutable Array⁰);
 //│         set param6 = param1_tmp;
 //│         set id = 0;
 //│         continue loopLabel
@@ -283,20 +283,26 @@ fun f(a)(...z) = if z is
 //│ @private
 //│ define f$tailrec as fun f$tailrec⁰(a, z) {
 //│   loop loopLabel:
-//│     let tmp, spreadArgs;
+//│     let tmp;
 //│     match z
 //│       Array(0) =>
 //│         return a
 //│       Array(1+) =>
-//│         let inlinedVal, tmp1, tmp2;
+//│         let inlinedVal, res, tmp1, tmp2;
 //│         do runtime⁰.Tuple⁰.get⁰(z, 0);
 //│         set tmp1 = z.length⁰;
 //│         set tmp2 = -¹(tmp1, 0);
-//│         set inlinedVal = z.slice⁰(1, tmp2);
+//│         set res = z.slice⁰(1, tmp2);
+//│         match res
+//│           Array⁰ =>
+//│             set inlinedVal = res;
+//│             end
+//│           else
+//│             set inlinedVal = [...res];
+//│             end
 //│         set tmp = +⁰(a, 1);
-//│         set spreadArgs = [...inlinedVal];
 //│         set a = tmp;
-//│         set z = spreadArgs;
+//│         set z = (inlinedVal as!! immutable Array⁰);
 //│         continue loopLabel
 //│       else
 //│         throw new globalThis⁰.Error⁰("match error")
@@ -485,7 +491,7 @@ fun f(n)(a)(...z) =
 //│ @private
 //│ define f$tailrec as fun f$tailrec³(n, a, z) {
 //│   loop loopLabel:
-//│     let scrut, res, tmp, tmp1, spreadArgs;
+//│     let scrut, res, tmp, tmp1;
 //│     set scrut = >⁰(n, 0);
 //│     match scrut
 //│       true =>
@@ -497,14 +503,20 @@ fun f(n)(a)(...z) =
 //│           Array(0) =>
 //│             return a
 //│           Array(1+) =>
-//│             let inlinedVal, tmp2, tmp3;
+//│             let inlinedVal, res1, tmp2, tmp3;
 //│             do runtime⁰.Tuple⁰.get⁰(z, 0);
 //│             set tmp2 = z.length⁰;
 //│             set tmp3 = -¹(tmp2, 0);
-//│             set inlinedVal = z.slice⁰(1, tmp3);
+//│             set res1 = z.slice⁰(1, tmp3);
+//│             match res1
+//│               Array⁰ =>
+//│                 set inlinedVal = res1;
+//│                 end
+//│               else
+//│                 set inlinedVal = [...res1];
+//│                 end
 //│             set tmp1 = +⁰(a, 1);
-//│             set spreadArgs = [...inlinedVal];
-//│             set res = f$tailrec³(n, tmp1, spreadArgs);
+//│             set res = f$tailrec³(n, tmp1, (inlinedVal as!! immutable Array⁰));
 //│             do Predef⁰.print⁰("hi!");
 //│             return res
 //│           else
