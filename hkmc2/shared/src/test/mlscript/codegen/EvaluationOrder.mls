@@ -160,9 +160,9 @@ fun spreadRest(...xs) = three(...xs)
 spreadRest(1, 2, 3)
 //│ = [1, 2, 3]
 
-// * Functions from earlier compilation units have their spread arguments put back into their calls,
-// * so they are materialized again when inlined (see `SpreadArgsFusion.unfuse`): otherwise, inlining both
-// * `copyRest` and `gather` could bind the rest parameter of `gather` to the mutable array `arr`.
+// * Spread arguments are only put back into their calls by code generation, so the IR of functions reused by
+// * later compilation units still has its spread arguments materialized: otherwise, inlining both `copyRest` and
+// * `gather` could bind the rest parameter of `gather` to the mutable array `arr`.
 
 fun gather(...xs) = xs
 
@@ -170,7 +170,12 @@ fun gather(...xs) = xs
 :noInline
 fun copyRest(ys) = gather(...ys)
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ define copyRest⁰ as fun copyRest¹(ys) { return gather⁰(...ys) }; end
+//│ define copyRest⁰ as fun copyRest¹(ys) {
+//│   let spreadArgs;
+//│   set spreadArgs = [...ys];
+//│   return gather⁰(...spreadArgs)
+//│ };
+//│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 :expect [1, 2]

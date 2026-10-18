@@ -59,7 +59,14 @@ private fun m(a, b)(...rest) = b
 let xs = [3, 4]
 m(1, 2)(...xs)
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ @private define m⁰ as fun m¹(b)(...rest) { return b }; set xs⁰ = [3, 4]; return m¹(2)(...xs⁰)
+//│ let spreadArgs;
+//│ @private
+//│ define m⁰ as fun m¹(b)(...rest) {
+//│   return b
+//│ };
+//│ set xs⁰ = [3, 4];
+//│ set spreadArgs = [...xs⁰];
+//│ return m¹(2)(...spreadArgs)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 2
 //│ xs = [3, 4]

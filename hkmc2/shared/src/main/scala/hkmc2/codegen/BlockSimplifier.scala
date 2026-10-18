@@ -1899,12 +1899,7 @@ class BlockSimplifier
           newFunctionBody.get(callee)
           .getOrElse:
             newFunctionBody(callee) = N
-            // * The IR of functions from earlier compilation units has its spread arguments fused (see
-            // * `SpreadArgsFusion.unfuse`), which is not tracked: such functions may come from earlier blocks
-            // * sharing the same `State`, and a non-local registration may be refined into a local one.
-            // * Unfusing the IR of local functions only materializes the spreads whose erased types were lost.
-            val body = SpreadArgsFusion.unfuse(info.defn.body)
-            val newBdy = enterFunctionBody(info.defn, applyBlock(body))
+            val newBdy = enterFunctionBody(info.defn, applyBlock(info.defn.body))
             newFunctionBody(callee) = S(newBdy)
             S(newBdy)
           .fold(super.applyResult(call)(k)): blk =>

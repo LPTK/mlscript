@@ -100,7 +100,4 @@ class CompilationPipeline(using Config, Raise, State, Ctx, SymbolPrinter):
     // * Final simplification pass
     runPass("BlockSimplifier 2")(simplifier.apply)
     
-    // * Must run last, as it puts possibly impure spread arguments back into calls.
-    runPass("SpreadArgsFusion")(SpreadArgsFusion.apply)
-    
     result

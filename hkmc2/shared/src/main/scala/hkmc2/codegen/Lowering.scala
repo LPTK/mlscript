@@ -696,8 +696,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
     * of an argument list with spreads are materialized into a fresh array `args` (`args = [a, ...xs, b]`), which is
     * then the only (spread) argument of the list (`f(...args)`): since no other code can observe `args`, spreading
     * it is pure. The materializations of the argument lists of a call immediately precede it, after the evaluation
-    * of all their operands, so that spreads are evaluated as part of the call. `SpreadArgsFusion` puts the
-    * materialized arguments back into the call before code generation, so this does not allocate any array.
+    * of all their operands, so that spreads are evaluated as part of the call. Code generation puts the
+    * materialized arguments back into the call (see `SpreadArgsFusion`), so this does not allocate any array.
     *
     * An argument list whose spreads all spread immutable arrays (see `SpreadArgsFusion.isPureArg`) is already pure,
     * and is kept as is. So after lowering, every spread argument spreads an array that is never mutated:

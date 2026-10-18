@@ -259,7 +259,8 @@ class TempSymbol(val trm: Opt[Term], override var erasedType: Opt[ErasedType], d
   def refreshed: TempSymbol = new TempSymbol(trm, erasedType, nme)
 
 /** A temporary holding an array of arguments materialized by lowering, whose only use is to be spread as an
-  * argument of a call or instantiation (see `codegen.Lowering.materializeSpreads` and `codegen.SpreadArgsFusion`). */
+  * argument of a call or instantiation (see `codegen.Lowering.materializeSpreads` and `codegen.SpreadArgsFusion`),
+  * except when optimizations use it as a value. */
 final class SpreadArgsSymbol(using State) extends TempSymbol(N, S(ErasedType.ImmutableArray), "spreadArgs"):
   override def refreshed: TempSymbol = new SpreadArgsSymbol
 

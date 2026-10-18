@@ -53,10 +53,8 @@ happens to freeze non-`mut` tuples, and rest parameters when sanity checks are e
 detail that the IR does not rely on.) Such arrays have the erased type `ErasedType.ImmutableArray`.
 Similarly, argument lists only spread arrays that are never mutated, so that spreading them is pure: lowering
 materializes the arguments of the other argument lists with spreads into fresh arrays right before their calls
-(see `Lowering.materializeSpreads`), and `SpreadArgsFusion`, which runs after all optimizations, puts them back into
-their calls. So optimizations may bind an array that is spread in a call directly to a rest parameter of the callee.
-The IR of definitions that is kept for later compilation units (see `DefinitionSymbol.irDefn`) is fused, so they
-must first undo this fusion (see `SpreadArgsFusion.unfuse`).
+(see `Lowering.materializeSpreads`), which code generation puts back into their calls (see `SpreadArgsFusion`).
+So optimizations may bind an array that is spread in a call directly to a rest parameter of the callee.
 
 */
 
