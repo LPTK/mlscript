@@ -50,7 +50,7 @@ a.A#get() + A(2).get()
 //│         (local.get $this))))
 //│   (func $entry (export "entry") (type $entry) (result (ref null any))
 //│     (local $tmp (ref null i31))
-//│     (local $tmp1 (ref null $A))
+//│     (local $tmp1 (ref $A))
 //│     (local $tmp2 (ref null i31))
 //│     (block (result (ref null any))
 //│       (global.set $a
@@ -60,16 +60,14 @@ a.A#get() + A(2).get()
 //│       (local.set $tmp
 //│         (call $A_get
 //│           (ref.cast (ref $A)
-//│             (ref.cast (ref null $A)
-//│               (global.get $a)))))
+//│             (global.get $a))))
 //│       (local.set $tmp1
 //│         (call $A_ctor
 //│           (ref.i31
 //│             (i32.const 2))))
 //│       (local.set $tmp2
 //│         (call $A_get
-//│           (ref.cast (ref $A)
-//│             (local.get $tmp1))))
+//│           (local.get $tmp1)))
 //│       (return
 //│         (call $plus_impl
 //│           (local.get $tmp)
@@ -181,7 +179,7 @@ let d = Counter(c.Counter#get())
 :todo
 d.Counter#inc().Counter#double().Counter#get()
 //│ ╔══[COMPILATION ERROR] Cannot find variable `d` (VarSymbol) in local or global scope.
-//│ ║  l.178: 	let d = Counter(c.Counter#get())
+//│ ║  l.176: 	let d = Counter(c.Counter#get())
 //│ ╙──       	    ^
 //│ /!!!\ Uncaught error: java.lang.Exception: Internal Error: Missing field `term:Counter/inc` in struct `member:Counter` with type `(type $Counter (sub $Object (struct (field $$typeinfo (mut (ref $TypeInfoBase))) (field $x (mut (ref null i31))))))`
 
@@ -202,7 +200,7 @@ class A(val x) with
   fun get() = x
 A(1).get
 //│ ╔══[COMPILATION ERROR] `member:get` is neither a field access nor a callable method
-//│ ║  l.203: 	A(1).get
+//│ ║  l.201: 	A(1).get
 //│ ╙──       	^^^^^^^^
 
 
@@ -252,7 +250,7 @@ Prim(0).take(n32)
 //│       (local.get $m)))
 //│   (func $entry (export "entry") (type $entry) (result i32)
 //│     (local $tmp i32)
-//│     (local $tmp1 (ref null $Prim))
+//│     (local $tmp1 (ref $Prim))
 //│     (block (result i32)
 //│       (local.set $tmp
 //│         (i32.const 7))
@@ -264,8 +262,7 @@ Prim(0).take(n32)
 //│             (i32.const 0))))
 //│       (return
 //│         (call $Prim_take
-//│           (ref.cast (ref $Prim)
-//│             (local.get $tmp1))
+//│           (local.get $tmp1)
 //│           (global.get $n32)))))
 //│   (elem $Prim_init declare func $Prim_init)
 //│   (elem $Prim_ctor declare func $Prim_ctor)

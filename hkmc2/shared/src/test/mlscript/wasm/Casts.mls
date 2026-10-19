@@ -21,7 +21,7 @@ useBox(id(new Box(42)))
 //│   (type $Box_init (func (param $this (ref $Box)) (param $v (ref null i31)) (result (ref $Box))))
 //│   (type $Box_ctor (func (param $v (ref null i31)) (result (ref $Box))))
 //│   (type $id (func (param $a (ref null any)) (result (ref null any))))
-//│   (type $useBox (func (param $b (ref null $Box)) (result (ref null i31))))
+//│   (type $useBox (func (param $b (ref $Box)) (result (ref null i31))))
 //│   (type $entry (func (result (ref null i31))))
 //│   (global $Box_typeinfo (export "Box_typeinfo") (ref $Box_typeinfo) (struct.new $Box_typeinfo
 //│     (i32.const 1)
@@ -50,13 +50,12 @@ useBox(id(new Box(42)))
 //│   (func $id (export "id") (type $id) (param $a (ref null any)) (result (ref null any))
 //│     (return
 //│       (local.get $a)))
-//│   (func $useBox (export "useBox") (type $useBox) (param $b (ref null $Box)) (result (ref null i31))
+//│   (func $useBox (export "useBox") (type $useBox) (param $b (ref $Box)) (result (ref null i31))
 //│     (return
 //│       (struct.get $Box $v
-//│         (ref.cast (ref $Box)
-//│           (local.get $b)))))
+//│         (local.get $b))))
 //│   (func $entry (export "entry") (type $entry) (result (ref null i31))
-//│     (local $tmp (ref null $Box))
+//│     (local $tmp (ref $Box))
 //│     (local $tmp1 (ref null any))
 //│     (block (result (ref null i31))
 //│       (local.set $tmp
@@ -68,7 +67,7 @@ useBox(id(new Box(42)))
 //│           (local.get $tmp)))
 //│       (return
 //│         (call $useBox
-//│           (ref.cast (ref null $Box)
+//│           (ref.cast (ref $Box)
 //│             (local.get $tmp1))))))
 //│   (elem $Box_init declare func $Box_init)
 //│   (elem $Box_ctor declare func $Box_ctor)
@@ -150,10 +149,10 @@ wasm.ref.i31(wasm.i32.const(7))
 :noInline
 wasm.ref.i31(id(wasm.i32.const(7)))
 //│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Int32' at an unrelated type 'Unknown'
-//│ ║  l.151: 	wasm.ref.i31(id(wasm.i32.const(7)))
+//│ ║  l.150: 	wasm.ref.i31(id(wasm.i32.const(7)))
 //│ ╙──       	                ^^^^^^^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Unknown' at an unrelated type 'Int32'
-//│ ║  l.151: 	wasm.ref.i31(id(wasm.i32.const(7)))
+//│ ║  l.150: 	wasm.ref.i31(id(wasm.i32.const(7)))
 //│ ╙──       	             ^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[COMPILATION ERROR] Cannot cast a Wasm value of type `i32` to `(ref null any)` in a different type hierarchy
 //│ ═══[COMPILATION ERROR] Operand #1 of wasm intrinsic 'ref.i31' must be of type 'Int32'
@@ -178,7 +177,7 @@ unpack(toObj())
 :e
 fun test: Function = id
 //│ ╔══[COMPILATION ERROR] Returning function instances is not supported
-//│ ║  l.179: 	fun test: Function = id
+//│ ║  l.178: 	fun test: Function = id
 //│ ╙──       	                     ^^
 
 :fixme
@@ -192,7 +191,7 @@ class C
 :e
 fun test: Function = new C
 //│ ╔══[COMPILATION ERROR] Cannot use a value of type 'C' at an unrelated type 'Function'
-//│ ║  l.193: 	fun test: Function = new C
+//│ ║  l.192: 	fun test: Function = new C
 //│ ╙──       	                     ^^^^^
 //│ Wasm result:
 //│ = {}
@@ -200,7 +199,7 @@ fun test: Function = new C
 :e
 fun test: Function = (new C) as Object
 //│ ╔══[COMPILATION ERROR] Cannot use a value of type 'C' at an unrelated type 'Function'
-//│ ║  l.201: 	fun test: Function = (new C) as Object
+//│ ║  l.200: 	fun test: Function = (new C) as Object
 //│ ╙──       	                      ^^^^^
 //│ Wasm result:
 //│ = {}
@@ -224,7 +223,7 @@ fun test: Function = castToA(123)
 :e
 castToA(wasm.i32.const(123))
 //│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Int32' at an unrelated type 'Unknown'
-//│ ║  l.225: 	castToA(wasm.i32.const(123))
+//│ ║  l.224: 	castToA(wasm.i32.const(123))
 //│ ╙──       	        ^^^^^^^^^^^^^^^^^^^
 //│ Wasm result:
 //│ = 123

@@ -251,9 +251,11 @@ private fun makeLater() = Later(const(1))
 //│ Wasm result:
 //│ = {}
 
-// FIXME: Using a private class in a later Wasm worksheet block fails the cast to its struct at run time,
-// whether its fields are mutable or not (as in `ReadLater` below).
-:fixme
+// FIXME: The optimizer treats a private function that its own worksheet block does not call as unused, although
+// later blocks can call it: here, `makeLater` and `makeReadLater` return `undefined` instead of a new instance.
+// Reading that back is undefined behavior: on Wasm, it yields the shared placeholder instance of the class. So
+// `assignLater` writes to and reads from `Later`'s placeholder, and `makeReadLater().value` below reads the zero
+// in `ReadLater`'s placeholder.
 :noInline
 :expect 46
 private fun assignLater() =
@@ -262,17 +264,18 @@ private fun assignLater() =
   later.value
 assignLater()
 //│ Wasm result:
-//│ ═══[RUNTIME ERROR] RuntimeError: illegal cast
+//│ = 46
 
 :ge
 private fun assignLaterString() =
   let later = makeLater()
   set later.value = "hello"
 //│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Str' at an unrelated type 'Int32'
-//│ ║  l.270: 	  set later.value = "hello"
+//│ ║  l.272: 	  set later.value = "hello"
 //│ ╙──       	      ^^^^^^^^^^^
-//│ Wasm result:
-//│ = {}
+//│ ╔══[COMPILATION ERROR] Cannot cast a Wasm value of type `(ref null any)` to `i32` in a different type hierarchy
+//│ ║  l.272: 	  set later.value = "hello"
+//│ ╙──       	                    ^^^^^^^
 
 :noInline
 private class ReadLater(val value)
@@ -280,12 +283,15 @@ private fun makeReadLater() = ReadLater(const(1))
 //│ Wasm result:
 //│ = {}
 
+// FIXME: See `assignLater` above. Since `:expect` is not checked against Wasm results, the value is checked at
+// run time.
 :fixme
 :noInline
 :expect 1
-makeReadLater().value
+let value = wasm.ref.i31(makeReadLater().value)
+if value is 1 then value else throw value
 //│ Wasm result:
-//│ ═══[RUNTIME ERROR] RuntimeError: illegal cast
+//│ ═══[RUNTIME ERROR] 0
 
 
 // Through a record type declaring a mutable field, the values it describes can be assigned values of that field's
@@ -296,7 +302,7 @@ private fun describe(described: {mut value: Any}) = ()
 private fun mutableView() = describe(Described(const(1)))
 mutableView()
 //│ ╔══[COMPILATION ERROR] Types 'Int32' and 'Unknown' have no common representation
-//│ ║  l.294: 	private class Described(mut val value)
+//│ ║  l.300: 	private class Described(mut val value)
 //│ ╙──       	                                ^^^^^
 //│ ═══[COMPILATION ERROR] Cannot cast a Wasm value of type `i32` to `(ref null any)` in a different type hierarchy
 

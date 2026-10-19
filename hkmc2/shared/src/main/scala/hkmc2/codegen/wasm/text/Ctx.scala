@@ -130,6 +130,10 @@ final case class SessionGlobal(
   *   The RTTI struct type information that must be recreated in importing modules.
   * @param rttiGlobalExportName
   *   The export name of the per-class RTTI global to import from prior REPL modules.
+  * @param hasPlaceholder
+  *   Whether the class has a placeholder instance, which makes its slots non-nullable (see
+  *   [[Ctx.hasPlaceholder]]). Importing modules must agree with the defining module on this, since it determines
+  *   the representation of the class's slots, but they cannot recompute it from the class layout alone.
   * @param aliasSyms
   *   Additional symbols that should resolve to this class binding.
   */
@@ -140,6 +144,7 @@ final case class SessionClass(
     objectTag: Opt[Int],
     rttiTypeInfo: TypeInfo,
     rttiGlobalExportName: Str,
+    hasPlaceholder: Bool,
     aliasSyms: Seq[SlotSymbol] = Nil,
 ) extends SessionBinding:
   def bindingKey: Str = s"class:${sym.uid}"
@@ -859,6 +864,13 @@ class Ctx(using Elaborator.Ctx, State) extends ToWat:
   private val singletonByIsym = MutMap.empty[ModuleOrObjectSymbol, Ctx.SingletonInfo]
   private val singletonInitActions = ArrayBuf.empty[Expr]
   private val virtualTables = MutMap.empty[BlockMemberSymbol, Ctx.VirtualTable]
+
+  /** The classes that have no placeholder instance, so that their slots must be nullable to admit `undefined`.
+    *
+    * Filled before any slot type mentioning these classes is computed: by [[WatBuilder]] for the classes defined in
+    * this module (before predeclaring them) and from [[SessionClass.hasPlaceholder]] for imported classes.
+    */
+  private val classesWithoutPlaceholder = LinkedHashSet.empty[BlockMemberSymbol]
   private def imports: Seq[Import[?]] =
     val importedFuncs = funcs.collect:
       case (_, imp: Import[ExternType.Func]) => imp
@@ -923,6 +935,21 @@ class Ctx(using Elaborator.Ctx, State) extends ToWat:
   /** Returns the derived virtual-dispatch layout for `sym`. */
   def getVirtualTable(sym: BlockMemberSymbol): Opt[Ctx.VirtualTable] =
     virtualTables.get(sym)
+
+  /** Records that the class `sym` has no placeholder instance. See [[hasPlaceholder]]. */
+  def markWithoutPlaceholder(sym: BlockMemberSymbol): Unit =
+    classesWithoutPlaceholder += sym
+
+  /** Whether the class `sym` has a placeholder instance, used to materialize `undefined` in its slots.
+    *
+    * `undefined` is an unspecified value whose read-back is undefined behavior, so a slot of class type can hold any
+    * instance of the class in its place, and the slot can then be a non-nullable reference. A placeholder is built
+    * from placeholders for the class's fields, so a class whose non-nullable class-typed fields lead back to it would
+    * need an infinite placeholder: such a class has none, and its slots are nullable references instead, holding
+    * `undefined` as a null reference.
+    */
+  def hasPlaceholder(sym: BlockMemberSymbol): Bool =
+    !classesWithoutPlaceholder.contains(sym)
 
   /** Adds a function import into this context.
     *

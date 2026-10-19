@@ -1482,7 +1482,8 @@ operators with dynamically typed runtime functions, their results are treated as
 `undefined` denotes an unspecified value of any representation. It can be stored in or passed to
 any slot, but reading it back is undefined behavior: the JavaScript backend produces JavaScript
 `undefined` (or `()` for a function returning it), while the Wasm backend may produce any value
-of the slot's representation, such as `0` for an `Int32` or a null reference. Compiler-generated
+of the slot's representation, such as `0` for an `Int32`, an instance of a class for a slot of
+that class, which may be shared and so reflect earlier writes, or a null reference. Compiler-generated
 placeholders, such as the arguments supplied for eliminated dead parameters, rely on this.
 
 ### Generic Type Parameters

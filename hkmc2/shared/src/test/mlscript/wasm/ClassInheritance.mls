@@ -113,16 +113,15 @@ c.Parent#x + (c is Parent)
 //│           (ref.null any))
 //│         (if
 //│           (ref.test (ref $Object)
-//│             (ref.cast (ref null $Child)
+//│             (ref.cast (ref $Child)
 //│               (global.get $c)))
 //│           (then
 //│             (if
 //│               (block (result i32)
 //│                 (local.set $currentTypeInfo
-//│                   (struct.get $Object $$typeinfo
-//│                     (ref.cast (ref $Object)
-//│                       (ref.cast (ref null $Child)
-//│                         (global.get $c)))))
+//│                   (struct.get $Child $$typeinfo
+//│                     (ref.cast (ref $Child)
+//│                       (global.get $c))))
 //│                 (local.set $targetTypeInfo
 //│                   (global.get $Parent_typeinfo))
 //│                 (local.set $typeInfoMatch
@@ -159,18 +158,16 @@ c.Parent#x + (c is Parent)
 //│                 (block $arm
 //│                   (return
 //│                     (call $plus_impl
-//│                       (struct.get $Parent $x
-//│                         (ref.cast (ref $Parent)
-//│                           (ref.cast (ref null $Child)
-//│                             (global.get $c))))
+//│                       (struct.get $Child $x
+//│                         (ref.cast (ref $Child)
+//│                           (global.get $c)))
 //│                       (ref.i31
 //│                         (i32.const 1)))))))))
 //│         (return
 //│           (call $plus_impl
-//│             (struct.get $Parent $x
-//│               (ref.cast (ref $Parent)
-//│                 (ref.cast (ref null $Child)
-//│                   (global.get $c))))
+//│             (struct.get $Child $x
+//│               (ref.cast (ref $Child)
+//│                 (global.get $c)))
 //│             (ref.i31
 //│               (i32.const 0)))))
 //│       (unreachable)))
@@ -270,10 +267,10 @@ class B
 class A extends B
 class B extends A
 //│ ╔══[COMPILATION ERROR] Inheritance cycle involving 'A'
-//│ ║  l.270: 	class A extends B
+//│ ║  l.267: 	class A extends B
 //│ ╙──       	^^^^^^^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Inheritance cycles are not supported.
-//│ ║  l.270: 	class A extends B
+//│ ║  l.267: 	class A extends B
 //│ ╙──       	^^^^^^^^^^^^^^^^^
 
 

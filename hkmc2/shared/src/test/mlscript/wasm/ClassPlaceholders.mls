@@ -1,0 +1,859 @@
+:.
+open wasm { i32 }
+open i32 { const }
+//│ Wasm result:
+//│ = {}
+
+
+// `undefined` is an unspecified value whose read-back is undefined behavior, so the Wasm backend materializes it in
+// a slot of class type as a placeholder instance of the class, held in an immutable global. This lets parameters,
+// results, fields, and locals of class type be non-nullable references, which field reads need not cast.
+:noInline
+:wat
+:expect 42
+class Bar(val x: Int32)
+class Foo(val bar: Bar)
+private fun absent(): Bar = undefined
+private fun wrap(bar: Bar): Foo = Foo(bar)
+private fun read(foo: Foo): Int32 = foo.bar.x
+private fun run(flag: Bool): Int32 =
+  let missing = absent()
+  if flag do set missing = undefined
+  let unspecified = wrap(missing)
+  let other = wrap(undefined)
+  read(wrap(Bar(const(42))))
+run(true)
+//│ Wat:
+//│ (module
+//│   (type $TypeInfoBase (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
+//│   (type $Object (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase))))))
+//│   (type $Bar (sub $Object (struct (field $$typeinfo (mut (ref $TypeInfoBase))) (field $x (mut i32)))))
+//│   (type $Foo (sub $Object (struct (field $$typeinfo (mut (ref $TypeInfoBase))) (field $bar (mut (ref $Bar))))))
+//│   (type $Bar_typeinfo (sub $TypeInfoBase (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
+//│   (type $Bar_init (func (param $this (ref $Bar)) (param $x i32) (result (ref $Bar))))
+//│   (type $Bar_ctor (func (param $x i32) (result (ref $Bar))))
+//│   (type $Foo_typeinfo (sub $TypeInfoBase (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
+//│   (type $Foo_init (func (param $this (ref $Foo)) (param $bar (ref $Bar)) (result (ref $Foo))))
+//│   (type $Foo_ctor (func (param $bar (ref $Bar)) (result (ref $Foo))))
+//│   (type $absent (func (result (ref $Bar))))
+//│   (type $wrap (func (param $bar (ref $Bar)) (result (ref $Foo))))
+//│   (type $read (func (param $foo (ref $Foo)) (result i32)))
+//│   (type $run (func (param $flag (ref null i31)) (result i32)))
+//│   (type $entry (func (result i32)))
+//│   (global $Bar_typeinfo (export "Bar_typeinfo") (ref $Bar_typeinfo) (struct.new $Bar_typeinfo
+//│     (i32.const 1)
+//│     (ref.null $TypeInfoBase)))
+//│   (global $Foo_typeinfo (export "Foo_typeinfo") (ref $Foo_typeinfo) (struct.new $Foo_typeinfo
+//│     (i32.const 2)
+//│     (ref.null $TypeInfoBase)))
+//│   (global $Bar_placeholder (ref $Bar) (struct.new $Bar
+//│     (global.get $Bar_typeinfo)
+//│     (i32.const 0)))
+//│   (func $Bar_init (type $Bar_init) (param $this (ref $Bar)) (param $x i32) (result (ref $Bar))
+//│     (block (result (ref $Bar))
+//│       (struct.set $Bar $x
+//│         (local.get $this)
+//│         (local.get $x))
+//│       (return
+//│         (ref.cast (ref $Bar)
+//│           (local.get $this)))))
+//│   (func $Bar_ctor (export "Bar") (type $Bar_ctor) (param $x i32) (result (ref $Bar))
+//│     (local $this (ref $Bar))
+//│     (block (result (ref $Bar))
+//│       (local.set $this
+//│         (struct.new $Bar
+//│           (global.get $Bar_typeinfo)
+//│           (i32.const 0)))
+//│       (drop
+//│         (call $Bar_init
+//│           (local.get $this)
+//│           (local.get $x)))
+//│       (return
+//│         (local.get $this))))
+//│   (func $Foo_init (type $Foo_init) (param $this (ref $Foo)) (param $bar (ref $Bar)) (result (ref $Foo))
+//│     (block (result (ref $Foo))
+//│       (struct.set $Foo $bar
+//│         (local.get $this)
+//│         (local.get $bar))
+//│       (return
+//│         (ref.cast (ref $Foo)
+//│           (local.get $this)))))
+//│   (func $Foo_ctor (export "Foo") (type $Foo_ctor) (param $bar (ref $Bar)) (result (ref $Foo))
+//│     (local $this (ref $Foo))
+//│     (block (result (ref $Foo))
+//│       (local.set $this
+//│         (struct.new $Foo
+//│           (global.get $Foo_typeinfo)
+//│           (global.get $Bar_placeholder)))
+//│       (drop
+//│         (call $Foo_init
+//│           (local.get $this)
+//│           (local.get $bar)))
+//│       (return
+//│         (local.get $this))))
+//│   (func $absent (export "absent") (type $absent) (result (ref $Bar))
+//│     (return
+//│       (global.get $Bar_placeholder)))
+//│   (func $wrap (export "wrap") (type $wrap) (param $bar (ref $Bar)) (result (ref $Foo))
+//│     (return
+//│       (call $Foo_ctor
+//│         (local.get $bar))))
+//│   (func $read (export "read") (type $read) (param $foo (ref $Foo)) (result i32)
+//│     (return
+//│       (struct.get $Bar $x
+//│         (struct.get $Foo $bar
+//│           (local.get $foo)))))
+//│   (func $run (export "run") (type $run) (param $flag (ref null i31)) (result i32)
+//│     (local $missing (ref $Bar))
+//│     (local $tmp i32)
+//│     (local $tmp1 (ref $Bar))
+//│     (local $tmp2 (ref $Foo))
+//│     (block (result i32)
+//│       (local.set $missing
+//│         (call $absent))
+//│       (block $match
+//│         (if
+//│           (i32.eq
+//│             (i31.get_s
+//│               (ref.cast (ref null i31)
+//│                 (local.get $flag)))
+//│             (i32.const 1))
+//│           (then
+//│             (block $arm
+//│               (local.set $missing
+//│                 (global.get $Bar_placeholder))
+//│               (br $match)))))
+//│       (drop
+//│         (call $wrap
+//│           (local.get $missing)))
+//│       (drop
+//│         (call $wrap
+//│           (global.get $Bar_placeholder)))
+//│       (local.set $tmp
+//│         (i32.const 42))
+//│       (local.set $tmp1
+//│         (call $Bar_ctor
+//│           (local.get $tmp)))
+//│       (local.set $tmp2
+//│         (call $wrap
+//│           (local.get $tmp1)))
+//│       (return
+//│         (call $read
+//│           (local.get $tmp2)))))
+//│   (func $entry (export "entry") (type $entry) (result i32)
+//│     (return
+//│       (call $run
+//│         (ref.i31
+//│           (i32.const 1)))))
+//│   (elem $Bar_init declare func $Bar_init)
+//│   (elem $Bar_ctor declare func $Bar_ctor)
+//│   (elem $Foo_init declare func $Foo_init)
+//│   (elem $Foo_ctor declare func $Foo_ctor)
+//│   (elem $absent declare func $absent)
+//│   (elem $wrap declare func $wrap)
+//│   (elem $read declare func $read)
+//│   (elem $run declare func $run)
+//│   (elem $entry declare func $entry))
+//│ Wasm result:
+//│ = 42
+
+
+// Assigning `undefined` to a field of class type also stores the placeholder.
+:noInline
+:expect 42
+class Cell(mut val content: Bar)
+private fun reset(cell: Cell) = set cell.content = undefined
+private fun refill(): Int32 =
+  let cell = Cell(Bar(const(1)))
+  reset(cell)
+  set cell.content = Bar(const(42))
+  cell.content.x
+refill()
+//│ Wasm result:
+//│ = 42
+
+
+// Wasm only considers a non-nullable local set after an assignment in the same block or an enclosing one, not
+// after a conditional that assigns it in every branch. Such a local starts out holding the placeholder.
+:noInline
+:wat
+:expect 42
+private fun pick(flag: Bool, a: Bar, b: Bar): Int32 =
+  let chosen = if flag then a else b
+  let x = chosen.x
+  i32.add(x, chosen.x)
+pick(true, Bar(const(21)), Bar(const(0)))
+//│ Wat:
+//│ (module
+//│   (type $TypeInfoBase (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
+//│   (type $Object (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase))))))
+//│   (type $Bar (sub $Object (struct (field $$typeinfo (mut (ref $TypeInfoBase))) (field $x (mut i32)))))
+//│   (type $Bar_typeinfo (sub $TypeInfoBase (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
+//│   (type $Bar_Bar (func (param $x i32) (result (ref $Bar))))
+//│   (type $pick (func (param $flag (ref null i31)) (param $a (ref $Bar)) (param $b (ref $Bar)) (result i32)))
+//│   (type $entry (func (result i32)))
+//│   (import "repl" "Bar" (func $Bar_Bar (type $Bar_Bar)))
+//│   (import "repl" "Bar_typeinfo" (global $Bar_typeinfo (ref $Bar_typeinfo)))
+//│   (global $Bar_placeholder (ref $Bar) (struct.new $Bar
+//│     (global.get $Bar_typeinfo)
+//│     (i32.const 0)))
+//│   (func $pick (export "pick") (type $pick) (param $flag (ref null i31)) (param $a (ref $Bar)) (param $b (ref $Bar)) (result i32)
+//│     (local $x i32)
+//│     (local $tmp (ref $Bar))
+//│     (block (result i32)
+//│       (local.set $tmp
+//│         (global.get $Bar_placeholder))
+//│       (block $match
+//│         (if
+//│           (i32.eq
+//│             (i31.get_s
+//│               (ref.cast (ref null i31)
+//│                 (local.get $flag)))
+//│             (i32.const 1))
+//│           (then
+//│             (block $arm
+//│               (local.set $tmp
+//│                 (local.get $a))
+//│               (br $match))))
+//│         (local.set $tmp
+//│           (local.get $b)))
+//│       (local.set $x
+//│         (struct.get $Bar $x
+//│           (local.get $tmp)))
+//│       (return
+//│         (i32.add
+//│           (local.get $x)
+//│           (struct.get $Bar $x
+//│             (local.get $tmp))))))
+//│   (func $entry (export "entry") (type $entry) (result i32)
+//│     (local $tmp i32)
+//│     (local $tmp1 (ref $Bar))
+//│     (local $tmp2 i32)
+//│     (local $tmp3 (ref $Bar))
+//│     (block (result i32)
+//│       (local.set $tmp
+//│         (i32.const 21))
+//│       (local.set $tmp1
+//│         (call $Bar_Bar
+//│           (local.get $tmp)))
+//│       (local.set $tmp2
+//│         (i32.const 0))
+//│       (local.set $tmp3
+//│         (call $Bar_Bar
+//│           (local.get $tmp2)))
+//│       (return
+//│         (call $pick
+//│           (ref.i31
+//│             (i32.const 1))
+//│           (local.get $tmp1)
+//│           (local.get $tmp3)))))
+//│   (elem $pick declare func $pick)
+//│   (elem $entry declare func $entry))
+//│ Wasm result:
+//│ = 42
+
+
+// The placeholder of an abstract class is an instance of the abstract class itself, so it only needs placeholders
+// for the abstract class's own fields: `Cons` has a placeholder, although its field refers back to its parent.
+:noInline
+:wat
+:expect 1
+abstract class List
+class Cons(val head: Int32, val tail: List) extends List
+class Nil() extends List
+private fun absentCons(): Cons = undefined
+private fun headOf(cons: Cons): Int32 = cons.head
+let unspecified = absentCons()
+headOf(Cons(const(1), Nil()))
+//│ Wat:
+//│ (module
+//│   (type $TypeInfoBase (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
+//│   (type $Object (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase))))))
+//│   (type $List (sub $Object (struct (field $$typeinfo (mut (ref $TypeInfoBase))))))
+//│   (type $Cons (sub $List (struct (field $$typeinfo (mut (ref $TypeInfoBase))) (field $head (mut i32)) (field $tail (mut (ref $List))))))
+//│   (type $Nil (sub $List (struct (field $$typeinfo (mut (ref $TypeInfoBase))))))
+//│   (type $List_typeinfo (sub $TypeInfoBase (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
+//│   (type $List_init (func (param $this (ref $List)) (result (ref $List))))
+//│   (type $List_ctor (func (result (ref $List))))
+//│   (type $Cons_typeinfo (sub $List_typeinfo (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
+//│   (type $Cons_init (func (param $this (ref $Cons)) (param $head i32) (param $tail (ref $List)) (result (ref $Cons))))
+//│   (type $Cons_ctor (func (param $head i32) (param $tail (ref $List)) (result (ref $Cons))))
+//│   (type $Nil_typeinfo (sub $List_typeinfo (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
+//│   (type $Nil_init (func (param $this (ref $Nil)) (result (ref $Nil))))
+//│   (type $Nil_ctor (func (result (ref $Nil))))
+//│   (type $absentCons (func (result (ref $Cons))))
+//│   (type $headOf (func (param $cons (ref $Cons)) (result i32)))
+//│   (type $entry (func (result i32)))
+//│   (global $unspecified (export "unspecified") (mut (ref null any)) (ref.null any))
+//│   (global $List_typeinfo (export "List_typeinfo") (ref $List_typeinfo) (struct.new $List_typeinfo
+//│     (i32.const 1)
+//│     (ref.null $TypeInfoBase)))
+//│   (global $Cons_typeinfo (export "Cons_typeinfo") (ref $Cons_typeinfo) (struct.new $Cons_typeinfo
+//│     (i32.const 2)
+//│     (global.get $List_typeinfo)))
+//│   (global $Nil_typeinfo (export "Nil_typeinfo") (ref $Nil_typeinfo) (struct.new $Nil_typeinfo
+//│     (i32.const 3)
+//│     (global.get $List_typeinfo)))
+//│   (global $List_placeholder (ref $List) (struct.new $List
+//│     (global.get $List_typeinfo)))
+//│   (global $Cons_placeholder (ref $Cons) (struct.new $Cons
+//│     (global.get $Cons_typeinfo)
+//│     (i32.const 0)
+//│     (global.get $List_placeholder)))
+//│   (func $List_init (type $List_init) (param $this (ref $List)) (result (ref $List))
+//│     (return
+//│       (ref.cast (ref $List)
+//│         (local.get $this))))
+//│   (func $List_ctor (export "List") (type $List_ctor) (result (ref $List))
+//│     (local $this (ref $List))
+//│     (block (result (ref $List))
+//│       (local.set $this
+//│         (struct.new $List
+//│           (global.get $List_typeinfo)))
+//│       (drop
+//│         (call $List_init
+//│           (local.get $this)))
+//│       (return
+//│         (local.get $this))))
+//│   (func $Cons_init (type $Cons_init) (param $this (ref $Cons)) (param $head i32) (param $tail (ref $List)) (result (ref $Cons))
+//│     (block (result (ref $Cons))
+//│       (drop
+//│         (call $List_init
+//│           (local.get $this)))
+//│       (struct.set $Cons $head
+//│         (local.get $this)
+//│         (local.get $head))
+//│       (struct.set $Cons $tail
+//│         (local.get $this)
+//│         (local.get $tail))
+//│       (return
+//│         (ref.cast (ref $Cons)
+//│           (local.get $this)))))
+//│   (func $Cons_ctor (export "Cons") (type $Cons_ctor) (param $head i32) (param $tail (ref $List)) (result (ref $Cons))
+//│     (local $this (ref $Cons))
+//│     (block (result (ref $Cons))
+//│       (local.set $this
+//│         (struct.new $Cons
+//│           (global.get $Cons_typeinfo)
+//│           (i32.const 0)
+//│           (global.get $List_placeholder)))
+//│       (drop
+//│         (call $Cons_init
+//│           (local.get $this)
+//│           (local.get $head)
+//│           (local.get $tail)))
+//│       (return
+//│         (local.get $this))))
+//│   (func $Nil_init (type $Nil_init) (param $this (ref $Nil)) (result (ref $Nil))
+//│     (block (result (ref $Nil))
+//│       (drop
+//│         (call $List_init
+//│           (local.get $this)))
+//│       (return
+//│         (ref.cast (ref $Nil)
+//│           (local.get $this)))))
+//│   (func $Nil_ctor (export "Nil") (type $Nil_ctor) (result (ref $Nil))
+//│     (local $this (ref $Nil))
+//│     (block (result (ref $Nil))
+//│       (local.set $this
+//│         (struct.new $Nil
+//│           (global.get $Nil_typeinfo)))
+//│       (drop
+//│         (call $Nil_init
+//│           (local.get $this)))
+//│       (return
+//│         (local.get $this))))
+//│   (func $absentCons (export "absentCons") (type $absentCons) (result (ref $Cons))
+//│     (return
+//│       (global.get $Cons_placeholder)))
+//│   (func $headOf (export "headOf") (type $headOf) (param $cons (ref $Cons)) (result i32)
+//│     (return
+//│       (struct.get $Cons $head
+//│         (local.get $cons))))
+//│   (func $entry (export "entry") (type $entry) (result i32)
+//│     (local $tmp i32)
+//│     (local $tmp1 (ref $Nil))
+//│     (local $tmp2 (ref $Cons))
+//│     (block (result i32)
+//│       (global.set $unspecified
+//│         (call $absentCons))
+//│       (local.set $tmp
+//│         (i32.const 1))
+//│       (local.set $tmp1
+//│         (call $Nil_ctor))
+//│       (local.set $tmp2
+//│         (call $Cons_ctor
+//│           (local.get $tmp)
+//│           (local.get $tmp1)))
+//│       (return
+//│         (call $headOf
+//│           (local.get $tmp2)))))
+//│   (elem $List_init declare func $List_init)
+//│   (elem $List_ctor declare func $List_ctor)
+//│   (elem $Cons_init declare func $Cons_init)
+//│   (elem $Cons_ctor declare func $Cons_ctor)
+//│   (elem $Nil_init declare func $Nil_init)
+//│   (elem $Nil_ctor declare func $Nil_ctor)
+//│   (elem $absentCons declare func $absentCons)
+//│   (elem $headOf declare func $headOf)
+//│   (elem $entry declare func $entry))
+//│ Wasm result:
+//│ = 1
+
+
+// A class whose fields of class type lead back to it has no finite placeholder: its slots stay nullable and hold
+// `undefined` as a null reference. A class with a field of such a class only needs a null reference for that field.
+:noInline
+:wat
+:expect 1
+class Node(val value: Int32, val next: Node)
+class Holder(val node: Node)
+private fun valueOf(node: Node): Int32 = node.value
+private fun absentHolder(): Holder = undefined
+let unspecified = absentHolder()
+valueOf(Node(const(1), undefined))
+//│ Wat:
+//│ (module
+//│   (type $TypeInfoBase (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
+//│   (type $Object (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase))))))
+//│   (type $Node (sub $Object (struct (field $$typeinfo (mut (ref $TypeInfoBase))) (field $value (mut i32)) (field $next (mut (ref null $Node))))))
+//│   (type $Holder (sub $Object (struct (field $$typeinfo (mut (ref $TypeInfoBase))) (field $node (mut (ref null $Node))))))
+//│   (type $Node_typeinfo (sub $TypeInfoBase (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
+//│   (type $Node_init (func (param $this (ref $Node)) (param $value i32) (param $next (ref null $Node)) (result (ref $Node))))
+//│   (type $Node_ctor (func (param $value i32) (param $next (ref null $Node)) (result (ref $Node))))
+//│   (type $Holder_typeinfo (sub $TypeInfoBase (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
+//│   (type $Holder_init (func (param $this (ref $Holder)) (param $node (ref null $Node)) (result (ref $Holder))))
+//│   (type $Holder_ctor (func (param $node (ref null $Node)) (result (ref $Holder))))
+//│   (type $valueOf (func (param $node (ref null $Node)) (result i32)))
+//│   (type $absentHolder (func (result (ref $Holder))))
+//│   (type $entry (func (result i32)))
+//│   (global $unspecified (export "unspecified") (mut (ref null any)) (ref.null any))
+//│   (global $Node_typeinfo (export "Node_typeinfo") (ref $Node_typeinfo) (struct.new $Node_typeinfo
+//│     (i32.const 1)
+//│     (ref.null $TypeInfoBase)))
+//│   (global $Holder_typeinfo (export "Holder_typeinfo") (ref $Holder_typeinfo) (struct.new $Holder_typeinfo
+//│     (i32.const 2)
+//│     (ref.null $TypeInfoBase)))
+//│   (global $Holder_placeholder (ref $Holder) (struct.new $Holder
+//│     (global.get $Holder_typeinfo)
+//│     (ref.null $Node)))
+//│   (func $Node_init (type $Node_init) (param $this (ref $Node)) (param $value i32) (param $next (ref null $Node)) (result (ref $Node))
+//│     (block (result (ref $Node))
+//│       (struct.set $Node $value
+//│         (local.get $this)
+//│         (local.get $value))
+//│       (struct.set $Node $next
+//│         (local.get $this)
+//│         (local.get $next))
+//│       (return
+//│         (ref.cast (ref $Node)
+//│           (local.get $this)))))
+//│   (func $Node_ctor (export "Node") (type $Node_ctor) (param $value i32) (param $next (ref null $Node)) (result (ref $Node))
+//│     (local $this (ref $Node))
+//│     (block (result (ref $Node))
+//│       (local.set $this
+//│         (struct.new $Node
+//│           (global.get $Node_typeinfo)
+//│           (i32.const 0)
+//│           (ref.null $Node)))
+//│       (drop
+//│         (call $Node_init
+//│           (local.get $this)
+//│           (local.get $value)
+//│           (local.get $next)))
+//│       (return
+//│         (local.get $this))))
+//│   (func $Holder_init (type $Holder_init) (param $this (ref $Holder)) (param $node (ref null $Node)) (result (ref $Holder))
+//│     (block (result (ref $Holder))
+//│       (struct.set $Holder $node
+//│         (local.get $this)
+//│         (local.get $node))
+//│       (return
+//│         (ref.cast (ref $Holder)
+//│           (local.get $this)))))
+//│   (func $Holder_ctor (export "Holder") (type $Holder_ctor) (param $node (ref null $Node)) (result (ref $Holder))
+//│     (local $this (ref $Holder))
+//│     (block (result (ref $Holder))
+//│       (local.set $this
+//│         (struct.new $Holder
+//│           (global.get $Holder_typeinfo)
+//│           (ref.null $Node)))
+//│       (drop
+//│         (call $Holder_init
+//│           (local.get $this)
+//│           (local.get $node)))
+//│       (return
+//│         (local.get $this))))
+//│   (func $valueOf (export "valueOf") (type $valueOf) (param $node (ref null $Node)) (result i32)
+//│     (return
+//│       (struct.get $Node $value
+//│         (ref.cast (ref $Node)
+//│           (local.get $node)))))
+//│   (func $absentHolder (export "absentHolder") (type $absentHolder) (result (ref $Holder))
+//│     (return
+//│       (global.get $Holder_placeholder)))
+//│   (func $entry (export "entry") (type $entry) (result i32)
+//│     (local $tmp i32)
+//│     (local $tmp1 (ref null $Node))
+//│     (block (result i32)
+//│       (global.set $unspecified
+//│         (call $absentHolder))
+//│       (local.set $tmp
+//│         (i32.const 1))
+//│       (local.set $tmp1
+//│         (call $Node_ctor
+//│           (local.get $tmp)
+//│           (ref.null $Node)))
+//│       (return
+//│         (call $valueOf
+//│           (local.get $tmp1)))))
+//│   (elem $Node_init declare func $Node_init)
+//│   (elem $Node_ctor declare func $Node_ctor)
+//│   (elem $Holder_init declare func $Holder_init)
+//│   (elem $Holder_ctor declare func $Holder_ctor)
+//│   (elem $valueOf declare func $valueOf)
+//│   (elem $absentHolder declare func $absentHolder)
+//│   (elem $entry declare func $entry))
+//│ Wasm result:
+//│ = 1
+
+
+// The cycle may go through several classes.
+:noInline
+:wat
+:expect 1
+class Ping(val value: Int32, val pong: Pong)
+class Pong(val ping: Ping)
+Ping(const(1), Pong(undefined)).value
+//│ Wat:
+//│ (module
+//│   (type $TypeInfoBase (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
+//│   (type $Object (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase))))))
+//│   (rec
+//│     (type $Ping (sub $Object (struct (field $$typeinfo (mut (ref $TypeInfoBase))) (field $value (mut i32)) (field $pong (mut (ref null $Pong))))))
+//│     (type $Pong (sub $Object (struct (field $$typeinfo (mut (ref $TypeInfoBase))) (field $ping (mut (ref null $Ping)))))))
+//│   (type $Ping_typeinfo (sub $TypeInfoBase (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
+//│   (type $Ping_init (func (param $this (ref $Ping)) (param $value i32) (param $pong (ref null $Pong)) (result (ref $Ping))))
+//│   (type $Ping_ctor (func (param $value i32) (param $pong (ref null $Pong)) (result (ref $Ping))))
+//│   (type $Pong_typeinfo (sub $TypeInfoBase (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
+//│   (type $Pong_init (func (param $this (ref $Pong)) (param $ping (ref null $Ping)) (result (ref $Pong))))
+//│   (type $Pong_ctor (func (param $ping (ref null $Ping)) (result (ref $Pong))))
+//│   (type $entry (func (result i32)))
+//│   (global $Ping_typeinfo (export "Ping_typeinfo") (ref $Ping_typeinfo) (struct.new $Ping_typeinfo
+//│     (i32.const 1)
+//│     (ref.null $TypeInfoBase)))
+//│   (global $Pong_typeinfo (export "Pong_typeinfo") (ref $Pong_typeinfo) (struct.new $Pong_typeinfo
+//│     (i32.const 2)
+//│     (ref.null $TypeInfoBase)))
+//│   (func $Ping_init (type $Ping_init) (param $this (ref $Ping)) (param $value i32) (param $pong (ref null $Pong)) (result (ref $Ping))
+//│     (block (result (ref $Ping))
+//│       (struct.set $Ping $value
+//│         (local.get $this)
+//│         (local.get $value))
+//│       (struct.set $Ping $pong
+//│         (local.get $this)
+//│         (local.get $pong))
+//│       (return
+//│         (ref.cast (ref $Ping)
+//│           (local.get $this)))))
+//│   (func $Ping_ctor (export "Ping") (type $Ping_ctor) (param $value i32) (param $pong (ref null $Pong)) (result (ref $Ping))
+//│     (local $this (ref $Ping))
+//│     (block (result (ref $Ping))
+//│       (local.set $this
+//│         (struct.new $Ping
+//│           (global.get $Ping_typeinfo)
+//│           (i32.const 0)
+//│           (ref.null $Pong)))
+//│       (drop
+//│         (call $Ping_init
+//│           (local.get $this)
+//│           (local.get $value)
+//│           (local.get $pong)))
+//│       (return
+//│         (local.get $this))))
+//│   (func $Pong_init (type $Pong_init) (param $this (ref $Pong)) (param $ping (ref null $Ping)) (result (ref $Pong))
+//│     (block (result (ref $Pong))
+//│       (struct.set $Pong $ping
+//│         (local.get $this)
+//│         (local.get $ping))
+//│       (return
+//│         (ref.cast (ref $Pong)
+//│           (local.get $this)))))
+//│   (func $Pong_ctor (export "Pong") (type $Pong_ctor) (param $ping (ref null $Ping)) (result (ref $Pong))
+//│     (local $this (ref $Pong))
+//│     (block (result (ref $Pong))
+//│       (local.set $this
+//│         (struct.new $Pong
+//│           (global.get $Pong_typeinfo)
+//│           (ref.null $Ping)))
+//│       (drop
+//│         (call $Pong_init
+//│           (local.get $this)
+//│           (local.get $ping)))
+//│       (return
+//│         (local.get $this))))
+//│   (func $entry (export "entry") (type $entry) (result i32)
+//│     (local $tmp i32)
+//│     (local $tmp1 (ref null $Ping))
+//│     (block (result i32)
+//│       (local.set $tmp
+//│         (i32.const 1))
+//│       (local.set $tmp1
+//│         (call $Ping_ctor
+//│           (local.get $tmp)
+//│           (ref.null $Pong)))
+//│       (return
+//│         (struct.get $Ping $value
+//│           (ref.cast (ref $Ping)
+//│             (local.get $tmp1))))))
+//│   (elem $Ping_init declare func $Ping_init)
+//│   (elem $Ping_ctor declare func $Ping_ctor)
+//│   (elem $Pong_init declare func $Pong_init)
+//│   (elem $Pong_ctor declare func $Pong_ctor)
+//│   (elem $entry declare func $entry))
+//│ Wasm result:
+//│ = 1
+
+
+// An inherited field takes part in the cycle: `Child` inherits a field of its own class, while `Parent` is not on
+// the cycle and has a placeholder holding a null `Child`.
+:noInline
+:wat
+:expect 1
+class Parent(val child: Child)
+class Child(val value: Int32) extends Parent(undefined)
+private fun absentParent(): Parent = undefined
+let unspecified = absentParent()
+Child(const(1)).value
+//│ Wat:
+//│ (module
+//│   (type $TypeInfoBase (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
+//│   (type $Object (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase))))))
+//│   (rec
+//│     (type $Parent (sub $Object (struct (field $$typeinfo (mut (ref $TypeInfoBase))) (field $child (mut (ref null $Child))))))
+//│     (type $Child (sub $Parent (struct (field $$typeinfo (mut (ref $TypeInfoBase))) (field $child (mut (ref null $Child))) (field $value (mut i32))))))
+//│   (type $Parent_typeinfo (sub $TypeInfoBase (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
+//│   (type $Parent_init (func (param $this (ref $Parent)) (param $child (ref null $Child)) (result (ref $Parent))))
+//│   (type $Parent_ctor (func (param $child (ref null $Child)) (result (ref $Parent))))
+//│   (type $Child_typeinfo (sub $Parent_typeinfo (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
+//│   (type $Child_init (func (param $this (ref $Child)) (param $value i32) (result (ref $Child))))
+//│   (type $Child_ctor (func (param $value i32) (result (ref $Child))))
+//│   (type $absentParent (func (result (ref $Parent))))
+//│   (type $entry (func (result i32)))
+//│   (global $unspecified (export "unspecified") (mut (ref null any)) (ref.null any))
+//│   (global $Parent_typeinfo (export "Parent_typeinfo") (ref $Parent_typeinfo) (struct.new $Parent_typeinfo
+//│     (i32.const 1)
+//│     (ref.null $TypeInfoBase)))
+//│   (global $Child_typeinfo (export "Child_typeinfo") (ref $Child_typeinfo) (struct.new $Child_typeinfo
+//│     (i32.const 2)
+//│     (global.get $Parent_typeinfo)))
+//│   (global $Parent_placeholder (ref $Parent) (struct.new $Parent
+//│     (global.get $Parent_typeinfo)
+//│     (ref.null $Child)))
+//│   (func $Parent_init (type $Parent_init) (param $this (ref $Parent)) (param $child (ref null $Child)) (result (ref $Parent))
+//│     (block (result (ref $Parent))
+//│       (struct.set $Parent $child
+//│         (local.get $this)
+//│         (local.get $child))
+//│       (return
+//│         (ref.cast (ref $Parent)
+//│           (local.get $this)))))
+//│   (func $Parent_ctor (export "Parent") (type $Parent_ctor) (param $child (ref null $Child)) (result (ref $Parent))
+//│     (local $this (ref $Parent))
+//│     (block (result (ref $Parent))
+//│       (local.set $this
+//│         (struct.new $Parent
+//│           (global.get $Parent_typeinfo)
+//│           (ref.null $Child)))
+//│       (drop
+//│         (call $Parent_init
+//│           (local.get $this)
+//│           (local.get $child)))
+//│       (return
+//│         (local.get $this))))
+//│   (func $Child_init (type $Child_init) (param $this (ref $Child)) (param $value i32) (result (ref $Child))
+//│     (block (result (ref $Child))
+//│       (drop
+//│         (call $Parent_init
+//│           (local.get $this)
+//│           (ref.null $Child)))
+//│       (struct.set $Child $value
+//│         (local.get $this)
+//│         (local.get $value))
+//│       (return
+//│         (ref.cast (ref $Child)
+//│           (local.get $this)))))
+//│   (func $Child_ctor (export "Child") (type $Child_ctor) (param $value i32) (result (ref $Child))
+//│     (local $this (ref $Child))
+//│     (block (result (ref $Child))
+//│       (local.set $this
+//│         (struct.new $Child
+//│           (global.get $Child_typeinfo)
+//│           (ref.null $Child)
+//│           (i32.const 0)))
+//│       (drop
+//│         (call $Child_init
+//│           (local.get $this)
+//│           (local.get $value)))
+//│       (return
+//│         (local.get $this))))
+//│   (func $absentParent (export "absentParent") (type $absentParent) (result (ref $Parent))
+//│     (return
+//│       (global.get $Parent_placeholder)))
+//│   (func $entry (export "entry") (type $entry) (result i32)
+//│     (local $tmp i32)
+//│     (local $tmp1 (ref null $Child))
+//│     (block (result i32)
+//│       (global.set $unspecified
+//│         (call $absentParent))
+//│       (local.set $tmp
+//│         (i32.const 1))
+//│       (local.set $tmp1
+//│         (call $Child_ctor
+//│           (local.get $tmp)))
+//│       (return
+//│         (struct.get $Child $value
+//│           (ref.cast (ref $Child)
+//│             (local.get $tmp1))))))
+//│   (elem $Parent_init declare func $Parent_init)
+//│   (elem $Parent_ctor declare func $Parent_ctor)
+//│   (elem $Child_init declare func $Child_init)
+//│   (elem $Child_ctor declare func $Child_ctor)
+//│   (elem $absentParent declare func $absentParent)
+//│   (elem $entry declare func $entry))
+//│ Wasm result:
+//│ = 1
+
+
+// Slots of `Str`, `Array`, and functions are represented as `anyref`, so `undefined` is a null reference there.
+:noInline
+:wat
+private fun keepStr(s: Str) = s
+private fun keepArray(a: Array[Int]) = a
+let s = keepStr(undefined)
+let a = keepArray(undefined)
+//│ Wat:
+//│ (module
+//│   (type $TypeInfoBase (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
+//│   (type $Object (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase))))))
+//│   (type $keepStr (func (param $s (ref null any)) (result (ref null any))))
+//│   (type $keepArray (func (param $a (ref null any)) (result (ref null any))))
+//│   (type $Unit_typeinfo (sub $TypeInfoBase (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
+//│   (type $Unit (sub $Object (struct (field $$typeinfo (mut (ref $TypeInfoBase))))))
+//│   (type $Unit_init (func (param $this (ref $Unit)) (result (ref $Unit))))
+//│   (type $Unit_ctor (func (result (ref $Unit))))
+//│   (type $entry (func (result (ref null any))))
+//│   (type $start (func))
+//│   (global $s (export "s") (mut (ref null any)) (ref.null any))
+//│   (global $a (export "a") (mut (ref null any)) (ref.null any))
+//│   (global $Unit_typeinfo (export "Unit_typeinfo") (ref $Unit_typeinfo) (struct.new $Unit_typeinfo
+//│     (i32.const 1)
+//│     (ref.null $TypeInfoBase)))
+//│   (global $Unit$inst (export "Unit$inst") (mut (ref null $Unit)) (ref.null $Unit))
+//│   (func $keepStr (export "keepStr") (type $keepStr) (param $s (ref null any)) (result (ref null any))
+//│     (return
+//│       (local.get $s)))
+//│   (func $keepArray (export "keepArray") (type $keepArray) (param $a (ref null any)) (result (ref null any))
+//│     (return
+//│       (local.get $a)))
+//│   (func $Unit_init (type $Unit_init) (param $this (ref $Unit)) (result (ref $Unit))
+//│     (return
+//│       (ref.cast (ref $Unit)
+//│         (local.get $this))))
+//│   (func $Unit_Unit (type $Unit_ctor) (result (ref $Unit))
+//│     (local $this (ref $Unit))
+//│     (block (result (ref $Unit))
+//│       (local.set $this
+//│         (struct.new $Unit
+//│           (global.get $Unit_typeinfo)))
+//│       (drop
+//│         (call $Unit_init
+//│           (local.get $this)))
+//│       (return
+//│         (local.get $this))))
+//│   (func $start (type $start)
+//│     (global.set $Unit$inst
+//│       (call $Unit_Unit)))
+//│   (func $entry (export "entry") (type $entry) (result (ref null any))
+//│     (block (result (ref null $Unit))
+//│       (global.set $s
+//│         (call $keepStr
+//│           (ref.null any)))
+//│       (global.set $a
+//│         (call $keepArray
+//│           (ref.null any)))
+//│       (global.get $Unit$inst)))
+//│   (elem $keepStr declare func $keepStr)
+//│   (elem $keepArray declare func $keepArray)
+//│   (elem $Unit_init declare func $Unit_init)
+//│   (elem $Unit_Unit declare func $Unit_Unit)
+//│   (elem $start declare func $start)
+//│   (elem $entry declare func $entry)
+//│   (start $start))
+//│ Wasm result:
+//│ = {}
+
+
+// A later block imports the class together with whether it has a placeholder. A session global of an imported
+// class starts out holding a placeholder built in the importing module, while the cyclic `Node` keeps its
+// nullable slots.
+:noInline
+:wat
+let saved = Bar(const(7))
+private fun nodeValue(node: Node): Int32 = node.value
+nodeValue(Node(const(2), undefined))
+//│ Wat:
+//│ (module
+//│   (type $TypeInfoBase (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
+//│   (type $Object (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase))))))
+//│   (type $Node (sub $Object (struct (field $$typeinfo (mut (ref $TypeInfoBase))) (field $value (mut i32)) (field $next (mut (ref null $Node))))))
+//│   (type $Bar (sub $Object (struct (field $$typeinfo (mut (ref $TypeInfoBase))) (field $x (mut i32)))))
+//│   (type $Node_typeinfo (sub $TypeInfoBase (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
+//│   (type $Node_Node (func (param $value i32) (param $next (ref null $Node)) (result (ref $Node))))
+//│   (type $Bar_typeinfo (sub $TypeInfoBase (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
+//│   (type $Bar_Bar (func (param $x i32) (result (ref $Bar))))
+//│   (type $nodeValue (func (param $node (ref null $Node)) (result i32)))
+//│   (type $entry (func (result i32)))
+//│   (import "repl" "Node" (func $Node_Node (type $Node_Node)))
+//│   (import "repl" "Bar" (func $Bar_Bar (type $Bar_Bar)))
+//│   (import "repl" "Node_typeinfo" (global $Node_typeinfo (ref $Node_typeinfo)))
+//│   (import "repl" "Bar_typeinfo" (global $Bar_typeinfo (ref $Bar_typeinfo)))
+//│   (global $Bar_placeholder (ref $Bar) (struct.new $Bar
+//│     (global.get $Bar_typeinfo)
+//│     (i32.const 0)))
+//│   (global $saved (export "saved") (mut (ref $Bar)) (global.get $Bar_placeholder))
+//│   (func $nodeValue (export "nodeValue") (type $nodeValue) (param $node (ref null $Node)) (result i32)
+//│     (return
+//│       (struct.get $Node $value
+//│         (ref.cast (ref $Node)
+//│           (local.get $node)))))
+//│   (func $entry (export "entry") (type $entry) (result i32)
+//│     (local $tmp i32)
+//│     (local $tmp1 i32)
+//│     (local $tmp2 (ref null $Node))
+//│     (block (result i32)
+//│       (local.set $tmp
+//│         (i32.const 7))
+//│       (global.set $saved
+//│         (call $Bar_Bar
+//│           (local.get $tmp)))
+//│       (local.set $tmp1
+//│         (i32.const 2))
+//│       (local.set $tmp2
+//│         (call $Node_Node
+//│           (local.get $tmp1)
+//│           (ref.null $Node)))
+//│       (return
+//│         (call $nodeValue
+//│           (local.get $tmp2)))))
+//│   (elem $nodeValue declare func $nodeValue)
+//│   (elem $entry declare func $entry))
+//│ Wasm result:
+//│ = 2
+
+:expect 7
+saved.x
+//│ Wasm result:
+//│ = 7
+
+

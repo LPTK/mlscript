@@ -52,6 +52,22 @@ extension (ty: ValType)
     case V128Type => N
 
 extension (et: ErasedType)
+  /** The class whose struct would represent this type, if it is a class type, ignoring whether that struct exists.
+    *
+    * `Object` is represented as `anyref` and the classes boxed as `i31ref` have no struct, so they are excluded.
+    */
+  private[text] def structClass(using Ctx, State): Opt[BlockMemberSymbol] =
+    import Ctx.ctx
+    val elabCtx = ctx.elabCtx
+    elabCtx.givenIn:
+      et.canonicalize match
+        case ErasedType.AnyRef(_, tpeSym) if !(tpeSym eq elabCtx.builtins.Object) && !isBoxedAsI31(tpeSym, ctx) =>
+          // The Unit singleton's struct is registered under the synthetic `unitBlockMemberSymbol`, not under the
+          // `unit` module's own block member that `asBlkMember` resolves to. Cf. `localType` below.
+          if tpeSym eq State.unitSymbol then S(State.unitBlockMemberSymbol)
+          else tpeSym.asBlkMember
+        case _ => N
+
   /** Returns the corresponding Wasm type for this [[ErasedType]]. */
   private[text] def wasmType(using Ctx, State): Opt[ValType] =
     import Ctx.ctx
@@ -64,14 +80,11 @@ extension (et: ErasedType)
           else if isBoxedAsI31(tpeSym, ctx) then
             S(RefType.i31ref)
           else
-            // The Unit singleton's struct is registered under the synthetic `unitBlockMemberSymbol`, not under the
-            // `unit` module's own block member that `asBlkMember` resolves to. Cf. `localType` below.
-            val structSym =
-              if tpeSym eq State.unitSymbol then S(State.unitBlockMemberSymbol)
-              else tpeSym.asBlkMember
-            // Source slots also admit undefined, represented by a null reference.
-            // Known receivers and newly allocated instances can still use non-null references.
-            structSym.flatMap(ctx.getType).map(RefType(_, nullable = true))
+            // Slots also admit `undefined`, materialized as the class's placeholder instance (see
+            // `WatBuilder.placeholderValue`), which lets them be non-nullable. Only a class without a placeholder
+            // needs nullable slots, holding `undefined` as a null reference.
+            et.structClass.flatMap: structSym =>
+              ctx.getType(structSym).map(RefType(_, nullable = !ctx.hasPlaceholder(structSym)))
         case ErasedType.Primitive(prim) => S(prim.wasmType)
         case _ => N
 
@@ -312,6 +325,8 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
   private val initFuncSyms: LinkedHashMap[BlockMemberSymbol, BlockMemberSymbol] = LinkedHashMap.empty
   private val typeInfoTypeIdxs: LinkedHashMap[BlockMemberSymbol, TypeIdx] = LinkedHashMap.empty
   private val typeInfoGlobals: LinkedHashMap[BlockMemberSymbol, GlobalIdx] = LinkedHashMap.empty
+  /** The global holding the placeholder instance of each class, created by [[classPlaceholder]] on first use. */
+  private val placeholderGlobals: LinkedHashMap[BlockMemberSymbol, GlobalIdx] = LinkedHashMap.empty
   private var nextStringDataOffset: Int = 0
 
   /** Returns the Wasm type index of the synthetic base object header struct. */
@@ -340,10 +355,10 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       global.get(globalIdx, globalTy)
 
   /** Reads the RTTI pointer stored in an object's common header. */
-  private def readObjectTypeInfo(objRef: Expr): Expr =
+  private def readObjectTypeInfo(objRef: Expr)(using Raise): Expr =
     struct.get(
       structFieldIdx(baseObjectSym, typeInfoFieldSym),
-      ref.cast(objRef, baseObjectRefType(nullable = false)),
+      castConserve(objRef, baseObjectRefType(nullable = false), N),
       RefType(typeInfoBaseTypeIdx, nullable = false),
     )
 
@@ -381,7 +396,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
   private def castToValType(r: codegen.Result, target: ValType)(using FunctionCtx, Raise, SessionExportCtx): Expr =
     // Undefined supplies no value to convert: construct an unspecified value directly in the
     // destination representation. This also covers placeholders introduced after lowering by DPE.
-    if r.isUndefined then target.zeroValue.getOrElse(lastWords("Undefined requires a defaultable value type"))
+    if r.isUndefined then placeholderValue(target)
     else castConserve(result(r), target, r.toLoc)
 
   /** Compile arguments in the physical parameter representations, including undefined placeholders.
@@ -394,13 +409,67 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
     prefix ++ args.zip(declParams.drop(prefix.size)).map: (arg, p) =>
       argument(arg, S(p.valtype))
 
-  /** Returns the default Wasm value for one struct field when eagerly constructing an object instance. */
-  private def defaultStructFieldValue(field: Field)(using Raise): Expr = field.ty.zeroValue.getOrElse:
-    field.ty match
-      case _: RefType =>
-        lastWords(s"non-null ref field `${field.id}` requires an explicit initializer")
-      case other =>
-        lastWords(s"unsupported default field type `${other.toWat.mkString()}` for eager object construction")
+  /** A value of the representation `ty`, for a slot that needs a value but is given no specified one: `undefined`
+    * (whose read-back is undefined behavior, see [[codegen.Result.isUndefined]]) and the storage of a new instance
+    * before its constructor writes it.
+    *
+    * Numbers are zero and nullable references are null. A non-nullable reference to a class struct is the class's
+    * placeholder instance (see [[Ctx.hasPlaceholder]]).
+    */
+  private def placeholderValue(ty: ValType)(using Raise): Expr =
+    placeholderValue(ty, building = Nil)
+
+  /** Like [[placeholderValue]], within the construction of the placeholders of the classes in `building`. */
+  private def placeholderValue(ty: ValType, building: Ls[BlockMemberSymbol])(using Raise): Expr =
+    ty.zeroValue.getOrElse:
+      ty match
+        case RefType(typeIdx: TypeIdx, false) =>
+          val sym = ctx.getTypeInfo_!(typeIdx).sym match
+            case sym: BlockMemberSymbol if typeInfoGlobals.contains(sym) => sym
+            case _ => lastWords(s"no placeholder for the non-class reference type `${ty.toWat.mkString()}`")
+          classPlaceholder(sym, building)
+        case _ => lastWords(s"no placeholder for the Wasm type `${ty.toWat.mkString()}`")
+
+  /** Loads the placeholder instance of the class `sym`, creating its global on first use.
+    *
+    * Each placeholder lives in an immutable global, so it is allocated once per module. Its initializer reads the
+    * placeholders of the class's non-nullable class-typed fields, whose globals are created first so that they precede
+    * it in the module, as a constant expression may only read earlier globals.
+    *
+    * @param building
+    *   The classes whose placeholders are under construction and depend on this one.
+    */
+  private def classPlaceholder(sym: BlockMemberSymbol, building: Ls[BlockMemberSymbol])(using Raise): Expr =
+    val typeIdx = ctx.getType_!(sym)
+    val placeholderType = RefType(typeIdx, nullable = false)
+    val globalIdx = placeholderGlobals.get(sym).getOrElse:
+      // `markClassesWithoutPlaceholder` makes the slots of every class on a cycle of field dependencies nullable,
+      // which `zeroValue` fills without recursing, so a class can never depend on its own placeholder here.
+      assert(ctx.hasPlaceholder(sym) && !building.contains(sym),
+        s"class `${sym.nme}` has no placeholder instance (depended on by: ${building.map(_.nme).mkString(", ")})")
+      val globalIdx = ctx.addGlobal(GlobalInfo(
+        globalType = GlobalType(placeholderType, mutable = false),
+        init = struct.`new`(typeIdx, initialFieldValues(sym, sym :: building)),
+        exportName = N,
+        sym = TempSymbol(N, erasedType = N, sym.nme),
+        wrapId = N -> S("placeholder"),
+      ))
+      placeholderGlobals(sym) = globalIdx
+      globalIdx
+    global.get(globalIdx, placeholderType)
+
+  /** The field values of an instance of the class `sym` before its constructor runs: its `typeinfo` header, then a
+    * placeholder for every field (see [[placeholderValue]]). These also make up the class's placeholder instance.
+    */
+  private def initialFieldValues(sym: BlockMemberSymbol, building: Ls[BlockMemberSymbol])(using Raise): Seq[Expr] =
+    ctx.getTypeInfo_!(sym).compType match
+      case struct: StructType => struct.fields match
+        case _ +: fields =>
+          val typeInfo = getClassTypeInfoGlobal(sym).getOrElse:
+            lastWords(s"Missing typeinfo global for class `${sym.nme}`")
+          typeInfo +: fields.map((_, field) => placeholderValue(field.ty, building))
+        case Nil => lastWords(s"Expected instance struct for $sym to include $$typeinfo header")
+      case other => lastWords(s"Expected struct type for $sym, found ${other.toWat.mkString()}")
 
   /** Returns `1` when `scrutTypeInfo` is equal to or descends from `targetTypeInfo`, else `0`. */
   private def isSubtypeByTypeInfo(
@@ -521,6 +590,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       objectTag = typeInfo.objectTag,
       rttiTypeInfo = unitRttiTypeInfo,
       rttiGlobalExportName = unitTypeInfoGlobalInfo.exportName.get,
+      hasPlaceholder = ctx.hasPlaceholder(unitDefn.sym),
       aliasSyms = singletonOwner.toList,
     ))
     summon[SessionExportCtx].emit(SessionSingleton(
@@ -767,6 +837,44 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
     )
   end predeclareClassVirtualTable
 
+  /** Whether the field `f` of a subclass denotes the same public property as the `inherited` storage field, so that
+    * it reuses the inherited storage instead of getting its own.
+    */
+  private def sharesStorage(f: TermSymbol, inherited: DefinitionSymbol[?]): Bool = inherited match
+    case sym: TermSymbol => !sym.isPrivate && !f.isPrivate && sym.nme == f.nme
+    case _ => false
+
+  /** Records the classes among `defns` that have no placeholder instance (see [[Ctx.hasPlaceholder]]).
+    *
+    * A placeholder holds placeholders in its fields, including inherited ones, so it depends on the placeholders of
+    * the classes of its class-typed fields. A class on a cycle of these dependencies has no finite placeholder, as
+    * with `class Node(next: Node)`, or with `A` and `B` in `class A(b: B)` and `class B(a: A)`. The slots of such
+    * classes are nullable, which also makes the fields that close the cycles nullable, so the remaining classes do
+    * have placeholders. The placeholder of an abstract class is an instance of the abstract class itself, so a field
+    * typed by an abstract class only depends on the abstract class's own fields: in `abstract class List` and
+    * `class Cons(tail: List) extends List`, `Cons` has a placeholder.
+    *
+    * Only classes defined in this module can lie on such a cycle, since earlier modules cannot refer to them. These
+    * classes must be recorded before computing any slot type that mentions them. `defns` must be sorted by
+    * inheritance, so that parents precede their children.
+    */
+  private def markClassesWithoutPlaceholder(defns: Ls[ClsLikeDefn])(using Raise): Unit =
+    val definedClasses = defns.iterator.map(_.sym).toSet
+    // The storage fields of each class, determined from those of its parent like in `predeclareClassType`, which
+    // cannot run before this, since the field types it computes depend on the classes recorded here.
+    val storageFields = LinkedHashMap.empty[BlockMemberSymbol, Ls[TermSymbol]]
+    defns.foreach: defn =>
+      val inherited = resolveParentSym(defn).flatMap(storageFields.get).getOrElse(Nil)
+      val own = (defn.publicFields.map(_._2) ++ defn.privateFields).filterNot: f =>
+        inherited.exists(sharesStorage(f, _))
+      storageFields(defn.sym) = inherited ++ own
+    def fieldClasses(sym: BlockMemberSymbol): Ls[BlockMemberSymbol] =
+      storageFields(sym).flatMap(_.erasedType.flatMap(_.structClass)).filter(definedClasses)
+    SccAnalysis.sccsFrom(fieldClasses, defns.map(_.sym)).foreach: component =>
+      if component.sizeIs > 1 || fieldClasses(component.head).contains(component.head) then
+        component.foreach(ctx.markWithoutPlaceholder)
+  end markClassesWithoutPlaceholder
+
   /** Declares one supported top-level class type for early wasm registration. */
   private def predeclareClassType(defn: ClsLikeDefn)(using Raise): Unit =
     val parentTypeIdx =
@@ -782,13 +890,11 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
 
     val classFields = ctx.elabCtx.givenIn:
       (defn.publicFields.map(_._2) ++ defn.privateFields).flatMap: f =>
-        // Reference fields need to be nullable so that `struct.new_default` has a valid value to write
-        val fieldType: ValType = f.erasedType.flatMap(_.wasmType) match
-          case S(ty: RefType) => ty.copy(nullable = true)
-          case S(ty) => ty
-          case N => RefType.anyref
+        // A field has the representation of its slot, even a non-nullable reference: the constructor allocates the
+        // instance with placeholder field values before its initializer writes them (see `initialFieldValues`).
+        val fieldType: ValType = f.erasedType.flatMap(_.wasmType).getOrElse(RefType.anyref)
         inheritedFields.collectFirst:
-          case (sym: TermSymbol, field) if !sym.isPrivate && !f.isPrivate && sym.nme == f.nme => field
+          case (sym, field) if sharesStorage(f, sym) => field
         match
           case S(field) =>
             // Overrides denote the same public property, including abstract fields. Reuse its
@@ -1102,12 +1208,10 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
   private def registerSessionGlobal(sym: ScopedSymbol)(using Raise, SessionExportCtx): Unit =
     if ctx.containsGlobal(sym) then return
     val exportName = sym.nme
-    // Reference globals need to be nullable so that they have a valid initializer
-    val valType: ValType = sym.localType match
-      case ty: RefType => ty.copy(nullable = true)
-      case ty => ty
-    val init = valType.zeroValue.getOrElse:
-      lastWords(s"unsupported session global type `${valType.toWat.mkString()}` for `$exportName`")
+    // Until its definition assigns it, the binding holds `undefined`, i.e., a placeholder of its representation.
+    // Session globals are declared before this module's classes, so only an imported class can be their type.
+    val valType = sym.localType
+    val init = placeholderValue(valType)
     val globalType = GlobalType(valType, mutable = true)
     val globalInfo = GlobalInfo(
       globalType = globalType,
@@ -1137,6 +1241,8 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
           compType = cls.compType,
           objectTag = cls.objectTag,
         ))
+        // The slots of the class must keep the representation its defining module gave them.
+        if !cls.hasPlaceholder then ctx.markWithoutPlaceholder(cls.sym)
       case _ => ()
 
     sessionImports.foreach:
@@ -1399,7 +1505,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
   private def setupInitLocals(
       clsLikeDefn: ClsLikeDefn,
   )(using Raise, SessionExportCtx): (Expr, FunctionCtx) =
-    genFuncBody(
+    compileFuncBody(
       classCtorParamList(clsLikeDefn) :: Nil,
       thisSym = S(clsLikeDefn.isym),
       resultType = N,
@@ -1703,9 +1809,13 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
           s"Virtual call arity mismatch for $methodSym: ${args.size} args vs ${paramTypes.size} declared params",
         )
         val ownerTypeInfoIdx = typeInfoTypeIdxs(ownerCls)
-        val receiverTmp = mkTempLocal("receiver", erasedType = N)
-        val receiverExpr = local.set(receiverTmp, result(qual))
-        val receiverRef = local.get(receiverTmp, RefType.anyref)
+        // The receiver is read twice: for its `typeinfo` and as the `this` argument. Its temporary keeps the
+        // receiver's own representation, so that neither read needs a cast when the receiver's class is known.
+        val receiverSym = TempSymbol(N, qual.erasedValueType, "receiver")
+        val receiverTmp = funcCtx.addLocal(receiverSym)
+        val receiverType = funcCtx.slotType(receiverSym)
+        val receiverExpr = local.set(receiverTmp, castToValType(qual, receiverType))
+        val receiverRef = local.get(receiverTmp, receiverType)
         val ownerTypeInfoRef = ref.cast(
           readObjectTypeInfo(receiverRef),
           RefType(ownerTypeInfoIdx, nullable = false),
@@ -1968,12 +2078,10 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
             ref = castConserve(qualRes, RefType(ctx.getType_!(selCls), nullable = false), sel.toLoc),
             ty = fieldTy,
           )
+          // The storage already has the field's representation, unless the field overrides an inherited one.
           selSym.asTrm.flatMap(_.erasedType).flatMap(_.wasmType) match
             case S(declared) => castConserve(getExpr, declared, sel.toLoc)
-            case N => fieldTy match
-              case rt: RefType if rt.nullable && rt.heapType != HeapType.Any =>
-                castConserve(getExpr, rt.copy(nullable = false), sel.toLoc)
-              case _ => getExpr
+            case N => getExpr
         case N =>
           errExpr(
             Ls(
@@ -2176,7 +2284,6 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
 
       case assign @ AssignField(lhs, nme, rhs, rst) =>
         val lhsExpr = result(lhs)
-        val rhsExpr = result(rhs)
         val assignInstr = assign.symbol match
           case S(selSym) =>
             selSym.asTrm match
@@ -2195,10 +2302,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
                 val fieldType = structInfo.compType match
                   case st: StructType => classField(selCls, fieldSym).ty
                   case other => lastWords(s"Expected struct type for $selCls, found ${other.toWat.mkString()}")
-                val rhsCasted = fieldType match
-                  case rt: RefType => castConserve(rhsExpr, rt, rhs.toLoc)
-                  case _ => rhsExpr
-                struct.set(fieldidx, objRef, rhsCasted)
+                struct.set(fieldidx, objRef, castToValType(rhs, fieldType))
               case N =>
                 lastWords(
                   s"Expected resolved AssignField(...) expression to be a TermSymbol, but got $selSym (${
@@ -2364,20 +2468,10 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
 
                   val tagValue = typeinfo.objectTag getOrElse:
                     lastWords(s"Expected class ${clsLikeDefn.sym} to have an object tag")
-                  val instanceFields = typeinfo.compType match
-                    case struct: StructType =>
-                      struct.fields match
-                        case (_, typeInfoField) +: rest =>
-                          getClassTypeInfoGlobal(clsLikeDefn.sym).get +: rest.map((_, field) =>
-                            defaultStructFieldValue(field),
-                          )
-                        case Nil =>
-                          lastWords(s"Expected instance struct for ${clsLikeDefn.sym} to include $$typeinfo header")
-                    case other =>
-                      lastWords(s"Expected struct type for ${clsLikeDefn.sym}, found ${other.toWat.mkString()}")
+                  val instanceFields = initialFieldValues(clsLikeDefn.sym, building = Nil)
 
                   val initFuncRef = initFuncSym(clsLikeDefn.sym)
-                  val (ctorCode, ctorFnCtx) = genFuncBody(ctorParamList :: Nil, thisSym = N, resultType = N):
+                  val (ctorCode, ctorFnCtx) = compileFuncBody(ctorParamList :: Nil, thisSym = N, resultType = N, paramTypes = N):
                     val thisVar = bindCtorThis(clsLikeDefn.isym)
                     val initCall = call(
                       funcidx = ctx.getFunc_!(initFuncRef),
@@ -2463,6 +2557,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
                       objectTag = typeinfo.objectTag,
                       rttiTypeInfo = rttiTypeInfo,
                       rttiGlobalExportName = rttiGlobalInfo.exportName.get,
+                      hasPlaceholder = ctx.hasPlaceholder(clsLikeDefn.sym),
                       aliasSyms = clsLikeDefn.isym :: Nil,
                     ))
                     if !isSingletonObj && clsLikeDefn.sym.nameIsMeaningful then
@@ -2506,7 +2601,9 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
         // Use the physical result slot for every return, including optimizer-generated undefined.
         // Overrides share the introducing method's slot, which can be narrower than their own
         // inferred reference result. Primitive mismatches remain errors, not conversions.
-        val target = funcCtx.resultType.orElse(res.erasedValueType.flatMap(_.wasmType))
+        // The entry function's slot is only known after its body, as compiling a reference to the Unit singleton
+        // registers its type on first use. So the slot of such a return is computed after compiling its value.
+        def target = funcCtx.resultType.orElse(res.erasedValueType.flatMap(_.wasmType))
         val resWat =
           if res.isUndefined then target.fold(result(res))(castToValType(res, _))
           else result(res)
@@ -2890,6 +2987,8 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
             case _ => ()
         val (classes, funs) = collectTopLevelDefns(p.main)
         val sortedClasses = sortTopLevelClasses(classes)
+        // Whether a class has a placeholder determines the nullability of its slots, including in other layouts.
+        markClassesWithoutPlaceholder(sortedClasses)
         // Class identities come first, so that layouts and signatures resolve self- and forward references to
         // the class's own type rather than to `anyref`.
         sortedClasses.foreach(allocateClassTypeIdentity)
@@ -2905,7 +3004,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       // during codegen (e.g., via `local.tee`) are declared in the entry function.
       val entryType = ctx.elabCtx.givenIn(Block.returnType(p.main).map(_.canonicalize))
       val entrySlot = entryType.flatMap(_.wasmType)
-      val (entryBody, entryFnCtx) = genFuncBody(Nil, thisSym = N, resultType = entrySlot):
+      val (entryBody, entryFnCtx) = compileFuncBody(Nil, thisSym = N, resultType = entrySlot, paramTypes = N):
         normalizeValueExprs(block(p.main), p.main.isAbortive).mergeAsBlock.getOrElse(nop)
 
       val entrySym = BlockMemberSymbol("entry", Nil)
@@ -2999,7 +3098,65 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       resultType: Opt[ValType],
       paramTypes: Opt[Seq[ValType]] = N,
   )(using Raise, SessionExportCtx): (Expr, FunctionCtx) =
-    genFuncBody(params :: Nil, thisSym = thisSym, resultType = resultType, paramTypes = paramTypes):
+    compileFuncBody(params :: Nil, thisSym = thisSym, resultType = resultType, paramTypes = paramTypes):
       block(body).mergeAsBlock.getOrElse(nop)
+
+  /** Generates a function body with [[genFuncBody]], then initializes the locals that Wasm considers unset where the
+    * body reads them (see [[localsReadUnset]]) with placeholders of their representations (see [[placeholderValue]]).
+    *
+    * This happens to a local of a class with a placeholder that is assigned in every branch of a conditional and read
+    * after it. Such a local could instead be made nullable, but then every read would need a cast.
+    */
+  private def compileFuncBody(
+      params: Ls[ParamList],
+      thisSym: Opt[InnerSymbol],
+      resultType: Opt[ValType],
+      paramTypes: Opt[Seq[ValType]],
+  )(mkBody: FunctionCtx ?=> Expr)(using Raise): (Expr, FunctionCtx) =
+    val (body, fnCtx) = genFuncBody(params, thisSym, resultType, paramTypes)(mkBody)
+    val nonDefaultable = fnCtx.locals.collect:
+      case (sym, id) if sym.localType.zeroValue.isEmpty => id
+    val unset = localsReadUnset(body, nonDefaultable.toSet)
+    val inits = fnCtx.locals.collect:
+      case (sym, id) if unset(id) => local.set(LocalIdx(id), placeholderValue(sym.localType))
+    val initialized =
+      if inits.isEmpty then body
+      // Prepending to the outermost block keeps the body's result type, label, and nesting.
+      else if body.mnemonic == "block" then body.copy(stackargs = inits ++ body.stackargs)
+      else (inits :+ body).mergeAsBlock_!
+    initialized -> fnCtx
+  end compileFuncBody
+
+  /** The locals among `tracked` that `body`, a function body, reads at a point where Wasm validation does not
+    * consider them set.
+    *
+    * Wasm requires a read of a non-defaultable local, such as a non-nullable reference, to follow a `local.set` or
+    * `local.tee` of it in the same block or an enclosing one. An assignment inside a `block`, a `loop`, or a branch of
+    * an `if` no longer counts after that construct, even when every branch of the `if` performs it, whereas one in an
+    * operand of an instruction, including the condition of an `if`, counts for the rest of the enclosing block.
+    */
+  private def localsReadUnset(body: Expr, tracked: Set[SymIdx]): Set[SymIdx] =
+    val readUnset = scala.collection.mutable.Set.empty[SymIdx]
+    def trackedLocal(instr: Expr): Opt[SymIdx] = instr.instrargs match
+      case Seq(LocalIdx(id: SymIdx)) if tracked(id) => S(id)
+      case _ => N
+    // Visits the operands or children of `instr` in their order of execution, given the locals `set` before them.
+    def visitArgs(instr: Expr, set: Set[SymIdx]): Set[SymIdx] =
+      instr.stackargs.foldLeft(set)((acc, arg) => visit(arg, acc))
+    // Returns the locals that are set after `instr` in its enclosing block, given the locals `set` before it.
+    def visit(instr: Expr, set: Set[SymIdx]): Set[SymIdx] = instr.mnemonic match
+      // The exception-handling constructs are not generated yet, but they would delimit blocks as well.
+      case "block" | "loop" | "then" | "else" | "try_table" | "try" | "catch" | "catch_all" =>
+        visitArgs(instr, set)
+        set
+      case "local.get" =>
+        trackedLocal(instr).filterNot(set).foreach(readUnset += _)
+        set
+      case "local.set" | "local.tee" =>
+        visitArgs(instr, set) ++ trackedLocal(instr)
+      case _ => visitArgs(instr, set)
+    visit(body, Set.empty)
+    readUnset.toSet
+  end localsReadUnset
 
 end WatBuilder

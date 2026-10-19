@@ -297,6 +297,99 @@ discard()
 //│ = 42
 
 
+// The same holds for a result of class type, where undefined is the class's placeholder instance (see
+// `wasm/ClassPlaceholders.mls`): the result slot stays a non-nullable reference.
+:noInline
+:flowBasedOpt mono
+:soir
+:wat
+:expect 42
+private class Kept(val value: Int32)
+private fun discardKept() =
+  fun keep(kept: Kept) = kept
+  val kept = keep(Kept(const(1)))
+  42
+discardKept()
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ @private
+//│ define discardKept⁰ as fun discardKept¹() {
+//│   let keep;
+//│   define keep as fun keep⁰() {
+//│     return undefined
+//│   };
+//│   do wasm⁰.i32¹.const⁰(1);
+//│   do keep⁰();
+//│   return 42
+//│ };
+//│ @private
+//│ define Kept⁰ as class Kept² {
+//│   val value⁰;
+//│   constructor Kept¹(value) { define value⁰ as val value¹ = value; end }
+//│ };
+//│ return discardKept¹()
+//│ Wat:
+//│ (module
+//│   (type $TypeInfoBase (sub (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
+//│   (type $Object (sub (struct (field $$typeinfo (mut (ref $TypeInfoBase))))))
+//│   (type $Kept (sub $Object (struct (field $$typeinfo (mut (ref $TypeInfoBase))) (field $value (mut i32)))))
+//│   (type $Kept_typeinfo (sub $TypeInfoBase (struct (field $$tag i32) (field $$parent (ref null $TypeInfoBase)))))
+//│   (type $Kept_init (func (param $this (ref $Kept)) (param $value i32) (result (ref $Kept))))
+//│   (type $Kept_ctor (func (param $value i32) (result (ref $Kept))))
+//│   (type $discardKept (func (result (ref null i31))))
+//│   (type $keep (func (result (ref $Kept))))
+//│   (type $entry (func (result (ref null i31))))
+//│   (global $Kept_typeinfo (export "Kept_typeinfo") (ref $Kept_typeinfo) (struct.new $Kept_typeinfo
+//│     (i32.const 1)
+//│     (ref.null $TypeInfoBase)))
+//│   (global $Kept_placeholder (ref $Kept) (struct.new $Kept
+//│     (global.get $Kept_typeinfo)
+//│     (i32.const 0)))
+//│   (func $Kept_init (type $Kept_init) (param $this (ref $Kept)) (param $value i32) (result (ref $Kept))
+//│     (block (result (ref $Kept))
+//│       (struct.set $Kept $value
+//│         (local.get $this)
+//│         (local.get $value))
+//│       (return
+//│         (ref.cast (ref $Kept)
+//│           (local.get $this)))))
+//│   (func $Kept_ctor (export "Kept") (type $Kept_ctor) (param $value i32) (result (ref $Kept))
+//│     (local $this (ref $Kept))
+//│     (block (result (ref $Kept))
+//│       (local.set $this
+//│         (struct.new $Kept
+//│           (global.get $Kept_typeinfo)
+//│           (i32.const 0)))
+//│       (drop
+//│         (call $Kept_init
+//│           (local.get $this)
+//│           (local.get $value)))
+//│       (return
+//│         (local.get $this))))
+//│   (func $discardKept (export "discardKept") (type $discardKept) (result (ref null i31))
+//│     (local $keep (ref null any))
+//│     (block (result (ref null i31))
+//│       (drop
+//│         (i32.const 1))
+//│       (drop
+//│         (call $keep))
+//│       (return
+//│         (ref.i31
+//│           (i32.const 42)))))
+//│   (func $keep (export "keep") (type $keep) (result (ref $Kept))
+//│     (return
+//│       (global.get $Kept_placeholder)))
+//│   (func $entry (export "entry") (type $entry) (result (ref null i31))
+//│     (return
+//│       (call $discardKept)))
+//│   (elem $Kept_init declare func $Kept_init)
+//│   (elem $Kept_ctor declare func $Kept_ctor)
+//│   (elem $discardKept declare func $discardKept)
+//│   (elem $keep declare func $keep)
+//│   (elem $entry declare func $entry))
+//│ Wasm result:
+//│ = 42
+
+
 // Returning undefined in an unboxed representation must still execute the call's effects.
 :noInline
 :expect 42
