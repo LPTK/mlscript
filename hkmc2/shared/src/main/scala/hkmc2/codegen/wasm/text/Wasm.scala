@@ -42,7 +42,7 @@ extension (scp: Scope)
     wrapId._2 match
       case S(suffix) =>
         scp.lookup(sym).getOrElse:
-          scp.addToBindings(sym, s"$prefix${sym.nme}_$suffix", shadow = false)
+          scp.allocateName(sym, prefix, "_" + suffix, shadow = false)
       case N => scp.allocateOrGetName(sym, prefix)
 
 /** Trait indicating a WAT representation is available. */

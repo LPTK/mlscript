@@ -165,6 +165,12 @@ case class Scope
     lookup(l).getOrElse(allocateName(l, prefix = prefix))
   
   def allocateName(l: Symbol, prefix: Str = "", shadow: Bool = false)(using Raise, Line, Name, FileName): Str =
+    allocateName(l, prefix, "", shadow)
+  
+  /** Allocate the complete generated name, including its suffix, in the same namespace.
+   *  Reserving just the base name would let suffixed helpers collide with one another
+   *  or with a source declaration whose name already contains that suffix. */
+  def allocateName(l: Symbol, prefix: Str, suffix: Str, shadow: Bool)(using Raise, Line, Name, FileName): Str =
     
     val c = cfg
     
@@ -175,7 +181,9 @@ case class Scope
         prefix + tmp.nameHints.head
       case _ => if l.nme.isEmpty && prefix.isEmpty then "tmp" else prefix + l.nme
     */
-    val base = if l.nme.isEmpty && prefix.isEmpty then c.defaultName else prefix + l.nme
+    val base =
+      if l.nme.isEmpty && prefix.isEmpty && suffix.isEmpty then c.defaultName
+      else prefix + l.nme + suffix
     
     val realBase = if cfg.escapeChars
       then Scope.replaceInvalidCharacters(base)
