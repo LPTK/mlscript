@@ -39,28 +39,35 @@ foo(Pair(4, 0))
 //│ = false
 
 
-// Should we report `a` and `b` as inconsistent variables?
+// A `where` guard sees the bindings of its own alternative.
 fun bar(p) = p is
   (Pair(a, b) where a > b) | Int
 
+:expect true
 bar(4)
 //│ = true
 
+:expect false
 bar(Pair(4, 5))
 //│ = false
 
+:expect true
 bar(Pair(4, 3))
 //│ = true
+
+:expect false
+bar("other")
+//│ = false
 
 
 :e
 fun baz(p) = p is
   (Pair(a, b) | Int) where a > b
 //│ ╔══[COMPILATION ERROR] Name not found: a
-//│ ║  l.58: 	  (Pair(a, b) | Int) where a > b
+//│ ║  l.65: 	  (Pair(a, b) | Int) where a > b
 //│ ╙──      	                           ^
 //│ ╔══[COMPILATION ERROR] Name not found: b
-//│ ║  l.58: 	  (Pair(a, b) | Int) where a > b
+//│ ║  l.65: 	  (Pair(a, b) | Int) where a > b
 //│ ╙──      	                               ^
 
 
@@ -110,24 +117,24 @@ fun get(p, m) = if p is
   Pair(k, v) where m.get(k) is w then v === w
   else false
 //│ ╔══[COMPILATION ERROR] Name not found: w
-//│ ║  l.110: 	  Pair(k, v) where m.get(k) is w then v === w
+//│ ║  l.117: 	  Pair(k, v) where m.get(k) is w then v === w
 //│ ╙──       	                                            ^
 //│ ╔══[COMPILATION ERROR] This selection of member 'get' has no resolved target
-//│ ║  l.110: 	  Pair(k, v) where m.get(k) is w then v === w
+//│ ║  l.117: 	  Pair(k, v) where m.get(k) is w then v === w
 //│ ╙──       	                   ^^^^^
 
 :fixme // TODO?
 fun get(p, m) =
   p is Pair(k, v) where m.Map#get(k) is w and v === w
 //│ ╔══[COMPILATION ERROR] Unexpected infix use of keyword 'where' here
-//│ ║  l.121: 	  p is Pair(k, v) where m.Map#get(k) is w and v === w
+//│ ║  l.128: 	  p is Pair(k, v) where m.Map#get(k) is w and v === w
 //│ ╙──       	  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 :fixme // TODO?
 fun get(p, m) =
   p is Pair(k, v) where m.Map#get(k) is w where v === w
 //│ ╔══[COMPILATION ERROR] Unexpected infix use of keyword 'where' here
-//│ ║  l.128: 	  p is Pair(k, v) where m.Map#get(k) is w where v === w
+//│ ║  l.135: 	  p is Pair(k, v) where m.Map#get(k) is w where v === w
 //│ ╙──       	  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
@@ -149,7 +156,7 @@ C1(m0).P.'unapply(Pair(3, 5))
 class C2(m) with
   pattern P = Pair(k, v) where m.Map#get(k) is w where v === w
 //│ ╔══[COMPILATION ERROR] Name not found: w
-//│ ║  l.150: 	  pattern P = Pair(k, v) where m.Map#get(k) is w where v === w
+//│ ║  l.157: 	  pattern P = Pair(k, v) where m.Map#get(k) is w where v === w
 //│ ╙──       	                                                             ^
 
 :re
