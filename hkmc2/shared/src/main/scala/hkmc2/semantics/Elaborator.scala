@@ -1211,6 +1211,8 @@ extends Importer:
     case App(ctor: ucs.Ctor, Tup(rhss)) =>
       val nl = (t: Tree) => mk(App(ctor, Tup(t :: Nil)))
       patternBranch(scrutinee, Block(rhss), nl)
+    case InfixApp(lhs, Keywrd(Keyword.backslash), rhs) =>
+      patternBranch(scrutinee, backslashApp(lhs, rhs, delimitArgument = false), mk)
     case Annotated(annotation, target) =>
       patternBranch(scrutinee, target, Annotated(annotation, _) |> mk)
     case patternAndMatches ~> consequentTree =>
@@ -1371,19 +1373,22 @@ extends Importer:
     * Parentheses are not transparent, as they delimit subexpressions: `(f \ a) \ b` means `f(a)(b)`.
     * With the new underscore syntax, the argument delimits its own implicit lambda, as if prefixed by `=>`,
     * so that `xs.map \ _ + 1` means `xs.map(x => x + 1)`; this is done here rather than in
-    * `Tree.desugared`, which does not know the language version. */
-  private def backslashApp(lhs: Tree, rhs: Tree): Tree.App =
+    * `Tree.desugared`, which does not know the language version.
+    * Pattern applications reuse the argument accumulation with `delimitArgument = false`:
+    * their underscores are wildcard patterns and their names can introduce pattern bindings. */
+  private def backslashApp(lhs: Tree, rhs: Tree, delimitArgument: Bool): Tree.App =
     def delimited(value: Tree): Tree = PrefixApp(new Keywrd(Keyword.`=>`), value).withLocOf(value)
     // * Field-shaped arguments, such as `key: a` and `...xs` (see `fld`), are not expressions,
     // * so only their values delimit implicit lambdas.
     val arg =
-      if lang.newUnderscoreAndApplicationSyntax then rhs match
+      if delimitArgument && lang.newUnderscoreAndApplicationSyntax then rhs match
         case InfixApp(key, kw @ Keywrd(Keyword.`:`), value) => InfixApp(key, kw, delimited(value)).withLocOf(rhs)
         case Spread(kw, S(value)) => Spread(kw, S(delimited(value))).withLocOf(rhs)
         case _ => delimited(rhs)
       else rhs
     def withAppendedArg(lhs: Tree): Opt[Tree.App] = lhs.desugared match
-      case InfixApp(lhs, Keywrd(Keyword.backslash), rhs) => withAppendedArg(backslashApp(lhs, rhs))
+      case InfixApp(lhs, Keywrd(Keyword.backslash), rhs) =>
+        withAppendedArg(backslashApp(lhs, rhs, delimitArgument))
       // * Prefix operator applications, such as `-x`, are not calls with argument lists.
       case App(Ident(op), _) if Parser.prefixOps.contains(op) => N
       case App(f, Tup(args)) => S(App(f, Tup(args :+ arg)))
@@ -1752,7 +1757,7 @@ extends Importer:
     case InfixApp(lhs, op @ Keywrd(Keyword.`&`), rhs) =>
       Term.CompType(subterm(lhs, Tpe), subterm(rhs, Tpe), false)//.withLocOf(tree)
     case tree @ InfixApp(lhs, Keywrd(Keyword.backslash), rhs) =>
-      subterm(backslashApp(lhs, rhs).withLocOf(tree), interp)
+      subterm(backslashApp(lhs, rhs, delimitArgument = true).withLocOf(tree), interp)
     case InfixApp(lhs, kw, rhs) =>
       raise:
         ErrorReport(msg"Unexpected infix use of keyword '${kw.name}' here" -> tree.toLoc :: Nil)
@@ -3357,6 +3362,8 @@ extends Importer:
       case InfixApp(lhs, Keywrd(op @ (Keyword.`|` | Keyword.`&`)), rhs) =>
         Composition(op is Keyword.`|`, go(lhs), go(rhs))
       // Constructor patterns with pattern arguments and arguments.
+      case InfixApp(lhs, Keywrd(Keyword.backslash), rhs) =>
+        go(backslashApp(lhs, rhs, delimitArgument = false).withLocOf(t))
       case App(ctor: Ctor, Tup(argTrees)) => // TODO: rm this weird `: Ctor` guard
         constructor(term(ctor, Ptrn), S(argTrees.map(go(_))), t)
       // `[p1, p2, ...ps, pn] => term`: All patterns are in the `TyTup`.
