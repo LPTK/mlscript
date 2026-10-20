@@ -697,7 +697,7 @@ object Elaborator:
       val sym = ClassSymbol(DummyTypeDef(syntax.Cls), id)
       val bsym = BlockMemberSymbol("ret", Nil, true)
       val defn = ClassDef(N, syntax.Cls, sym, bsym, N, Nil, Nil, N, ObjBody(Blk(Nil, Term.Lit(UnitLit(false)))), Nil, N,
-        auxCtorParams = Nil, ctorAnnotations = Nil)(N, N, N)
+        auxCtorParams = Nil, ctorAnnotations = Nil, selfType = N)(N, N, N)
       sym.defn = S(defn)
       Term.SynthSel(runtimeSymbol.ref(), id)(S(sym), FlowSymbol.synthSel(id.name), N, N)
     val nonLocalRet =
@@ -1480,7 +1480,7 @@ extends Importer:
         // The header of an anonymous class is its instantiation, `new C(args)`, without the refinement body.
         val headerLoc = tree.toLoc.map(_.left ++ Loc(cls :: args))
         val definition = ClassDef.Plain(ctx.getOuter, syntax.Cls, symbol,
-          BlockMemberSymbol(symbol.nme, Nil), Nil, S(parent), body, N, Nil, Nil, N, ctorAnnotations = Nil)(tree.toLoc, headerLoc, N)
+          BlockMemberSymbol(symbol.nme, Nil), Nil, S(parent), body, N, Nil, Nil, N, ctorAnnotations = Nil, selfType = N)(tree.toLoc, headerLoc, N)
         symbol.defn = S(definition)
         registerInheritance(definition)
       if newResolution then resolveNew(res)
@@ -1599,7 +1599,7 @@ extends Importer:
       derivedClsSym.defn = S(ClassDef(
         N, syntax.Cls, derivedClsSym,
         BlockMemberSymbol(derivedClsSym.name, Nil), N,
-        Nil, Nil, N, ObjBody(Blk(Nil, Term.Lit(Tree.UnitLit(false)))), Nil, N, auxCtorParams = Nil, ctorAnnotations = Nil)(
+        Nil, Nil, N, ObjBody(Blk(Nil, Term.Lit(Tree.UnitLit(false)))), Nil, N, auxCtorParams = Nil, ctorAnnotations = Nil, selfType = N)(
           // The header of the handler class is `handle id = c`, without the handler definitions and body.
           hd.toLoc, hd.toLoc.map(_.left ++ Loc(id, c)), N))
       
@@ -2930,8 +2930,19 @@ extends Importer:
               else N
               val cd =
                 val (bod, c) = mkBody(auxCtorPss)
+                // A public self-type describes the instances from the companion,
+                // where their variant constructors are normally declared. Use
+                // the companion's declared members even when its body follows
+                // the class; type parameters still belong to this class.
+                val selfCtx = comp match
+                  case S(companion) =>
+                    outerCtx.nestInner(companion).withMembers(sym.modOrObjTree.toList.flatMap(_.definedSymbols))
+                      ++ tps.map(tp => tp.sym.name -> tp.sym)
+                  case N => newCtx
+                val selfType = td.annotatedResultType.map(term(_, Tpe)(using selfCtx))
+                if newResolution then selfType.foreach(registerSignature)
                 ClassDef(owner, Cls, clsSym, sym, tsym, tps, pss, newOf(td), ObjBody(bod), annotations, comp,
-                  auxCtorParams = auxCtorPss, ctorAnnotations = ctorAnnotations)(statementLoc, headerLoc, ctorLoc)
+                  auxCtorParams = auxCtorPss, ctorAnnotations = ctorAnnotations, selfType = selfType)(statementLoc, headerLoc, ctorLoc)
               clsSym.defn = S(cd)
               cd
         case Trt | Mxn => lastWords(s"Unexpected type definition kind here: $k")
