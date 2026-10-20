@@ -3349,6 +3349,10 @@ extends Importer:
       case TyTup(ps) => tuple(ps)
       case Tup(ps) => tuple(ps)
       case t: syntax.Literal => Literal(t)
+      // Unit is the runtime singleton, independently of any source-level `Unit` binding.
+      case Unt() =>
+        val target = if newResolution then unit else State.runtimeSymbol.ref().synthSel(State.unitSymbol)
+        constructor(target.withLocOf(t), N, t)
       // Negation patterns: `~p`
       case App(Ident("~"), Tup(p :: Nil)) => Negation(go(p))
       // Negative integer and decimal literals.
