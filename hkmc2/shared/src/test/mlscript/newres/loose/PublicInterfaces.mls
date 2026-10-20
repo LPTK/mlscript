@@ -141,6 +141,8 @@ throughType({value: 8})
 //│ ║  l.138: 	fun throughType(x) = identity(x).value
 //│ ║         	                     ^^^^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'value' of a value with unknown shape.
+//│ ║  l.137: 	private fun identity[A](x: A): A = x
+//│ ║         	                               ^
 //│ ╟── Parameter 'x' admits values of unknown shape.
 //│ ║  l.138: 	fun throughType(x) = identity(x).value
 //│ ║         	                ^
@@ -154,14 +156,14 @@ throughType({value: 8})
 fun hole(xs: Array) = xs.0.value
 hole([{value: 9}])
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.154: 	fun hole(xs: Array) = xs.0.value
+//│ ║  l.156: 	fun hole(xs: Array) = xs.0.value
 //│ ║         	                      ^^^^^^^^^^
 //│ ╟── Cannot resolve member 'value' of a value with unknown shape.
 //│ ╟── Parameter 'xs' admits values of unknown shape.
-//│ ║  l.154: 	fun hole(xs: Array) = xs.0.value
+//│ ║  l.156: 	fun hole(xs: Array) = xs.0.value
 //│ ║         	         ^^^^^^^^^
 //│ ╟── 'hole' is exposed by this compilation unit.
-//│ ║  l.154: 	fun hole(xs: Array) = xs.0.value
+//│ ║  l.156: 	fun hole(xs: Array) = xs.0.value
 //│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
@@ -171,17 +173,17 @@ private class Box(val item)
 fun refined(x) = if x is Box(item) then item.value else 0
 refined(Box({value: 10}))
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.171: 	fun refined(x) = if x is Box(item) then item.value else 0
+//│ ║  l.173: 	fun refined(x) = if x is Box(item) then item.value else 0
 //│ ║         	                                        ^^^^^^^^^^
 //│ ╟── Cannot resolve member 'value' of a value with unknown shape.
 //│ ╟── This constructor field may contain a value of unknown shape.
-//│ ║  l.170: 	private class Box(val item)
+//│ ║  l.172: 	private class Box(val item)
 //│ ║         	                      ^^^^
 //│ ╟── Parameter 'x' admits values of unknown shape.
-//│ ║  l.171: 	fun refined(x) = if x is Box(item) then item.value else 0
+//│ ║  l.173: 	fun refined(x) = if x is Box(item) then item.value else 0
 //│ ║         	            ^
 //│ ╟── 'refined' is exposed by this compilation unit.
-//│ ║  l.171: 	fun refined(x) = if x is Box(item) then item.value else 0
+//│ ║  l.173: 	fun refined(x) = if x is Box(item) then item.value else 0
 //│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
@@ -204,14 +206,14 @@ declared(Known)
 fun dynamic(x) = x.value
 dynamic({value: 13} as dyn)
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.204: 	fun dynamic(x) = x.value
+//│ ║  l.206: 	fun dynamic(x) = x.value
 //│ ║         	                 ^^^^^^^
 //│ ╟── Cannot resolve member 'value' of a value with unknown shape.
 //│ ╟── Parameter 'x' admits values of unknown shape.
-//│ ║  l.204: 	fun dynamic(x) = x.value
+//│ ║  l.206: 	fun dynamic(x) = x.value
 //│ ║         	            ^
 //│ ╟── 'dynamic' is exposed by this compilation unit.
-//│ ║  l.204: 	fun dynamic(x) = x.value
+//│ ║  l.206: 	fun dynamic(x) = x.value
 //│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
@@ -220,14 +222,14 @@ dynamic({value: 13} as dyn)
 fun first(xs) = xs.0
 first([14])
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.220: 	fun first(xs) = xs.0
+//│ ║  l.222: 	fun first(xs) = xs.0
 //│ ║         	                ^^^^
 //│ ╟── Cannot resolve member '0' of a value with unknown shape.
 //│ ╟── Parameter 'xs' admits values of unknown shape.
-//│ ║  l.220: 	fun first(xs) = xs.0
+//│ ║  l.222: 	fun first(xs) = xs.0
 //│ ║         	          ^^
 //│ ╟── 'first' is exposed by this compilation unit.
-//│ ║  l.220: 	fun first(xs) = xs.0
+//│ ║  l.222: 	fun first(xs) = xs.0
 //│ ╙──       	^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
@@ -239,14 +241,14 @@ private fun callback(x) = x.value
 callback({value: 15})
 erase(callback)
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.238: 	private fun callback(x) = x.value
+//│ ║  l.240: 	private fun callback(x) = x.value
 //│ ║         	                          ^^^^^^^
 //│ ╟── Cannot resolve member 'value' of a value with unknown shape.
 //│ ╟── Parameter 'x' admits values of unknown shape.
-//│ ║  l.238: 	private fun callback(x) = x.value
+//│ ║  l.240: 	private fun callback(x) = x.value
 //│ ║         	                     ^
 //│ ╟── The available type information comes from this annotation.
-//│ ║  l.237: 	private fun erase(f: Function) = ()
+//│ ║  l.239: 	private fun erase(f: Function) = ()
 //│ ║         	                     ^^^^^^^^
 //│ ╙── The 'Function' type does not specify parameter types.
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.

@@ -66,6 +66,8 @@ call(Item(2))
 //│ ║  l.62: 	fun read(box: Box) = box.item.value
 //│ ║        	                     ^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'value' of a value with unknown shape.
+//│ ║  l.60: 	class Box[T](val item: T)
+//│ ║        	                       ^
 //│ ╟── Parameter 'x' admits values of unknown shape.
 //│ ║  l.61: 	fun make(x): Box = Box(x)
 //│ ║        	         ^

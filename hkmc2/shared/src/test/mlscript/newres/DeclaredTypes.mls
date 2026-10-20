@@ -585,6 +585,8 @@ fun foo[A](x: Box[A]) = x.value.0.oops
 //│ ║  l.583: 	fun foo[A](x: Box[A]) = x.value.0.oops
 //│ ║         	                        ^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'oops' of a value with unknown shape.
+//│ ║  l.582: 	class Box[X](val value: [X, X])
+//│ ║         	                         ^
 //│ ╟── The available type information comes from this annotation.
 //│ ║  l.583: 	fun foo[A](x: Box[A]) = x.value.0.oops
 //│ ║         	                  ^
@@ -600,14 +602,16 @@ class Box[X](val value: [X, X])
 private fun foo[A](x: Box[A]) = x.value.0.oops
 foo[Item](Box[Item]([new Item, new Item]))
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.600: 	private fun foo[A](x: Box[A]) = x.value.0.oops
+//│ ║  l.602: 	private fun foo[A](x: Box[A]) = x.value.0.oops
 //│ ║         	                                ^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'oops' of a value with unknown shape.
+//│ ║  l.601: 	class Box[X](val value: [X, X])
+//│ ║         	                         ^
 //│ ╟── The available type information comes from this annotation.
-//│ ║  l.600: 	private fun foo[A](x: Box[A]) = x.value.0.oops
+//│ ║  l.602: 	private fun foo[A](x: Box[A]) = x.value.0.oops
 //│ ║         	                          ^
 //│ ╟── Type parameter 'A' does not specify the structure of its values.
-//│ ║  l.600: 	private fun foo[A](x: Box[A]) = x.value.0.oops
+//│ ║  l.602: 	private fun foo[A](x: Box[A]) = x.value.0.oops
 //│ ╙──       	                ^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
@@ -617,28 +621,30 @@ class Box[X](val value: [X, X])
 type Wrapped[T] = Box[T]
 fun foo[A](factory: () -> Wrapped[A]) = factory().value.1.oops
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.618: 	fun foo[A](factory: () -> Wrapped[A]) = factory().value.1.oops
+//│ ║  l.622: 	fun foo[A](factory: () -> Wrapped[A]) = factory().value.1.oops
 //│ ║         	                                        ^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'oops' of a value with unknown shape.
+//│ ║  l.620: 	class Box[X](val value: [X, X])
+//│ ║         	                            ^
 //│ ╟── The available type information comes from this annotation.
-//│ ║  l.618: 	fun foo[A](factory: () -> Wrapped[A]) = factory().value.1.oops
+//│ ║  l.622: 	fun foo[A](factory: () -> Wrapped[A]) = factory().value.1.oops
 //│ ║         	                                  ^
 //│ ╟── Type parameter 'A' does not specify the structure of its values.
-//│ ║  l.618: 	fun foo[A](factory: () -> Wrapped[A]) = factory().value.1.oops
+//│ ║  l.622: 	fun foo[A](factory: () -> Wrapped[A]) = factory().value.1.oops
 //│ ╙──       	        ^
 
 // Tuple annotations do not need a nominal receiver to produce an abstract element.
 :ge
 fun foo[A](x: [A, A]) = x.0.oops
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.632: 	fun foo[A](x: [A, A]) = x.0.oops
+//│ ║  l.638: 	fun foo[A](x: [A, A]) = x.0.oops
 //│ ║         	                        ^^^^^^^^
 //│ ╟── Cannot resolve member 'oops' of a value with unknown shape.
 //│ ╟── The available type information comes from this annotation.
-//│ ║  l.632: 	fun foo[A](x: [A, A]) = x.0.oops
+//│ ║  l.638: 	fun foo[A](x: [A, A]) = x.0.oops
 //│ ║         	               ^
 //│ ╟── Type parameter 'A' does not specify the structure of its values.
-//│ ║  l.632: 	fun foo[A](x: [A, A]) = x.0.oops
+//│ ║  l.638: 	fun foo[A](x: [A, A]) = x.0.oops
 //│ ╙──       	        ^
 
 // An unannotated field can be reached through a function result annotation and an alias.
@@ -647,14 +653,14 @@ class Box(val value)
 type Wrapped = Box
 fun foo(factory: () -> Wrapped) = factory().value.oops
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.648: 	fun foo(factory: () -> Wrapped) = factory().value.oops
+//│ ║  l.654: 	fun foo(factory: () -> Wrapped) = factory().value.oops
 //│ ║         	                                  ^^^^^^^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'oops' of a value with unknown shape.
 //│ ╟── Constructor parameter 'value' has no type annotation.
-//│ ║  l.646: 	class Box(val value)
+//│ ║  l.652: 	class Box(val value)
 //│ ║         	          ^^^^^^^^^
 //│ ╟── This type annotation does not provide a type for field 'value'.
-//│ ║  l.648: 	fun foo(factory: () -> Wrapped) = factory().value.oops
+//│ ║  l.654: 	fun foo(factory: () -> Wrapped) = factory().value.oops
 //│ ╙──       	                       ^^^^^^^
 
 // TODO: ascription preserves receiver flow for the selected field's missing type.
@@ -665,14 +671,14 @@ class Item with
 class Box(val value)
 (Box(new Item) as Box).value.oops
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.666: 	(Box(new Item) as Box).value.oops
+//│ ║  l.672: 	(Box(new Item) as Box).value.oops
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'oops' of a value with unknown shape.
 //│ ╟── Constructor parameter 'value' has no type annotation.
-//│ ║  l.665: 	class Box(val value)
+//│ ║  l.671: 	class Box(val value)
 //│ ║         	          ^^^^^^^^^
 //│ ╟── This type annotation does not provide a type for field 'value'.
-//│ ║  l.666: 	(Box(new Item) as Box).value.oops
+//│ ║  l.672: 	(Box(new Item) as Box).value.oops
 //│ ╙──       	                  ^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 //│ ═══[RUNTIME ERROR] Expected: '42', got: 'undefined'
@@ -681,14 +687,14 @@ class Box(val value)
 :ge
 fun foo[A](factory: () -> [A, A]) = factory().0.oops
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.682: 	fun foo[A](factory: () -> [A, A]) = factory().0.oops
+//│ ║  l.688: 	fun foo[A](factory: () -> [A, A]) = factory().0.oops
 //│ ║         	                                    ^^^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'oops' of a value with unknown shape.
 //│ ╟── The available type information comes from this annotation.
-//│ ║  l.682: 	fun foo[A](factory: () -> [A, A]) = factory().0.oops
+//│ ║  l.688: 	fun foo[A](factory: () -> [A, A]) = factory().0.oops
 //│ ║         	                           ^
 //│ ╟── Type parameter 'A' does not specify the structure of its values.
-//│ ║  l.682: 	fun foo[A](factory: () -> [A, A]) = factory().0.oops
+//│ ║  l.688: 	fun foo[A](factory: () -> [A, A]) = factory().0.oops
 //│ ╙──       	        ^
 
 // A concrete annotation supplies the nested member interface without losing tuple precision.
@@ -705,14 +711,16 @@ foo(Box[Item]([new Item, new Item]))
 class Pair[A, B](val value: [A, B])
 fun omittedSecond(x: Pair[Int]) = x.value.1.oops
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.706: 	fun omittedSecond(x: Pair[Int]) = x.value.1.oops
+//│ ║  l.712: 	fun omittedSecond(x: Pair[Int]) = x.value.1.oops
 //│ ║         	                                  ^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'oops' of a value with unknown shape.
+//│ ║  l.711: 	class Pair[A, B](val value: [A, B])
+//│ ║         	                                ^
 //│ ╟── Parameter 'x' admits values of unknown shape.
-//│ ║  l.706: 	fun omittedSecond(x: Pair[Int]) = x.value.1.oops
+//│ ║  l.712: 	fun omittedSecond(x: Pair[Int]) = x.value.1.oops
 //│ ║         	                  ^^^^^^^^^^^^
 //│ ╟── 'omittedSecond' is exposed by this compilation unit.
-//│ ║  l.706: 	fun omittedSecond(x: Pair[Int]) = x.value.1.oops
+//│ ║  l.712: 	fun omittedSecond(x: Pair[Int]) = x.value.1.oops
 //│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 // An unfilled omitted alias argument likewise cannot justify an arbitrary member.
@@ -720,12 +728,14 @@ fun omittedSecond(x: Pair[Int]) = x.value.1.oops
 type HalfPair[T] = Pair[Int, T]
 fun omittedAlias(x: HalfPair) = x.value.1.oops
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.721: 	fun omittedAlias(x: HalfPair) = x.value.1.oops
+//│ ║  l.729: 	fun omittedAlias(x: HalfPair) = x.value.1.oops
 //│ ║         	                                ^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'oops' of a value with unknown shape.
+//│ ║  l.711: 	class Pair[A, B](val value: [A, B])
+//│ ║         	                                ^
 //│ ╟── Parameter 'x' admits values of unknown shape.
-//│ ║  l.721: 	fun omittedAlias(x: HalfPair) = x.value.1.oops
+//│ ║  l.729: 	fun omittedAlias(x: HalfPair) = x.value.1.oops
 //│ ║         	                 ^^^^^^^^^^^
 //│ ╟── 'omittedAlias' is exposed by this compilation unit.
-//│ ║  l.721: 	fun omittedAlias(x: HalfPair) = x.value.1.oops
+//│ ║  l.729: 	fun omittedAlias(x: HalfPair) = x.value.1.oops
 //│ ╙──       	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -608,7 +608,7 @@ final class RecordTypeShape(val fields: Map[Str, DeclaredType])(
   * Operations obtain concrete member/call views through listenInstanceViews.
   */
 final class InstanceShape private (val tpe: DeclaredType, canonical: Opt[InstanceShape]) extends CoreHeadShape:
-  /** Diagnostic views share the origin-free reference's inference identity. */
+  /** Diagnostic views share the witness-free reference's inference identity. */
   private[semantics] def candidateIdentity: InstanceShape = canonical.getOrElse(this)
   def describe: Str = "value with a declared type"
   override def toString: Str = s"InstanceShape($tpe)"
@@ -626,14 +626,14 @@ object InstanceShape:
     * immutable view: otherwise observing the same type through another annotation
     * reports the first annotation's location. Witness wrappers are not interned;
     * retaining them in a cache would duplicate entries for the same semantic
-    * value. All views share the origin-free reference's candidate identity,
+    * value. All views share the witness-free reference's candidate identity,
     * so diagnostic evidence cannot multiply inference flow.
     */
   def apply(tpe: DeclaredType)(resolver: NewResolver)(using state: ResolutionContext): InstanceShape =
     val projected = resolver.projectType(tpe)
-    val semanticType = projected.withoutOrigin
+    val semanticType = projected.withoutWitnesses
     val canonical = state.canonicalInstance(semanticType)(new InstanceShape(semanticType, N))
-    if projected.origin.isEmpty then canonical
+    if projected.origin.isEmpty && projected.useSite.isEmpty then canonical
     else new InstanceShape(projected, S(canonical))
 
 /** A deferred value view: interpret references in the shared `source` using
@@ -953,30 +953,36 @@ object DynShape:
   * Discovery retains one witness per reached shape to bound recursive paths.
   */
 final class ShapeProvenance private (path: => Ls[(Message, Opt[Loc])], notes: => Ls[(Message, Opt[Loc])],
-    typeOrigin: Opt[Located]):
+    typeOrigin: Opt[Located], typeUse: Opt[Located]):
   private lazy val pathNotes = path
   private lazy val originNotes = notes
-  /** The enclosing resolution error locates the failed operation. An annotation
-    * explains its type information separately: it may describe a container whose
-    * components were inferred later, so placing the operation's message there
-    * would wrongly attribute a component's missing member to the container type.
-    * Keep the path to that annotation and the explanation of its interface.
+  /** The enclosing resolution error locates the failed operation; its explanation
+    * can point to the observed value's type. The original input annotation may
+    * instead describe a container whose components were inferred later. Keep it
+    * separate so a component's missing member is not attributed to the container.
+    * If both witnesses coincide, show the annotation only in the origin note.
     */
   def diagnostic(message: Message, fallback: Opt[Loc]): Ls[(Message, Opt[Loc])] = typeOrigin match
-    case S(source) => (message -> N) :: pathNotes :::
+    case S(source) => (message -> typeUse.flatMap(_.toLoc).filterNot(source.toLoc.contains)) :: pathNotes :::
       (msg"The available type information comes from this annotation." -> source.toLoc.orElse(fallback)) :: originNotes
-    case N => (message -> fallback) :: pathNotes ::: originNotes
+    case N => (message -> typeUse.flatMap(_.toLoc).orElse(fallback)) :: pathNotes ::: originNotes
   def via(note: => (Message, Opt[Loc])): ShapeProvenance =
-    new ShapeProvenance(note :: pathNotes, originNotes, typeOrigin)
+    new ShapeProvenance(note :: pathNotes, originNotes, typeOrigin, N)
+  /** Locate the type of the observed value, independently of the original input.
+    * A projection starts a different value, so via clears this witness until that
+    * component is observed through its own declared type.
+    */
+  def atTypeUse(source: Located): ShapeProvenance =
+    new ShapeProvenance(pathNotes, originNotes, typeOrigin, S(source))
   /** Keep the annotation providing this interface separate from the path through
     * parameters, returns, and storage that led to the observation. Besides written
     * types, an async annotation provides the Promise interface of its result.
     */
   def withTypeOrigin(source: Located): ShapeProvenance =
-    new ShapeProvenance(pathNotes, originNotes, S(source))
+    new ShapeProvenance(pathNotes, originNotes, S(source), typeUse)
 
 object ShapeProvenance:
-  def apply(notes: => Ls[(Message, Opt[Loc])]): ShapeProvenance = new ShapeProvenance(Nil, notes, N)
+  def apply(notes: => Ls[(Message, Opt[Loc])]): ShapeProvenance = new ShapeProvenance(Nil, notes, N, N)
   val empty = ShapeProvenance(Nil)
 
 /** An unknown input or the element of an opaque or widened spread can be any

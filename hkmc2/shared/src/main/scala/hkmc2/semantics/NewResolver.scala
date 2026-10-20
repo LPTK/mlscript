@@ -527,7 +527,7 @@ class NewResolver:
     withTypeDependencies(tpe.resolution): binders =>
       if regularType(tpe.resolution) then
         listener(declaredType(tpe.resolution, tpe.bindings.filter((symbol, _) => binders(symbol)), tpe.positive)
-          .instantiate(tpe.instances).withOrigin(tpe.origin))
+          .instantiate(tpe.instances).withOrigin(tpe.origin).withUseSite(tpe.useSite))
 
   /** Discover binders without normalizing the type. Parent annotations must
     * receive their bindings at the original lexical endpoint: normalization
@@ -582,7 +582,8 @@ class NewResolver:
           case L(_) => bindings
         DeclaredType(resolution, relevant, TypeSubstitution.empty, positive)(N)
       resolution.currentShapes.toList match
-        case TypeShape.Parameter(symbol, _) :: Nil if bindings.contains(symbol) => selectArgument(bindings(symbol), positive)
+        case TypeShape.Parameter(symbol, _) :: Nil =>
+          bindings.get(symbol).fold(retain)(selectArgument(_, positive)).withUseSite(S(resolution.source))
         case (reference: TypeShape.Reference) :: Nil =>
           transportType(loop(reference.base, bindings ++ reference.bindings, aliases, positive)
             .instantiate(reference.instances), reference.marks)
@@ -1296,14 +1297,17 @@ class NewResolver:
     * observation separately and retain the choice through deferred references.
     */
   private def listenTypeViews(tpe: DeclaredType, mergeIntersections: Bool)(listener: Listener)(using ResolutionContext): Unit =
-    // Equal types can be observed through different input-only arguments. Reuse
-    // their semantic host, but report this observation's witness rather than the
-    // parameter declaration retained by the host's first subscriber.
+    // Equal types can be observed through different input-only arguments or
+    // written parameter occurrences. Reuse their semantic host, but report this
+    // observation's witnesses rather than the host's first subscriber's locations.
     def observe(shape: TermShape)(using ResolutionContext): Unit =
       val origin = tpe.origin.orElse:
         if tpe.resolution.currentShapes.exists(_ == TypeShape.Top) then S(TypeInterfaceReason.Unrestricted(tpe.resolution.source)) else N
-      (shape, origin) match
-        case (Marked(opaque: OpaqueTypeShape, marks), S(reason)) => listener(Marked(OpaqueTypeShape(opaque.source)(reason), marks))
+      (shape, origin, tpe.useSite) match
+        case (Marked(unknown: UnknownValueShape, marks), _, S(source)) =>
+          listener(Marked(UnknownValueShape(unknown.source, unknown.fromPublicInterface)(
+            unknown.provenance.atTypeUse(source)), marks))
+        case (Marked(opaque: OpaqueTypeShape, marks), S(reason), _) => listener(Marked(OpaqueTypeShape(opaque.source)(reason), marks))
         case _ => listener(shape)
     val key = (tpe, mergeIntersections)
     typeViews.get(key) match
@@ -1625,14 +1629,14 @@ class NewResolver:
     // The nested trace shows the carrier standing in for `base` (see markCarrier).
     trace[DeclaredType](s"transportType ${base.resolution.showDbg} (previous = ${previous.map(_.showDbg)}, marks = ${marks.map(_.showDbg)})"):
       markCarrier.exit(previous).exit(marks) match
-        case Marked(_, NoMarks) => base
+        case Marked(_, NoMarks) => base.withUseSite(bound.useSite)
         case Marked(_, path: SomeMarks) =>
           val reference = ContextualType(base, path :: Nil)
           rctx.state.contextualTypes.getOrElseUpdate(reference, {
             val resolution = new TypeResolution(base.resolution.source, base.resolution.fail)
             resolution.publish(TypeShape.Contextual(reference))
             declaredType(resolution, Map.empty)
-          }).withOrigin(base.origin)
+          }).withOrigin(base.origin).withUseSite(bound.useSite)
         case NoShape => extremeType(false)
 
   private def inverseMarks(marks: Ls[Marks])(using ResolutionContext): Ls[Marks] =

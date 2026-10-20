@@ -245,7 +245,7 @@ final class TypeResolution(val source: Term, report: Ls[(Message, Opt[Loc])] => 
   * direction of a constraint subsequently applied to the interpreted type.
   */
 final class DeclaredType private (private[semantics] val reference: DeclaredType.Reference,
-    val bindings: Map[VarSymbol, DeclaredType])(val origin: Opt[TypeInterfaceReason]) extends ValueKey:
+    val bindings: Map[VarSymbol, DeclaredType])(val origin: Opt[TypeInterfaceReason], val useSite: Opt[Term]) extends ValueKey:
   def resolution: TypeResolution = reference.resolution
   def instances: TypeSubstitution = reference.instances
   def positive: Bool = reference.positive
@@ -261,7 +261,14 @@ final class DeclaredType private (private[semantics] val reference: DeclaredType
     * make a later error report the first observation's annotation instead.
     */
   def withOrigin(witness: Opt[TypeInterfaceReason]): DeclaredType =
-    if witness.isEmpty then this else new DeclaredType(reference, bindings)(witness)
+    if witness.isEmpty then this else new DeclaredType(reference, bindings)(witness, useSite)
+
+  /** Substitution may replace a written parameter occurrence with its argument.
+    * Retain that occurrence for diagnostics without changing the semantic reference
+    * or replacing the annotation that originally supplied the argument's interface.
+    */
+  def withUseSite(source: Opt[Term]): DeclaredType =
+    if source.isEmpty then this else new DeclaredType(reference, bindings)(origin, source)
 
   /** Instantiation changes references to source binders, never expands their bounds.
     * A reference already interpreted in another call retains that interpretation.
@@ -271,13 +278,13 @@ final class DeclaredType private (private[semantics] val reference: DeclaredType
     withInstances(substitution.withOverrides(instances))
 
   def withInstances(substitution: TypeSubstitution)(using ResolutionContext): DeclaredType =
-    if substitution == instances then this else DeclaredType(resolution, bindings, substitution, positive)(origin)
+    if substitution == instances then this else DeclaredType(resolution, bindings, substitution, positive)(origin).withUseSite(useSite)
   def withPolarity(polarity: Bool)(using ResolutionContext): DeclaredType =
-    if polarity == positive then this else DeclaredType(resolution, bindings, instances, polarity)(origin)
+    if polarity == positive then this else DeclaredType(resolution, bindings, instances, polarity)(origin).withUseSite(useSite)
   def withoutBinders(symbols: Iterable[VarSymbol])(using ResolutionContext): DeclaredType =
-    DeclaredType(resolution, bindings -- symbols, instances.without(symbols), positive)(origin)
-  def withoutOrigin: DeclaredType =
-    if origin.isEmpty then this else new DeclaredType(reference, bindings)(N)
+    DeclaredType(resolution, bindings -- symbols, instances.without(symbols), positive)(origin).withUseSite(useSite)
+  def withoutWitnesses: DeclaredType =
+    if origin.isEmpty && useSite.isEmpty then this else new DeclaredType(reference, bindings)(N, N)
 
 object DeclaredType:
   /** Binding data reuses the immutable map supplied by the caller. Only references
@@ -323,7 +330,7 @@ object DeclaredType:
         positive: Bool): Reference =
       val localValues = if values.valuesIterator.forall(_.reference.pool eq this) then values else
         values.map: (symbol, tpe) =>
-          symbol -> new DeclaredType(local(tpe.reference), tpe.bindings)(tpe.origin)
+          symbol -> new DeclaredType(local(tpe.reference), tpe.bindings)(tpe.origin, tpe.useSite)
       val canonical = if localValues.isEmpty then emptyBindings else
         val binding = new Bindings(localValues)
         bindings.getOrElseUpdate(binding, binding)
@@ -333,7 +340,7 @@ object DeclaredType:
 
   def apply(resolution: TypeResolution, bindings: Map[VarSymbol, DeclaredType],
       instances: TypeSubstitution, positive: Bool)(origin: Opt[TypeInterfaceReason])(using ResolutionContext): DeclaredType =
-    new DeclaredType(rctx.state.typeReferences(resolution, bindings, instances, positive), bindings)(origin)
+    new DeclaredType(rctx.state.typeReferences(resolution, bindings, instances, positive), bindings)(origin, N)
 
   /** Most comparisons stop at reference identity or canonical binding identity.
     * Separate units may retain equivalent DAGs: use a worklist for that boundary,
