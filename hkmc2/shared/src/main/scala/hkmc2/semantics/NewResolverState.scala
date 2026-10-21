@@ -9,6 +9,11 @@ import Term.*
 inline def rctx(using context: ResolutionContext): ResolutionContext = context
 
 object NewResolverState:
+  /** These endpoints live in the handler method's lexical scope. The operation
+    * returns the resumption's input; the resumption returns the continued body's
+    * result. The lambda is an inference model, never an emitted runtime closure. */
+  final case class HandlerMethodFlow(input: SimpleRef, output: VarSymbol, continuation: Lam)
+
   /** Tables belong to a compilation unit; a context only selects a namespace.
     * An inherited lookup is read-only. Mutable values are copied into the
     * consumer's table before use, so extending an imported graph cannot change
@@ -145,6 +150,12 @@ final class NewResolverState(val owner: Elaborator.State):
   // identity so imported listeners use the consumer's private publisher data.
   val byNameResults: Cache[(TermSymbol, TypeSubstitution), ShapeHost] =
     new Cache(_.byNameResults, identity)
+  val handlerMethods: Cache[TermSymbol, NewResolverState.HandlerMethodFlow] =
+    new Cache(_.handlerMethods, identity)
+  val handlerResults: Cache[Identity[Handle], ShapeHost] =
+    new Cache(_.handlerResults, identity)
+  val resolvedHandlers: Seen[(Identity[Handle], TypeSubstitution)] =
+    new Seen(_.resolvedHandlers)
   // Async payloads are deferred type edges, not snapshots of the body's current
   // candidates. Register each host before following recursive function results.
   val resultTypes: Cache[(Identity[Term], TypeSubstitution), DeclaredType] =

@@ -1,0 +1,34 @@
+:.
+:lift
+
+// A lifted subclass must be defined after its source superclass is initialized.
+:expect 42
+class Base with
+  fun answer() = 42
+fun derived() =
+  class Derived extends Base
+  new Derived
+derived().answer()
+//│ = 42
+
+// The dependency propagates through chains of lifted subclasses.
+:expect 17
+class Root with
+  fun answer() = 17
+fun chain() =
+  class Middle extends Root
+  class Leaf extends Middle
+  new Leaf
+chain().answer()
+//│ = 17
+
+// A selected superclass depends on its containing module's initialization.
+:expect 23
+module Parents with
+  class Base with
+    fun answer() = 23
+fun qualified() =
+  class Derived extends Parents.Base
+  new Derived
+qualified().answer()
+//│ = 23

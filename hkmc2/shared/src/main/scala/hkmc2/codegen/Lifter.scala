@@ -1455,6 +1455,75 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     
   val usedVars = UsedVarAnalyzer(topLevelBlk, data)
   
+  /** A lifted class evaluates its superclass when it is defined. Its methods and
+    * constructor can be hoisted past their dependencies, but its superclass cannot.
+    * Keep source definitions at their original initialization points and place
+    * lifted subclasses after the source class/module that supplies their parent.
+    * Parent chains of lifted classes inherit that same placement constraint. */
+  private def placeLiftedDefinitions(body: Block, definitions: Ls[Defn]): Block =
+    val sourceDefinitions = body.gatherDefns()
+    val anchors = sourceDefinitions.collect:
+      case cls: ClsLikeDefn => cls.sym
+    .toSet
+    // Module members use a lexical `this`, whose ordinary freeVars is empty.
+    // Their containing module must nevertheless exist before a lifted class
+    // can evaluate a parent such as `this.Effect` at the top level.
+    val receivers: Map[InnerSymbol, BlockMemberSymbol] = (sourceDefinitions ::: definitions).flatMap:
+      case cls: ClsLikeDefn => (cls.isym -> cls.sym) :: cls.companion.toList.map(_.isym -> cls.sym)
+      case _ => Nil
+    .toMap
+    def outsideReceiver(path: Path): Path = path match
+      case ref @ Value.This(module: ModuleOrObjectSymbol) if module.asMod.isDefined =>
+        receivers.get(module).fold(path)(_.asMemberRef(module).withLocOf(ref))
+      case selection @ Select(qualifier, name) =>
+        val receiver = outsideReceiver(qualifier)
+        if receiver is qualifier then selection
+        else selection.copy(qual = receiver)(selection.symbol, selection.toLoc)(selection.sanitize)
+      case _ => path
+    val lifted = definitions.mapConserve:
+      case cls: ClsLikeDefn =>
+        // A module's lexical self-name is only in scope inside its class body.
+        // The lifted parent must read the module's surrounding binding instead.
+        val parent = cls.parentPath.mapConserve(outsideReceiver)
+        if parent is cls.parentPath then cls else cls.copy(parentPath = parent)(cls.configOverride, cls.annotations)
+      case definition => definition
+    val classes = lifted.collect { case cls: ClsLikeDefn => cls.sym -> cls }.toMap
+    def parentDependencies(path: Path): Set[BlockMemberSymbol] = path match
+      case Value.This(symbol) => receivers.get(symbol).toSet
+      case Select(qualifier, _) => parentDependencies(qualifier)
+      case _ => path.freeVars.collect { case symbol: BlockMemberSymbol => symbol }
+    def dependencies(definition: Defn): Set[BlockMemberSymbol] = definition match
+      case cls: ClsLikeDefn => cls.parentPath.toSet.flatMap(parentDependencies)
+      case _ => Set.empty
+    val ordered = ListBuffer.empty[Defn]
+    val visited = MutSet.empty[Identity[Defn]]
+    val active = MutSet.empty[Identity[Defn]]
+    val placement = MutMap.empty[Identity[Defn], Opt[BlockMemberSymbol]]
+    def visit(definition: Defn): Unit = if !visited(Identity(definition)) then
+      val key = Identity(definition)
+      assert(active.add(key), "Lifted classes must not have cyclic superclass dependencies")
+      val parents = dependencies(definition)
+      parents.toList.sortBy(_.uid).foreach(parent => classes.get(parent).foreach(visit))
+      val required = parents.flatMap: parent =>
+        if anchors(parent) then S(parent) else classes.get(parent).flatMap(cls => placement(Identity(cls)))
+      // Liftable superclass paths are a static member reference or a selection
+      // rooted in one class/module. Computed parent expressions remain in place.
+      assert(required.size <= 1, "A lifted superclass path must have at most one initialization anchor")
+      placement(key) = required.headOption
+      active -= key
+      visited += key
+      ordered += definition
+    lifted.foreach(visit)
+    val groups = ordered.toList.groupBy(definition => placement(Identity(definition)))
+    def prepend(definitions: Ls[Defn], rest: Block): Block =
+      definitions.foldRight(rest)((definition, tail) => Define(definition, tail))
+    val insert = new BlockTransformerShallow(SymbolSubst.Id):
+      override def applyBlock(block: Block): Block = block match
+        case Define(definition: ClsLikeDefn, rest) if anchors(definition.sym) =>
+          Define(definition, prepend(groups.getOrElse(S(definition.sym), Nil), applySubBlock(rest)))
+        case _ => super.applyBlock(block)
+    prepend(groups.getOrElse(N, Nil), insert.applyBlock(body))
+  
   def transform =
     given ctx: LifterCtxNew = new LifterCtxNew
     val root = data.root
@@ -1472,6 +1541,5 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
     
     val transformed = topLevelRewriter.applyBlock(top)
     val newSyms = syms ++ topLevelRewriter.extraDefns.map(_.sym)
-    val withDefns = topLevelRewriter.extraDefns.foldLeft(transformed):
-      case (acc, d) => Define(d, acc)
+    val withDefns = placeLiftedDefinitions(transformed, topLevelRewriter.extraDefns.toList.reverse)
     Scoped(newSyms, withDefns)

@@ -102,9 +102,9 @@ ambiguous(true).answer
 //│ ║  l.100: 	ambiguous(true).answer
 //│ ║         	^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── target: record field 'answer'
-//│ ║  l.97: 	  let escape = => return {answer: 42}
-//│ ║        	                          ^^^^^^
-//│ ╟── target: record field 'answer'
 //│ ║  l.99: 	  {answer: 0}
-//│ ╙──      	   ^^^^^^
+//│ ║        	   ^^^^^^
+//│ ╟── target: record field 'answer'
+//│ ║  l.97: 	  let escape = => return {answer: 42}
+//│ ╙──      	                          ^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.

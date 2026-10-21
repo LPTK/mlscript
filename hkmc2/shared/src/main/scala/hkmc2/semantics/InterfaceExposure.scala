@@ -156,7 +156,9 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
               case _ => ()
             members(cls, marks, path)
           case N => ds.defn match
-            case td: TermDefinition => td.body.foreach(result(_, resolver.resultSignature(td), marks, path))
+            case td: TermDefinition => resolver.handlerResumptionResult(td) match
+              case S(input) => term(input, marks, path)
+              case N => td.body.foreach(result(_, resolver.resultSignature(td), marks, path))
             case _ => ()
       case _: DefnShape => () // Imported definitions were checked before publication.
       case intro: IntroShape => intro.trm match

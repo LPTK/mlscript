@@ -1,0 +1,14 @@
+#lang(0.3.x, strictResolution: true)
+#config(effectHandlers: Some(EffectHandlers()), liftDefns: Some(LiftDefns))
+
+module HandlerLibrary with
+  abstract class ValueEffect with
+    fun perform(value)
+  fun result[A](value: A) =
+    handle h = ValueEffect with
+      fun perform(arg)(resume) = resume([arg])
+    h.perform(value)
+  fun factory[A](value: A) =
+    handle h = ValueEffect with
+      fun perform(arg)(resume) = resume(() => arg)
+    h.perform(value)

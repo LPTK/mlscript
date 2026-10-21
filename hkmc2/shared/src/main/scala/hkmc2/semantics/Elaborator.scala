@@ -962,14 +962,15 @@ extends Importer:
         Nil,
         N,
       )(N, N, N)
+      registerHandlerMethod(td, resumeSym)
       mtdSym.tsym = S(tsym)
       tsym.defn = S(td)
       mtdSym.complete()
       HandlerTermDefinition(resumeSym, td)
     clsSym.defn = S(ClassDef.Plain(ctx.getOuter, Cls, clsSym, BlockMemberSymbol(effectClassName, Nil), Nil, N,
       ObjBody(Blk(htds.map(_.td), unit)), N, Nil, Nil, N, ctorAnnotations = Nil)(body.toLoc, body.toLoc, N))
-    val handle = new Term.Handle(handlerSymbol, state.nonLocalRetHandlerTrm, Nil, clsSym, htds, body)(isAbortive = true)
-    if newResolution then resolveAbortiveHandler(handle)
+    val handle = new Term.Handle(handlerSymbol, state.nonLocalRetHandlerTrm, Nil, clsSym, htds, body)
+    if newResolution then resolveHandler(handle)
     handle
   
   /** Build a non-local effect invocation on `handlerSymbol`. */
@@ -1634,36 +1635,38 @@ extends Importer:
       
       val derivedClsSym = ClassSymbol(Tree.DummyTypeDef(syntax.Cls), Tree.Ident(s"Handler$$${id.name}$$"))
       recordDefinitionScope(derivedClsSym)
-      derivedClsSym.defn = S(ClassDef(
-        N, syntax.Cls, derivedClsSym,
-        BlockMemberSymbol(derivedClsSym.name, Nil), N,
-        Nil, Nil, N, ObjBody(Blk(Nil, Term.Lit(Tree.UnitLit(false)))), Nil, N, auxCtorParams = Nil, ctorAnnotations = Nil)(
-          // The header of the handler class is `handle id = c`, without the handler definitions and body.
-          hd.toLoc, hd.toLoc.map(_.left ++ Loc(id, c)), N))
+      val methods = mutable.ListBuffer.empty[HandlerTermDefinition]
+      // Remove the implementation's resumption parameter before publishing its
+      // definition. Calls on the handler instance supply only the operation's
+      // parameters; the runtime supplies the resumption separately.
+      def handlerMethod(td: TermDefinition): TermDefinition = td match
+        case _ if td.body.isEmpty && td.sym.trmImplTree.nonEmpty => td // The separate signature precedes its implementation.
+        case TermDefinition(Fun, sym, tsym, params, tparams, sign, body, flags, mf, annotations, comp) =>
+          params.reverse match
+            case ParamList(_, value :: Nil, N) :: newParams =>
+              if newParams.isEmpty then
+                raise(ErrorReport(msg"Handler function cannot be a getter" -> td.toLoc :: Nil))
+              val method = TermDefinition(Fun, sym, tsym, newParams.reverse, tparams, sign, body,
+                flags.copy(hasResumptionParam = true), mf, annotations, comp)(
+                td.toLoc, td.headerLoc, td.scope)
+              methods += HandlerTermDefinition(value.sym, method)
+              registerHandlerMethod(method, value.sym)
+              method
+            case _ =>
+              raise(ErrorReport(msg"Handler function is missing resumption parameter" -> td.toLoc :: Nil))
+              td
+        case _ => td
       
       val elabed = ctx.nestInner(derivedClsSym).givenIn:
-        block(sts_, hasResult = false)._1
+        block(new Block(sts_), false, Trm, handlerMethod)._1
       
       elabed.res match
       case Term.Lit(UnitLit(false)) =>
       case trm => raise(WarningReport(msg"Terms in handler block do nothing" -> trm.toLoc :: Nil))
       
-      val tds = elabed.stats.map {
-          case td @ TermDefinition(Fun, sym, tsym, params, tparams, sign, body, flags, mf, annotations, comp) =>
-            params.reverse match
-              case ParamList(_, value :: Nil, _) :: newParams =>
-                if newParams.isEmpty then
-                  raise(ErrorReport(msg"Handler function cannot be a getter" -> td.toLoc :: Nil))
-                val newTd = TermDefinition(Fun, sym, tsym, newParams.reverse, tparams, sign, body, flags, mf, annotations, comp)(td.toLoc, td.headerLoc, td.scope)
-                S(HandlerTermDefinition(value.sym, newTd))
-              case _ =>
-                raise(ErrorReport(msg"Handler function is missing resumption parameter" -> td.toLoc :: Nil))
-                None
-              
-          case st =>
-            raise(ErrorReport(msg"Only function definitions are allowed in handler blocks" -> st.toLoc :: Nil))
-            None
-        }.collect { case Some(x) => x }
+      elabed.stats.foreach:
+        case td: TermDefinition if td.k is Fun => ()
+        case st => raise(ErrorReport(msg"Only function definitions are allowed in handler blocks" -> st.toLoc :: Nil))
       
       val (cp, p) = c match
         case App(c, Tup(params)) =>
@@ -1671,8 +1674,24 @@ extends Importer:
         case c =>
           (subterm(c, Clss), Nil)
       
+      // Like an anonymous refinement, the handler inherits a constructed parent.
+      // Its class and constructor arguments are written outside the new class.
+      def captured(term: Term): Term = if newResolution then Term.Capture(term, derivedClsSym) else term
+      val parentArgs = Term.Tup(p.map(arg => Fld(FldFlags.empty, arg, N)))(new Tup(Nil).withLocOf(c))
+      val parent = withTypeBinders(new Term.New(captured(cp), captured(parentArgs) :: Nil, N)(FlowSymbol.neww(), N).withLocOf(c))
+      if newResolution then
+        rctx.recordAccessSite(parent, ctx.scope)
+        resolveNew(parent)
+      val definition = ClassDef.Plain(ctx.getOuter, syntax.Cls, derivedClsSym,
+        BlockMemberSymbol(derivedClsSym.name, Nil), Nil, S(parent), ObjBody(Blk(methods.toList.map(_.td), unit)),
+        N, Nil, Nil, N, ctorAnnotations = Nil)(hd.toLoc, hd.toLoc.map(_.left ++ Loc(id, c)), N)
+      derivedClsSym.defn = S(definition)
+      registerInheritance(definition)
+      
       (ctx + (id.name -> sym)).givenIn:
-        Term.Handle(sym, cp, p, derivedClsSym, tds, subterm(bod, interp))(isAbortive = false)
+        val handle = new Term.Handle(sym, cp, p, derivedClsSym, methods.toList, subterm(bod, interp))
+        if newResolution then resolveHandler(handle)
+        handle
     case h: Hndl =>
       raise(ErrorReport(
         msg"Unsupported handle binding shape" ->
@@ -2210,7 +2229,11 @@ extends Importer:
     block(new Block(sts), hasResult, Trm)
   
   def block(blk: Block, hasResult: Bool, resultInterp: Interpretation)(using UnderCtx): Ctxl[(Blk, Ctx)] =
-    blockOrRcd(blk, hasResult, resultInterp) match
+    block(blk, hasResult, resultInterp, identity)
+  
+  private def block(blk: Block, hasResult: Bool, resultInterp: Interpretation,
+      finishDefinition: TermDefinition => TermDefinition)(using UnderCtx): Ctxl[(Blk, Ctx)] =
+    blockOrRcd(blk, hasResult, resultInterp, finishDefinition) match
     case (blk: Blk, ctx) => (blk, ctx)
     case (rcd: Rcd, ctx) => (Blk(Nil, rcd), ctx)
   
@@ -2233,6 +2256,13 @@ extends Importer:
   // * when there is no other result available. This is fine since the value is never used.
   // * These useless trailing `undefined`s are then removed by `Lowering`.
   def blockOrRcd(blk: Block, hasResult: Bool, resultInterp: Interpretation)(using UnderCtx)
+    : Ctxl[(Blk | Rcd, Ctx)] = blockOrRcd(blk, hasResult, resultInterp, identity)
+  
+  /** Finalize immediate definitions before publishing their symbols. Handler
+    * methods use this to separate operation parameters from the resumption;
+    * nested blocks retain their own ordinary definition convention. */
+  private def blockOrRcd(blk: Block, hasResult: Bool, resultInterp: Interpretation,
+      finishDefinition: TermDefinition => TermDefinition)(using UnderCtx)
     : Ctxl[(Blk | Rcd, Ctx)]
     = trace[(Blk | Rcd, Ctx)](
         pre = dbg"Elab block ${blk.desugStmts.showAsPlain.truncate(100, "[...]")} ${ctx.outer}", r => s"~> ${r._1.showDbg}"
@@ -2644,9 +2674,9 @@ extends Importer:
               
               // Retain the source signature's meaning; Erasure decides which arrows are physical parameters.
               if newResolution then s.foreach(registerSignature)
-              val tdf = TermDefinition(k, sym, tsym, pss, tps, s, body, 
+              val tdf = finishDefinition(TermDefinition(k, sym, tsym, pss, tps, s, body, 
                 TermDefFlags.empty.copy(isMethod = isMethod, hasResultAnnotation = td.annotatedResultType.isDefined), mfn, annotations, N)(
-                statementLoc, definitionHeaderLoc(td, annotations, statementLoc), S(bindingScope))
+                statementLoc, definitionHeaderLoc(td, annotations, statementLoc), S(bindingScope)))
               sym.tsym = S(tsym)
               tsym.defn = S(tdf)
               if newResolution then checkDeclaredResult(tdf)

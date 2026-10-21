@@ -2,33 +2,181 @@
 :lift
 :effectHandlers
 
-// FIXME: The handler receiver and its result need shape propagation. This
-// handler aborts: its record, not the rest of the handled body, is the result.
-:fixme
+// Both normal completion and abortive handler results contribute shapes.
 :expect 42
 abstract class AnswerEffect with
   fun answer()
+fun makeAnswer(value) = {answer: value}
 fun handled() =
+  handle h = AnswerEffect with
+    fun answer()(resume) = makeAnswer(42)
+  h.answer()
+  makeAnswer(0)
+handled().answer
+//│ = 42
+
+// The operation receives the resumed payload; the handler receives the
+// continuation's answer and can inspect it before returning a new answer.
+:expect 43
+abstract class ValueEffect with
+  fun perform(value)
+fun resumed(value) =
+  handle h = ValueEffect with
+    fun perform(arg)(resume) =
+      let result = resume({payload: arg})
+      makeAnswer(result.answer + 1)
+  makeAnswer(h.perform(value).payload)
+resumed(42).answer
+//│ = 43
+
+// Passing the continuation through another function retains both flow directions.
+:expect 42
+private fun forward(resume, value) = resume(value)
+fun forwarded(value) =
+  handle h = ValueEffect with
+    fun perform(arg)(resume) = forward(resume, [arg])
+  [h.perform(value).0]
+forwarded(42).0
+//│ = 42
+
+// Generic activations must not mix their payloads.
+:expect [42, 5]
+fun generic[A](value: A) =
+  handle h = ValueEffect with
+    fun perform(arg)(resume) = resume([arg])
+  [h.perform(value).0]
+[generic[Int](42).0, generic[Str]("hello").0.length]
+//│ = [42, 5]
+
+// The constructor supplies inherited state and methods to the handler.
+:expect 42
+data abstract class BasedEffect(seed) with
+  fun perform()
+  fun initial() = seed
+fun based(value) =
+  handle h = BasedEffect(value) with
+    fun perform()(resume) = resume([this.initial()])
+  h.perform()
+based(42).0
+//│ = 42
+
+// Missing resumption arguments are allowed, like the runtime's unary callback.
+:expect 42
+fun noValue() =
+  handle h = AnswerEffect with
+    fun answer()(resume) = resume()
+  h.answer()
+  [42]
+noValue().0
+//│ = 42
+
+// Resumptions and payloads can be captured by local classes.
+:expect 42
+fun captured(value) =
+  handle h = ValueEffect with
+    fun perform(arg)(resume) =
+      class Worker with
+        fun run() = resume([arg])
+      (new Worker).run()
+  h.perform(value)
+captured(42).0
+//│ = 42
+
+// One handler implementation can invoke an enclosing handler.
+:expect 42
+fun nested(value) =
+  handle h = ValueEffect with
+    fun perform(arg)(resume) = resume([arg])
+  handle g = ValueEffect with
+    fun perform(arg)(resume) = resume(h.perform(arg))
+  [g.perform(value).0]
+nested(42).0
+//│ = 42
+
+// Operation parameter lists remain distinct from the runtime's resumption list.
+:expect 42
+abstract class CurriedEffect with
+  fun combine(first)(second)
+fun curried() =
+  handle h = CurriedEffect with
+    fun combine(first)(second)(resume) = resume([first + second])
+  h.combine(20)(22)
+curried().0
+//│ = 42
+
+import "../../mlscript-compile/HandlerLibrary.mls"
+
+:expect [42, 5, 17, 3]
+[HandlerLibrary.result[Int](42).0, HandlerLibrary.result[Str]("hello").0.length,
+ HandlerLibrary.factory[Int](17)(), HandlerLibrary.factory[Str]("abc")().length]
+//│ = [42, 5, 17, 3]
+
+// Both the handled body and replacement handler results remain reachable.
+:e
+fun ambiguousHandler() =
   handle h = AnswerEffect with
     fun answer()(resume) = {answer: 42}
   h.answer()
   {answer: 0}
-handled().answer
-//│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.16: 	handled().answer
-//│ ║        	^^^^^^^^^^^^^^^^
-//│ ╟── Cannot resolve member 'answer' of a value with unknown shape.
-//│ ╟── An effect handler can replace the handled body's result.
-//│ ║  l.12: 	  handle h = AnswerEffect with
-//│ ║        	             ^^^^^^^^^^^^^^^^^
-//│ ║  l.13: 	    fun answer()(resume) = {answer: 42}
-//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ║  l.14: 	  h.answer()
-//│ ║        	^^^^^^^^^^^^
-//│ ║  l.15: 	  {answer: 0}
-//│ ╙──      	^^^^^^^^^^^^
-//│ ╔══[COMPILATION ERROR] Member reference 'AnswerEffect' has no resolved target
-//│ ║  l.12: 	  handle h = AnswerEffect with
-//│ ╙──      	             ^^^^^^^^^^^^
+ambiguousHandler().answer
+//│ ╔══[COMPILATION ERROR] This selection of member 'answer' is ambiguous, as it has multiple resolved targets
+//│ ║  l.121: 	ambiguousHandler().answer
+//│ ║         	^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── target: record field 'answer'
+//│ ║  l.120: 	  {answer: 0}
+//│ ║         	   ^^^^^^
+//│ ╟── target: record field 'answer'
+//│ ║  l.118: 	    fun answer()(resume) = {answer: 42}
+//│ ╙──       	                            ^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
-//│ ═══[RUNTIME ERROR] Expected: '42', got: 'undefined'
+
+// Distinct resumed payloads also retain all member candidates.
+:e
+fun ambiguousResumption(choice) =
+  handle h = ValueEffect with
+    fun perform(arg)(resume) =
+      if arg then resume({payload: 1}) else resume({payload: 2})
+  h.perform(choice).payload
+ambiguousResumption(true)
+//│ ╔══[COMPILATION ERROR] This selection of member 'payload' is ambiguous, as it has multiple resolved targets
+//│ ║  l.139: 	  h.perform(choice).payload
+//│ ║         	  ^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── target: record field 'payload'
+//│ ║  l.138: 	      if arg then resume({payload: 1}) else resume({payload: 2})
+//│ ║         	                                                    ^^^^^^^
+//│ ╟── target: record field 'payload'
+//│ ║  l.138: 	      if arg then resume({payload: 1}) else resume({payload: 2})
+//│ ╙──       	                          ^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// A handler's result annotation applies to its result, not the resumed payload.
+:expect 43
+fun annotated() =
+  handle h = ValueEffect with
+    fun perform(arg)(resume): Int =
+      resume([arg])
+      43
+  h.perform(42).0
+annotated()
+//│ = 43
+
+// A pure handler implementation still suspends the effect call.
+:expect 42
+fun pureImplementation() =
+  handle h = AnswerEffect with
+    @annotations.pure
+    fun answer()(resume) = 42
+  h.answer()
+  0
+pureImplementation()
+//│ = 42
+
+// Separate signatures include the implementation's final resumption parameter.
+:expect 42
+fun separateSignature() =
+  handle h = ValueEffect with
+    fun perform: Int -> ((value: [Int]) -> [Int]) -> [Int]
+    fun perform(arg)(resume) = resume([arg])
+  [h.perform(42).0]
+separateSignature().0
+//│ = 42

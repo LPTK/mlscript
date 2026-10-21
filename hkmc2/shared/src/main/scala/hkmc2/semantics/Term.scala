@@ -387,9 +387,7 @@ enum Term extends Statement, AutoLocated, ShapePublisher:
   case Try(body: Term, finallyDo: Term)
   case Annotated(annot: Annot, target: Term)
   case Handle(lhs: LocalVarSymbol, rhs: Term, args: List[Term],
-    derivedClsSym: ClassSymbol, defs: Ls[HandlerTermDefinition], body: Term)(
-    // Abortive handlers never resume their body: a method's result is the handled expression's result.
-    val isAbortive: Bool)
+    derivedClsSym: ClassSymbol, defs: Ls[HandlerTermDefinition], body: Term)
   case LeadingDotSel(nme: Tree.Ident)(
       val originalCtx: Opt[SrcScope]
     ) (using State) extends Term, ResolvableImpl, LeadingDotSelImpl
@@ -665,8 +663,8 @@ enum Term extends Statement, AutoLocated, ShapePublisher:
       case Continue(label) => Continue(label)
       case Try(body, finallyDo) => Try(body.mkClone, finallyDo.mkClone)
       case Annotated(annot, target) => Annotated(annot, target.mkClone)
-      case handle @ Handle(lhs, rhs, args, derivedClsSym, defs, body) =>
-        Handle(lhs, rhs.mkClone, args.map(_.mkClone), derivedClsSym, defs, body.mkClone)(handle.isAbortive)
+      case Handle(lhs, rhs, args, derivedClsSym, defs, body) =>
+        Handle(lhs, rhs.mkClone, args.map(_.mkClone), derivedClsSym, defs, body.mkClone)
     copyMetadata(this, that)
   
 end Term
@@ -804,16 +802,19 @@ object Visibility:
 
 /** `isMethod` distinguishes methods from functions. `hasResultAnnotation` records whether a
   * signature describes just the result; erasure consumes leading arrows only for full signatures.
+  * `hasResumptionParam` records the final handler implementation list removed from `params`:
+  * its arrow still belongs to a separate signature, although operation calls never supply it.
   */
-final case class TermDefFlags(isMethod: Bool, hasResultAnnotation: Bool):
+final case class TermDefFlags(isMethod: Bool, hasResultAnnotation: Bool, hasResumptionParam: Bool):
   def showDbg: Str = 
     val flags = Buffer.empty[String]
     if isMethod then flags += "method "
     if hasResultAnnotation then flags += "result annotation "
+    if hasResumptionParam then flags += "resumption parameter "
     flags.mkString
   override def toString: String = "‹" + showDbg + "›"
 
-object TermDefFlags { val empty: TermDefFlags = TermDefFlags(false, false) }
+object TermDefFlags { val empty: TermDefFlags = TermDefFlags(false, false, false) }
 
 /**
  * A case class representing the modulefulness of a declaration.
@@ -879,13 +880,14 @@ final case class TermDefinition(
   /** A result annotation denotes the whole result; a separate function signature
     * includes the arrows corresponding to the definition's written parameter lists.
     */
+  def signatureParamListCount: Int = params.length + (if flags.hasResumptionParam then 1 else 0)
   def resultSignature: Opt[Term] =
     def strip(sign: Term, count: Int): Term = (sign, count) match
       case (Term.Forall(_, _, body), _) => strip(body, count)
       case (Term.FunTy(_, rhs, _), n) if n > 0 => strip(rhs, n - 1)
       case _ => sign
     sign.map: sign =>
-      if (k is syntax.Fun) && !flags.hasResultAnnotation then strip(sign, params.length)
+      if (k is syntax.Fun) && !flags.hasResultAnnotation then strip(sign, signatureParamListCount)
       else sign
   lazy val mayRaiseEffects: Bool =
     annotations.forall:

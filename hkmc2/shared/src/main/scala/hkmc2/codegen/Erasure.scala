@@ -88,7 +88,7 @@ final class Erasure private (using Config, Ctx, State)(using Raise):
     val resultType =
       if config.language.useNewResolution && td.sign.nonEmpty && (td.k is syntax.Fun)
           && !td.flags.hasResultAnnotation && td.params.nonEmpty && !td.modulefulness.isModuleful
-      then S(fullResult(td.sign.get.typeInterpretation.get, td.params.length, Set.empty))
+      then S(fullResult(td.sign.get.typeInterpretation.get, td.signatureParamListCount, Set.empty))
       else declaredType(resultSign, td.modulefulness)
     td.k match
       case syntax.Fun =>

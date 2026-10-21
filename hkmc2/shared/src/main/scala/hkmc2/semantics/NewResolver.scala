@@ -1650,14 +1650,20 @@ class NewResolver:
         result
     listenTypeViews(tpe)(listener)
 
+  /** Operation calls return the resumption's input; other calls return the implementation's result. */
+  private def listenDefinitionResult(td: TermDefinition, instances: TypeSubstitution)(listener: Listener)(using ResolutionContext): Unit =
+    handlerResumptionResult(td) match
+      case S(input) => listenTerm(input)(listener)
+      case N => listenImplementationResult(td, instances)(listener)
+
   /** Result annotations constrain the body before async lowering. Consumers of
-    * the function observe Promise[Awaited[result]], including explicit returns.
+    * the implementation observe Promise[Awaited[result]], including explicit returns.
     * Inferred values retain their lexical endpoint until callers leave the scope.
     */
-  private def listenDefinitionResult(td: TermDefinition, instances: TypeSubstitution)(listener: Listener)(using ResolutionContext): Unit =
+  private def listenImplementationResult(td: TermDefinition, instances: TypeSubstitution)(listener: Listener)(using ResolutionContext): Unit =
     def bodyResult(listener: Listener): Unit = td.sign match
       case S(sign) => listenSignatureResult(declaredType(typeResolution(sign), Map.empty).instantiate(instances),
-        if td.flags.hasResultAnnotation then 0 else td.params.length)(listener)
+        if td.flags.hasResultAnnotation then 0 else td.signatureParamListCount)(listener)
       case N => td.body.foreach(body => listenResult(body)(listener))
     td.asyncAnnotation match
       case S(annotation) =>
@@ -3802,17 +3808,65 @@ class NewResolver:
     listenTerm(from): sh =>
       publishActivated(to, sh)
   
-  /** The synthetic handler is an instance with real method definitions. Publish
+  /** An effect operation returns the argument supplied to its resumption, rather
+    * than the implementation's return value. Keep the endpoints in resolver state
+    * so imported observations use consumer-local hosts and activation maps. */
+  private[semantics] def handlerResumptionResult(td: TermDefinition)(using ResolutionContext): Opt[Term] =
+    handlerMethodFlow(td.tsym).map(_.input)
+
+  private def handlerMethodFlow(symbol: TermSymbol): Opt[NewResolverState.HandlerMethodFlow] =
+    // Elaboration records this immutable descriptor in the defining unit. Its
+    // publishers are still observed through the current consumer's private hosts.
+    val graph = symbol.getState.newResolverState
+    graph.handlerMethods.get(symbol)(using graph.context)
+
+  def registerHandlerMethod(td: TermDefinition, resume: VarSymbol)(using ResolutionContext): Unit =
+    rctx.state.handlerMethods.getOrElseUpdate(td.tsym, {
+      val input = VarSymbol(new Tree.Ident("resumedValue").withLocOf(resume), erasedType = N)
+      val output = VarSymbol(new Tree.Ident("continuationResult").withLocOf(resume), erasedType = N)
+      // The runtime's resumption accepts one value, which may be omitted.
+      val parameter = Param(FldFlags.empty.copy(opt = true), input, N, Modulefulness.none)(resume.toLoc)
+      val result: SimpleRef = SimpleRef(output)(output.id)
+      val continuation: Lam = Lam(PlainParamList(parameter :: Nil)(resume.toLoc), result)
+      rctx.recordLexicalBinders(continuation,
+        lexicalBinders(td.tsym).getOrElse(Set.empty) ++ definitionBinders(td))
+      NewResolverState.HandlerMethodFlow(SimpleRef(input)(input.id), output, continuation)
+    })
+
+  /** The handler is an instance with real method definitions. Publish
     * it after building those definitions, so forward selections made while
-    * elaborating the handled body resolve through ordinary member lookup. */
-  def resolveAbortiveHandler(handle: Handle)(using ResolutionContext): Unit =
-    assert(handle.isAbortive)
-    val definition = handle.derivedClsSym.defn.get
-    listenExt(definition, parent =>
-      val receiver = selfShapes.getOrElseUpdate(handle.derivedClsSym, BaseShape(definition, parent))
-      MarkedShape.exit(receiver, ResolutionBoundary(handle.derivedClsSym), N) match
-        case value: TermShape => publishActivated(handle.lhs, value)
-        case NoShape => lastWords("A new handler instance must be reachable outside its class"))
+    * elaborating the handled body resolve through ordinary member lookup.
+    *
+    * A continuation can finish normally or invoke another operation. Join the
+    * body and all handler results, preserving every candidate while forgetting
+    * which suspension produced it. Install the result host before following
+    * these recursive edges, and retain lexical boundaries and generic activations. */
+  def resolveHandler(handle: Handle)(using ResolutionContext): Unit =
+    val key = new Identity(handle)
+    val results = rctx.state.handlerResults.getOrElseUpdate(key, new Host[ShapeEvent]:
+      def showDbg(using DebugPrinter): Str = "handler results")
+    if rctx.state.resolvedHandlers.add((key, rctx.instances)) then
+      val definition = handle.derivedClsSym.defn.get
+      listenExt(definition, parent =>
+        val receiver = selfShapes.getOrElseUpdate(handle.derivedClsSym, BaseShape(definition, parent))
+        MarkedShape.exit(receiver, ResolutionBoundary(handle.derivedClsSym), N) match
+          case value: TermShape => publishActivated(handle.lhs, value)
+          case NoShape => lastWords("A new handler instance must be reachable outside its class"))
+      handle.defs.foreach: method =>
+        val flow = handlerMethodFlow(method.td.tsym).getOrElse(
+          lastWords("Handler methods must register their resumption flow during elaboration"))
+        pipeTerm(flow.continuation, method.resumeSym)
+        val boundaries = ExitMark(ResolutionBoundary(method.td.tsym), N, NoMarks) ::
+          ExitMark(ResolutionBoundary(handle.derivedClsSym), N, NoMarks) :: Nil
+        listenValueHost(results): result =>
+          result.enter(boundaries) match
+            case value: TermShape => publishActivated(flow.output, value)
+            case NoShape => ()
+        listenImplementationResult(method.td, rctx.instances): result =>
+          result.exit(boundaries) match
+            case value: TermShape => publishActivated(results, value)
+            case NoShape => ()
+      listenResult(handle.body)(publishActivated(results, _))
 
   // Classes without an explicit parent expose Object's declarations. Share this
   // root interface between inferred instances, nominal annotations, and this-values;
@@ -4030,6 +4084,10 @@ class NewResolver:
                   case _ => shape
                 receive(captured)
               )(using rctx.withInstances(instances))
+        case S(d: TermDefinition) if handlerMethodFlow(d.tsym).nonEmpty =>
+          // Its annotation describes the handler's result, not the value which
+          // returns to the suspended operation through resume(value).
+          wrappedListener(defnShapes.getOrElseUpdate(sym, DefnShape(d, N)))
         case S(d: TermDefinition) if !d.tsym.isInstanceOf[ClassCtorSymbol] &&
             ((d.sign.nonEmpty && (!d.flags.hasResultAnnotation || d.params.forall(ps =>
               ps.allParams.forall(_.sign.nonEmpty)))) ||
@@ -4626,23 +4684,9 @@ class NewResolver:
       // Quotation constructs a runtime syntax value; splicing supplies syntax
       // for a different stage. Neither has the value interface of its operand.
       listener(UnknownValueShape.at(trm))
-    case handle: Handle if handle.isAbortive =>
-      resolveAbortiveHandler(handle)
-      listenResult(handle.body)(listener)
-      handle.defs.foreach: method =>
-        // Parameters arrive through the method and handler-instance boundaries.
-        // The result leaves both boundaries, joining every invocation at the
-        // handler site rather than returning to the abandoned continuation.
-        listenDefinitionResult(method.td, rctx.instances): result =>
-          result.exit(ExitMark(ResolutionBoundary(method.td.tsym), N, NoMarks))
-            .exit(ExitMark(ResolutionBoundary(handle.derivedClsSym), N, NoMarks)) match
-              case value: TermShape => listener(value)
-              case NoShape => ()
-    case _: Handle =>
-      // An effect handler can abort or replace the continuation's result. The
-      // normal body's interface alone therefore cannot describe this value.
-      listener(UnknownValueShape(trm, fromPublicInterface = false)(ShapeProvenance(
-        msg"An effect handler can replace the handled body's result." -> trm.toLoc :: Nil)))
+    case handle: Handle =>
+      resolveHandler(handle)
+      listenValueHost(rctx.state.handlerResults.get(new Identity(handle)).get)(listener)
     case _: DynTy | _: FunTy | _: Forall | _: Constrained | _: WildcardTy | _: CompType | _: Neg =>
       resolError(trm, msg"A type cannot be used as a runtime value." -> N :: Nil)
     case Error() => () // Elaboration has already reported the error; it supplies no candidate.
