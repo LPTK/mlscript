@@ -284,6 +284,47 @@ class BlockSimplifier
     end AbortiveAnalysis
     
     
+    // Unlike purity, normal completion excludes exceptions and non-local exits.
+    // Resolved mutable vals and private lets promise writable data storage;
+    // unknown selections may call host accessors and immutable fields may reject
+    // writes. Keep calls, checked casts, and unknown writes protected.
+    object NormalCompletion extends CachedAnalysis[Block, Bool]:
+      def result(r: Result): Bool = r match
+        case _: Value.SimpleRef | _: Value.This | _: Value.Lit => true
+        case ref: Value.MemberRef => ref.disamb.isPure
+        case sel: Select => result(sel.qual) && sel.symbol.exists(_.isPure)
+        case Cast(value, _, false) => result(value)
+        case Call(Value.SimpleRef(op: BuiltinSymbol), (a :: b :: Nil) :: Nil)
+        if Set("<", "<=", ">", ">=")(op.nme) =>
+          // Numeric comparisons cannot invoke coercion hooks. In particular,
+          // scoped-assignment cleanup compares its integer progress counter.
+          (a :: b :: Nil).forall: arg =>
+            arg.spread.isEmpty && result(arg.value) && arg.value.erasedType.exists: tpe =>
+              val sym = tpe.canonicalize.sym
+              (sym is ctx.builtins.Int) || (sym is ctx.builtins.Num)
+        case _ => false
+      
+      def analyzeUncached(block: Block): Bool = block match
+        case _: End => true
+        case Scoped(_, body) => body.analyze
+        case Begin(sub, rest) => sub.analyze && rest.analyze
+        case Assign(_, rhs, rest) => result(rhs) && rest.analyze
+        case write @ AssignField(lhs, _, rhs, rest) =>
+          write.symbol.exists:
+            case sym: TermSymbol => (sym.k is syntax.MutVal) || (sym.k is syntax.LetBind)
+            case _ => false
+          && result(lhs) && result(rhs) && rest.analyze
+        case Match(scrut, arms, dflt, rest) =>
+          result(scrut) && arms.forall:
+            case (_: Case.Lit, arm) => arm.analyze
+            case _ => false
+          && dflt.forall(_.analyze) && rest.analyze
+        case TryBlock(sub, fin, rest) => sub.analyze && fin.analyze && rest.analyze
+        case _ => false
+      
+    end NormalCompletion
+    
+    
     override def applyValue(v: Value)(k: Value => Block) = v match
       // * Replace with `undefined` those references to local variables that are never assigned
       case Value.SimpleRef(loc: LocalVarSymbol) if localVars.contains(loc) && !definedVars.contains(loc) =>
@@ -321,6 +362,13 @@ class BlockSimplifier
         else
           registerChange(s"rm unused pure defn ${defnSym.showDbg}")
           applyBlock(rest)
+      
+      // A protected block that always falls through needs no exception region.
+      // This also flattens grouped restoration of known data fields, while a
+      // throwing receiver or a host setter retains its cleanup protection.
+      case TryBlock(sub, finallyDo, rest) if NormalCompletion.analyze(sub) =>
+        registerChange("remove try around normally completing block")
+        Begin(applyBlock(sub), Begin(applyBlock(finallyDo), applyBlock(rest)))
       
       // * Simplify labelled blocks
       case Label(lbl, loop, bod, rst) =>

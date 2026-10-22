@@ -1396,24 +1396,29 @@ extends Importer:
   /** A group shares one protected body. Backups are captured immediately before
     * each write, so later initializers observe earlier writes. A backup becomes
     * active before its RHS runs, since that RHS may mutate the target and throw.
+    * Saved bindings always form a prefix, tracked by one counter for the group.
     */
   private def scopedAssignments(assignments: Ls[(Term, Term, Opt[Loc])], body: Term): Ctxl[Term] =
+    val progress = Option.when(assignments.sizeIs > 1)(TempSymbol(N, erasedType = S(codegen.ErasedType.Int), "savedCount"))
     val saved = assignments.zipWithIndex.map:
       case ((lhs, write, loc), index) =>
         val old = TempSymbol(S(lhs), erasedType = N, "old")
-        val active = Option.when(index > 0)(TempSymbol(N, erasedType = N, "active"))
-        val declarations = LetDecl(old, Nil)(loc) :: active.toList.flatMap: flag =>
-          mkLetBinding(flag, Term.Lit(BoolLit(false)), Nil)(loc)
+        val active = progress.filter(_ => index > 0)
+        val declarations = LetDecl(old, Nil)(loc) :: Nil
         val backup = defineVar(old, lhs)(loc)
         val setup = active match
           case N => write :: Nil
-          case S(flag) => backup :: assignment(flag.ref(), Term.Lit(BoolLit(true))) :: write :: Nil
+          case S(count) => backup :: assignment(count.ref(), Term.Lit(IntLit(index + 1))) :: write :: Nil
         val restore = assignment(lhs, old.ref())
         val cleanup = active match
           case N => restore
-          case S(flag) =>
-            ifLike(Keyword.`if`, IfLikeForm.ImperativeIf,
-              mkMatch(flag.ref(), Pattern.Literal(BoolLit(true)), Else(restore)(N)) ~: Else(unit)(N), loc)
+          case S(count) =>
+            val reached = app(State.builtinOpsMap(">=").ref(), withTypeBinders(Term.Tup(
+              PlainFld(count.ref()) :: PlainFld(Term.Lit(IntLit(index + 1))) :: Nil)(DummyTup)))(
+              DummyApp, N, FlowSymbol("saved-binding-test"))
+            val split = reached.reference: ref =>
+              mkMatch(ref(), Pattern.Literal(BoolLit(true)), Else(restore)(N)) ~: Else(unit)(N)
+            ifLike(Keyword.`if`, IfLikeForm.ImperativeIf, split, loc)
         // Local writes cannot throw. Field/index restoration can fail, in which
         // case earlier saved values must still be restored by a finally clause.
         val local = lhs.withoutCaptures match
@@ -1426,7 +1431,9 @@ extends Importer:
         val cleanup = rest.foldLeft[Term](first._4): (tail, entry) =>
           val (_, _, _, restore, local) = entry
           if local then Blk(restore :: Nil, tail) else Term.Try(restore, tail)
-        Blk(saved.flatMap(_._1) :+ first._2,
+        val initializeProgress = progress.toList.flatMap: count =>
+          mkLetBinding(count, Term.Lit(IntLit(1)), Nil)(assignments.head._3)
+        Blk(saved.flatMap(_._1) ++ (first._2 :: initializeProgress),
           Term.Try(Blk(saved.flatMap(_._3), body), cleanup))
 
   def ifLike(kw: Keyword.SplitLike, form: IfLikeForm, split: SimpleSplit, loc: Opt[Loc]): Term.IfLike =

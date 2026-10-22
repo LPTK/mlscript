@@ -14,25 +14,26 @@ let z = 3
 :re
 set { x = 10, y = 20, z = 30 } in throw 42
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let old, old1, active, old2, active1;
-//│ set active = false;
-//│ set active1 = false;
+//│ let savedCount, old, old1, scrut, old2, scrut1;
 //│ set old = x⁰;
+//│ set savedCount = 1;
 //│ try
 //│   set x⁰ = 10;
 //│   set old1 = y⁰;
-//│   set active = true;
+//│   set savedCount = 2;
 //│   set y⁰ = 20;
 //│   set old2 = z⁰;
-//│   set active1 = true;
+//│   set savedCount = 3;
 //│   set z⁰ = 30;
 //│   throw 42
 //│ finally
-//│   match active1
+//│   set scrut1 = >=⁰(savedCount, 3);
+//│   match scrut1
 //│     true =>
 //│       set z⁰ = old2;
 //│       end
-//│   match active
+//│   set scrut = >=⁰(savedCount, 2);
+//│   match scrut
 //│     true =>
 //│       set y⁰ = old1;
 //│       end
@@ -40,24 +41,25 @@ set { x = 10, y = 20, z = 30 } in throw 42
 //│   end;
 //│   return undefined
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let old, old1, active, old2, active1;
-//│ active = false;
-//│ active1 = false;
+//│ let savedCount, old, old1, scrut, old2, scrut1;
 //│ old = x;
+//│ savedCount = 1;
 //│ try {
 //│   x = 10;
 //│   old1 = y;
-//│   active = true;
+//│   savedCount = 2;
 //│   y = 20;
 //│   old2 = z;
-//│   active1 = true;
+//│   savedCount = 3;
 //│   z = 30;
 //│   throw 42
 //│ } finally {
-//│   if (active1 === true) {
+//│   scrut1 = savedCount >= 3;
+//│   if (scrut1 === true) {
 //│     z = old2;
 //│   }
-//│   if (active === true) { y = old1; }
+//│   scrut = savedCount >= 2;
+//│   if (scrut === true) { y = old1; }
 //│   x = old;
 //│ }
 //│ return runtime.Unit
@@ -148,12 +150,12 @@ val box: dyn = Object.defineProperty(mut {}, "value", (
 //│ box = {}
 
 :re
-set { x = 10, box.value = 20 } in 0
+set { x = 10, y = 20, box.value = 30 } in 0
 //│ ═══[RUNTIME ERROR] 44
 
-:expect 1
-x
-//│ = 1
+:expect [1, 2]
+[x, y]
+//│ = [1, 2]
 
 // Exceptions outside binding groups also keep the values used by finally alive.
 :re
@@ -169,3 +171,47 @@ restoreOnThrow()
 :expect 1
 x
 //│ = 1
+
+// Known data fields share one protected region, including on exceptional exits.
+class Fields(mut val left, mut val right)
+let fields = new mut Fields(1, 2)
+//│ fields = Fields(1, 2)
+
+:sjs
+:re
+set { fields.left = 10, fields.right = 20 } in throw 46
+//│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let savedCount7, old15, old16, scrut12;
+//│ old15 = fields.left;
+//│ savedCount7 = 1;
+//│ try {
+//│   fields.left = 10;
+//│   old16 = fields.right;
+//│   savedCount7 = 2;
+//│   fields.right = 20;
+//│   throw 46
+//│ } finally {
+//│   scrut12 = savedCount7 >= 2;
+//│   if (scrut12 === true) { fields.right = old16; }
+//│   fields.left = old15;
+//│ }
+//│ return runtime.Unit
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ ═══[RUNTIME ERROR] 46
+
+:expect [1, 2]
+[fields.left, fields.right]
+//│ = [1, 2]
+
+// A known data field still needs protection when evaluating its receiver can throw.
+let failReceiver = false
+fun receiver() = if failReceiver then throw 47 else fields
+//│ failReceiver = false
+
+:re
+set { x = 10, receiver().right = 20 } in set failReceiver = true
+//│ ═══[RUNTIME ERROR] 47
+
+:expect [1, 20]
+[x, fields.right]
+//│ = [1, 20]

@@ -92,18 +92,19 @@ in sx + sy
 //│   result⁰ = {
 //│     let old⁰,
 //│     let old¹,
-//│     let active⁰,
-//│     active⁰ = false,
 //│     old⁰ = sx⁰,
+//│     let savedCount⁰,
+//│     savedCount⁰ = 1,
 //│     try {
 //│       sx⁰ := 10,
 //│       old¹ = sy⁰,
-//│       active⁰ := true,
+//│       savedCount⁰ := 2,
 //│       sy⁰ := +(sx⁰, 13)‹app⁰›,
 //│       +(sx⁰, sy⁰)‹app¹›
 //│     } finally {
 //│       if {
-//│         active⁰ is true do sy⁰ := old¹;
+//│         let scrut⁰ = >=(savedCount⁰, 2)‹saved-binding-test⁰›;
+//│         scrut⁰ is true do sy⁰ := old¹;
 //│         else ()
 //│       },
 //│       sx⁰ := old⁰
@@ -111,25 +112,18 @@ in sx + sy
 //│   },
 //│   [ result⁰, sx⁰, sy⁰ ]
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let old, old1, active, tmp;
-//│ set active = false;
+//│ let old, old1;
 //│ set old = sx⁰;
-//│ try
-//│   set sx⁰ = 10;
-//│   set old1 = sy⁰;
-//│   set active = true;
-//│   set sy⁰ = 23;
-//│   set tmp = 33;
-//│   end
-//│ finally
-//│   match active
-//│     true =>
-//│       set sy⁰ = old1;
-//│       end
-//│   set sx⁰ = old;
-//│   end;
-//│   set result⁰ = tmp;
-//│ return [tmp, old, sy⁰]
+//│ set sx⁰ = 10;
+//│ set old1 = sy⁰;
+//│ set sy⁰ = 23;
+//│ match true
+//│   true =>
+//│     set sy⁰ = old1;
+//│     end
+//│ set sx⁰ = old;
+//│ set result⁰ = 33;
+//│ return [33, old, sy⁰]
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = [33, 1, 2]
 //│ result = 33
@@ -147,25 +141,26 @@ set
 let result = set { sx += 3, sx *= 2 } in sx
 [result, sx]
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
-//│ let result1, old2, old3, active1, tmp1, tmp2, tmp3;
-//│ active1 = false;
+//│ let result1, savedCount, old2, old3, scrut, tmp, tmp1, tmp2;
 //│ old2 = sx;
+//│ savedCount = 1;
 //│ try {
-//│   tmp2 = sx + 3;
+//│   tmp1 = sx + 3;
+//│   sx = tmp1;
+//│   old3 = tmp1;
+//│   savedCount = 2;
+//│   tmp2 = tmp1 * 2;
 //│   sx = tmp2;
-//│   old3 = tmp2;
-//│   active1 = true;
-//│   tmp3 = tmp2 * 2;
-//│   sx = tmp3;
-//│   tmp1 = tmp3;
+//│   tmp = tmp2;
 //│ } finally {
-//│   if (active1 === true) {
+//│   scrut = savedCount >= 2;
+//│   if (scrut === true) {
 //│     sx = old3;
 //│   }
 //│   sx = old2;
 //│ }
-//│ result1 = tmp1;
-//│ return globalThis.Object.freeze([ tmp1, old2 ])
+//│ result1 = tmp;
+//│ return globalThis.Object.freeze([ tmp, old2 ])
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = [16, 5]
 //│ result = 16
@@ -186,7 +181,7 @@ let
 in print(hidden)
 hidden
 //│ ╔══[COMPILATION ERROR] Name not found: hidden
-//│ ║  l.187: 	hidden
+//│ ║  l.182: 	hidden
 //│ ╙──       	^^^^^^
 //│ > 1
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -197,7 +192,7 @@ let
   later = 1
 in invalid
 //│ ╔══[COMPILATION ERROR] Name not found: later
-//│ ║  l.196: 	  invalid = later
+//│ ║  l.191: 	  invalid = later
 //│ ╙──       	            ^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
@@ -208,10 +203,10 @@ let nested = let
   x = 1 in x
 nested
 //│ ╔══[PARSE ERROR] Unexpected 'in' keyword here
-//│ ║  l.208: 	  x = 1 in x
+//│ ║  l.203: 	  x = 1 in x
 //│ ╙──       	        ^^
 //│ ╔══[COMPILATION ERROR] Expected a body for let bindings in expression position
-//│ ║  l.208: 	  x = 1 in x
+//│ ║  l.203: 	  x = 1 in x
 //│ ╙──       	  ^^^^^
 //│ nested = ()
 
@@ -239,7 +234,7 @@ let
   x = 1
   in x
 //│ ╔══[COMPILATION ERROR] Unsupported let binding shape
-//│ ║  l.240: 	  in x
+//│ ║  l.235: 	  in x
 //│ ╙──       	     ^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 //│ x = 1
