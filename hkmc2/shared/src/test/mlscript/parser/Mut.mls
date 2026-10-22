@@ -21,30 +21,30 @@ mut
 
 mut let x = 1
 //│ Parsed:
-//│ 	Modified(Keywrd(keyword 'mut'),LetLike(Keywrd(keyword 'let'),Ident(x),Some(IntLit(1)),None))
+//│ 	Modified(Keywrd(keyword 'mut'),LetLike(Keywrd(keyword 'let'),List(LetBinding(Ident(x),Some(IntLit(1)),List())),None))
 
 mut
   let x = 1
 //│ Parsed:
-//│ 	Modified(Keywrd(keyword 'mut'),Block(List(LetLike(Keywrd(keyword 'let'),Ident(x),Some(IntLit(1)),None))))
+//│ 	Modified(Keywrd(keyword 'mut'),Block(List(LetLike(Keywrd(keyword 'let'),List(LetBinding(Ident(x),Some(IntLit(1)),List())),None))))
 
 mut
   let x = 1
   in x
 //│ Parsed:
-//│ 	Modified(Keywrd(keyword 'mut'),Block(List(LetLike(Keywrd(keyword 'let'),Ident(x),Some(IntLit(1)),Some(Ident(x))))))
+//│ 	Modified(Keywrd(keyword 'mut'),Block(List(LetLike(Keywrd(keyword 'let'),List(LetBinding(Ident(x),Some(IntLit(1)),List())),Some(Ident(x))))))
 
 mut
   let x = 1
   let y = 2
 //│ Parsed:
-//│ 	Modified(Keywrd(keyword 'mut'),Block(List(LetLike(Keywrd(keyword 'let'),Ident(x),Some(IntLit(1)),None), LetLike(Keywrd(keyword 'let'),Ident(y),Some(IntLit(2)),None))))
+//│ 	Modified(Keywrd(keyword 'mut'),Block(List(LetLike(Keywrd(keyword 'let'),List(LetBinding(Ident(x),Some(IntLit(1)),List())),None), LetLike(Keywrd(keyword 'let'),List(LetBinding(Ident(y),Some(IntLit(2)),List())),None))))
 
 mut
   let
     x = 1
 //│ Parsed:
-//│ 	Modified(Keywrd(keyword 'mut'),Block(List(LetLike(Keywrd(keyword 'let'),Block(List(Def(Ident(x),IntLit(1)))),None,None))))
+//│ 	Modified(Keywrd(keyword 'mut'),Block(List(LetLike(Keywrd(keyword 'let'),List(LetBinding(Ident(x),Some(IntLit(1)),List())),None))))
 
 mut
   let
@@ -52,14 +52,14 @@ mut
   let
     y = 1
 //│ Parsed:
-//│ 	Modified(Keywrd(keyword 'mut'),Block(List(LetLike(Keywrd(keyword 'let'),Block(List(Def(Ident(x),IntLit(1)))),None,None), LetLike(Keywrd(keyword 'let'),Block(List(Def(Ident(y),IntLit(1)))),None,None))))
+//│ 	Modified(Keywrd(keyword 'mut'),Block(List(LetLike(Keywrd(keyword 'let'),List(LetBinding(Ident(x),Some(IntLit(1)),List())),None), LetLike(Keywrd(keyword 'let'),List(LetBinding(Ident(y),Some(IntLit(1)),List())),None))))
 
 mut
   let
     x = 1
     y = 2
 //│ Parsed:
-//│ 	Modified(Keywrd(keyword 'mut'),Block(List(LetLike(Keywrd(keyword 'let'),Block(List(Def(Ident(x),IntLit(1)), Def(Ident(y),IntLit(2)))),None,None))))
+//│ 	Modified(Keywrd(keyword 'mut'),Block(List(LetLike(Keywrd(keyword 'let'),List(LetBinding(Ident(x),Some(IntLit(1)),List()), LetBinding(Ident(y),Some(IntLit(2)),List())),None))))
 
 :pe
 mut
@@ -69,7 +69,7 @@ mut
 //│ ║  l.67: 	    x = 1 in x
 //│ ╙──      	          ^^
 //│ Parsed:
-//│ 	Modified(Keywrd(keyword 'mut'),Block(List(LetLike(Keywrd(keyword 'let'),Block(List(Def(Ident(x),IntLit(1)))),None,None))))
+//│ 	Modified(Keywrd(keyword 'mut'),Block(List(LetLike(Keywrd(keyword 'let'),List(LetBinding(Ident(x),Some(IntLit(1)),List())),None))))
 
 :pe
 mut
@@ -84,13 +84,13 @@ mut
 //│ ║  l.79: 	    y = 2 in y
 //│ ╙──      	          ^^
 //│ Parsed:
-//│ 	Modified(Keywrd(keyword 'mut'),Block(List(LetLike(Keywrd(keyword 'let'),Block(List(Def(Ident(x),IntLit(1)))),None,None), LetLike(Keywrd(keyword 'let'),Block(List(Def(Ident(y),IntLit(2)))),None,None))))
+//│ 	Modified(Keywrd(keyword 'mut'),Block(List(LetLike(Keywrd(keyword 'let'),List(LetBinding(Ident(x),Some(IntLit(1)),List())),None), LetLike(Keywrd(keyword 'let'),List(LetBinding(Ident(y),Some(IntLit(2)),List())),None))))
 
 // The `mut` modifier applies to the whole grouped binding.
 mut let
   x = 1
   y = 2
 //│ Parsed:
-//│ 	Modified(Keywrd(keyword 'mut'),LetLike(Keywrd(keyword 'let'),Block(List(Def(Ident(x),IntLit(1)), Def(Ident(y),IntLit(2)))),None,None))
+//│ 	Modified(Keywrd(keyword 'mut'),LetLike(Keywrd(keyword 'let'),List(LetBinding(Ident(x),Some(IntLit(1)),List()), LetBinding(Ident(y),Some(IntLit(2)),List())),None))
 
 

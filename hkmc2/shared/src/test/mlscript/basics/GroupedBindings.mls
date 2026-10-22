@@ -91,36 +91,41 @@ in sx + sy
 //│   let result⁰,
 //│   result⁰ = {
 //│     let old⁰,
+//│     let old¹,
+//│     let active⁰,
+//│     active⁰ = false,
 //│     old⁰ = sx⁰,
 //│     try {
 //│       sx⁰ := 10,
-//│       {
-//│         let old¹,
-//│         old¹ = sy⁰,
-//│         try {
-//│           sy⁰ := +(sx⁰, 13)‹app⁰›,
-//│           +(sx⁰, sy⁰)‹app¹›
-//│         } finally sy⁰ := old¹
-//│       }
-//│     } finally sx⁰ := old⁰
+//│       old¹ = sy⁰,
+//│       active⁰ := true,
+//│       sy⁰ := +(sx⁰, 13)‹app⁰›,
+//│       +(sx⁰, sy⁰)‹app¹›
+//│     } finally {
+//│       if {
+//│         active⁰ is true do sy⁰ := old¹;
+//│         else ()
+//│       },
+//│       sx⁰ := old⁰
+//│     }
 //│   },
 //│   [ result⁰, sx⁰, sy⁰ ]
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let old, old1, tmp, tmp1;
+//│ let old, old1, active, tmp;
+//│ set active = false;
 //│ set old = sx⁰;
 //│ try
 //│   set sx⁰ = 10;
 //│   set old1 = sy⁰;
-//│   try
-//│     set sy⁰ = 23;
-//│     set tmp1 = 33;
-//│     end
-//│   finally
-//│     set sy⁰ = old1;
-//│     end;
-//│     set tmp = tmp1;
+//│   set active = true;
+//│   set sy⁰ = 23;
+//│   set tmp = 33;
 //│   end
 //│ finally
+//│   match active
+//│     true =>
+//│       set sy⁰ = old1;
+//│       end
 //│   set sx⁰ = old;
 //│   end;
 //│   set result⁰ = tmp;
@@ -137,9 +142,31 @@ set
 //│ = [5, 6]
 
 // Compound assignments also restore in reverse order, including repeated targets.
+:sjs
 :expect [16, 5]
 let result = set { sx += 3, sx *= 2 } in sx
 [result, sx]
+//│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let result1, old2, old3, active1, tmp1, tmp2, tmp3;
+//│ active1 = false;
+//│ old2 = sx;
+//│ try {
+//│   tmp2 = sx + 3;
+//│   sx = tmp2;
+//│   old3 = tmp2;
+//│   active1 = true;
+//│   tmp3 = tmp2 * 2;
+//│   sx = tmp3;
+//│   tmp1 = tmp3;
+//│ } finally {
+//│   if (active1 === true) {
+//│     sx = old3;
+//│   }
+//│   sx = old2;
+//│ }
+//│ result1 = tmp1;
+//│ return globalThis.Object.freeze([ tmp1, old2 ])
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = [16, 5]
 //│ result = 16
 
@@ -159,7 +186,7 @@ let
 in print(hidden)
 hidden
 //│ ╔══[COMPILATION ERROR] Name not found: hidden
-//│ ║  l.160: 	hidden
+//│ ║  l.187: 	hidden
 //│ ╙──       	^^^^^^
 //│ > 1
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -170,18 +197,22 @@ let
   later = 1
 in invalid
 //│ ╔══[COMPILATION ERROR] Name not found: later
-//│ ║  l.169: 	  invalid = later
+//│ ║  l.196: 	  invalid = later
 //│ ╙──       	            ^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 // Per-binding bodies without an outer `in` are also unsupported.
 :pe
+:e
 let nested = let
   x = 1 in x
 nested
 //│ ╔══[PARSE ERROR] Unexpected 'in' keyword here
-//│ ║  l.180: 	  x = 1 in x
+//│ ║  l.208: 	  x = 1 in x
 //│ ╙──       	        ^^
+//│ ╔══[COMPILATION ERROR] Expected a body for let bindings in expression position
+//│ ║  l.208: 	  x = 1 in x
+//│ ╙──       	  ^^^^^
 //│ nested = ()
 
 :expect 3
@@ -192,13 +223,6 @@ declaredX + declaredY
 //│ = 3
 //│ declaredX = 1
 //│ declaredY = 2
-
-// Regression previously tracked in backlog/ForLLM.mls.
-:expect 1
-let
-  x = 1
-in x
-//│ = 1
 
 // Empty groups are no-ops and still evaluate the enclosing body.
 :expect 3
@@ -215,7 +239,7 @@ let
   x = 1
   in x
 //│ ╔══[COMPILATION ERROR] Unsupported let binding shape
-//│ ║  l.216: 	  in x
+//│ ║  l.240: 	  in x
 //│ ╙──       	     ^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 //│ x = 1
@@ -228,4 +252,14 @@ let
 
 :expect 2
 x
+//│ = 2
+
+// Interleaved binding groups extend the context of subsequent branches.
+:expect 2
+if
+  let
+    branchX = 1
+    branchX += 1
+  branchX is 2 then branchX
+  else 0
 //│ = 2

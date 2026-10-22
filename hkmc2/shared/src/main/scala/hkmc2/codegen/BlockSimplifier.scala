@@ -950,6 +950,10 @@ class BlockSimplifier
           super.applyBlock(b)
         
       case TryBlock(sub, finallyDo, rest) =>
+        // The finally block can read values saved before entering the try, even
+        // when every path through its body throws or returns and clears the facts.
+        if !changed then
+          assignedResults.valuesIterator.foreach(liveAssignInfosUntilChangeTriggered += _)
         val sub2 = applyBlock(sub)
         val finallyDo2 =
           // * This block might be executed from an unknown point in `sub` (where the first exception is thrown),
@@ -962,7 +966,7 @@ class BlockSimplifier
           // * might end up being live even though local flow analysis would think they are not.
           sub.definedVars.foreach:
             case sym: LocalVar =>
-              log(dbg"Variable ${sym.showDbg} is written in a `finally` block; marking it as imprecise tracked")
+              log(dbg"Variable ${sym.showDbg} is written in a `try` block; marking it as imprecise tracked")
               impreciselyTrackedVars += sym
             case _ =>
           applyBlock(finallyDo)

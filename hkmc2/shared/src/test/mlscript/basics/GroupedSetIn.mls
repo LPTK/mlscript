@@ -1,0 +1,171 @@
+:.
+:js
+
+let x = 1
+let y = 2
+let z = 3
+//│ x = 1
+//│ y = 2
+//│ z = 3
+
+// A throwing body restores the whole group.
+:sjs
+:soir
+:re
+set { x = 10, y = 20, z = 30 } in throw 42
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let old, old1, active, old2, active1;
+//│ set active = false;
+//│ set active1 = false;
+//│ set old = x⁰;
+//│ try
+//│   set x⁰ = 10;
+//│   set old1 = y⁰;
+//│   set active = true;
+//│   set y⁰ = 20;
+//│   set old2 = z⁰;
+//│   set active1 = true;
+//│   set z⁰ = 30;
+//│   throw 42
+//│ finally
+//│   match active1
+//│     true =>
+//│       set z⁰ = old2;
+//│       end
+//│   match active
+//│     true =>
+//│       set y⁰ = old1;
+//│       end
+//│   set x⁰ = old;
+//│   end;
+//│   return undefined
+//│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
+//│ let old, old1, active, old2, active1;
+//│ active = false;
+//│ active1 = false;
+//│ old = x;
+//│ try {
+//│   x = 10;
+//│   old1 = y;
+//│   active = true;
+//│   y = 20;
+//│   old2 = z;
+//│   active1 = true;
+//│   z = 30;
+//│   throw 42
+//│ } finally {
+//│   if (active1 === true) {
+//│     z = old2;
+//│   }
+//│   if (active === true) { y = old1; }
+//│   x = old;
+//│ }
+//│ return runtime.Unit
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ ═══[RUNTIME ERROR] 42
+
+:expect [1, 2, 3]
+[x, y, z]
+//│ = [1, 2, 3]
+
+// A throwing initializer restores earlier writes and skips unvisited bindings.
+:re
+set
+  x = 10
+  y = throw 42
+  z = 30
+in 0
+//│ ═══[RUNTIME ERROR] 42
+
+:expect [1, 2, 3]
+[x, y, z]
+//│ = [1, 2, 3]
+
+// Activate the backup before evaluating the RHS, which can itself mutate the target.
+:re
+set
+  x = 10
+  y =
+    set y = 99
+    throw 42
+  z = 30
+in 0
+//│ ═══[RUNTIME ERROR] 42
+
+:expect [1, 2, 3]
+[x, y, z]
+//│ = [1, 2, 3]
+
+// The first initializer is protected too.
+:re
+set
+  x =
+    set x = 99
+    throw 42
+  y = 20
+in 0
+//│ ═══[RUNTIME ERROR] 42
+
+:expect [1, 2, 3]
+[x, y, z]
+//│ = [1, 2, 3]
+
+// Repeated targets unwind in reverse order even when a later RHS throws.
+:re
+set { x += 3, x *= 2, y = throw 42 } in 0
+//│ ═══[RUNTIME ERROR] 42
+
+:expect [1, 2, 3]
+[x, y, z]
+//│ = [1, 2, 3]
+
+// Returning from the body also runs cleanup.
+fun earlyReturn() =
+  set { x = 10, y = x + 1 } in return x + y
+  0
+
+:expect [21, 1, 2]
+[earlyReturn(), x, y]
+//│ = [21, 1, 2]
+
+// A failure while saving a later target still restores earlier assignments.
+let xs = mut [7]
+//│ xs = [7]
+
+:re
+set { x = 10, xs.[throw 43] = 8 } in 0
+//│ ═══[RUNTIME ERROR] 43
+
+:expect [1, [7]]
+[x, xs]
+//│ = [1, [7]]
+
+// A throwing host setter must not prevent restoration of earlier targets.
+val box: dyn = Object.defineProperty(mut {}, "value", (
+  "get": () => 4,
+  "set": (v) => if v is 4 then throw 44 else ()
+))
+//│ box = {}
+
+:re
+set { x = 10, box.value = 20 } in 0
+//│ ═══[RUNTIME ERROR] 44
+
+:expect 1
+x
+//│ = 1
+
+// Exceptions outside binding groups also keep the values used by finally alive.
+:re
+fun restoreOnThrow() =
+  let saved = x
+  try
+    set x = 99
+    throw 45
+  finally set x = saved
+restoreOnThrow()
+//│ ═══[RUNTIME ERROR] 45
+
+:expect 1
+x
+//│ = 1

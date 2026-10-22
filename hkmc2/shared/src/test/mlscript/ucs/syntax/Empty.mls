@@ -28,7 +28,7 @@ if
 :e
 if
   let x
-//│ ╔══[COMPILATION ERROR] Unrecognized term split (let)
+//│ ╔══[COMPILATION ERROR] Expected an initialized identifier binding in this branch
 //│ ║  l.30: 	  let x
 //│ ╙──      	      ^
 //│ ═══[RUNTIME ERROR] Error: match error

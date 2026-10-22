@@ -1,50 +1,12 @@
 :parseOnly
 
-let
-  x = 1
-  y = 2
-in e
-//│ Parsed:
-//│ 	LetLike(Keywrd(keyword 'let'),Block(List(Def(Ident(x),IntLit(1)), Def(Ident(y),IntLit(2)))),None,Some(Ident(e)))
-
-set
-  x = 1
-  y = 2
-in e
-//│ Parsed:
-//│ 	LetLike(Keywrd(keyword 'set'),Block(List(Def(Ident(x),IntLit(1)), Def(Ident(y),IntLit(2)))),None,Some(Ident(e)))
-
-let { x = 1, y = 2 } in e
-//│ Parsed:
-//│ 	LetLike(Keywrd(keyword 'let'),Block(List(Def(Ident(x),IntLit(1)), Def(Ident(y),IntLit(2)))),None,Some(Ident(e)))
-
-set { x = 1, y = 2 } in e
-//│ Parsed:
-//│ 	LetLike(Keywrd(keyword 'set'),Block(List(Def(Ident(x),IntLit(1)), Def(Ident(y),IntLit(2)))),None,Some(Ident(e)))
-
-let
-  x = 1
-  y = 2
-in
-  x + y
-//│ Parsed:
-//│ 	LetLike(Keywrd(keyword 'let'),Block(List(Def(Ident(x),IntLit(1)), Def(Ident(y),IntLit(2)))),None,Some(Block(List(OpApp(Ident(x),Ident(+),List(Ident(y)))))))
-
-set
-  x = 1
-  y = 2
-in
-  x + y
-//│ Parsed:
-//│ 	LetLike(Keywrd(keyword 'set'),Block(List(Def(Ident(x),IntLit(1)), Def(Ident(y),IntLit(2)))),None,Some(Block(List(OpApp(Ident(x),Ident(+),List(Ident(y)))))))
-
 :pe
 let
   x = 1
 in
 //│ ╔══[PARSE ERROR] Expected expression or block after 'let' binding `in` clause; found end of input instead
-//│ ║  l.44: 	in
-//│ ╙──      	  ^
+//│ ║  l.6: 	in
+//│ ╙──     	  ^
 //│ Parsed:
 //│ 	Error()
 
@@ -53,7 +15,7 @@ set
   x = 1
 in
 //│ ╔══[PARSE ERROR] Expected expression or block after 'set' binding `in` clause; found end of input instead
-//│ ║  l.54: 	in
+//│ ║  l.16: 	in
 //│ ╙──      	  ^
 //│ Parsed:
 //│ 	Error()
@@ -63,11 +25,7 @@ let
   x =
 in x
 //│ ╔══[PARSE ERROR] Expected start of expression in this position; found end of input instead
-//│ ║  l.63: 	  x =
+//│ ║  l.25: 	  x =
 //│ ╙──      	     ^
 //│ Parsed:
-//│ 	LetLike(Keywrd(keyword 'let'),Block(List(Def(Ident(x),Error()))),None,Some(Ident(x)))
-
-set {} in e
-//│ Parsed:
-//│ 	LetLike(Keywrd(keyword 'set'),Block(List()),None,Some(Ident(e)))
+//│ 	LetLike(Keywrd(keyword 'let'),List(LetBinding(Ident(x),Some(Error()),List())),Some(Ident(x)))

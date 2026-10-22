@@ -9,57 +9,40 @@ let
 //│ Parsed:
 //│ 	Error()
 
-let x
-//│ Parsed:
-//│ 	LetLike(Keywrd(keyword 'let'),Ident(x),None,None)
-
 :pe
 let x =
 //│ ╔══[PARSE ERROR] Expected expression or block after 'let' binding equals sign; found end of input instead
-//│ ║  l.17: 	let x =
+//│ ║  l.13: 	let x =
 //│ ╙──      	       ^
 //│ Parsed:
 //│ 	Error()
 
-let x = y
-//│ Parsed:
-//│ 	LetLike(Keywrd(keyword 'let'),Ident(x),Some(Ident(y)),None)
-
-let x =
-  y
-//│ Parsed:
-//│ 	LetLike(Keywrd(keyword 'let'),Ident(x),Some(Block(List(Ident(y)))),None)
-
 :pe
 let x = y in
 //│ ╔══[PARSE ERROR] Expected expression or block after 'let' binding `in` clause; found end of input instead
-//│ ║  l.34: 	let x = y in
+//│ ║  l.21: 	let x = y in
 //│ ╙──      	            ^
 //│ Parsed:
 //│ 	Error()
 
-let x = y in z
-//│ Parsed:
-//│ 	LetLike(Keywrd(keyword 'let'),Ident(x),Some(Ident(y)),Some(Ident(z)))
-
 :pe
 let x = y class
 //│ ╔══[PARSE ERROR] Expected end of input; found 'class' keyword instead
-//│ ║  l.46: 	let x = y class
+//│ ║  l.29: 	let x = y class
 //│ ╙──      	          ^^^^^
 //│ Parsed:
-//│ 	LetLike(Keywrd(keyword 'let'),Ident(x),Some(Ident(y)),None)
+//│ 	LetLike(Keywrd(keyword 'let'),List(LetBinding(Ident(x),Some(Ident(y)),List())),None)
 
 let x
   = 1
 //│ Parsed:
-//│ 	LetLike(Keywrd(keyword 'let'),Ident(x),Some(IntLit(1)),None)
+//│ 	LetLike(Keywrd(keyword 'let'),List(LetBinding(Ident(x),Some(IntLit(1)),List())),None)
 
 // * Note: this used to parse as an operator application...
 let x
 = 1
 //│ Parsed:
-//│ 	LetLike(Keywrd(keyword 'let'),Ident(x),Some(IntLit(1)),None)
+//│ 	LetLike(Keywrd(keyword 'let'),List(LetBinding(Ident(x),Some(IntLit(1)),List())),None)
 
 // * Note: this used to parse as an operator application...
 :pe
@@ -67,9 +50,9 @@ let x
 =
 1
 //│ ╔══[PARSE ERROR] Expected expression or block after 'let' binding equals sign; found new line instead
-//│ ║  l.67: 	=
+//│ ║  l.50: 	=
 //│ ║        	 ^
-//│ ║  l.68: 	1
+//│ ║  l.51: 	1
 //│ ╙──
 //│ Parsed:
 //│ 	Error()
@@ -78,16 +61,16 @@ let x
 
 let {}
 //│ Parsed:
-//│ 	LetLike(Keywrd(keyword 'let'),Block(List()),None,None)
+//│ 	LetLike(Keywrd(keyword 'let'),List(),None)
 
 let ()
 //│ Parsed:
-//│ 	LetLike(Keywrd(keyword 'let'),Unt(),None,None)
+//│ 	LetLike(Keywrd(keyword 'let'),List(LetBinding(Unt(),None,List())),None)
 
 :pe
 let // a
 //│ ╔══[PARSE ERROR] Expected expression or block after 'let' binding keyword; found end of input instead
-//│ ║  l.88: 	let // a
+//│ ║  l.71: 	let // a
 //│ ╙──      	        ^
 //│ Parsed:
 //│ 	Error()
@@ -96,7 +79,7 @@ let // a
 let
   // a
 //│ ╔══[PARSE ERROR] Expected expression or block after 'let' binding keyword; found end of input instead
-//│ ║  l.97: 	  // a
+//│ ║  l.80: 	  // a
 //│ ╙──      	  ^
 //│ Parsed:
 //│ 	Error()
@@ -106,9 +89,9 @@ let
   // a
 1
 //│ ╔══[PARSE ERROR] Expected expression or block after 'let' binding keyword; found new line instead
-//│ ║  l.106: 	  // a
-//│ ║         	      ^
-//│ ║  l.107: 	1
+//│ ║  l.89: 	  // a
+//│ ║        	      ^
+//│ ║  l.90: 	1
 //│ ╙──
 //│ Parsed:
 //│ 	Error()
@@ -119,71 +102,44 @@ let
 let x = y
 foo
 //│ Parsed:
-//│ 	LetLike(Keywrd(keyword 'let'),Ident(x),Some(Ident(y)),None)
+//│ 	LetLike(Keywrd(keyword 'let'),List(LetBinding(Ident(x),Some(Ident(y)),List())),None)
 //│ 	Ident(foo)
 
 
 let
   x
 //│ Parsed:
-//│ 	LetLike(Keywrd(keyword 'let'),Block(List(Ident(x))),None,None)
+//│ 	LetLike(Keywrd(keyword 'let'),List(LetBinding(Ident(x),None,List())),None)
 
 let
   x
   y
 //│ Parsed:
-//│ 	LetLike(Keywrd(keyword 'let'),Block(List(Ident(x), Ident(y))),None,None)
+//│ 	LetLike(Keywrd(keyword 'let'),List(LetBinding(Ident(x),None,List()), LetBinding(Ident(y),None,List())),None)
 
 let
   x, y
 //│ Parsed:
-//│ 	LetLike(Keywrd(keyword 'let'),Block(List(Ident(x), Ident(y))),None,None)
-
-let
-  x = 1
-//│ Parsed:
-//│ 	LetLike(Keywrd(keyword 'let'),Block(List(Def(Ident(x),IntLit(1)))),None,None)
-
-:pe
-let
-  x = 1 in x
-//│ ╔══[PARSE ERROR] Unexpected 'in' keyword here
-//│ ║  l.149: 	  x = 1 in x
-//│ ╙──       	        ^^
-//│ Parsed:
-//│ 	LetLike(Keywrd(keyword 'let'),Block(List(Def(Ident(x),IntLit(1)))),None,None)
-
-let
-  x = 1
-  in x
-//│ Parsed:
-//│ 	LetLike(Keywrd(keyword 'let'),Block(List(Def(Ident(x),IntLit(1)), Modified(Keywrd(keyword 'in'),Ident(x)))),None,None)
+//│ 	LetLike(Keywrd(keyword 'let'),List(LetBinding(Ident(x),None,List()), LetBinding(Ident(y),None,List())),None)
 
 let x = 1
 in x
 //│ Parsed:
-//│ 	LetLike(Keywrd(keyword 'let'),Ident(x),Some(IntLit(1)),Some(Ident(x)))
+//│ 	LetLike(Keywrd(keyword 'let'),List(LetBinding(Ident(x),Some(IntLit(1)),List())),Some(Ident(x)))
 
 let x = 1
   in x
 //│ Parsed:
-//│ 	LetLike(Keywrd(keyword 'let'),Ident(x),Some(IntLit(1)),Some(Ident(x)))
-
-// The `in` clause continues the whole binding block.
-let
-  x = 1
-in x
-//│ Parsed:
-//│ 	LetLike(Keywrd(keyword 'let'),Block(List(Def(Ident(x),IntLit(1)))),None,Some(Ident(x)))
+//│ 	LetLike(Keywrd(keyword 'let'),List(LetBinding(Ident(x),Some(IntLit(1)),List())),Some(Ident(x)))
 
 :pe
 let
 x = 1
 in x
 //│ ╔══[PARSE ERROR] Expected expression or block after 'let' binding keyword; found new line instead
-//│ ║  l.180: 	let
+//│ ║  l.136: 	let
 //│ ║         	   ^
-//│ ║  l.181: 	x = 1
+//│ ║  l.137: 	x = 1
 //│ ╙──
 //│ Parsed:
 //│ 	Error()
@@ -193,70 +149,65 @@ in x
 
 let a in b
 //│ Parsed:
-//│ 	LetLike(Keywrd(keyword 'let'),Ident(a),None,Some(Ident(b)))
-
-let a = 1 in b
-//│ Parsed:
-//│ 	LetLike(Keywrd(keyword 'let'),Ident(a),Some(IntLit(1)),Some(Ident(b)))
-
+//│ 	LetLike(Keywrd(keyword 'let'),List(LetBinding(Ident(a),None,List())),Some(Ident(b)))
 
 :pe
 let
   with
 //│ ╔══[PARSE ERROR] Expected start of expression in this position; found 'with' keyword instead
-//│ ║  l.205: 	  with
+//│ ║  l.156: 	  with
 //│ ╙──       	  ^^^^
 //│ Parsed:
-//│ 	LetLike(Keywrd(keyword 'let'),Block(List(Error())),None,None)
+//│ 	LetLike(Keywrd(keyword 'let'),List(LetBinding(Error(),None,List())),None)
 
 
 let x = 1 in
   x
 //│ Parsed:
-//│ 	LetLike(Keywrd(keyword 'let'),Ident(x),Some(IntLit(1)),Some(Block(List(Ident(x)))))
+//│ 	LetLike(Keywrd(keyword 'let'),List(LetBinding(Ident(x),Some(IntLit(1)),List())),Some(Block(List(Ident(x)))))
 
 let x = 1 in
   x
   y
 //│ Parsed:
-//│ 	LetLike(Keywrd(keyword 'let'),Ident(x),Some(IntLit(1)),Some(Block(List(Ident(x), Ident(y)))))
+//│ 	LetLike(Keywrd(keyword 'let'),List(LetBinding(Ident(x),Some(IntLit(1)),List())),Some(Block(List(Ident(x), Ident(y)))))
 
 x => let x = 1 in x
 //│ Parsed:
-//│ 	InfixApp(Tup(List(Ident(x))),Keywrd(keyword '=>'),LetLike(Keywrd(keyword 'let'),Ident(x),Some(IntLit(1)),Some(Ident(x))))
+//│ 	InfixApp(Tup(List(Ident(x))),Keywrd(keyword '=>'),LetLike(Keywrd(keyword 'let'),List(LetBinding(Ident(x),Some(IntLit(1)),List())),Some(Ident(x))))
 
 x => let x = 1 in
   x
 //│ Parsed:
-//│ 	InfixApp(Tup(List(Ident(x))),Keywrd(keyword '=>'),LetLike(Keywrd(keyword 'let'),Ident(x),Some(IntLit(1)),Some(Block(List(Ident(x))))))
+//│ 	InfixApp(Tup(List(Ident(x))),Keywrd(keyword '=>'),LetLike(Keywrd(keyword 'let'),List(LetBinding(Ident(x),Some(IntLit(1)),List())),Some(Block(List(Ident(x))))))
 
 x => let x = 1
   in x
 //│ Parsed:
-//│ 	InfixApp(Tup(List(Ident(x))),Keywrd(keyword '=>'),LetLike(Keywrd(keyword 'let'),Ident(x),Some(IntLit(1)),Some(Ident(x))))
+//│ 	InfixApp(Tup(List(Ident(x))),Keywrd(keyword '=>'),LetLike(Keywrd(keyword 'let'),List(LetBinding(Ident(x),Some(IntLit(1)),List())),Some(Ident(x))))
 
 x =>
   let x = 1
   in x
 //│ Parsed:
-//│ 	InfixApp(Tup(List(Ident(x))),Keywrd(keyword '=>'),Block(List(LetLike(Keywrd(keyword 'let'),Ident(x),Some(IntLit(1)),Some(Ident(x))))))
+//│ 	InfixApp(Tup(List(Ident(x))),Keywrd(keyword '=>'),Block(List(LetLike(Keywrd(keyword 'let'),List(LetBinding(Ident(x),Some(IntLit(1)),List())),Some(Ident(x))))))
 
 x =>
   let x = 1
   x
 //│ Parsed:
-//│ 	InfixApp(Tup(List(Ident(x))),Keywrd(keyword '=>'),Block(List(LetLike(Keywrd(keyword 'let'),Ident(x),Some(IntLit(1)),None), Ident(x))))
+//│ 	InfixApp(Tup(List(Ident(x))),Keywrd(keyword '=>'),Block(List(LetLike(Keywrd(keyword 'let'),List(LetBinding(Ident(x),Some(IntLit(1)),List())),None), Ident(x))))
 
 x => let x = 1
   x
 //│ Parsed:
-//│ 	InfixApp(Tup(List(Ident(x))),Keywrd(keyword '=>'),LetLike(Keywrd(keyword 'let'),Ident(x),Some(Jux(IntLit(1),Block(List(Ident(x))))),None))
+//│ 	InfixApp(Tup(List(Ident(x))),Keywrd(keyword '=>'),LetLike(Keywrd(keyword 'let'),List(LetBinding(Ident(x),Some(Jux(IntLit(1),Block(List(Ident(x))))),List())),None))
 
 
 :pe
 if
 //│ ╔══[PARSE ERROR] Expected expression or block after 'if' keyword; found end of input instead
-//│ ║  l.257: 	if
+//│ ║  l.208: 	if
 //│ ╙──       	  ^
 //│ Parsed:
 //│ 	Error()

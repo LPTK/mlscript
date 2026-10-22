@@ -1198,14 +1198,14 @@ lambda4 = (undefined, function (Runtime2, EffectHandle1, value) {
     return runtime.Unit;
   }
   static runStackSafe(limit, f) {
-    let old, old1, old2, result, scrut, tmp, tmp1, tmp2;
-    old = Runtime.stackLimit;
+    let result, scrut, old, old1, old2, tmp, tmp1, tmp2;
+    old2 = Runtime.stackLimit;
     try {
       Runtime.stackLimit = limit;
       old1 = Runtime.stackDepth;
       try {
         Runtime.stackDepth = 1;
-        old2 = Runtime.stackHandler;
+        old = Runtime.stackHandler;
         try {
           Runtime.stackHandler = Runtime.StackDelayHandler;
           result = Runtime.enterHandleBlock(Runtime.StackDelayHandler, f);
@@ -1232,7 +1232,7 @@ lambda4 = (undefined, function (Runtime2, EffectHandle1, value) {
           }
           tmp2 = result;
         } finally {
-          Runtime.stackHandler = old2;
+          Runtime.stackHandler = old;
         }
         tmp1 = tmp2;
       } finally {
@@ -1240,7 +1240,7 @@ lambda4 = (undefined, function (Runtime2, EffectHandle1, value) {
       }
       tmp = tmp1;
     } finally {
-      Runtime.stackLimit = old;
+      Runtime.stackLimit = old2;
     }
     return tmp
   }

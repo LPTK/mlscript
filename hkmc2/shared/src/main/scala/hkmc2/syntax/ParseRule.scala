@@ -175,7 +175,11 @@ class ParseRules(using State):
         }*
       )
     ).map:
-      case (kw, (lhs, rhs, body)) => LetLike(kw, lhs, rhs, body)
+      case (kw, (lhs, rhs, body)) =>
+        val bindings = (lhs, rhs) match
+          case (Block(entries), N) => entries.map(LetBinding.fromTree)
+          case _ => LetBinding(lhs, rhs, Nil).withLoc(Loc(lhs :: rhs.toList)) :: Nil
+        LetLike(kw, bindings, body)
   
   def ifLike(kw: Keyword.IfLike): Alt[Tree] =
     Kw(kw)(

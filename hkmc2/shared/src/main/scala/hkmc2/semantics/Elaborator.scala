@@ -1115,10 +1115,18 @@ extends Importer:
   /** Handle the common cases of branches in splits. */
   private def branch(using Ctx): Cfg[PartialFunction[Tree, (Ctx, SimpleSplit)]] =
     // Interleaved-`let` bindings like `{ x is A then 0; let x = 1; ... }`.
-    case LetLike(Keywrd(`let`), ident: Ident, S(rhsTree), N) =>
-      val symbol = VarSymbol(ident, erasedType = N)
-      val head = mkSplitLet(symbol, term(rhsTree, Trm))
-      ((ctx + (ident.name -> symbol)), head ~: End)
+    case LetLike(Keywrd(`let`), bindings, N) =>
+      val (innerCtx, heads) = bindings.foldLeft((ctx, Ls[Head]())):
+        case ((curCtx, heads), binding) => curCtx.givenIn:
+          binding.desugared match
+            case LetBinding(ident: Ident, S(rhsTree), Nil) =>
+              val symbol = VarSymbol(ident, erasedType = N)
+              val head = mkSplitLet(symbol, term(rhsTree, Trm))
+              (ctx + (ident.name -> symbol), head :: heads)
+            case _ =>
+              raise(ErrorReport(msg"Expected an initialized identifier binding in this branch" -> binding.toLoc :: Nil))
+              (ctx, heads)
+      (innerCtx, heads.foldLeft[SimpleSplit](End)((tail, head) => head ~: tail))
     // Interleaved-`do` statements like `{ x is A then 0; do log(1); ... }`.
     case PrefixApp(Keywrd(`do`), rhsTree) =>
       (ctx, mkSplitLet(TempSymbol(N, erasedType = N, "unused"), term(rhsTree, Trm)) ~: End)
@@ -1385,6 +1393,42 @@ extends Importer:
       assignVariable(lhs, rhs)
     Term.Assgn(lhs, rhs)
 
+  /** A group shares one protected body. Backups are captured immediately before
+    * each write, so later initializers observe earlier writes. A backup becomes
+    * active before its RHS runs, since that RHS may mutate the target and throw.
+    */
+  private def scopedAssignments(assignments: Ls[(Term, Term, Opt[Loc])], body: Term): Ctxl[Term] =
+    val saved = assignments.zipWithIndex.map:
+      case ((lhs, write, loc), index) =>
+        val old = TempSymbol(S(lhs), erasedType = N, "old")
+        val active = Option.when(index > 0)(TempSymbol(N, erasedType = N, "active"))
+        val declarations = LetDecl(old, Nil)(loc) :: active.toList.flatMap: flag =>
+          mkLetBinding(flag, Term.Lit(BoolLit(false)), Nil)(loc)
+        val backup = defineVar(old, lhs)(loc)
+        val setup = active match
+          case N => write :: Nil
+          case S(flag) => backup :: assignment(flag.ref(), Term.Lit(BoolLit(true))) :: write :: Nil
+        val restore = assignment(lhs, old.ref())
+        val cleanup = active match
+          case N => restore
+          case S(flag) =>
+            ifLike(Keyword.`if`, IfLikeForm.ImperativeIf,
+              mkMatch(flag.ref(), Pattern.Literal(BoolLit(true)), Else(restore)(N)) ~: Else(unit)(N), loc)
+        // Local writes cannot throw. Field/index restoration can fail, in which
+        // case earlier saved values must still be restored by a finally clause.
+        val local = lhs.withoutCaptures match
+          case Term.Ref(_: LocalVarSymbol) | Term.SimpleRef(_: LocalVarSymbol) => true
+          case _ => false
+        (declarations, backup, setup, cleanup, local)
+    saved match
+      case Nil => body
+      case first :: rest =>
+        val cleanup = rest.foldLeft[Term](first._4): (tail, entry) =>
+          val (_, _, _, restore, local) = entry
+          if local then Blk(restore :: Nil, tail) else Term.Try(restore, tail)
+        Blk(saved.flatMap(_._1) :+ first._2,
+          Term.Try(Blk(saved.flatMap(_._3), body), cleanup))
+
   def ifLike(kw: Keyword.SplitLike, form: IfLikeForm, split: SimpleSplit, loc: Opt[Loc]): Term.IfLike =
     val res = new Term.IfLike(kw, form, split).withLoc(loc)
     if newResolution then
@@ -1507,39 +1551,37 @@ extends Importer:
       Term.Lit(lit)
     case d: Def =>
       subterm(Block(d :: Unt() :: Nil), interp)
-    case LetLike(kw @ Keywrd(`let`), lhs, rhso, S(bod)) =>
-      subterm(Block(LetLike(kw, lhs, rhso, N) :: bod :: Nil), interp)
-    case LetLike(kw @ Keywrd(`let`), lhs, rhso, N) =>
+    case LetLike(kw @ Keywrd(`let`), bindings, S(bod)) =>
+      subterm(Block(LetLike(kw, bindings, N) :: bod :: Nil), interp)
+    case LetLike(kw @ Keywrd(`let`), bindings, N) =>
       raise(ErrorReport(
         msg"Expected a body for let bindings in expression position" ->
           tree.toLoc :: Nil))
-      block(LetLike(kw, lhs, rhso, N) :: Nil, hasResult = true)._1
-    case LetLike(Keywrd(`set`), lhs, S(rhs), N) =>
-      assignment(subterm(lhs), subterm(rhs))
-    case LetLike(Keywrd(`set`), lhs, N, N) =>
-      raise(ErrorReport(
-        msg"Expected a right-hand side for this assignment" ->
-          tree.toLoc :: Nil))
-      error
-    case LetLike(Keywrd(`set`), lhs, S(rhs), S(bod)) =>
-      // * Backtracking assignment
-      if ctx.potentiallyInstrumented then
+      block(LetLike(kw, bindings, N) :: Nil, hasResult = true)._1
+    case LetLike(Keywrd(`set`), bindings, body) =>
+      if body.nonEmpty && bindings.nonEmpty && ctx.potentiallyInstrumented then
         raise(ErrorReport(
           msg"Backtracking assignment is not supported with effect handlers enabled" ->
             tree.toLoc :: Nil))
         error
       else
-        val lt = subterm(lhs)
-        val sym = TempSymbol(S(lt), erasedType = N, "old")
-        Blk(
-          LetDecl(sym, Nil)(tree.toLoc) :: defineVar(sym, lt)(tree.toLoc) :: Nil, Term.Try(Blk(
-            assignment(lt, subterm(rhs)) :: Nil,
-            subterm(bod, interp),
-        ), assignment(lt, sym.ref())))
-    case LetLike(Keywrd(Keyword.`set`), _, N, S(_)) =>
-      raise:
-        ErrorReport(msg"Expected a right-hand side for this assignment" -> tree.toLoc :: Nil)
-      error
+        val assignments = bindings.map: binding =>
+          val LetBinding(lhs, rhs, annotations) = binding.desugared
+          rhs match
+            case N =>
+              raise(ErrorReport(msg"Expected a right-hand side for this assignment" -> binding.toLoc :: Nil))
+              N
+            case S(rhs) =>
+              val lt = subterm(lhs)
+              val write = annotations.flatMap(annot).foldLeft[Term](assignment(lt, subterm(rhs))):
+                case (write, ann) => annotated(ann, write)
+              S((lt, write, binding.toLoc))
+        if assignments.exists(_.isEmpty) then error
+        else body match
+          case N => assignments.flatten.map(_._2) match
+            case write :: Nil => write
+            case writes => Blk(writes, unit)
+          case S(bod) => scopedAssignments(assignments.flatten, subterm(bod, interp))
     case TryFinally(tryBody, finallyBody) =>
       Term.Try(subterm(tryBody, interp), subterm(finallyBody))
     case (hd @ Hndl(id: Ident, c, Block(sts_), S(bod))) => ctx.nest(OuterCtx.LambdaOrHandlerBlock).givenIn:
@@ -2390,28 +2432,34 @@ extends Importer:
             recordFieldScope(RcdField(Term.Error().withLocOf(rlhs), rhs_t)) :: acc
         newCtx.givenIn:
           go(sts, Nil, newAcc)(N)
-      case (hd @ LetLike(kw @ Keywrd(`let`), Apps(id: Ident, tups), rhso, N)) :: sts
-      if tups.isEmpty || id.name.headOption.exists(_.isLower) =>
-        val sym =
-          fieldOrVarSym(LetBind, id)
-        log(dbg"Processing `let` statement $id (${sym}) ${ctx.outer}")
-        members.get(id.name).foreach: s =>
-          raise(ErrorReport(msg"Name '${id.name}' is already used"
-            -> hd.toLoc :: msg"by a member declared in the same block" -> s.toLoc :: Nil))
-        val newAcc = rhso match
-          case S(rhs) =>
-            val rrhs = tups.foldRight(rhs):
-              InfixApp(_, Keywrd(Keyword.`=>`), _)
-            mkLetBinding(sym, term(rrhs, Trm), annotations)(statementLoc) reverse_::: acc
-          case N =>
-            if tups.nonEmpty then
-              raise(ErrorReport(msg"Expected a right-hand side for let bindings with parameters" -> hd.toLoc :: Nil))
-            LetDecl(sym, annotations)(statementLoc) :: acc
-        (ctx + (id.name -> sym)) givenIn:
+      case LetLike(Keywrd(`let`), bindings, N) :: sts =>
+        val (innerCtx, newAcc) = bindings.foldLeft((ctx, acc)):
+          case ((curCtx, acc), binding) => curCtx.givenIn:
+            val bindingLoc = if bindings.sizeIs == 1 then statementLoc else binding.toLoc
+            binding.desugared match
+              case LetBinding(Apps(id: Ident, tups), rhso, anns)
+              if tups.isEmpty || id.name.headOption.exists(_.isLower) =>
+                val sym = fieldOrVarSym(LetBind, id)
+                log(dbg"Processing `let` statement $id (${sym}) ${ctx.outer}")
+                members.get(id.name).foreach: s =>
+                  raise(ErrorReport(msg"Name '${id.name}' is already used"
+                    -> binding.toLoc :: msg"by a member declared in the same block" -> s.toLoc :: Nil))
+                val bindingAnnotations = annotations ++ anns.flatMap(annot)
+                val newAcc = rhso match
+                  case S(rhs) =>
+                    val rrhs = tups.foldRight(rhs):
+                      InfixApp(_, Keywrd(Keyword.`=>`), _)
+                    mkLetBinding(sym, term(rrhs, Trm), bindingAnnotations)(bindingLoc) reverse_::: acc
+                  case N =>
+                    if tups.nonEmpty then
+                      raise(ErrorReport(msg"Expected a right-hand side for let bindings with parameters" -> binding.toLoc :: Nil))
+                    LetDecl(sym, bindingAnnotations)(bindingLoc) :: acc
+                (ctx + (id.name -> sym), newAcc)
+              case _ =>
+                raise(ErrorReport(msg"Unsupported let binding shape" -> binding.toLoc :: Nil))
+                (ctx, Term.Error().withLocOf(binding) :: acc)
+        innerCtx.givenIn:
           go(sts, Nil, newAcc)(N)
-      case (tree @ LetLike(Keywrd(`let`), lhs, _, N)) :: sts =>
-        raise(ErrorReport(msg"Unsupported let binding shape" -> tree.toLoc :: Nil))
-        go(sts, Nil, Term.Error().withLocOf(tree) :: acc)(N)
       case (definition @ Def(lhs, rhs)) :: sts =>
         reportUnusedAnnotations
         lhs match

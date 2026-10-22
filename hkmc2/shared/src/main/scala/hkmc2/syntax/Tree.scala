@@ -55,6 +55,26 @@ object SpreadKind:
     case Keyword.`..` => SpreadKind.Lazy
     case Keyword.`...` => SpreadKind.Eager
 
+/** A binding keeps its own annotations and location even when it belongs to a group. */
+case class LetBinding(lhs: Tree, rhs: Opt[Tree], annotations: Ls[Tree]) extends AutoLocated:
+  def children: Vector[Located] = annotations.toVector ++ Vector(lhs) ++ rhs.toVector
+  
+  lazy val desugared: LetBinding = (lhs, rhs) match
+    // TODO generalize to pattern-let and remove this special case.
+    case (und: Under, _) => copy(lhs = Ident("_").withLocOf(und)).withLocOf(this)
+    case (OpApp(lhs, op @ Ident(name), rhss), N) if name.endsWith("=") =>
+      // TODO: compound assignment receivers must be evaluated only once.
+      copy(lhs = lhs, rhs = S(OpApp(lhs, Ident(name.init).withLocOf(op), rhss))).withLocOf(this).desugared
+    case _ => this
+
+object LetBinding:
+  def fromTree(tree: Tree): LetBinding = tree match
+    case Annotated(annotation, entry) =>
+      val binding = fromTree(entry)
+      binding.copy(annotations = annotation :: binding.annotations).withLocOf(tree)
+    case Def(lhs, rhs) => LetBinding(lhs, S(rhs), Nil).withLocOf(tree)
+    case lhs => LetBinding(lhs, N, Nil).withLocOf(tree)
+
 enum Tree extends AutoLocated:
   case Empty()
   case Error()
@@ -71,7 +91,7 @@ enum Tree extends AutoLocated:
   case BoolLit(value: Bool)              extends Tree with Literal
   case Bra(k: BracketKind, inner: Tree)
   case Block(stmts: Ls[Tree])(using State) extends Tree with semantics.BlockImpl
-  case LetLike(kw: Keywrd[Keyword.LetLike], lhs: Tree, rhs: Opt[Tree], body: Opt[Tree])
+  case LetLike(kw: Keywrd[Keyword.LetLike], bindings: Ls[LetBinding], body: Opt[Tree])
   case Hndl(lhs: Tree, cls: Tree, defs: Tree, body: Opt[Tree])
   case Def(lhs: Tree, rhs: Tree)
   case TermDef(k: TermDefKind, head: Tree, rhs: Opt[Tree]) extends Tree with TermDefImpl
@@ -132,7 +152,7 @@ enum Tree extends AutoLocated:
     case Pun(_, e) => Vector.single(e)
     case Bra(_, e) => Vector.single(e)
     case Block(stmts) => stmts.toVector
-    case LetLike(kw, lhs, rhs, body) => lhs +: (rhs.toVector ++ body.toVector)
+    case LetLike(kw, bindings, body) => bindings.toVector ++ body.toVector
     case Hndl(lhs, rhs, defs, body) => body match
       case Some(value) => lhs +: rhs +: defs +: value +: Vector.empty
       case None => lhs +: rhs +: defs +: Vector.empty
@@ -190,7 +210,7 @@ enum Tree extends AutoLocated:
     case Unt() => "unit"
     case Bra(k, _) => k.name + " section"
     case Block(stmts) => "block"
-    case LetLike(kw, lhs, rhs, body) => kw.name
+    case LetLike(kw, _, _) => kw.name
     case TermDef(k, alphaName, rhs) => "term definition"
     case TypeDef(k, head, rhs) => "type definition"
     case Modified(kw, body) => s"'${kw.name}'-modified ${body.describe}"
@@ -241,17 +261,6 @@ enum Tree extends AutoLocated:
   
   def showDbg(using DebugPrinter): Str =
     this.showAsPlain
-  
-  // Binding groups use ordinary block syntax: assignments supply initializers,
-  // while other entries are binding heads (including declarations and `+=` forms).
-  def asLetLike(kw: Keywrd[Keyword.LetLike], body: Opt[Tree]): Tree = this match
-    case Annotated(ann, entry) =>
-      Annotated(ann, entry.asLetLike(kw, body)).withLocOf(this)
-    case entry =>
-      val binding = entry match
-        case Def(lhs, rhs) => LetLike(kw, lhs, S(rhs), body)
-        case lhs => LetLike(kw, lhs, N, body)
-      binding.withLocOf(entry)
   
   lazy val desugared: Tree =
     
@@ -328,17 +337,6 @@ enum Tree extends AutoLocated:
     case Pun(false, id) =>
       InfixApp(id, Keywrd(Keyword.`:`), id)
     
-    case LetLike(kw, group: Block, N, S(body)) =>
-      // Nest scoped bindings so `set` restores every assigned value after the body.
-      group.stmts.foldRight(body): (binding, body) =>
-        binding.asLetLike(kw, S(body)).desugared
-    case LetLike(kw, group: Block, N, N) =>
-      group.withStmts(group.stmts.map(_.asLetLike(kw, N)))
-    
-    // TODO generalize to pattern-let and rm this special case
-    case LetLike(kw, und @ Under(), r, b) =>
-      LetLike(kw, Ident("_").withLocOf(und), r, b)
-    
     // `open` keeps its existing expression grammar; a declaration operand makes it a modifier.
     case Open(body: (TypeOrTermDef | Modified | Annotated)) =>
       Annotated(Keywrd(Keyword.`open`).withLocOf(this), body.desugared)
@@ -365,11 +363,6 @@ enum Tree extends AutoLocated:
           TermDef(MutVal, anme, rhs).withLocOf(this).desugared
         case _ => m
       )
-    
-    case PossiblyAnnotated(anns, LetLike(letLike, OpApp(lhs, f @ Ident(nme), rhss), N, bodo))
-    if nme.endsWith("=") =>
-      // TODO only do this if the lhs is non-expansive/a valid assignment receiver?
-      PossiblyAnnotated(anns, LetLike(letLike, lhs, S(OpApp(lhs, Ident(nme.init), rhss)), bodo).withLocOf(this).desugared)
     
     case Apps(PrefixApp(Keywrd(Keyword.`new!`), cls), argss) =>
       DynamicNew(Apps(cls, argss)).withLocOf(this)

@@ -735,7 +735,7 @@ abstract class Parser(
               err(msg"Expected '`in'; found end of input instead" -> lastLoc :: Nil)
               errExpr
           bs.foldRight(body):
-            case ((v, r), acc) => Quoted(LetLike(new Keywrd(`let`).withLoc(S(l0)), v, S(Unquoted(r)), S(Unquoted(acc))))
+            case ((v, r), acc) => Quoted(LetLike(new Keywrd(`let`).withLoc(S(l0)), LetBinding(v, S(Unquoted(r)), Nil) :: Nil, S(Unquoted(acc))))
         case (IDENT("if", _), l0) :: _ =>
           consume
           // A quoted conditional is parsed as a complete conditional expression, independently
