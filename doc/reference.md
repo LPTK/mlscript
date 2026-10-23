@@ -1603,6 +1603,14 @@ field, the values it describes can be assigned values of that field's input type
 fields therefore admit. Exposing a record also exposes values stored by assignments, including
 through fields copied by a mutable spread: those values can be read by clients just like initializers.
 
+An overriding method must preserve argument binding for every call permitted by the inherited
+method. Parameter names may change, but corresponding parameters must receive the same arguments,
+omitted-argument defaults, and rest slices. A parameter marked `drop` in the inherited contract may
+be omitted only when this leaves the other parameters' bindings unchanged. Additional optional
+parameters are permitted only when they cannot consume arguments belonging to inherited parameters.
+Equal parameter counts alone do not establish compatibility: moving a trailing parameter or changing
+where a rest slice begins can change which argument a parameter receives.
+
 An override shares the representations of the member it overrides. Its unannotated parameters
 take the inherited parameters' representations, its annotated parameters must admit them (and,
 on the Wasm backend, which compiles overrides with the overridden method's signature, match
