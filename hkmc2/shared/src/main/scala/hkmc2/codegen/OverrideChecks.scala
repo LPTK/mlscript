@@ -76,8 +76,3 @@ final class OverrideChecks(definitions: Ls[TermDefinition])(using Config, Ctx, S
             msg"${param.label.capitalize} of overriding member '${td.tsym.nme}' is represented as '${describe(actualType)
               }', which cannot hold the values represented as '${describe(baseType)}' that the member it overrides accepts",
             param.toLoc)
-          else if (config.target is CompilationTarget.Wasm) && !within(actualType, baseType) then report(base,
-            msg"${param.label.capitalize} of overriding member '${td.tsym.nme}' receives values represented as '${
-              describe(actualType)}', but Wasm calls it through the signature of the member it overrides, whose parameter is represented as '${
-              describe(baseType)}'",
-            param.toLoc)
