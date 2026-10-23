@@ -1,0 +1,56 @@
+:.
+
+
+
+import "../../mlscript-compile/Token.mls"
+
+open Token
+
+1
+//│ = 1
+
+fun (#>) tokens(ts) = ts
+
+#> hi there!
+//│ = [IDENT("hi", false), SPACE, IDENT("there", false), IDENT("!", true)]
+
+
+fun betterdown = case
+  [] then ""
+  [IDENT("*", _), BRACKETS("curly brace", cnt), ..rest] then
+    "<b>" + betterdown(cnt) + "</b>" + betterdown(rest)
+  [tok, ..rest] then
+    if tok is
+      SPACE then " "
+      IDENT(nme, _) then nme
+      LITVAL(lit) then lit
+      BRACKETS("indentation" | "curly brace", cnt) then betterdown(cnt)
+      BRACKETS("parenthesis", cnt) then "(" + betterdown(cnt) + ")"
+      NEWLINE then "\n"
+      COMMA then ","
+      QUOTE then "`"
+      PERIOD then "."
+      t then print(t); ???
+    + betterdown(rest)
+
+betterdown \ #> { hi, there! }
+//│ = "hi, there! "
+
+print \ betterdown \ #>
+  This is a longer paragraph. 
+    Look, indents avoid newlines.
+  You can write *{bold} text.
+  In the future, 
+    "`$(arg)`" will insert the value of `arg` in place 
+      (interpolation).
+//│ > This is a longer paragraph. Look, indents avoid newlines.
+//│ > You can write <b>bold</b> text.
+//│ > In the future, `$(arg)` will insert the value of `arg` in place (interpolation).
+
+
+
+
+
+
+
+

@@ -23,7 +23,7 @@ module Token {
       SELECT(name: Str, dynamic: Bool)
       // `kind` uses the lexer's bracket names, such as "parenthesis", "curly brace", or "indentation".
       // Contents are structured tokens too, so nested separators do not end the outer token sequence.
-      BRACKETS(kind: Str, contents: Array)
+      BRACKETS(kind: Str, contents: Array[Token])
       COMMENT(text: Str)
       SUSPENSION(dotDotDot: Bool)
       ESC_IDENT(name: Str)
