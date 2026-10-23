@@ -19,8 +19,6 @@ class Lexer(origin: Origin, dbg: Bool)(using raise: Raise):
   type State = Int
   
   private val isOpChar = symbolicIdentifierChars + '.'
-  def isIdentFirstChar(c: Char): Bool =
-    c.isLetter || c === '_' || c === '\''
   def isIdentChar(c: Char): Bool =
     isIdentFirstChar(c) || isDigit(c) || c === '\''
   def isHexDigit(c: Char): Bool =
@@ -384,8 +382,14 @@ class Lexer(origin: Origin, dbg: Bool)(using raise: Raise):
         go(j, IDENT(n, false))
       case _ if isOpChar(c) =>
         val (n, j) = takeWhile(i)(isOpChar)
-        // A token operator can be selected from a receiver without turning `.#>` into an infix name.
-        if n.startsWith(".#") && n.length > 2 then go(j, SELECT(n.drop(1), false))
+        if (n === "#" || n === ".#") && j < length && isIdentFirstChar(bytes(j)) then
+          val (name, k) = takeIdent(j)
+          if n === ".#" then go(k, SELECT("#" + name, false))
+          else if directiveNames.contains(name) then go(j, IDENT("#", true))
+          else go(k, IDENT("#" + name, true))
+        // A leading dot selects an operator, just as it selects an alphanumeric member.
+        // The double-dot range and spread forms remain dedicated language syntax.
+        else if n.startsWith(".") && n.length > 1 && !dotSyntax.contains(n) then go(j, SELECT(n.drop(1), false))
         else if n === "." && j >= length then go(j, PERIOD) // * There is no other character to parse after `.`
         else if (n === "." || n === "!") && j < length
         then
@@ -547,6 +551,13 @@ class Lexer(origin: Origin, dbg: Bool)(using raise: Raise):
 object Lexer:
   
   type TokLoc = (Token, Loc)
+  
+  def isIdentFirstChar(c: Char): Bool =
+    c.isLetter || c === '_' || c === '\''
+  
+  // These names keep the compiler's directive grammar instead of naming runtime token operators.
+  private val directiveNames: Set[Str] = Set("lang", "config", "dbg")
+  private val dotSyntax: Set[Str] = Set("..", "...", "..<", "..=")
   
   val keywords: Set[Str] = Set(
     "if",

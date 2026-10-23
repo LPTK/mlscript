@@ -98,6 +98,9 @@ object Parser:
       case IDENT(nme, true) if !Keyword.all.contains(nme) => S(nme)
       case _ => N
   
+  private def isNamedTokenOperator(name: Str): Bool =
+    name.startsWith("#") && name.length > 1 && Lexer.isIdentFirstChar(name(1))
+  
   object ALPHA:
     def unapply(t: Token): Opt[Str] = t match
       case IDENT(nme, false) if !Keyword.all.contains(nme) => S(nme)
@@ -920,6 +923,8 @@ abstract class Parser(
   private def opSplitLeftPrec(tok: Stroken): Int = tok match
     // An annotation may be the first member of a class/record body.
     case IDENT("@", _) => Int.MinValue
+    // Named token operators only have prefix and selected forms, so a new line starts a new expression.
+    case IDENT(name, _) if isNamedTokenOperator(name) => Int.MinValue
     case SELECT(_, _) => SelPrec
     case id @ (IDENT(_, true) | KEYWORD(_: Keyword.InfixSplittable)) => id match
       case KEYWORD(Keyword.`of`) => AppPrec
@@ -1096,6 +1101,7 @@ abstract class Parser(
       case (_: NEWLINE_COMMA, _) :: (OP(opStr), l0) :: rest
       if allowNewlines
       && prec <= NoElsePrec // (Q: why doesn't MinPrec work?)
+      && !isNamedTokenOperator(opStr)
       && NOISE.get(rest).nonEmpty // * Don't treat as infix if there are no tokens for the RHS (eg `()\n???`)
       && (rest.match
         case (_: NEWLINE_COMMA, _) :: _ | (SPACE, _) :: _ | (BRACKETS(_: Indent_Curly, _), _) :: _ | Nil => true
@@ -1113,6 +1119,14 @@ abstract class Parser(
         val rhs = operatorRhs(opStr, rhsPrec, allowNewlines = allowNewlines)
         exprCont(OpApp(acc, v, rhs :: Nil), prec, allowNewlines = allowNewlines)
         
+      // In an expression continuation, `Class#member` still disambiguates a member.
+      // Split the fused spelling here, before precedence checks, so it has exactly the
+      // same binding and locations as the existing `Class # member` form.
+      case (IDENT(name, true), loc) :: rest if isNamedTokenOperator(name) =>
+        cur = (IDENT("#", true), Loc(loc.spanStart, loc.spanStart + 1, loc.origin)) ::
+          (IDENT(name.drop(1), false), Loc(loc.spanStart + 1, loc.spanEnd, loc.origin)) :: rest
+        exprCont(acc, prec, allowNewlines = allowNewlines)
+      
       case (OP("::"), l0) :: (IDENT(id, false), l1) :: _ =>
         consume
         consume
@@ -1182,7 +1196,7 @@ abstract class Parser(
           DynAccess(acc, new Ident(name).withLoc(S(l0)), true)
         else
           val sel = new Sel(acc, new Ident(name).withLoc(S(l0)))
-          if name.startsWith("#") && startsPrefixOperand then
+          if name.headOption.exists(c => symbolicIdentifierChars(c) || c === '.') && startsPrefixOperand then
             PrefixOpApp(sel, operatorRhs(name, opPrec(name)._2, allowNewlines = allowNewlines))
           else sel
         exprCont(tree, prec, allowNewlines = allowNewlines)

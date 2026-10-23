@@ -1410,6 +1410,7 @@ extends Importer:
     * so that, eg, `x |> (100 > _)` means `x |> (y => 100 > y)`.
     * Returns whether the LHS and whether the RHS of `op` delimit implicit lambdas. */
   private def underscoreDelimitingSides(op: Tree): (Bool, Bool) = op match
+    case Sel(_, name) => underscoreDelimitingSides(name)
     case Ident(name) if lang.newUnderscoreAndApplicationSyntax =>
       (name.startsWith("<") && name =/= "<" && name =/= "<=", name.endsWith(">") && name =/= ">")
     case _ => (false, false)

@@ -1,0 +1,173 @@
+:.
+:js
+
+
+fun (#foo) fooImpl(tokens) = tokens
+
+:expect [IDENT("hi", false), SPACE, IDENT("hello", false)]
+#foo hi hello
+//│ = [IDENT("hi", false), SPACE, IDENT("hello", false)]
+
+:expect [LITVAL(42)]
+#foo 42
+//│ = [LITVAL(42)]
+
+// A captured call is data, including when its operator is itself a named token operator.
+:expect [IDENT("#unknown", true), BRACKETS("parenthesis", [LITVAL(1)])]
+#foo #unknown(1)
+//│ = [IDENT("#unknown", true), BRACKETS("parenthesis", [LITVAL(1)])]
+
+#foo
+  hi
+  hello(1)
+//│ = [
+//│   BRACKETS(
+//│     "indentation",
+//│     [
+//│       IDENT("hi", false),
+//│       NEWLINE,
+//│       IDENT("hello", false),
+//│       BRACKETS("parenthesis", [LITVAL(1)])
+//│     ]
+//│   )
+//│ ]
+
+// Explicit calls and first-class uses bypass token capture.
+:expect 3
+#foo(1 + 2)
+//│ = 3
+
+:expect 4
+#foo (2 + 2)
+//│ = 4
+
+:expect 5
+#foo of 2 + 3
+//│ = 5
+
+:expect 6
+#foo \ 2 + 4
+//│ = 6
+
+:expect 7
+id(#foo)(7)
+//│ = 7
+
+:expect 8
+id"#foo"(8)
+//│ = 8
+
+fun (#typed) typed[T](x: T): T = x
+
+:expect 9
+#typed[Int](9)
+//│ = 9
+
+module Reader {
+  fun (#foo) read(tokens) = tokens
+  fun (#typed) typed[T](x: T): T = x
+}
+
+:expect [IDENT("hi", false), SPACE, IDENT("hello", false)]
+Reader.#foo hi hello
+//│ = [IDENT("hi", false), SPACE, IDENT("hello", false)]
+
+:expect 10
+Reader.#foo(10)
+//│ = 10
+
+:expect 11
+Reader.#typed[Int](11)
+//│ = 11
+
+Reader.#foo
+  hi
+  hello(1)
+//│ = [
+//│   BRACKETS(
+//│     "indentation",
+//│     [
+//│       IDENT("hi", false),
+//│       NEWLINE,
+//│       IDENT("hello", false),
+//│       BRACKETS("parenthesis", [LITVAL(1)])
+//│     ]
+//│   )
+//│ ]
+
+module Outer { val reader = Reader }
+
+:expect [IDENT("hello", false)]
+Outer
+  .reader
+  .#foo hello
+//│ = [IDENT("hello", false)]
+
+// Named operators start a new expression on a new line, including with a space after the name.
+:w
+:expect [IDENT("hello", false)]
+1
+#foo hello
+//│ ╔══[WARNING] Pure expression in statement position
+//│ ║  l.+1: 	1
+//│ ╙──      	^
+//│ = [IDENT("hello", false)]
+
+// Reserved directive names match exactly; longer names are ordinary token operators.
+fun (#langExtra) langExtra(tokens) = tokens
+
+:expect [IDENT("hi", false)]
+#langExtra hi
+//│ = [IDENT("hi", false)]
+
+// In continuation position, #member still disambiguates a class member.
+class Box(val value) {
+  fun get() = value
+}
+let box = Box(42)
+//│ box = Box(42)
+
+:expect 42
+box.Box#value
+//│ = 42
+
+:expect 42
+box.Box#get()
+//│ = 42
+
+:expect 43
+1 + box.Box#value
+//│ = 43
+
+:expect "42"
+box.Box#value.toString()
+//│ = "42"
+
+:expect 42
+box.Box #value
+//│ = 42
+
+// An unknown token operator reports an ordinary unresolved name, not an unknown directive.
+:e
+:re
+#unknown hi
+//│ ╔══[COMPILATION ERROR] Name not found: #unknown
+//│ ║  l.+1: 	#unknown hi
+//│ ╙──      	^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// Reserved directives and the legacy resolver still work alongside the new spelling.
+#lang(useNewResolution: false)
+
+:expect [IDENT("legacy", false), SPACE, LITVAL(1)]
+#foo legacy 1
+//│ = [IDENT("legacy", false), SPACE, LITVAL(1)]
+
+:expect [IDENT("legacy", false)]
+Reader.#foo legacy
+//│ = [IDENT("legacy", false)]
+
+:expect 42
+box.Box#get()
+//│ = 42
+

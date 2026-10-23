@@ -22,18 +22,18 @@ oops.call(Example, 2)
 
 
 // * We could use that syntax as a shorthand:
-fun (.!.) call(receiver, f)(arg) = f.call(receiver, arg)
+fun (!>.) call(receiver, f)(arg) = f.call(receiver, arg)
 
 
 // * Notice how it parses with the correct precedence:
 :pt
 :sjs
-Example .!. oops(2)
+Example !>. oops(2)
 //│ ———————————————| Parsed tree |——————————————————————————————————————————————————————————————————————
 //│ App:
 //│   lhs = OpApp:
 //│     lhs = Ident of "Example"
-//│     op = Ident of ".!."
+//│     op = Ident of "!>."
 //│     rhss = Ls of
 //│       Ident of "oops"
 //│   rhs = Tup of Ls of
@@ -43,14 +43,14 @@ Example .!. oops(2)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = [2, 1]
 
-Example.!. oops(2)
+Example!>. oops(2)
 //│ = [2, 1]
 
-Example .!.oops(2)
+Example !>.oops(2)
 //│ = [2, 1]
 
 
-id(Example) .!. oops(2)
+id(Example) !>. oops(2)
 //│ = [2, 1]
 
 
@@ -69,36 +69,36 @@ data class Example2(val a) with
 let oops2 = Example2(0).("f")
 //│ oops2 = fun f
 
-Example2(1) .!. oops2(2) .!. oops2(2)
+Example2(1) !>. oops2(2) !>. oops2(2)
 //│ = Example2(1)
 
-Example2(1).!. oops2(2).!. oops2(2)
+Example2(1)!>. oops2(2)!>. oops2(2)
 //│ = Example2(1)
 
-(new Example2(1)) .!. oops2(2)
-//│ = Example2(1)
-
-new Example2(1)
-  .!. oops2(2)
+(new Example2(1)) !>. oops2(2)
 //│ = Example2(1)
 
 new Example2(1)
-  .!. oops2(2)
-  .!. oops2(2)
+  !>. oops2(2)
+//│ = Example2(1)
+
+new Example2(1)
+  !>. oops2(2)
+  !>. oops2(2)
 //│ = Example2(1)
 
 
 // * Alternative syntax – precedence is now inappropriate
-fun (.>) call(receiver, f)(arg) = f.call(receiver, arg)
+fun (!>) call(receiver, f)(arg) = f.call(receiver, arg)
 
 :pt
 :sjs
 :re
-Example .> oops(2)
+Example !> oops(2)
 //│ ———————————————| Parsed tree |——————————————————————————————————————————————————————————————————————
 //│ OpApp:
 //│   lhs = Ident of "Example"
-//│   op = Ident of ".>"
+//│   op = Ident of "!>"
 //│   rhss = Ls of
 //│     App:
 //│       lhs = Ident of "oops"
@@ -115,7 +115,7 @@ oops(2)
 //│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'a')
 
 // * Note:
-(Example .> oops)(2)
+(Example !> oops)(2)
 //│ = [2, 1]
 
 

@@ -19,16 +19,9 @@ pipee
 |>>
 //│ = fun pipee
 
-:pe
-:e
+:expect fun pipee
 Mod.|>>
-//│ ╔══[PARSE ERROR] Expected start of expression in this position; found end of input instead
-//│ ║  l.+1: 	Mod.|>>
-//│ ╙──      	       ^
-//│ ╔══[COMPILATION ERROR] Name not found in wildcard opens: .|>>
-//│ ║  l.+1: 	Mod.|>>
-//│ ╙──      	   ^^^^
-//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ = fun pipee
 
 
 1 |>> x => printt(x)

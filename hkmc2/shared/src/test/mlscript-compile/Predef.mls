@@ -32,7 +32,7 @@ fun (|>) pipeInto[A, B](x: A, f: A -> B): B = f(x)
 fun (<|) pipeFrom[A, B](f: A -> B, x: A): B = f(x)
 
 // Same as above but with high precedence
-fun (.>) pipeIntoHi[A, B](x: A, f: A -> B): B = f(x)
+fun pipeIntoHi[A, B](x: A, f: A -> B): B = f(x)
 fun (<.) pipeFromHi[A, B](f: A -> B, x: A): B = f(x)
 
 fun (!>) tap[A, B](x: A, f: A -> B): A = f(x); x

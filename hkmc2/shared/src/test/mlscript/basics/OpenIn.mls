@@ -23,19 +23,13 @@ StrOps.{"a" ~ from(123)}
 //│ = "a123"
 
 
-// Lexed as Str .~
-:pe
-:e
+// Symbolic members can also be selected directly.
+:expect fun concat2
 StrOps.~
-//│ ╔══[PARSE ERROR] Expected start of expression in this position; found end of input instead
-//│ ║  l.+1: 	StrOps.~
-//│ ╙──      	        ^
-//│ ╔══[COMPILATION ERROR] Name not found: .~
-//│ ║  l.+1: 	StrOps.~
-//│ ╙──      	      ^^
-//│ ╔══[COMPILATION ERROR] Unexpected moduleful reference of type StrOps.
-//│ ║  l.+1: 	StrOps.~
-//│ ╙──      	^^^^^^
-//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ = fun concat2
+
+:expect "ab"
+StrOps.~("a", "b")
+//│ = "ab"
 
 

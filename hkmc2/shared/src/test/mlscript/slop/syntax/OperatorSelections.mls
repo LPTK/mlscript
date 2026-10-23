@@ -1,0 +1,111 @@
+:.
+:js
+
+
+module Ops {
+  fun (+) collect(...xs) = xs
+  fun (/) pair(x, y) = [x, y]
+  fun (<) less(x) = [x]
+  fun (>) greater(x) = [x]
+  fun (!) bang(x) = x
+  fun (~) tilde(x) = x
+  fun (**) typed[T](x: T): T = x
+  fun (%>) wrap(x) = [x]
+}
+
+// Selections resolve the operator's alias, including names used by parser keywords or brackets.
+:expect [1, 2]
+Ops.+(1, 2)
+//│ = [1, 2]
+
+:expect [3, 4]
+Ops./(3, 4)
+//│ = [3, 4]
+
+:expect [[5], [6]]
+[Ops.<(5), Ops.>(6)]
+//│ = [[5], [6]]
+
+// Selected operators use ordinary member calls, including ! and ~.
+:expect 7
+Ops.!(7)
+//│ = 7
+
+:expect 8
+Ops.~(8)
+//│ = 8
+
+:expect 9
+Ops.**[Int](9)
+//│ = 9
+
+// Argument lists and explicit application forms retain their ordinary behavior.
+:expect [1, 2]
+Ops.+ (1, 2)
+//│ = [1, 2]
+
+:expect [1, 2]
+Ops.+ of 1, 2
+//│ = [1, 2]
+
+:expect [1, 2]
+Ops.+(1) \ 2
+//│ = [1, 2]
+
+// An unparenthesized operand uses the selected operator's right precedence.
+:expect [7]
+Ops.%> 1 + 2 * 3
+//│ = [7]
+
+:expect 5
+Ops.! 2 + 3
+//│ = 5
+
+:expect [4]
+Ops.%>
+  2 + 2
+//│ = [4]
+
+// Prefix operands of selected operators also delimit implicit lambdas.
+:expect 3
+(Ops.%> _ + 1).0(2)
+//│ = 3
+
+// Multiple indented selections must substitute the original receiver into the prefix call.
+module Outer { val ops = Ops }
+
+:expect [7]
+Outer
+  .ops
+  .%> 1 + 2 * 3
+//│ = [7]
+
+class Box(val base) {
+  fun (+) withBase(x) = [base, x]
+}
+
+let calls = 0
+fun receiver() =
+  set calls = calls + 1
+  Box(10)
+//│ calls = 0
+
+:expect [10, 2]
+receiver().+2
+//│ = [10, 2]
+
+:expect 1
+calls
+//│ = 1
+
+// The same member alias lookup works with the legacy resolver.
+#lang(useNewResolution: false)
+
+:expect [1, 2]
+Ops.+(1, 2)
+//│ = [1, 2]
+
+:expect [7]
+Ops.%> 1 + 2 * 3
+//│ = [7]
+
