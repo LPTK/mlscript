@@ -573,6 +573,7 @@ object Elaborator:
       matchSuccessTrm: TermSymbol,
       matchFailureCls: ClassSymbol,
       matchFailureTrm: TermSymbol,
+      tokenModuleSymbol: TermSymbol,
   )
 
   object RuntimeSymbols:
@@ -626,6 +627,7 @@ object Elaborator:
         matchSuccessTrm = term("MatchSuccess"),
         matchFailureCls = cls("MatchFailure"),
         matchFailureTrm = term("MatchFailure"),
+        tokenModuleSymbol = term("token"),
       )
 
   /** Immutable semantic metadata published before a compilation unit is optimized. */
@@ -738,6 +740,7 @@ object Elaborator:
     def matchSuccessTrmSymbol: TermSymbol = runtimeSymbols.matchSuccessTrm
     def matchFailureClsSymbol: ClassSymbol = runtimeSymbols.matchFailureCls
     def matchFailureTrmSymbol: TermSymbol = runtimeSymbols.matchFailureTrm
+    def tokenModuleSymbol: TermSymbol = runtimeSymbols.tokenModuleSymbol
     val builtinOpsMap =
       val baseBuiltins = builtins.map: op =>
           op -> BuiltinSymbol(op,
@@ -1867,17 +1870,18 @@ extends Importer:
       case LabelLookup.NotFound =>
         mkNonLabelSelectionApp(tree, sel, args)
     case prefix @ PrefixOpApp(op, rhs) =>
-      // op match
-      // case Ident(name) if name.startsWith("") =>
-      val opName = op.desugared match
-        case Ident(name) => name
-        case Sel(base, id) => id.name
-        case _ => ""
-      // case Ident(name) if name.startsWith("") =>
+      // // op match
+      // // case Ident(name) if name.startsWith("") =>
+      // val opName = op.desugared match
+      //   case Ident(name) => name
+      //   case Sel(base, id) => id.name
+      //   case _ => ""
+      // // case Ident(name) if name.startsWith("") =>
       val arg =
-        if opName.startsWith("#") then
-          ???
-        else if underscoreDelimitingSides(op)._2 then
+        // if opName.startsWith("#") then
+        //   ???
+        // else
+        if underscoreDelimitingSides(op)._2 then
           Tree.Trm(delimitedTerm(rhs, Trm, alwaysLambda = false)).withLocOf(rhs)
         else rhs
       subterm(App(op, PlainTup(arg)).withLocOf(prefix), interp)
@@ -2034,6 +2038,38 @@ extends Importer:
         IfLike(new Keywrd(Keyword.`if`).withLocOf(kw), Block(
           InfixApp(rhs, new Keywrd(Keyword.`then`), thno.getOrElse(Unt())) :: elsPart :: Nil))
       
+    case Toks(toks) =>
+      val getTokenModule = runtimeMember(State.tokenModuleSymbol)
+      toks
+        .map: tok =>
+          // val tokTrmKind =
+          // val tokClassNme =
+          def go(tokClassNme: Str, args: Term*): Term =
+            // TODO: dedup with similar code
+            val res =
+              new Term.NewSel(getTokenModule, Ident(tokClassNme), N)(
+                FlowSymbol.synthSel(tokClassNme))//.withLoc(loc)
+            rctx.recordLexicalBinders(res, ctx.typeBinders)
+            rctx.recordAccessSite(res, ctx.scope)
+            summon[NewResolver].newSel(res, ctx.scope)
+            app(res, Term.Tup(args.toList.map(PlainFld(_)))(Tree.DummyTup))(DummyApp, N, FlowSymbol.app())
+            // val res = res.app(args*)
+            // app(res, Term.Tup(Nil)(DummyTup))(DummyApp, N, FlowSymbol.synthApp(tokClassNme))
+          tok.token match
+          case IDENT(nme, symb) =>
+            go("IDENT", Term.Lit(StrLit(nme)), Term.Lit(BoolLit(symb)))
+          case _ =>
+            raise:
+              ErrorReport(msg"Unexpected token in token sequence: ${tok.describe}" -> tree.toLoc :: Nil)
+            error
+        .reduceOption: (a, b) =>
+          ??? : Term
+        .getOrElse:
+          raise:
+            ErrorReport(
+              msg"Unexpected empty token sequence." -> tree.toLoc :: Nil)
+          error
+    
     case Quoted(body) => Term.Quoted(subterm(body))
     case Unquoted(body) => Term.Unquoted(subterm(body))
     case tree @ Case(kw, _) =>

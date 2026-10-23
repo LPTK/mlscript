@@ -14,6 +14,13 @@ import semantics.Elaborator.State
 import Tree._
 
 
+case class Tok(token: Stroken, loc: Loc) extends Located:
+  def describe: Str = token.describe + " token"
+  // def showDbg(using DebugPrinter): Str = token.showDbg
+  // def withLocOf(other: Located): Tok = Tok(token, other.loc)
+  // def withLoc(loc: Loc): Tok = Tok(token, loc)
+  def toLoc: S[Loc] = S(loc)
+
 sealed trait Literal extends AutoLocated:
   this: Tree =>
   
@@ -70,6 +77,8 @@ enum Tree extends AutoLocated:
   case UnitLit(isNullNotUndefined: Bool) extends Tree with Literal
   case BoolLit(value: Bool)              extends Tree with Literal
   case Bra(k: BracketKind, inner: Tree)
+  // case Toks(toks: Ls[Stroken -> Loc])
+  case Toks(toks: Ls[Tok])
   case Block(stmts: Ls[Tree])(using State) extends Tree with semantics.BlockImpl
   case LetLike(kw: Keywrd[Keyword.LetLike], lhs: Tree, rhs: Opt[Tree], body: Opt[Tree])
   case Hndl(lhs: Tree, cls: Tree, defs: Tree, body: Opt[Tree])
@@ -181,6 +190,8 @@ enum Tree extends AutoLocated:
     case SplitPoint() => Vector.empty
     case TryFinally(tryBody, finallyBody) => Vector.double(tryBody, finallyBody)
     case Trm(trm) => Vector.single(trm)
+    // case Toks(toks) => toks.iterator.map(_._1).toVector
+    case Toks(toks) => toks.toVector
   
   def describe: Str = this match
     case Empty() => "empty"

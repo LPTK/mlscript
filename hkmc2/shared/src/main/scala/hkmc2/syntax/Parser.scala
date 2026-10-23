@@ -676,7 +676,14 @@ abstract class Parser(
         val id = new Tree.Ident(nme).withLoc(S(loc))
         if sym && startsPrefixOperand
         then
-          val rhs = expr(opPrec(nme)._2, allowNewlines = allowNewlines)
+          val rhs = if id.name.startsWith("#")
+            then Toks(cur
+              .takeWhile:
+                case (NEWLINE | COMMA, _) => false
+                case _ => consume; true
+              .map:
+                case (tok, loc) => Tok(tok, loc))
+            else expr(opPrec(nme)._2, allowNewlines = allowNewlines)
           exprCont(PrefixOpApp(id, rhs), prec, allowNewlines = allowNewlines)
         else exprCont(id, prec, allowNewlines = allowNewlines)
     case (LITVAL(lit), loc) :: _ =>

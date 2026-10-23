@@ -13,19 +13,27 @@
 
 fun (#>) f(x) = x
 
+:todo
 #> 1
-//│ FAILURE: Unexpected exception
+//│ ╔══[COMPILATION ERROR] Unexpected token in token sequence: literal token
+//│ ║  l.+1: 	#> 1
+//│ ╙──      	   ^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+:expect IDENT("hi", false)
+:sir
+#> hi
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let tmp; set tmp = runtime⁰.token⁰.IDENT﹖("hi", false); return f⁰(tmp)
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = IDENT("hi", false)
+
+:todo
+#> hi there
+//│ ╔══[COMPILATION ERROR] Unexpected token in token sequence: space token
+//│ ║  l.+1: 	#> hi there
+//│ ╙──      	   ^^^^^^^^
 //│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
-//│ 	at: scala.Predef$.$qmark$qmark$qmark(Predef.scala:383)
-//│ 	at: hkmc2.semantics.Elaborator.subterm$$anonfun$3(Elaborator.scala:1879)
-//│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:36)
-//│ 	at: hkmc2.semantics.Elaborator.subterm(Elaborator.scala:2214)
-//│ 	at: hkmc2.semantics.Elaborator.go$4(Elaborator.scala:3059)
-//│ 	at: hkmc2.semantics.Elaborator.blockOrRcd$$anonfun$3(Elaborator.scala:3069)
-//│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:36)
-//│ 	at: hkmc2.semantics.Elaborator.blockOrRcd(Elaborator.scala:3115)
-//│ 	at: hkmc2.semantics.Elaborator.block(Elaborator.scala:2241)
-//│ 	at: hkmc2.semantics.Elaborator.topLevel(Elaborator.scala:3570)
 
 
 
@@ -37,10 +45,10 @@ data class Impl {
 }
 Impl.SPACE
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.38: 	Impl.SPACE
+//│ ║  l.+6: 	Impl.SPACE
 //│ ║        	^^^^^^^^^^
 //│ ╟── Class value does not contain member 'SPACE'
-//│ ║  l.33: 	data class Impl {
+//│ ║  l.+1: 	data class Impl {
 //│ ╙──      	^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
