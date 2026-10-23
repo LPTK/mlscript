@@ -102,3 +102,7 @@ stackLimit
 //│ = 1
 
 
+Runtime.token.IDENT("hello", true)
+//│ = IDENT("hello", true)
+
+

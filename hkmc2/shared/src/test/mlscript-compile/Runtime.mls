@@ -1,13 +1,18 @@
 #lang(0.3.x)
+
 import "./RuntimeJS.mjs"
 import "./Rendering.mjs"
 import "./LazyArray.mjs"
 import "./Iter.mjs"
+import "./Token.mjs"
 
 open annotations { pure }
 
 
 module Runtime with ...
+
+
+val token = Token
 
 
 object Unit with

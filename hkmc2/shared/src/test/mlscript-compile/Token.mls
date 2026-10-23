@@ -1,0 +1,25 @@
+#lang(0.3.x)
+
+import "./Predef.mls"
+
+open Predef
+
+
+class Token
+
+module Token {
+  
+  data class Impl extends Token with {
+    
+    constructor
+      SPACE
+      COMMA
+      // ... TODO rest
+      IDENT(name: Str, symbolic: Bool)
+      // ... TODO rest
+    
+  }
+  
+}
+
+

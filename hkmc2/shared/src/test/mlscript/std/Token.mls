@@ -1,0 +1,18 @@
+:.
+:js
+
+
+import "../../mlscript-compile/Token.mls"
+
+
+// Token.Impl
+
+Token."IDENT"
+//│ = fun IDENT { class: class IDENT }
+
+Token.IDENT("foo", true)
+//│ = IDENT("foo", true)
+
+
+
+

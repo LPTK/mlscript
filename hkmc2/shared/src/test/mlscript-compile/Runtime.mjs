@@ -5,6 +5,7 @@ import RuntimeJS from "./RuntimeJS.mjs";
 import Rendering from "./Rendering.mjs";
 import LazyArray from "./LazyArray.mjs";
 import Iter from "./Iter.mjs";
+import Token from "./Token.mjs";
 let continuation, Runtime1, lambda, lambda1, lambda2, lambda3, lambda4, lambda5, lambda$, lambda$1, Capture$scope311, lambda$2, Capture$scope331, lambda$3, lambda$4, continuation$;
 continuation$ = function continuation$(Runtime2, resume) {
   return (value) => {
@@ -141,6 +142,7 @@ lambda4 = (undefined, function (Runtime2, EffectHandle1, value) {
   static get stackResume() { return Runtime.#stackResume; }
   static set stackResume(value) { Runtime.#stackResume = value; }
   static {
+    Runtime.token = Token;
     (class Unit {
       static {
         new this

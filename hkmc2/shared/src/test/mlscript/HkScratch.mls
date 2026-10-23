@@ -11,3 +11,46 @@
 
 
 
+fun (#>) f(x) = x
+
+#> 1
+//│ FAILURE: Unexpected exception
+//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
+//│ 	at: scala.Predef$.$qmark$qmark$qmark(Predef.scala:383)
+//│ 	at: hkmc2.semantics.Elaborator.subterm$$anonfun$3(Elaborator.scala:1879)
+//│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:36)
+//│ 	at: hkmc2.semantics.Elaborator.subterm(Elaborator.scala:2214)
+//│ 	at: hkmc2.semantics.Elaborator.go$4(Elaborator.scala:3059)
+//│ 	at: hkmc2.semantics.Elaborator.blockOrRcd$$anonfun$3(Elaborator.scala:3069)
+//│ 	at: hkmc2.utils.TraceLogger.trace(TraceLogger.scala:36)
+//│ 	at: hkmc2.semantics.Elaborator.blockOrRcd(Elaborator.scala:3115)
+//│ 	at: hkmc2.semantics.Elaborator.block(Elaborator.scala:2241)
+//│ 	at: hkmc2.semantics.Elaborator.topLevel(Elaborator.scala:3570)
+
+
+
+:todo
+data class Impl {
+  constructor
+    SPACE
+    IDENT(name: Str)
+}
+Impl.SPACE
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.38: 	Impl.SPACE
+//│ ║        	^^^^^^^^^^
+//│ ╟── Class value does not contain member 'SPACE'
+//│ ║  l.33: 	data class Impl {
+//│ ╙──      	^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
+// :sjs
+:fixme // at least warn
+class Token with
+  constructor
+    SPACE
+module Token
+//│ ═══[RUNTIME ERROR] TypeError: Class extends value undefined is not a constructor or null
+
+

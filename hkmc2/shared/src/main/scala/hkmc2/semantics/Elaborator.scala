@@ -1867,8 +1867,17 @@ extends Importer:
       case LabelLookup.NotFound =>
         mkNonLabelSelectionApp(tree, sel, args)
     case prefix @ PrefixOpApp(op, rhs) =>
+      // op match
+      // case Ident(name) if name.startsWith("") =>
+      val opName = op.desugared match
+        case Ident(name) => name
+        case Sel(base, id) => id.name
+        case _ => ""
+      // case Ident(name) if name.startsWith("") =>
       val arg =
-        if underscoreDelimitingSides(op)._2 then
+        if opName.startsWith("#") then
+          ???
+        else if underscoreDelimitingSides(op)._2 then
           Tree.Trm(delimitedTerm(rhs, Trm, alwaysLambda = false)).withLocOf(rhs)
         else rhs
       subterm(App(op, PlainTup(arg)).withLocOf(prefix), interp)
