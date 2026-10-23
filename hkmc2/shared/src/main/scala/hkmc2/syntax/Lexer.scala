@@ -384,7 +384,9 @@ class Lexer(origin: Origin, dbg: Bool)(using raise: Raise):
         go(j, IDENT(n, false))
       case _ if isOpChar(c) =>
         val (n, j) = takeWhile(i)(isOpChar)
-        if n === "." && j >= length then go(j, PERIOD) // * There is no other character to parse after `.`
+        // A token operator can be selected from a receiver without turning `.#>` into an infix name.
+        if n.startsWith(".#") && n.length > 2 then go(j, SELECT(n.drop(1), false))
+        else if n === "." && j >= length then go(j, PERIOD) // * There is no other character to parse after `.`
         else if (n === "." || n === "!") && j < length
         then
           inline def mkSelect(str: Str) = SELECT(str, n === "!")

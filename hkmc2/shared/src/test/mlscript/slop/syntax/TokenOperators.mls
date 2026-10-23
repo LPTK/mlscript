@@ -1,0 +1,314 @@
+:.
+:js
+
+
+fun (#>) tokens(x) = x
+
+:expect [IDENT("unbound", false)]
+#> unbound
+//│ = [IDENT("unbound", false)]
+
+:expect [LITVAL(42)]
+#> 42
+//│ = [LITVAL(42)]
+
+:expect [IDENT("hello", false), SPACE, IDENT("world", false)]
+#> hello world
+//│ = [IDENT("hello", false), SPACE, IDENT("world", false)]
+
+#> if missing then never() else _
+//│ = [
+//│   IDENT("if", false),
+//│   SPACE,
+//│   IDENT("missing", false),
+//│   SPACE,
+//│   IDENT("then", false),
+//│   SPACE,
+//│   IDENT("never", false),
+//│   BRACKETS("parenthesis", []),
+//│   SPACE,
+//│   IDENT("else", false),
+//│   SPACE,
+//│   IDENT("_", false)
+//│ ]
+
+#> hello (1, "two", 3.5) [x, y] { a, b }
+//│ = [
+//│   IDENT("hello", false),
+//│   SPACE,
+//│   BRACKETS(
+//│     "parenthesis",
+//│     [LITVAL(1), COMMA, SPACE, LITVAL("two"), COMMA, SPACE, LITVAL(3.5)]
+//│   ),
+//│   SPACE,
+//│   BRACKETS(
+//│     "square bracket",
+//│     [IDENT("x", false), COMMA, SPACE, IDENT("y", false)]
+//│   ),
+//│   SPACE,
+//│   BRACKETS(
+//│     "curly brace",
+//│     [IDENT("a", false), COMMA, SPACE, IDENT("b", false), SPACE]
+//│   )
+//│ ]
+
+#>
+  first
+  second(1, 2)
+//│ = [
+//│   BRACKETS(
+//│     "indentation",
+//│     [
+//│       IDENT("first", false),
+//│       NEWLINE,
+//│       IDENT("second", false),
+//│       BRACKETS("parenthesis", [LITVAL(1), COMMA, SPACE, LITVAL(2)])
+//│     ]
+//│   )
+//│ ]
+
+#> obj.field !dynamic .  .. ... id"a b" `word
+//│ = [
+//│   IDENT("obj", false),
+//│   SELECT("field", false),
+//│   SPACE,
+//│   SELECT("dynamic", true),
+//│   SPACE,
+//│   PERIOD,
+//│   SPACE,
+//│   SUSPENSION(false),
+//│   SPACE,
+//│   SUSPENSION(true),
+//│   SPACE,
+//│   ESC_IDENT("a b"),
+//│   SPACE,
+//│   QUOTE,
+//│   IDENT("word", false)
+//│ ]
+
+#> one /*two*/ three //four
+//│ = [
+//│   IDENT("one", false),
+//│   SPACE,
+//│   COMMENT("two"),
+//│   SPACE,
+//│   IDENT("three", false),
+//│   SPACE,
+//│   COMMENT("four")
+//│ ]
+
+// Token capture is delimited by the enclosing argument list and top-level commas.
+:expect [[IDENT("first", false)], [IDENT("second", false), SPACE]]
+[ #> first, #> second ]
+//│ = [[IDENT("first", false)], [IDENT("second", false), SPACE]]
+
+// Calls and type applications remain ordinary, evaluated syntax.
+:expect [1, 2]
+#>([1, 2])
+//│ = [1, 2]
+
+:expect 3
+#> (1 + 2)
+//│ = 3
+
+:expect 4
+#> of 2 + 2
+//│ = 4
+
+:expect 5
+#> \ 2 + 3
+//│ = 5
+
+fun (#@) typed[T](x: T): T = x
+
+:expect 6
+#@[Int](6)
+//│ = 6
+
+// Bare token operators remain values.
+:expect 7
+id(#>)(7)
+//│ = 7
+
+// An infix token operator receives the evaluated LHS and a reflected RHS.
+fun (#<) withBase(base, tokens) = [base, tokens]
+
+1 #< unbound + 2
+//│ = [1, [IDENT("unbound", false), SPACE, IDENT("+", true), SPACE, LITVAL(2)]]
+
+1
+#< unbound + 2
+//│ = [1, [IDENT("unbound", false), SPACE, IDENT("+", true), SPACE, LITVAL(2)]]
+
+1
+  #< first
+  #< second
+//│ = [[1, [IDENT("first", false)]], [IDENT("second", false)]]
+
+module Reader {
+  fun (#>) read(x) = x
+  fun (#@) typed[T](x: T): T = x
+}
+
+Reader.#> unbound + 1
+//│ = [IDENT("unbound", false), SPACE, IDENT("+", true), SPACE, LITVAL(1)]
+
+Reader.#>
+  unbound(1)
+  [2, 3]
+//│ = [
+//│   BRACKETS(
+//│     "indentation",
+//│     [
+//│       IDENT("unbound", false),
+//│       BRACKETS("parenthesis", [LITVAL(1)]),
+//│       NEWLINE,
+//│       BRACKETS("square bracket", [LITVAL(2), COMMA, SPACE, LITVAL(3)])
+//│     ]
+//│   )
+//│ ]
+
+:expect 8
+Reader.#>(8)
+//│ = 8
+
+:expect 9
+Reader.#@[Int](9)
+//│ = 9
+
+class ReaderInstance(val base) {
+  fun (#>) read(tokens) = [base, tokens]
+}
+
+:expect [10, [IDENT("unbound", false)]]
+ReaderInstance(10).#> unbound
+//│ = [10, [IDENT("unbound", false)]]
+
+// Selecting an operator evaluates its receiver exactly once and keeps the method receiver.
+let calls = 0
+fun receiver() =
+  set calls = calls + 1
+  ReaderInstance(calls)
+//│ calls = 0
+
+:expect [1, [IDENT("unbound", false)]]
+receiver().#> unbound
+//│ = [1, [IDENT("unbound", false)]]
+
+:expect 1
+calls
+//│ = 1
+
+// Selected token operators also work in indented selections.
+:expect [IDENT("unbound", false)]
+Reader
+  .#> unbound
+//│ = [IDENT("unbound", false)]
+
+// Multiple selections exercise operator-split substitution into a captured call's receiver.
+:expect [IDENT("unbound", false)]
+module Outer { val reader = Reader }
+Outer
+  .reader
+  .#> unbound
+//│ = [IDENT("unbound", false)]
+
+// Explicit calls continue normally, whereas everything after a captured operand is a token.
+:expect 2
+Reader.#>([1, 2]).length
+//│ = 2
+
+:expect [IDENT("unbound", false), SELECT("#>", false), SPACE, IDENT("next", false)]
+#> unbound.#> next
+//│ = [IDENT("unbound", false), SELECT("#>", false), SPACE, IDENT("next", false)]
+
+:expect [BRACKETS("curly brace", [])]
+#> {}
+//│ = [BRACKETS("curly brace", [])]
+
+// Captured values expose their payloads at runtime, including within nested arrays.
+:expect ["parenthesis", 42]
+let bracket = (#> call(42)).[1]
+[bracket.kind, bracket.contents.[0].value]
+//│ = ["parenthesis", 42]
+//│ bracket = BRACKETS("parenthesis", [LITVAL(42)])
+
+:expect [IDENT("yes", false)]
+if true then (#> yes) else (#> no)
+//│ = [IDENT("yes", false)]
+
+#> syntax code"x + ${unbound}" code"""x""" ‹T›
+//│ = [
+//│   IDENT("syntax", false),
+//│   SPACE,
+//│   BRACKETS(
+//│     "quasiquote",
+//│     [
+//│       IDENT("x", false),
+//│       SPACE,
+//│       IDENT("+", true),
+//│       SPACE,
+//│       BRACKETS("unquote", [IDENT("unbound", false)])
+//│     ]
+//│   ),
+//│   SPACE,
+//│   BRACKETS("quasiquote triple", [IDENT("x", false)]),
+//│   SPACE,
+//│   BRACKETS("angle bracket", [IDENT("T", false)])
+//│ ]
+
+// Newline spacing still distinguishes an attached prefix operand from an infix continuation.
+:w
+:expect [LITVAL(2)]
+1
+#>2
+//│ ╔══[WARNING] Pure expression in statement position
+//│ ║  l.+1: 	1
+//│ ╙──      	^
+//│ = [LITVAL(2)]
+
+:expect [1, [LITVAL(2)]]
+1
+#< 2
+//│ = [1, [LITVAL(2)]]
+
+// Token capture ends before an unindented statement, and does not evaluate captured calls.
+:expect [1, [IDENT("receiver", false), BRACKETS("parenthesis", [])]]
+let captured = #> receiver()
+[calls, captured]
+//│ = [1, [IDENT("receiver", false), BRACKETS("parenthesis", [])]]
+//│ captured = [IDENT("receiver", false), BRACKETS("parenthesis", [])]
+
+// An infix use still needs an RHS; a bare operator in prefix position remains a value.
+:pe
+:re
+1 #<
+//│ ╔══[PARSE ERROR] Expected a token sequence after operator '#<'
+//│ ║  l.+1: 	1 #<
+//│ ╙──      	    ^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+:pe
+:re
+[1 #<,]
+//│ ╔══[PARSE ERROR] Expected a token sequence after operator '#<'
+//│ ║  l.+1: 	[1 #<,]
+//│ ╙──      	      ^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// Legacy resolution uses the same runtime token representation.
+#lang(useNewResolution: false)
+
+#> legacy { a, b }
+//│ = [
+//│   IDENT("legacy", false),
+//│   SPACE,
+//│   BRACKETS(
+//│     "curly brace",
+//│     [IDENT("a", false), COMMA, SPACE, IDENT("b", false), SPACE]
+//│   )
+//│ ]
+
+Reader.#> legacy
+//│ = [IDENT("legacy", false)]
+

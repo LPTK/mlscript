@@ -1870,17 +1870,7 @@ extends Importer:
       case LabelLookup.NotFound =>
         mkNonLabelSelectionApp(tree, sel, args)
     case prefix @ PrefixOpApp(op, rhs) =>
-      // // op match
-      // // case Ident(name) if name.startsWith("") =>
-      // val opName = op.desugared match
-      //   case Ident(name) => name
-      //   case Sel(base, id) => id.name
-      //   case _ => ""
-      // // case Ident(name) if name.startsWith("") =>
       val arg =
-        // if opName.startsWith("#") then
-        //   ???
-        // else
         if underscoreDelimitingSides(op)._2 then
           Tree.Trm(delimitedTerm(rhs, Trm, alwaysLambda = false)).withLocOf(rhs)
         else rhs
@@ -2039,36 +2029,32 @@ extends Importer:
           InfixApp(rhs, new Keywrd(Keyword.`then`), thno.getOrElse(Unt())) :: elsPart :: Nil))
       
     case Toks(toks) =>
-      val getTokenModule = runtimeMember(State.tokenModuleSymbol)
-      toks
-        .map: tok =>
-          // val tokTrmKind =
-          // val tokClassNme =
-          def go(tokClassNme: Str, args: Term*): Term =
-            // TODO: dedup with similar code
-            val res =
-              new Term.NewSel(getTokenModule, Ident(tokClassNme), N)(
-                FlowSymbol.synthSel(tokClassNme))//.withLoc(loc)
-            rctx.recordLexicalBinders(res, ctx.typeBinders)
-            rctx.recordAccessSite(res, ctx.scope)
-            summon[NewResolver].newSel(res, ctx.scope)
-            app(res, Term.Tup(args.toList.map(PlainFld(_)))(Tree.DummyTup))(DummyApp, N, FlowSymbol.app())
-            // val res = res.app(args*)
-            // app(res, Term.Tup(Nil)(DummyTup))(DummyApp, N, FlowSymbol.synthApp(tokClassNme))
-          tok.token match
-          case IDENT(nme, symb) =>
-            go("IDENT", Term.Lit(StrLit(nme)), Term.Lit(BoolLit(symb)))
-          case _ =>
-            raise:
-              ErrorReport(msg"Unexpected token in token sequence: ${tok.describe}" -> tree.toLoc :: Nil)
-            error
-        .reduceOption: (a, b) =>
-          ??? : Term
-        .getOrElse:
-          raise:
-            ErrorReport(
-              msg"Unexpected empty token sequence." -> tree.toLoc :: Nil)
-          error
+      val tokenModule = Tree.Trm(runtimeMember(State.tokenModuleSymbol))
+      // Reuse ordinary selection and application elaboration in both resolution modes.
+      // Token payloads are literals or nested token arrays; identifiers in the captured
+      // source must never be resolved or evaluated as MLscript expressions.
+      def reflect(tok: Tok): Tree =
+        def construct(name: Str, args: Tree*): Tree =
+          val constructor = Sel(tokenModule, new Ident(name).withLocOf(tok)).withLocOf(tok)
+          // The runtime exports nullary variants as classes and variants with payloads as functions.
+          if args.isEmpty then DynamicNew(constructor).withLocOf(tok)
+          else App(constructor, Tup(args.toList).withLocOf(tok)).withLocOf(tok)
+        tok.token match
+        case SPACE => construct("SPACE")
+        case COMMA => construct("COMMA")
+        case PERIOD => construct("PERIOD")
+        case NEWLINE => construct("NEWLINE")
+        case ERROR => construct("ERROR")
+        case QUOTE => construct("QUOTE")
+        case LITVAL(value) => construct("LITVAL", value.asTree)
+        case IDENT(name, symbolic) => construct("IDENT", StrLit(name), BoolLit(symbolic))
+        case SELECT(name, dynamic) => construct("SELECT", StrLit(name), BoolLit(dynamic))
+        case BRACKETS(kind, contents) =>
+          construct("BRACKETS", StrLit(kind.name), Tup(contents.map { case (token, loc) => reflect(Tok(token, loc)) }))
+        case COMMENT(text) => construct("COMMENT", StrLit(text))
+        case SUSPENSION(dotDotDot) => construct("SUSPENSION", BoolLit(dotDotDot))
+        case ESC_IDENT(name) => construct("ESC_IDENT", StrLit(name))
+      subterm(Tup(toks.map(reflect)).withLocOf(tree), interp)
     
     case Quoted(body) => Term.Quoted(subterm(body))
     case Unquoted(body) => Term.Unquoted(subterm(body))

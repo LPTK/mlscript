@@ -2,35 +2,35 @@
 :js
 
 
-fun (#>) collect(...args) = args
+fun (%>) collect(...args) = args
 
 :expect [1]
-#> 1
+%> 1
 //│ = [1]
 
 :expect [1]
-#>1
+%>1
 //│ = [1]
 
-// The operand uses the operator's right precedence, rather than the precedence of '#'.
+// The operand uses the operator's right precedence, rather than the precedence of '%'.
 :expect [7]
-#> 1 + 2 * 3
+%> 1 + 2 * 3
 //│ = [7]
 
 :expect [2]
-#> id(2)
+%> id(2)
 //│ = [2]
 
 :expect [3]
-#> "abc".length
+%> "abc".length
 //│ = [3]
 
 :expect [-1]
-#> -1
+%> -1
 //│ = [-1]
 
 :expect [[1]]
-#> #> 1
+%> %> 1
 //│ = [[1]]
 
 // Right-associative operators use their lowered right precedence in prefix position too.
@@ -43,54 +43,54 @@ fun (::) collectRight(...args) = args
 
 // Curly and indented blocks are single operands, including operator-led blocks.
 :expect [2]
-#> { let x = 1, x + 1 }
+%> { let x = 1, x + 1 }
 //│ = [2]
 
 :expect [2]
-#>
+%>
   let x = 1
   x + 1
 //│ = [2]
 
 :expect [1]
-#>
+%>
   + 1
 //│ = [1]
 
 :expect [1]
-#> { + 1 }
+%> { + 1 }
 //│ = [1]
 
 :expect [[2]]
-#>
-  #>
+%>
+  %>
     1 + 1
 //│ = [[2]]
 
 
 // Explicit calls keep their argument lists, with or without whitespace.
 :expect [1, 2]
-#>(1, 2)
+%>(1, 2)
 //│ = [1, 2]
 
 :expect [1, 2]
-#> (1, 2)
+%> (1, 2)
 //│ = [1, 2]
 
 :expect []
-#>()
+%>()
 //│ = []
 
 :expect [1, 2]
-#> of 1, 2
+%> of 1, 2
 //│ = [1, 2]
 
 :expect [1, 2]
-#>(1) \ 2
+%>(1) \ 2
 //│ = [1, 2]
 
 :expect [1, 2]
-#> \ 1
+%> \ 1
 \ 2
 //│ = [1, 2]
 
@@ -106,40 +106,40 @@ fun (::) collectRight(...args) = args
 + of 2, 3
 //│ = 5
 
-fun (#@) generic[A](x: A): A = x
+fun (%@) generic[A](x: A): A = x
 
 :expect 2
-#@[Int](2)
+%@[Int](2)
 //│ = 2
 
 
 // A prefix application has no argument list for '\' to extend.
-fun (#<) addLater(x)(y) = x + y
+fun (%<) addLater(x)(y) = x + y
 
 :expect 3
-{ #< 1 } \ 2
+{ %< 1 } \ 2
 //│ = 3
 
 
 // Operators remain first-class values at expression boundaries.
 :expect [1]
-id(#>)(1)
+id(%>)(1)
 //│ = [1]
 
 :expect [2]
-[#>, #>].1(2)
+[%>, %>].1(2)
 //│ = [2]
 
 :expect [3]
-(let op = #> in op)(3)
+(let op = %> in op)(3)
 //│ = [3]
 
 :expect [4]
-(if true then #> else collect)(4)
+(if true then %> else collect)(4)
 //│ = [4]
 
 :expect [5]
-id"#>"(5)
+id"%>"(5)
 //│ = [5]
 
 
@@ -147,7 +147,7 @@ id"#>"(5)
 :w
 :expect [2]
 1
-#>2
+%>2
 //│ ╔══[WARNING] Pure expression in statement position
 //│ ║  l.+1: 	1
 //│ ╙──      	^
@@ -156,7 +156,7 @@ id"#>"(5)
 :w
 :expect [2, 3]
 1
-#>(2, 3)
+%>(2, 3)
 //│ ╔══[WARNING] Pure expression in statement position
 //│ ║  l.+1: 	1
 //│ ╙──      	^
@@ -165,7 +165,7 @@ id"#>"(5)
 :w
 :expect 2
 1
-#@[Int](2)
+%@[Int](2)
 //│ ╔══[WARNING] Pure expression in statement position
 //│ ║  l.+1: 	1
 //│ ╙──      	^
@@ -174,71 +174,71 @@ id"#>"(5)
 // A separating space makes the same operators continue the preceding expression.
 :expect [1, 2]
 1
-#> 2
+%> 2
 //│ = [1, 2]
 
 :expect [1, 2]
 1
-#> (2)
+%> (2)
 //│ = [1, 2]
 
 // Indented continuations do not need a space after the operator.
 :expect [[1, 2], 3]
 1
-  #>2
-  #>3
+  %>2
+  %>3
 //│ = [[1, 2], 3]
 
 // Operator-only lines still form left-associative infix chains.
 :expect [[1, 2], 3]
 1
-#>
+%>
 2
-#>
+%>
 3
 //│ = [[1, 2], 3]
 
 // Curly and indented operands also allow infix continuation without a space.
 :expect [1, 2]
 1
-#>{2}
+%>{2}
 //│ = [1, 2]
 
 :expect [1, 2]
 1
-#>
+%>
   2
 //│ = [1, 2]
 
 // The same spacing rule applies after commas.
 :w
 :expect [2]
-1,#>2
+1,%>2
 //│ ╔══[WARNING] Pure expression in statement position
-//│ ║  l.+1: 	1,#>2
+//│ ║  l.+1: 	1,%>2
 //│ ╙──      	^
 //│ = [2]
 
 :expect [1, 2]
-1,#> 2
+1,%> 2
 //│ = [1, 2]
 
 
 // The RHS of an operator ending in '>' delimits its implicit lambda in prefix form too.
 :expect 3
-(#> _ + 1).0(2)
+(%> _ + 1).0(2)
 //│ = 3
 
 :expect 3
-(#>
+(%>
   _ + 1).0(2)
 //│ = 3
 
 // Explicit calls still require an explicit lambda delimiter.
 :e
-#>(_ + 1)
+%>(_ + 1)
 //│ ╔══[COMPILATION ERROR] Illegal position for '_' placeholder
-//│ ║  l.+1: 	#>(_ + 1)
+//│ ║  l.+1: 	%>(_ + 1)
 //│ ║        	   ^
 //│ ╙── Use a prefix '=>' to introduce an implicit lambda, as in `foo(=> _ + 1)`
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.

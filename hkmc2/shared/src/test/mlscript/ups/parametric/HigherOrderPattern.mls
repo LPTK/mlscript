@@ -45,37 +45,37 @@ pattern Stack(pattern T) = null | Pair(T, Stack(T))
 null is @compile Stack(A)
 //│ = true
 
-fun (#:) pair(a, b) = Pair(a, b)
+fun (?:) pair(a, b) = Pair(a, b)
 
-A #: null is @compile Stack(A)
+A ?: null is @compile Stack(A)
 //│ = true
 
-A #: A #: null is @compile Stack(A)
+A ?: A ?: null is @compile Stack(A)
 //│ = true
 
-A #: A #: A #: null is @compile Stack(A)
+A ?: A ?: A ?: null is @compile Stack(A)
 //│ = true
 
 object B
 
-A #: B #: A #: null is @compile Stack(A)
+A ?: B ?: A ?: null is @compile Stack(A)
 //│ = false
 
-A #: B #: A #: null is @compile Stack(B)
+A ?: B ?: A ?: null is @compile Stack(B)
 //│ = false
 
-let zeroOne = 0 #: 1 #: null
-let oneZero = 1 #: 0 #: null
+let zeroOne = 0 ?: 1 ?: null
+let oneZero = 1 ?: 0 ?: null
 //│ oneZero = Pair(1, Pair(0, null))
 //│ zeroOne = Pair(0, Pair(1, null))
 
 :global
 :expect true
 
-A #: B #: A #: null is @compile Stack(A | B)
+A ?: B ?: A ?: null is @compile Stack(A | B)
 //│ = true
 
-A #: B #: A #: null is @compile Stack(B | A)
+A ?: B ?: A ?: null is @compile Stack(B | A)
 //│ = true
 
 zeroOne is @compile Stack(0 | 1)
@@ -84,20 +84,20 @@ zeroOne is @compile Stack(0 | 1)
 oneZero is @compile Stack(0 | 1)
 //│ = true
 
-null #: null is @compile Stack(Stack(0 | 1))
+null ?: null is @compile Stack(Stack(0 | 1))
 //│ = true
 
-zeroOne #: null is @compile Stack(Stack(0 | 1))
+zeroOne ?: null is @compile Stack(Stack(0 | 1))
 //│ = true
 
-null #: (1 #: null) #: null is @compile Stack(Stack(0 | 1))
+null ?: (1 ?: null) ?: null is @compile Stack(Stack(0 | 1))
 //│ = true
 
-zeroOne #: oneZero #: null is @compile Stack(Stack(0 | 1))
+zeroOne ?: oneZero ?: null is @compile Stack(Stack(0 | 1))
 //│ = true
 
-zeroOne #: null #: oneZero #: null is @compile Stack(Stack(0 | 1))
+zeroOne ?: null ?: oneZero ?: null is @compile Stack(Stack(0 | 1))
 //│ = true
 
-null #: zeroOne #: zeroOne #: null is @compile Stack(Stack(0 | 1))
+null ?: zeroOne ?: zeroOne ?: null is @compile Stack(Stack(0 | 1))
 //│ = true

@@ -641,6 +641,22 @@ abstract class Parser(
     case (BRACKETS(_: Indent_Curly, _), _) :: _ => true
     case _ => false
   
+  /** Token operators capture one line or comma-delimited element. Structured brackets keep
+    * their contents together, including nested commas and newlines, without parsing them.
+    * Advance the cursor once: inspecting it through `cur` would discard comment tokens. */
+  private def operatorRhs(name: Str, prec: Int, allowNewlines: Bool)(using Line): Tree =
+    if name.startsWith("#") then
+      yeetSpaces
+      val (toks, rest) = _cur.span:
+        case (NEWLINE | COMMA, _) => false
+        case _ => true
+      cur = rest
+      if toks.isEmpty then
+        err(msg"Expected a token sequence after operator '${name}'" -> rest.headOption.fold(lastLoc)(t => S(t._2)) :: Nil)
+        errExpr
+      else Toks(toks.map { case (tok, loc) => Tok(tok, loc) })
+    else expr(prec, allowNewlines = allowNewlines)
+  
   def simpleExprImpl(prec: Int, allowNewlines: Bool): Tree =
     yeetSpaces match
     case (IDENT("=", _), l0) :: (IDENT(nme, false), l1) :: rest =>
@@ -676,14 +692,7 @@ abstract class Parser(
         val id = new Tree.Ident(nme).withLoc(S(loc))
         if sym && startsPrefixOperand
         then
-          val rhs = if id.name.startsWith("#")
-            then Toks(cur
-              .takeWhile:
-                case (NEWLINE | COMMA, _) => false
-                case _ => consume; true
-              .map:
-                case (tok, loc) => Tok(tok, loc))
-            else expr(opPrec(nme)._2, allowNewlines = allowNewlines)
+          val rhs = operatorRhs(nme, opPrec(nme)._2, allowNewlines = allowNewlines)
           exprCont(PrefixOpApp(id, rhs), prec, allowNewlines = allowNewlines)
         else exprCont(id, prec, allowNewlines = allowNewlines)
     case (LITVAL(lit), loc) :: _ =>
@@ -1101,7 +1110,7 @@ abstract class Parser(
           CommaPrecNext2 // for chained nl ops: left assoc
         case _ =>
           opPrec(opStr)._2
-        val rhs = expr(rhsPrec, allowNewlines = allowNewlines)
+        val rhs = operatorRhs(opStr, rhsPrec, allowNewlines = allowNewlines)
         exprCont(OpApp(acc, v, rhs :: Nil), prec, allowNewlines = allowNewlines)
         
       case (OP("::"), l0) :: (IDENT(id, false), l1) :: _ =>
@@ -1140,6 +1149,9 @@ abstract class Parser(
           case _ =>
         printDbg(s"! found operator `$opStr` with prec ${opPrec(opStr)}")
         yeetSpaces match
+          case _ if opStr.startsWith("#") =>
+            val rhs = operatorRhs(opStr, opPrec(opStr)._2, allowNewlines = allowNewlines)
+            exprCont(OpApp(acc, v, rhs :: Nil), prec, allowNewlines = allowNewlines)
           case (BRACKETS(_: Indent_Curly, toks), l0) :: _ =>
             consume
             // rec(toks, S(br.innerLoc), br.describe).concludeWith(f(_, true))
@@ -1169,7 +1181,10 @@ abstract class Parser(
         val tree = if dyn then
           DynAccess(acc, new Ident(name).withLoc(S(l0)), true)
         else
-          Sel(acc, new Ident(name).withLoc(S(l0)))
+          val sel = new Sel(acc, new Ident(name).withLoc(S(l0)))
+          if name.startsWith("#") && startsPrefixOperand then
+            PrefixOpApp(sel, operatorRhs(name, opPrec(name)._2, allowNewlines = allowNewlines))
+          else sel
         exprCont(tree, prec, allowNewlines = allowNewlines)
         
       case (br @ BRACKETS(Angle | Square, toks), loc) :: _ =>

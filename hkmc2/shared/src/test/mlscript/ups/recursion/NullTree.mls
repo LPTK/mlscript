@@ -12,9 +12,9 @@ pattern Null = null
 
 pattern Tree = Null | Pair(Tree, Tree)
 
-fun (##) concat(a, b) = Pair(a, b)
+fun (??) concat(a, b) = Pair(a, b)
 
-0 ## 1
+0 ?? 1
 //│ = Pair(0, 1)
 
 // Positive Test Cases
@@ -26,16 +26,16 @@ fun (##) concat(a, b) = Pair(a, b)
 null is @compile Tree
 //│ = true
 
-null ## null is @compile Tree
+null ?? null is @compile Tree
 //│ = true
 
-((null ## null) ## null) is @compile Tree
+((null ?? null) ?? null) is @compile Tree
 //│ = true
 
-null ## (null ## null) is @compile Tree
+null ?? (null ?? null) is @compile Tree
 //│ = true
 
-((null ## null) ## (null ## null)) is @compile Tree
+((null ?? null) ?? (null ?? null)) is @compile Tree
 //│ = true
 
 // Negative Test Cases
@@ -47,11 +47,11 @@ null ## (null ## null) is @compile Tree
 0 is @compile Tree
 //│ = false
 
-0 ## 0 is @compile Tree
+0 ?? 0 is @compile Tree
 //│ = false
 
-0 ## null is @compile Tree
+0 ?? null is @compile Tree
 //│ = false
 
-null ## 0 is @compile Tree
+null ?? 0 is @compile Tree
 //│ = false

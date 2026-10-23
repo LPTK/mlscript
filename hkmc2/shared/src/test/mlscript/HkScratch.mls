@@ -13,27 +13,21 @@
 
 fun (#>) f(x) = x
 
-:todo
+:expect [LITVAL(1)]
 #> 1
-//│ ╔══[COMPILATION ERROR] Unexpected token in token sequence: literal token
-//│ ║  l.+1: 	#> 1
-//│ ╙──      	   ^
-//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ = [LITVAL(1)]
 
-:expect IDENT("hi", false)
+:expect [IDENT("hi", false)]
 :sir
 #> hi
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let tmp; set tmp = runtime⁰.token⁰.IDENT﹖("hi", false); return f⁰(tmp)
+//│ let tmp, tmp1; set tmp = runtime⁰.token⁰.IDENT﹖("hi", false); set tmp1 = [tmp]; return f⁰(tmp1)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
-//│ = IDENT("hi", false)
+//│ = [IDENT("hi", false)]
 
-:todo
+:expect [IDENT("hi", false), SPACE, IDENT("there", false)]
 #> hi there
-//│ ╔══[COMPILATION ERROR] Unexpected token in token sequence: space token
-//│ ║  l.+1: 	#> hi there
-//│ ╙──      	   ^^^^^^^^
-//│ /!!!\ Uncaught error: scala.NotImplementedError: an implementation is missing
+//│ = [IDENT("hi", false), SPACE, IDENT("there", false)]
 
 
 

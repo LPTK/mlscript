@@ -16,9 +16,6 @@ import Tree._
 
 case class Tok(token: Stroken, loc: Loc) extends Located:
   def describe: Str = token.describe + " token"
-  // def showDbg(using DebugPrinter): Str = token.showDbg
-  // def withLocOf(other: Located): Tok = Tok(token, other.loc)
-  // def withLoc(loc: Loc): Tok = Tok(token, loc)
   def toLoc: S[Loc] = S(loc)
 
 sealed trait Literal extends AutoLocated:
@@ -77,7 +74,7 @@ enum Tree extends AutoLocated:
   case UnitLit(isNullNotUndefined: Bool) extends Tree with Literal
   case BoolLit(value: Bool)              extends Tree with Literal
   case Bra(k: BracketKind, inner: Tree)
-  // case Toks(toks: Ls[Stroken -> Loc])
+  /** Structured tokens captured without interpreting their contents as expressions. */
   case Toks(toks: Ls[Tok])
   case Block(stmts: Ls[Tree])(using State) extends Tree with semantics.BlockImpl
   case LetLike(kw: Keywrd[Keyword.LetLike], lhs: Tree, rhs: Opt[Tree], body: Opt[Tree])
@@ -98,7 +95,7 @@ enum Tree extends AutoLocated:
   case App(lhs: Tree, rhs: Tree)
   /** Unlike an explicit argument list, a prefix operand must not acquire extra arguments from `\`.
     * Keeping the source form also lets operator operands delimit implicit lambdas. */
-  case PrefixOpApp(op: Ident, rhs: Tree)
+  case PrefixOpApp(op: Ident | Sel, rhs: Tree)
   case OpApp(lhs: Tree, op: Tree, rhss: Ls[Tree])
   case Jux(lhs: Tree, rhs: Tree)
   case Reft(base: Tree, body: Block)
@@ -134,6 +131,7 @@ enum Tree extends AutoLocated:
     case SplitPoint() => acc
     case Sel(pre, id) => Sel(pre.splitOn(acc), id)
     case App(lhs, rhs) => App(lhs.splitOn(acc), rhs)
+    case PrefixOpApp(op: Sel, rhs) => PrefixOpApp(new Sel(op.prefix.splitOn(acc), op.name), rhs)
     case OpApp(lhs, op, rhss) => OpApp(lhs.splitOn(acc), op, rhss)
     case OpSplit(lhs, rhss) => OpSplit(lhs.splitOn(acc), rhss)
     case InfixApp(lhs, kw, rhs) => InfixApp(lhs.splitOn(acc), kw, rhs)
@@ -190,7 +188,6 @@ enum Tree extends AutoLocated:
     case SplitPoint() => Vector.empty
     case TryFinally(tryBody, finallyBody) => Vector.double(tryBody, finallyBody)
     case Trm(trm) => Vector.single(trm)
-    // case Toks(toks) => toks.iterator.map(_._1).toVector
     case Toks(toks) => toks.toVector
   
   def describe: Str = this match
@@ -213,6 +210,7 @@ enum Tree extends AutoLocated:
     case Quoted(body) => "quoted"
     case Unquoted(body) => "unquoted"
     case Tup(fields) => "tuple"
+    case Toks(_) => "token sequence"
     case TyTup(tys) => "type tuple"
     case App(lhs, rhs) => "application"
     case PrefixOpApp(op, rhs) => "prefix operator application"
