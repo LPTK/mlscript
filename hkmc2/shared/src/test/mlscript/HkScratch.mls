@@ -16,7 +16,7 @@ mut
   in x
 //│ ╔══[COMPILATION ERROR] Expected a record after 'mut' keyword; found a block
 //│ ║  l.+2: 	  let x = 1
-//│ ║        	          ^
+//│ ║        	  ^^^^^^^^^
 //│ ║  l.+3: 	  in x
 //│ ╙──      	^^^^^^
 //│ = 1

@@ -122,3 +122,25 @@ new {
 //│ ║  l.+4: 	}
 //│ ╙──      	^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// Structural block consumers retain both braces even when elaboration discards an annotation.
+:e
+:w
+:expect 1
+mut {
+  @tailrec 1
+}
+//│ ╔══[COMPILATION ERROR] Expected a record after 'mut' keyword; found a block
+//│ ║  l.+1: 	mut {
+//│ ║        	    ^
+//│ ║  l.+2: 	  @tailrec 1
+//│ ║        	^^^^^^^^^^^^
+//│ ║  l.+3: 	}
+//│ ╙──      	^
+//│ ╔══[WARNING] This annotation has no effect.
+//│ ║  l.+2: 	  @tailrec 1
+//│ ║        	  ^^^^^^^^
+//│ ╟── This annotation is not supported on integer literal terms.
+//│ ║  l.+2: 	  @tailrec 1
+//│ ╙──      	           ^
+//│ = 1

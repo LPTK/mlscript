@@ -561,7 +561,9 @@ abstract class Parser(
                         -> S(_brLoc) :: Nil)
                       errExpr
                     case single :: Nil => single
-                    case multiple => Block(multiple)
+                    case multiple =>
+                      val block = Block(multiple)
+                      if br.k is Curly then Bra(Curly, block).withLoc(S(_brLoc)) else block
                   exprCont(tree, prec, allowNewlines = allowNewlines)
                 case _ =>
                   exprCont(
@@ -603,7 +605,7 @@ abstract class Parser(
           if verbose then printDbg("$ found blockAlt; proceed with block")
           val e = rec(toks, S(br.innerLoc), br.describe).concludeWith(_.block(allowNewlines = true))
             |> Tree.Block.apply
-          val body = if exprAlt.keepBraces && (br.k is Curly) then Bra(Curly, e).withLoc(S(loc)) else e
+          val body = if br.k is Curly then Bra(Curly, e).withLoc(S(loc)) else e
           blockContinuation(body, prec, exprAlt.infixes, exprAlt.rest).map(exprAlt.k.tupled)
         case N =>
           
@@ -1196,11 +1198,13 @@ abstract class Parser(
           case _ =>
         printDbg(s"! found operator `$opStr` with prec ${opPrec(opStr)}")
         yeetSpaces match
-          case (Bracketed(_: Indent_Curly, toks), l0) :: _ =>
+          case (br @ Bracketed(_: Indent_Curly, toks), l0) :: _ =>
             consume
             // rec(toks, S(br.innerLoc), br.describe).concludeWith(f(_, true))
             val rhs = rec(toks, S(l0), "operator split").concludeWith(_.split)
-            exprCont(OpApp(acc, v, Block(rhs).withLoc(S(l0)) :: Nil),
+            val block = Block(rhs)
+            val body = if br.k is Curly then Bra(Curly, block).withLoc(S(l0)) else block.withLoc(S(l0))
+            exprCont(OpApp(acc, v, body :: Nil),
               prec, allowNewlines = allowNewlines)
           case _ => 
             // val rhs = simpleExpr(opPrec(opStr)._2)
@@ -1318,7 +1322,7 @@ abstract class Parser(
     if prec <= AppPrec && !startsInfixCont(toks) =>
       consume
       val res = rec(toks, S(br.innerLoc), br.describe).concludeWith(_.block(allowNewlines = true))
-      exprCont(Reft(acc, Block(res).withLoc(S(l0))), prec, allowNewlines = allowNewlines)
+      exprCont(Reft(acc, Bra(Curly, Block(res)).withLoc(S(l0))), prec, allowNewlines = allowNewlines)
     case (br @ Bracketed(Indent, toks), l0) :: _
     if prec < AppPrec && (toks.headOption match
       case S((IDENT(nme, symb), _)) => !symb && !Keyword.all.contains(nme)
