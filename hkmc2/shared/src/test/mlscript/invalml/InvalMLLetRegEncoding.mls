@@ -31,7 +31,7 @@ letreg(r => !(r.ref 1))
 !(letreg(r => r.ref 1))
 //│ ╔══[COMPILATION ERROR] Type error in block
 //│ ║  l.+1: 	!(letreg(r => r.ref 1))
-//│ ║        	  ^^^^^^^^^^^^^^^^^^^^
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── because: cannot constrain  'reg ∨ 'E  <:  ⊥
 //│ ╟── because: cannot constrain  'reg  <:  ⊥
 //│ ╟── because: cannot constrain  'reg1  <:  ⊥

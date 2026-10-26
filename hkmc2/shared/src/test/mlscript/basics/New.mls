@@ -26,8 +26,10 @@ new
 //│ ║  l.+3: 	  Foo
 //│ ║        	^^^^^
 //│ ╟── Invalid class expression: block
+//│ ║  l.+2: 	  Foo
+//│ ║        	  ^^^
 //│ ║  l.+3: 	  Foo
-//│ ╙──      	  ^^^
+//│ ╙──      	^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 // * Interesting... it tries to call `Foo()` and instantiate the resulting class value...
@@ -73,8 +75,10 @@ new
 //│ ║  l.+3: 	  ()
 //│ ║        	^^^^
 //│ ╟── Invalid class expression: block
+//│ ║  l.+2: 	  Foo
+//│ ║        	  ^^^
 //│ ║  l.+3: 	  ()
-//│ ╙──      	  ^^
+//│ ╙──      	^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 :e

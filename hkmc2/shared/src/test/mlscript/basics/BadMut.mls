@@ -54,3 +54,30 @@ mut
 //│ = 1
 
 
+// A declaration without an initializer still contributes to the rejected block's span.
+:e
+mut
+  let x
+//│ ╔══[COMPILATION ERROR] Expected a record after 'mut' keyword; found a block
+//│ ║  l.+2: 	  let x
+//│ ╙──      	  ^^^^^
+
+// The block retains its source annotation even when elaboration discards it.
+open annotations
+
+:e
+:w
+mut
+  @tailrec 1
+//│ ╔══[COMPILATION ERROR] Expected a record after 'mut' keyword; found a block
+//│ ║  l.+2: 	  @tailrec 1
+//│ ╙──      	  ^^^^^^^^^^
+//│ ╔══[WARNING] This annotation has no effect.
+//│ ║  l.+2: 	  @tailrec 1
+//│ ║        	  ^^^^^^^^
+//│ ╟── This annotation is not supported on integer literal terms.
+//│ ║  l.+2: 	  @tailrec 1
+//│ ╙──      	           ^
+//│ = 1
+
+

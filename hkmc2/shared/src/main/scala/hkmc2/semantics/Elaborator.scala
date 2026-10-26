@@ -2121,8 +2121,7 @@ extends Importer:
       case (Blk(Nil, Term.UnitVal()), ctx) =>
         withTypeBinders(Rcd(mut = true, Nil)).withLocOf(body)
       case (blk: Blk, ctx) =>
-        // Elaboration can drop binding syntax, so locate the rejected block in the original source tree.
-        raise(ErrorReport(msg"Expected a record after 'mut' keyword; found a block" -> body.toLoc :: Nil))
+        raise(ErrorReport(msg"Expected a record after 'mut' keyword; found a block" -> blk.toLoc :: Nil))
         blk
       case (rcd: Rcd, ctx) => withTypeBinders(rcd.copy(mut = true)).withLocOf(rcd)
     case Modified(kw, body) =>
@@ -2245,7 +2244,10 @@ extends Importer:
   def block(blk: Block, hasResult: Bool, resultInterp: Interpretation)(using UnderCtx): Ctxl[(Blk, Ctx)] =
     blockOrRcd(blk, hasResult, resultInterp) match
     case (blk: Blk, ctx) => (blk, ctx)
-    case (rcd: Rcd, ctx) => (Blk(Nil, rcd), ctx)
+    case (rcd: Rcd, ctx) =>
+      val wrapped: Blk = Blk(Nil, rcd)
+      wrapped.withLocOf(blk)
+      (wrapped, ctx)
   
   val supportedOverloadings: Set[(OuterKind, OuterKind)] = Set(
     Cls -> Mod,
@@ -2383,7 +2385,7 @@ extends Importer:
       sts match
       case Nil =>
         reportUnusedAnnotations
-        (mkBlk(acc, N, hasResult), ctx)
+        (mkBlk(blk, acc, N, hasResult), ctx)
       // * Constructor blocks support no annotations: they are desugared into sibling classes
       // * (in `BlockImpl.desugStmts`), which ignores their annotations.
       case Constructor(Block(ctors)) :: sts =>
@@ -2858,6 +2860,7 @@ extends Importer:
           
           val (blk, c) = fn(using ctxWithFields)
           val blkWithFields: Blk = blk.copy(stats = allFields ::: blk.stats)
+          blkWithFields.withLocOf(blk)
           ObjBody.extractMembers(blkWithFields) match
             case R(_) =>
               (blkWithFields, c)
@@ -3066,7 +3069,7 @@ extends Importer:
         val res = annotations.foldLeft(st_t):
           case (acc, ann) => annotated(ann, acc)
         sts match
-        case Nil => (mkBlk(acc, S(res), hasResult), ctx)
+        case Nil => (mkBlk(blk, acc, S(res), hasResult), ctx)
         case _ => go(sts, Nil, res :: acc)(N)
     end go
     
@@ -3120,17 +3123,21 @@ extends Importer:
     res
   
   
-  def mkBlk(acc: Ls[Statement], res: Opt[Term], hasResult: Bool)(using Ctx): Blk | Rcd =
+  def mkBlk(source: Block, acc: Ls[Statement], res: Opt[Term], hasResult: Bool)(using Ctx): Blk | Rcd =
     // TODO forbid certain kinds of terms in records
     val isRcd = acc.exists:
       case _: (RcdField | RcdSpread) => true
       case _ => false
     if isRcd then withTypeBinders(new Term.Rcd(mut = false, (res.toList ::: acc).reverse))
-    else Blk(acc.reverse, res.getOrElse:
-      if hasResult
-        then unit
-        else Term.Lit(UnitLit(false))
-    )
+    else
+      // Preserve source syntax that may no longer appear in the elaborated statements, such as discarded annotations.
+      val blk: Blk = Blk(acc.reverse, res.getOrElse:
+        if hasResult
+          then unit
+          else Term.Lit(UnitLit(false))
+      )
+      blk.withLocOf(source)
+      blk
   
   def newOf(td: TypeDef): Ctxl[Opt[Term.New]] =
     td.extension

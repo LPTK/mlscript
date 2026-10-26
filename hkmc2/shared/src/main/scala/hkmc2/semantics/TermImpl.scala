@@ -285,7 +285,8 @@ trait StatementImpl extends Located, ProductWithExtraInfo, Describable:
     case Sel(pre, nme) => Vector.double(pre, nme)
     case SelProj(prefix, cls, proj) => Vector.triple(prefix, cls, proj)
     case _ =>
-      subTerms // TODO more precise (include located things that aren't terms)
+      // Flattening block statements into subterms would lose declaration and assignment spans.
+      subStatements // TODO more precise (include other located things that aren't terms)
   
   def show(using Scope, ShowCfg, Raise): Document =
     

@@ -56,7 +56,7 @@ foo(bar)
 fun badfoo: [A extends Str restricts Int] -> A -> A
 //│ ╔══[COMPILATION ERROR] Type error in block
 //│ ║  l.+1: 	fun badfoo: [A extends Str restricts Int] -> A -> A
-//│ ║        	                                             ^^^^^^
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╙── because: cannot constrain  Int  <:  Str
 
 

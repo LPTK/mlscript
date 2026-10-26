@@ -25,7 +25,7 @@ fun foo(): module M =
 //│ ╙──      	          ^
 //│ ╔══[COMPILATION ERROR] Expected a module; found non-moduleful block.
 //│ ║  l.+2: 	  let m = M in m
-//│ ║        	          ^^^^^^
+//│ ║        	  ^^^^^^^^^^^^^^
 //│ ╙── Function marked as returning a 'module' but not returning a module.
 
 

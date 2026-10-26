@@ -89,7 +89,9 @@ new { x = 1 }
 //│ ╔══[COMPILATION ERROR] Resolution error in object instantiation
 //│ ║  l.+1: 	new { x = 1 }
 //│ ║        	^^^^^^^^^^^
-//│ ╙── Invalid class expression: block
+//│ ╟── Invalid class expression: block
+//│ ║  l.+1: 	new { x = 1 }
+//│ ╙──      	      ^^^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
