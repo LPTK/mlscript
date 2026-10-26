@@ -175,7 +175,7 @@ computed.value
 {(key): 0}.value
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.+1: 	{(key): 0}.value
-//│ ║        	 ^^^^^^^^^^^^^^^
+//│ ║        	^^^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'value' across a computed key or unknown record spread.
 //│ ╟── This computed key can overwrite the selected member.
 //│ ║  l.+1: 	{(key): 0}.value

@@ -71,7 +71,7 @@ answer2
 {a: 1}.missing
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.+1: 	{a: 1}.missing
-//│ ║        	 ^^^^^^^^^^^^^
+//│ ║        	^^^^^^^^^^^^^^
 //│ ╟── Record literal does not contain member 'missing'
 //│ ║  l.+1: 	{a: 1}.missing
 //│ ╙──      	 ^^^^
@@ -81,7 +81,7 @@ answer2
 {a: 1}.a()
 //│ ╔══[COMPILATION ERROR] Resolution error in application
 //│ ║  l.+1: 	{a: 1}.a()
-//│ ║        	 ^^^^^^^^^
+//│ ║        	^^^^^^^^^^
 //│ ╟── Integer literal cannot be called like a function.
 //│ ║  l.+1: 	{a: 1}.a()
 //│ ╙──      	    ^
@@ -92,14 +92,14 @@ let key = "a"
 {a: {answer: 0}, (key): {other: 1}}.a.answer
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.+2: 	{a: {answer: 0}, (key): {other: 1}}.a.answer
-//│ ║        	 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'a' across a computed key or unknown record spread.
 //│ ╟── This computed key can overwrite the selected member.
 //│ ║  l.+2: 	{a: {answer: 0}, (key): {other: 1}}.a.answer
 //│ ╙──      	                  ^^^
 //│ ╔══[COMPILATION ERROR] This selection of member 'answer' has no resolved target
 //│ ║  l.+2: 	{a: {answer: 0}, (key): {other: 1}}.a.answer
-//│ ╙──      	 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 //│ key = "a"
 

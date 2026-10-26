@@ -109,7 +109,7 @@ region x in
   (let dz = x.ref 42 in 42) as [A] -> Int
 //│ ╔══[COMPILATION ERROR] Type error in block with expected type [outer, 'A] -> Int
 //│ ║  l.+2: 	  (let dz = x.ref 42 in 42) as [A] -> Int
-//│ ║        	   ^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║        	  ^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── because: cannot constrain  'reg  <:  ⊥
 //│ ╙── because: cannot constrain  x  <:  ⊥
 //│ Type: Int

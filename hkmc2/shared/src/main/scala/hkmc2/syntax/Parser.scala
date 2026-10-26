@@ -603,7 +603,8 @@ abstract class Parser(
           if verbose then printDbg("$ found blockAlt; proceed with block")
           val e = rec(toks, S(br.innerLoc), br.describe).concludeWith(_.block(allowNewlines = true))
             |> Tree.Block.apply
-          blockContinuation(e, prec, exprAlt.infixes, exprAlt.rest).map(exprAlt.k.tupled)
+          val body = if exprAlt.keepBraces && (br.k is Curly) then Bra(Curly, e).withLoc(S(loc)) else e
+          blockContinuation(body, prec, exprAlt.infixes, exprAlt.rest).map(exprAlt.k.tupled)
         case N =>
           
           if verbose then printDbg("$ no blockAlt; proceed with rule")
@@ -743,7 +744,7 @@ abstract class Parser(
             val rhs = effectfulRhs(kw.rightPrecOrMin, allowNewlines = allowNewlines)
             val lhs = bk match
               case Round => Tup(ps)
-              case Curly => Bra(Curly, Block(ps))
+              case Curly => Bra(Curly, Block(ps)).withLoc(S(loc))
               case Square => TyTup(ps)
             exprCont(
               Quoted(InfixApp(lhs, new Keywrd(kw).withLoc(S(l0)), Unquoted(rhs)).withLoc(S(loc))).withLoc(S(l ++ loc)),
@@ -766,7 +767,7 @@ abstract class Parser(
               case Nil => Unt().withLoc(S(loc))
               case e :: Nil => Bra(Round, e).withLoc(S(loc))
               case es => Bra(Round, Block(es).withLoc(S(loc)))
-            case Curly => Bra(Curly, Block(ps))
+            case Curly => Bra(Curly, Block(ps)).withLoc(S(loc))
           exprCont(res, prec, allowNewlines = allowNewlines)
     case (QUOTE, loc) :: _ =>
       consume
@@ -1088,7 +1089,7 @@ abstract class Parser(
         consume
         consume
         val inner = bracketedBlock(br)
-        exprCont(OpenIn(acc, Block(inner)), prec, allowNewlines = allowNewlines)
+        exprCont(OpenIn(acc, Bra(Curly, Block(inner)).withLoc(S(l1))), prec, allowNewlines = allowNewlines)
         
       case (PERIOD, l0) :: (LITVAL(lit: (Tree & Literal)), l1) :: _ =>
         consume

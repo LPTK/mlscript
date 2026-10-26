@@ -79,7 +79,7 @@ explicit."nested".value
 {value: 1}.missing
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.+1: 	{value: 1}.missing
-//│ ║        	 ^^^^^^^^^^^^^^^^^
+//│ ║        	^^^^^^^^^^^^^^^^^^
 //│ ╟── Record literal does not contain member 'missing'
 //│ ║  l.+1: 	{value: 1}.missing
 //│ ╙──      	 ^^^^^^^^

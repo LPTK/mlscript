@@ -60,7 +60,7 @@ new!()
 new {}
 //│ ╔══[COMPILATION ERROR] Resolution error in object instantiation
 //│ ║  l.+1: 	new {}
-//│ ║        	^^^
+//│ ║        	^^^^^^
 //│ ╙── Invalid class expression: unit value
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
@@ -76,22 +76,25 @@ new! {}
 // * it no longer does, since I make `new` accept `exprOrBlk`
 :e
 :pt
+:loc
 new { x = 1 }
 //│ ———————————————| Parsed tree |——————————————————————————————————————————————————————————————————————
-//│ LexicalNew:
-//│   body = S of Block of Ls of
-//│     Def:
-//│       lhs = Ident of "x"
-//│       rhs = IntLit of 1
+//│ LexicalNew loc[1:1-1:14]:
+//│   body = S of Bra loc[1:5-1:14]:
+//│     k = Curly
+//│     inner = Block loc[1:7-1:12] of Ls of
+//│       Def loc[1:7-1:12]:
+//│         lhs = Ident loc[1:7-1:8] of "x"
+//│         rhs = IntLit loc[1:11-1:12] of 1
 //│ ╔══[COMPILATION ERROR] Name not found: x
 //│ ║  l.+1: 	new { x = 1 }
 //│ ╙──      	      ^
 //│ ╔══[COMPILATION ERROR] Resolution error in object instantiation
 //│ ║  l.+1: 	new { x = 1 }
-//│ ║        	^^^^^^^^^^^
+//│ ║        	^^^^^^^^^^^^^
 //│ ╟── Invalid class expression: block
 //│ ║  l.+1: 	new { x = 1 }
-//│ ╙──      	      ^^^^^
+//│ ╙──      	    ^^^^^^^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 

@@ -1621,8 +1621,16 @@ extends Importer:
       // * In the old syntax, parentheses delimit underscore lambdas, so `e` is elaborated with `term`.
       // * In the new syntax, only `=>` and the RHS of operators ending with `>` delimit them,
       // * so parentheses are transparent, and `x |> (_ + 1)` means `x |> (y => y + 1)`.
-      if lang.newUnderscoreAndApplicationSyntax then subterm(e, interp)
-      else term(e, interp)
+      val res = if lang.newUnderscoreAndApplicationSyntax then subterm(e, interp)
+        else term(e, interp)
+      res match
+      case blk: Blk =>
+        // A surviving block represents the whole bracketed expression. Copy the wrapper so
+        // its delimiter span does not overwrite the location of a shared or embedded term.
+        val located: Blk = blk.copy()
+        located.withLocOf(tree)
+        located
+      case _ => res
     case b: Block =>
       ctx.nestLocal("‹block›").givenIn:
         block(b, hasResult = true, resultInterp = interp)._1 match
