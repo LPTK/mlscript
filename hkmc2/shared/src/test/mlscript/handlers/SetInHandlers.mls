@@ -34,7 +34,7 @@ set x += 1 in
 x
 //│ ╔══[COMPILATION ERROR] Backtracking assignment is not supported with effect handlers enabled
 //│ ║  l.+8: 	set x += 1 in
-//│ ║        	    ^^^^^^^^^
+//│ ║        	^^^^^^^^^^^^^
 //│ ║  l.+9: 	  print("init")
 //│ ║        	^^^^^^^^^^^^^^^
 //│ ║  l.+10: 	  print(h.test())

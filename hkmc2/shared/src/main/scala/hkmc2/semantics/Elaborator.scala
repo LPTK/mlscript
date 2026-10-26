@@ -2121,7 +2121,8 @@ extends Importer:
       case (Blk(Nil, Term.UnitVal()), ctx) =>
         withTypeBinders(Rcd(mut = true, Nil)).withLocOf(body)
       case (blk: Blk, ctx) =>
-        raise(ErrorReport(msg"Expected a record after 'mut' keyword; found a block" -> blk.toLoc :: Nil))
+        // Elaboration can drop binding syntax, so locate the rejected block in the original source tree.
+        raise(ErrorReport(msg"Expected a record after 'mut' keyword; found a block" -> body.toLoc :: Nil))
         blk
       case (rcd: Rcd, ctx) => withTypeBinders(rcd.copy(mut = true)).withLocOf(rcd)
     case Modified(kw, body) =>

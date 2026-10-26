@@ -17,7 +17,7 @@ fun typeTerm(_, set ctx) =
   ctx = 123
 //│ ╔══[COMPILATION ERROR] Expected a valid parameter, found set
 //│ ║  l.+1: 	fun typeTerm(_, set ctx) =
-//│ ╙──      	                    ^^^
+//│ ╙──      	                ^^^^^^^
 //│ ╔══[COMPILATION ERROR] Name not found: ctx
 //│ ║  l.+2: 	  print(ctx)
 //│ ╙──      	        ^^^
@@ -29,7 +29,7 @@ fun typeTerm(_, let ctx) =
   ctx = 123
 //│ ╔══[COMPILATION ERROR] Expected a valid parameter, found let
 //│ ║  l.+1: 	fun typeTerm(_, let ctx) =
-//│ ╙──      	                    ^^^
+//│ ╙──      	                ^^^^^^^
 //│ ╔══[COMPILATION ERROR] Name not found: ctx
 //│ ║  l.+2: 	  ctx = 123
 //│ ╙──      	  ^^^

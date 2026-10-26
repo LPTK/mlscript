@@ -9,7 +9,7 @@ data class Some[out A](value: A)
 let Some(x) = Some(42)
 //│ ╔══[COMPILATION ERROR] Unsupported let binding shape
 //│ ║  l.+1: 	let Some(x) = Some(42)
-//│ ╙──      	    ^^^^^^^^^^^^^^^^^^
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 

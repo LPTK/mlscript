@@ -30,7 +30,7 @@ if
   let x
 //│ ╔══[COMPILATION ERROR] Unrecognized term split (let)
 //│ ║  l.+2: 	  let x
-//│ ╙──      	      ^
+//│ ╙──      	  ^^^^^
 //│ ═══[RUNTIME ERROR] Error: match error
 
 

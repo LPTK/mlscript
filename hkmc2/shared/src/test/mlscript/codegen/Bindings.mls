@@ -56,21 +56,21 @@ let x |>= incr
 let 2
 //│ ╔══[COMPILATION ERROR] Unsupported let binding shape
 //│ ║  l.+1: 	let 2
-//│ ╙──      	    ^
+//│ ╙──      	^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 :e
 let x += 1 = 0
 //│ ╔══[COMPILATION ERROR] Unsupported let binding shape
 //│ ║  l.+1: 	let x += 1 = 0
-//│ ╙──      	    ^^^^^^^^^^
+//│ ╙──      	^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 :e
 let x += 1 = 0 in x
 //│ ╔══[COMPILATION ERROR] Unsupported let binding shape
 //│ ║  l.+1: 	let x += 1 = 0 in x
-//│ ╙──      	    ^^^^^^^^^^
+//│ ╙──      	^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
@@ -78,20 +78,20 @@ let x += 1 = 0 in x
 (let x = 1)
 //│ ╔══[COMPILATION ERROR] Expected a body for let bindings in expression position
 //│ ║  l.+1: 	(let x = 1)
-//│ ╙──      	     ^^^^^
+//│ ╙──      	 ^^^^^^^^^
 
 :e
 (let x = 1) + 1
 //│ ╔══[COMPILATION ERROR] Expected a body for let bindings in expression position
 //│ ║  l.+1: 	(let x = 1) + 1
-//│ ╙──      	     ^^^^^
+//│ ╙──      	 ^^^^^^^^^
 //│ = "()1"
 
 :e
 (let f(x) = x) + 1
 //│ ╔══[COMPILATION ERROR] Expected a body for let bindings in expression position
 //│ ║  l.+1: 	(let f(x) = x) + 1
-//│ ╙──      	     ^^^^^^^^
+//│ ╙──      	 ^^^^^^^^^^^^
 //│ = "()1"
 
 (let f(x) = x + 1 in f(42)) + 1

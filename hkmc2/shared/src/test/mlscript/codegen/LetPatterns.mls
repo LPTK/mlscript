@@ -8,7 +8,7 @@ data class Some[out A](value: A)
 let Some(x) = Some(42)
 //│ ╔══[COMPILATION ERROR] Unsupported let binding shape
 //│ ║  l.+1: 	let Some(x) = Some(42)
-//│ ╙──      	    ^^^^^^^^^^^^^^^^^^
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
@@ -21,7 +21,7 @@ let N = None
 let (None) = N
 //│ ╔══[COMPILATION ERROR] Unsupported let binding shape
 //│ ║  l.+1: 	let (None) = N
-//│ ╙──      	    ^^^^^^^^^^
+//│ ╙──      	^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
@@ -31,7 +31,7 @@ data class Foo(a)
 let Foo(x) = Foo(1) in print(x)
 //│ ╔══[COMPILATION ERROR] Unsupported let binding shape
 //│ ║  l.+1: 	let Foo(x) = Foo(1) in print(x)
-//│ ╙──      	    ^^^^^^^^^^^^^^^
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Name not found: x
 //│ ║  l.+1: 	let Foo(x) = Foo(1) in print(x)
 //│ ╙──      	                             ^
@@ -41,7 +41,7 @@ let Foo(x) = Foo(1) in print(x)
 let Foo(x) and x > 0 = Foo(1) in print("ok")
 //│ ╔══[COMPILATION ERROR] Unsupported let binding shape
 //│ ║  l.+1: 	let Foo(x) and x > 0 = Foo(1) in print("ok")
-//│ ╙──      	    ^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 

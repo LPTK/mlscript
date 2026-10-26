@@ -5,7 +5,7 @@
 let id: [A] -> A -> A = x => x
 //│ ╔══[COMPILATION ERROR] Unsupported let binding shape
 //│ ║  l.+1: 	let id: [A] -> A -> A = x => x
-//│ ╙──      	    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 :todo
 fun id[A](x: A) = x

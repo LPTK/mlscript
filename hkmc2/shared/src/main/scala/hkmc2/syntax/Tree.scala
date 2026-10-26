@@ -137,7 +137,7 @@ enum Tree extends AutoLocated:
     case Pun(_, e) => Vector.single(e)
     case Bra(_, e) => Vector.single(e)
     case Block(stmts) => stmts.toVector
-    case LetLike(kw, lhs, rhs, body) => lhs +: (rhs.toVector ++ body.toVector)
+    case LetLike(kw, lhs, rhs, body) => kw +: lhs +: (rhs.toVector ++ body.toVector)
     case Hndl(lhs, rhs, defs, body) => body match
       case Some(value) => lhs +: rhs +: defs +: value +: Vector.empty
       case None => lhs +: rhs +: defs +: Vector.empty

@@ -87,7 +87,7 @@ module Test with
   let x = 2
 //│ ╔══[COMPILATION ERROR] Name 'x' is already used
 //│ ║  l.+3: 	  let x = 2
-//│ ║        	      ^^^^^
+//│ ║        	  ^^^^^^^^^
 //│ ╟── by a member declared in the same block
 //│ ║  l.+2: 	  val x = 1
 //│ ╙──      	  ^^^^^^^^^

@@ -8,7 +8,7 @@ print of
   x + 1
 //│ ╔══[COMPILATION ERROR] Expected a body for let bindings in expression position
 //│ ║  l.+2: 	  let x = 1
-//│ ╙──      	      ^^^^^
+//│ ╙──      	  ^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Name not found: x
 //│ ║  l.+3: 	  x + 1
 //│ ╙──      	  ^
@@ -23,7 +23,7 @@ print of
 //│ ╙──      	  ^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Expected a body for let bindings in expression position
 //│ ║  l.+3: 	  let x = 1
-//│ ╙──      	      ^^^^^
+//│ ╙──      	  ^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Name not found: x
 //│ ║  l.+4: 	  x + 1
 //│ ╙──      	  ^

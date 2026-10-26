@@ -125,7 +125,7 @@ while
       arrMatches{!> print} > 0
 //│ ╔══[COMPILATION ERROR] Unrecognized term split (let)
 //│ ║  l.+2: 	    let arrMatches = get in
-//│ ║        	        ^^^^^^^^^^^^^^^^^^^
+//│ ║        	    ^^^^^^^^^^^^^^^^^^^^^^^
 //│ ║  l.+3: 	      arrMatches{!> print} > 0
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

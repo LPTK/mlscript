@@ -171,14 +171,14 @@ let x = 0
 set x += 1; ()
 //│ ╔══[COMPILATION ERROR] Expected a right-hand side for this assignment
 //│ ║  l.+1: 	set x += 1; ()
-//│ ╙──      	    ^^^^^^^^^^
+//│ ╙──      	^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 :e
 set (x += 1; ())
 //│ ╔══[COMPILATION ERROR] Expected a right-hand side for this assignment
 //│ ║  l.+1: 	set (x += 1; ())
-//│ ╙──      	    ^^^^^^^^^^^^
+//│ ╙──      	^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 (set x += 1); ()
@@ -187,7 +187,7 @@ set (x += 1; ())
 [x, set x += 1; x]
 //│ ╔══[COMPILATION ERROR] Expected a right-hand side for this assignment
 //│ ║  l.+1: 	[x, set x += 1; x]
-//│ ╙──      	        ^^^^^^^^^
+//│ ╙──      	    ^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 // ——— ——— ———
@@ -280,7 +280,7 @@ fun foo() =
   bar("test")
 //│ ╔══[COMPILATION ERROR] Unsupported let binding shape
 //│ ║  l.+2: 	  let bar(x: Str): Str = x + x
-//│ ╙──      	      ^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╙──      	  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Name not found: bar
 //│ ║  l.+3: 	  bar("test")
 //│ ╙──      	  ^^^

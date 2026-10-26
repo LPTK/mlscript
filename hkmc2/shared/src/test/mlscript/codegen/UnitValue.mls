@@ -90,7 +90,7 @@ print of Box(foo(1)).value
 fun f = let x = 1
 //│ ╔══[COMPILATION ERROR] Expected a body for let bindings in expression position
 //│ ║  l.+1: 	fun f = let x = 1
-//│ ╙──      	            ^^^^^
+//│ ╙──      	        ^^^^^^^^^
 
 print of f
 //│ > ()

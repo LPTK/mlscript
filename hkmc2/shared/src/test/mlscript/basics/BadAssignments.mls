@@ -6,7 +6,7 @@ fun x = 1
 set x
 //│ ╔══[COMPILATION ERROR] Expected a right-hand side for this assignment
 //│ ║  l.+1: 	set x
-//│ ╙──      	    ^
+//│ ╙──      	^^^^^
 
 :ge
 set x = 0
