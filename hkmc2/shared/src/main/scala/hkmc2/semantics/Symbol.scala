@@ -564,7 +564,7 @@ sealed trait DefinitionSymbol[Defn <: Definition] extends MemberSymbol:
         case d: ClassDef => true
         case TermDefinition(k = syntax.MutVal) => false
         case TermDefinition(k = _: syntax.ValLike) => true
-        case d @ TermDefinition(k = syntax.Fun, params = Nil) => d.mayRaiseEffects
+        case d @ TermDefinition(k = syntax.Fun, params = Nil) => !d.mayRaiseEffects
         case TermDefinition(k = syntax.Fun, params = _ :: _) =>
           true // References to functions are only guaranteed to be pure when the functions have parameter lists
         case _ => false

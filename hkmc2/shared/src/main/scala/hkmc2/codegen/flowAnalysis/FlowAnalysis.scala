@@ -354,6 +354,17 @@ class FlowPreAnalyzer(val pgrm: Program)(using
   
   ctxTracker.inTopLvl:
     applyBlock(pgrm.main)
+    // Earlier compilation units can supply constructor bodies through their current IR
+    // definitions. Visit each reachable body once, without importing its methods or module
+    // initializer: neither executes when an instance is constructed.
+    val visited = MutSet.empty[ClassSymbol]
+    while res.pendingConstructors.nonEmpty do
+      val cls = res.pendingConstructors.dequeue()
+      if !res.definedClasses.contains(cls) && visited.add(cls) then
+        cls.irClsLikeDefn.foreach: defn =>
+          res.constructorDefns(cls) = defn
+          ctxTracker.inCls(defn):
+            applyConstructor(defn)
   
   object res:
     val primitiveStratVar = StratVar.freshVar("unknown")
@@ -368,6 +379,9 @@ class FlowPreAnalyzer(val pgrm: Program)(using
     val modSymToBms = MutMap.empty[Symbol, BlockMemberSymbol]
     val generatedVars = MutMap.empty[Symbol, StratVar] // TODO: tighten `Symbol` type!
     val generatedEffects = MutMap.empty[Symbol, StratVar] // TODO: tighten `Symbol` type! // TODO: populate for getters!
+    val definedClasses = MutSet.empty[ClassSymbol]
+    val pendingConstructors = mutable.Queue.empty[ClassSymbol]
+    val constructorDefns = LinkedHashMap.empty[ClassSymbol, ClsLikeDefn]
     val capturedVars = MutMap.empty[FunId, LinkedHashSet[Symbol]]
     val affinityCounts = MutMap.empty[Symbol, Int].withDefaultValue(0)
     def getEnclosingMatchesForSel(selExprId: ResultId) =
@@ -412,6 +426,7 @@ class FlowPreAnalyzer(val pgrm: Program)(using
         case _ => false
   
     def getAllCtx = ctx
+    def isTopLvlLikeFunctionCtx: Bool = isTopLvlLikeFunCtx(ctx)
     def isTopLvlLikeModuleCtx: Boolean =
       ctx.forall:
         case InCtx.TopLvl() => true
@@ -591,7 +606,11 @@ class FlowPreAnalyzer(val pgrm: Program)(using
     case End(_) => ()
     case Unreachable(_) => ()
   
-  override def applyResult(r: Result): Unit = r match
+  override def applyResult(r: Result): Unit =
+    r match
+      case CtorProducer(cls: ClassSymbol, _, _) => res.pendingConstructors.enqueue(cls)
+      case _ => ()
+    r match
     case tupSel@PossibleTrackableTupleSelect(_, _) =>
       res.selToCtxOfSel.addOne(tupSel.uid -> ctxTracker.getAllCtx)
     case Call(fun, argss) =>
@@ -673,25 +692,35 @@ class FlowPreAnalyzer(val pgrm: Program)(using
   override def applyArg(arg: Arg): Unit =
     applyPath(arg.value)
   
+  private def applyConstructor(cls: ClsLikeDefn): Unit =
+    cls.paramsOpt.foreach(applyParamList)
+    cls.auxParams.foreach(applyParamList)
+    cls.privateFields.foreach(tsym => ctxTracker.registerStratVar(tsym, tsym.nme))
+    cls.publicFields.foreach: (_, tsym) =>
+      ctxTracker.registerStratVar(tsym, tsym.nme)
+    ctxTracker.inClsPreCtor(cls):
+      applyBlock(cls.preCtor)
+    ctxTracker.inClsCtor(cls):
+      applyBlock(cls.ctor)
+  
   override def applyDefn(defn: Defn): Unit = defn match
     case defn: FunDefn => applyFunDefn(defn)
     case defn: ValDefn => applyValDefn(defn)
     case cls@ClsLikeDefn(own, isym, sym, ctorSym, k, paramsOpt, auxParams, parentPath, methods,
         privateFields, publicFields, preCtor, ctor, mod, bufferable, termCompanion, _)
     =>
+      isym match
+        case clsSym: ClassSymbol =>
+          res.definedClasses += clsSym
+          // Constructors nested in functions may capture that invocation's mutable
+          // locals. Infer their effects after lifting has made those captures explicit.
+          if ctxTracker.isTopLvlLikeFunctionCtx then res.constructorDefns(clsSym) = cls
+        case _ => ()
       cls.methodKeys.valuesIterator.foreach(applyPath)
       mod.foreach(_.methodKeys.valuesIterator.foreach(applyPath))
       ctxTracker.inCls(cls):
-        paramsOpt.foreach(applyParamList)
-        auxParams.foreach(applyParamList)
-        privateFields.foreach(tsym => ctxTracker.registerStratVar(tsym, tsym.nme))
-        publicFields.foreach: (_, tsym) =>
-          ctxTracker.registerStratVar(tsym, tsym.nme)
+        applyConstructor(cls)
         methods.foreach(applyFunDefn)
-        ctxTracker.inClsPreCtor(cls):
-          applyBlock(preCtor)
-        ctxTracker.inClsCtor(cls):
-          applyBlock(ctor)
       for b: ClsLikeBody <- mod do
         if ctxTracker.isTopLvlLikeModuleCtx then
           res.modSymToBms(b.isym) = sym
@@ -758,7 +787,18 @@ class FlowConstraintsCollector(
   // * This is for effect analysis. The nonlocal variables that are potentially shared. 
   // * If a function accesses a nonlocal, it is conservatively considered unsafe for eta-expansion. 
   private val nonlocals = preAnalyzer.res.capturedVars.valuesIterator.flatten
-    .filterNot(_ == eState.runtimeSymbol).toSet
+    .filterNot(_ == eState.runtimeSymbol).toSet ++
+    preAnalyzer.res.constructorDefns.valuesIterator.flatMap: cls =>
+      val params = (cls.paramsOpt.toList ++ cls.auxParams).flatMap(_.paramSyms).toSet[LocalVarSymbol]
+      (cls.preCtor.freeVars ++ cls.ctor.freeVars).collect:
+        case sym: LocalVarSymbol if !params.contains(sym) => sym
+  
+  // Constructor summaries are shared across calls, with unknown arguments. Keeping them
+  // outside function specialization lets recursive function/constructor calls use the
+  // same constraint solver without caching purity on mutable definition symbols.
+  private val constructorEffects = preAnalyzer.res.constructorDefns.keysIterator.map: cls =>
+    cls -> freshVar(s"ctor_effect_${cls.nme}", S(cls), N)
+  .toMap
   
   locally {
     val funsToProdStratScheme = MutMap.empty[TermSymbol, ProdStratScheme]
@@ -803,6 +843,15 @@ class FlowConstraintsCollector(
       cc.constrain(preAnalyzer.res.primitiveStratVar, UnknownCons)
       cc.constrain(UnknownProd, preAnalyzer.res.primitiveStratVar)
       processBlock(preAnalyzer.pgrm.main)(using cc, UnknownCons, N)
+      for (sym, cls) <- preAnalyzer.res.constructorDefns do
+        given Opt[StratVar] = S(constructorEffects(sym))
+        (cls.paramsOpt.toList ++ cls.auxParams).foreach:
+          _.allParams.foreach(p => cc.constrain(UnknownProd, generatedVars(p.sym)))
+        // Parent initialization is still opaque, including an implicit super call
+        // inserted by the backend when preCtor is empty.
+        if cls.parentPath.isDefined then markUnsafeEta()
+        processBlock(cls.preCtor)(using cc, UnknownCons, summon[Opt[StratVar]])
+        processBlock(cls.ctor)(using cc, UnknownCons, summon[Opt[StratVar]])
 
       // this places non-affine constraints correctly:
       // - in mono mode there are no per-scc collectors,
@@ -985,8 +1034,9 @@ class FlowConstraintsCollector(
         generatedVars(fun.dSym).constrainOpaque
         fun.params.foreach(_.allParams.foreach(p => generatedVars(p.sym).constrainOpaque))
         processBlock(fun.body)(using cc, UnknownCons, N /* methods are always considered impure; we don't track their effects */)
-      processBlock(cls.preCtor)(using cc, UnknownCons, N /* FIXME: ctor effects should NOT be discarded */)
-      processBlock(cls.ctor)(using cc, UnknownCons, N /* FIXME: ctor effects should NOT be discarded */)
+      if !cls.isym.asCls.exists(constructorEffects.contains) then
+        processBlock(cls.preCtor)(using cc, UnknownCons, N)
+        processBlock(cls.ctor)(using cc, UnknownCons, N)
       cls.companion.foreach: mod =>
         mod.methodKeys.valuesIterator.foreach(constrainOpaqueResult)
         mod.privateFields.foreach(sym => generatedVars(sym).constrainOpaque)
@@ -1077,13 +1127,30 @@ class FlowConstraintsCollector(
         currentEffect.foreach: enclosingEffect =>
           cc.constrain(effect, enclosingEffect)
         effect
-      def constrainConstructorEffect(result: Result): Unit =
-        val unsafeEta = result match
-          case call: Call => !FlowAnalysis.isPureCall(call, call.argss.size - 1)
-          case _: Instantiate => true
+      def constrainSelectionEffect(selection: Result): Unit =
+        // `val` is an immutability contract, including for generated fields. `new mut`
+        // is an unsafe escape hatch and does not revoke that optimization contract.
+        // Receiver and computed-key effects are still collected by processResult.
+        val immutableField = selection match
+          case path: Path => path.targetSymbol.exists:
+            case sym: TermSymbol => sym.k is syntax.ImmutVal
+            case _ => false
           case _ => false
-        // Constructor bodies are not modeled here; instantiation may have effects.
-        if unsafeEta then markUnsafeEta()
+        if !immutableField then markUnsafeEta()
+      def constrainConstructorEffect(result: Result): Unit =
+        result match
+          case call: Call if FlowAnalysis.isPureCall(call, call.argss.size - 1) => ()
+          // A constructor-body summary describes a saturated wrapper call. Other
+          // argument-list counts may create a closure or apply the constructed value.
+          case Call(MemberRefTo(ctor: ClassCtorSymbol, _), argss)
+            if ctor.irFunDefn.map(_.params.size).orElse(ctor.defn.map(_.params.size))
+              .forall(_ != argss.size) => markUnsafeEta()
+          case CtorProducer(cls: ClassSymbol, _, _) =>
+            constructorEffects.get(cls) match
+              case S(effect) => currentEffect.foreach(cc.constrain(effect, _))
+              case N => markUnsafeEta()
+          case _: Call | _: Instantiate => markUnsafeEta()
+          case _ => ()
       def handleCallLike(callId: CallId, fStrat: ProdStrat, args: List[Arg]): ProdStrat =
         val argsStrat = args.map(a => processResult(a.value))
         if args.exists(_.spread.isDefined) then
@@ -1104,7 +1171,7 @@ class FlowConstraintsCollector(
           callRes
       r match
         case sel@TrackableSelect(from, field, owner) =>
-          markUnsafeEta()
+          constrainSelectionEffect(sel)
           val fromStrat = processResult(from)
           val selRes = freshVar("sel_res", cc.forFun)
           cc.constrain(
@@ -1180,18 +1247,18 @@ class FlowConstraintsCollector(
               fScheme.instantiate(refSite.uid, f)
             case None => generatedVars(f)
           case s @ SuperSelect(qual, base, key) =>
-            markUnsafeEta()
+            constrainSelectionEffect(s)
             cc.constrain(processResult(key), UnknownCons)
             cc.constrain(processResult(qual), UnknownCons)
             cc.constrain(processResult(base), UnknownCons)
             generatedVars(s.symbol)
           case s @ Select(qual, name) =>
-            markUnsafeEta()
+            constrainSelectionEffect(s)
             cc.constrain(processResult(qual), UnknownCons)
             s.symbol.fold(UnknownProd): selSym =>
               generatedVars(selSym)
-          case DynSelect(qual, fld, kind) =>
-            markUnsafeEta()
+          case s @ DynSelect(qual, fld, kind) =>
+            constrainSelectionEffect(s)
             cc.constrain(processResult(qual), UnknownCons)
             cc.constrain(processResult(fld), UnknownCons)
             kind match
@@ -1224,6 +1291,8 @@ class FlowConstraintsCollector(
               val isParam = currentEffect.flatMap(_.sourceSymbol).exists:
                 case fun: TermSymbol => preAnalyzer.res.funSymToFunDefn.get(fun).exists:
                   _.params.exists(_.paramSyms.contains(sym))
+                case cls: ClassSymbol => preAnalyzer.res.constructorDefns.get(cls).exists:
+                  cls => (cls.paramsOpt.toList ++ cls.auxParams).exists(_.paramSyms.contains(sym))
                 case _ => false
               if !isParam then markUnsafeEta()
             generatedVars(sym)

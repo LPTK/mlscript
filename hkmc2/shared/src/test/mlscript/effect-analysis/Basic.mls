@@ -141,9 +141,8 @@ fun node_pure() = leaf_pure()
 
 
 // * Methods & Constructors.
-// * Methods are unsafe because it's unknwon in compilation time.
-// * Constructors are unsafe because it's a limitation of the alaysis implementation.
-// TODO: Refine the analysis?
+// * Method calls remain opaque, but defining methods does not run their bodies.
+// * This empty constructor is pure even though one of its methods is effectful.
 class Box() with
   fun pure() = 42
   fun unsafe() = unsafe()
@@ -152,8 +151,8 @@ fun box_instantiation() = new Box()
 fun box_pure(box: Box) = box.pure()
 fun box_unsafe(box: Box) = box.unsafe()
 //│ flow-analysis > >>> effect-analysis results >>>
-//│ flow-analysis > function box_constructor⁰#0 @ <root> -> UnsafeEta
-//│ flow-analysis > function box_instantiation⁰#0 @ <root> -> UnsafeEta
+//│ flow-analysis > function box_constructor⁰#0 @ <root> -> Pure
+//│ flow-analysis > function box_instantiation⁰#0 @ <root> -> Pure
 //│ flow-analysis > function box_pure⁰#0 @ <root> -> UnsafeEta
 //│ flow-analysis > function box_unsafe⁰#0 @ <root> -> UnsafeEta
 //│ flow-analysis > call pure@result²#0 @ <root> -> UnsafeEta

@@ -92,11 +92,10 @@ sum(enum(5), 0)
 :expect 3
 :soir
 :aggressive
-// FIXME: Remove these @pure overrides when immutable list-field reads are inferred pure.
-@annotations.pure fun append(xs, ys) = if xs is
+fun append(xs, ys) = if xs is
   Nil then ys
   h :: t then h :: append(t, ys)
-@annotations.pure fun flatten(xss) = if xss is
+fun flatten(xss) = if xss is
   Nil then Nil
   h :: t then append(h, flatten(t))
 fun len(ls) = if ls is
@@ -152,7 +151,6 @@ len(flatten(id((1 :: 2 :: Nil) :: (3 :: Nil) :: Nil)))
 //│       @pure throw new globalThis⁰.Error⁰("match error")
 //│   end
 //│ };
-//│ @pure
 //│ define append⁰ as fun append¹(xs, ys) {
 //│   let arg$Cons$0$, arg$Cons$1$, tmp5;
 //│   match xs
@@ -167,7 +165,6 @@ len(flatten(id((1 :: 2 :: Nil) :: (3 :: Nil) :: Nil)))
 //│       @pure throw new globalThis⁰.Error⁰("match error")
 //│   end
 //│ };
-//│ @pure
 //│ define flatten⁰ as fun flatten¹(xss) {
 //│   let arg$Cons$0$, arg$Cons$1$, tmp5;
 //│   match xss
