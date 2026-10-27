@@ -80,12 +80,10 @@ new! {}
 new { x = 1 }
 //│ ———————————————| Parsed tree |——————————————————————————————————————————————————————————————————————
 //│ LexicalNew loc[1:1-1:14]:
-//│   body = S of Bra loc[1:5-1:14]:
-//│     k = Curly
-//│     inner = Block loc[1:7-1:12] of Ls of
-//│       Def loc[1:7-1:12]:
-//│         lhs = Ident loc[1:7-1:8] of "x"
-//│         rhs = IntLit loc[1:11-1:12] of 1
+//│   body = S of Block loc[1:7-1:12] of Ls of
+//│     Def loc[1:7-1:12]:
+//│       lhs = Ident loc[1:7-1:8] of "x"
+//│       rhs = IntLit loc[1:11-1:12] of 1
 //│ ╔══[COMPILATION ERROR] Name not found: x
 //│ ║  l.+1: 	new { x = 1 }
 //│ ╙──      	      ^
@@ -94,7 +92,7 @@ new { x = 1 }
 //│ ║        	^^^^^^^^^^^^^
 //│ ╟── Invalid class expression: block
 //│ ║  l.+1: 	new { x = 1 }
-//│ ╙──      	    ^^^^^^^^^
+//│ ╙──      	      ^^^^^
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 

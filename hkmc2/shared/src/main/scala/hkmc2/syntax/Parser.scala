@@ -495,9 +495,29 @@ abstract class Parser(
         parseRule(prec, rest, allowNewlines = true).map(continued -> _)
   
   
+  /** Block operands retain only their contents' span. An enclosing `new`, including
+    * its optional infix `with` refinement, also owns the consumed bracket delimiters.
+    * Grammar callbacks may have inferred a span from the children already; finalize
+    * this parser-owned node before returning it to an enclosing expression.
+    */
+  private def locateNew[A](before: LTL, result: A): A =
+    result match
+    case tree @ (_: LexicalNew | InfixApp(Apps(_: LexicalNew, _), Keywrd(Keyword.`with`), _)) =>
+      val end = _cur.headOption.map(_._2.spanStart).getOrElse(Int.MaxValue)
+      // Indentation tokens end at the dedent, potentially on the next line; their contents already have locations.
+      val last = before.iterator.takeWhile(_._2.spanStart < end).foldLeft(N: Opt[Loc]):
+        case (loc, (SPACE | NEWLINE | COMMENT(_) | BRACKETS(Indent, _), _)) => loc
+        case (_, (_, loc)) => S(loc)
+      val loc = tree.toLoc.fold(last)(l => S(l ++ last))
+      tree.withoutLoc.withLoc(loc)
+    case _ =>
+    result
+  
   /** A result of None means there was an error (already reported) and nothing could be parsed. */
   def parseRule[A](prec: Int, rule: ParseRule[A], allowNewlines: Bool)(using Line): Opt[A] =
-    wrap(prec, rule, s"allowNewlines = $allowNewlines")(parseRuleImpl(prec, rule, allowNewlines = allowNewlines))
+    wrap(prec, rule, s"allowNewlines = $allowNewlines"):
+      val before = _cur
+      parseRuleImpl(prec, rule, allowNewlines = allowNewlines).map(locateNew(before, _))
   def parseRuleImpl[A](prec: Int, rule: ParseRule[A], allowNewlines: Bool): Opt[A] =
     def tryEmpty(tok: Token, loc: Loc) = rule.emptyAlt match
       case S(res) => S(res())
@@ -561,9 +581,7 @@ abstract class Parser(
                         -> S(_brLoc) :: Nil)
                       errExpr
                     case single :: Nil => single
-                    case multiple =>
-                      val block = Block(multiple)
-                      if br.k is Curly then Bra(Curly, block).withLoc(S(_brLoc)) else block
+                    case multiple => Block(multiple)
                   exprCont(tree, prec, allowNewlines = allowNewlines)
                 case _ =>
                   exprCont(
@@ -605,8 +623,7 @@ abstract class Parser(
           if verbose then printDbg("$ found blockAlt; proceed with block")
           val e = rec(toks, S(br.innerLoc), br.describe).concludeWith(_.block(allowNewlines = true))
             |> Tree.Block.apply
-          val body = if br.k is Curly then Bra(Curly, e).withLoc(S(loc)) else e
-          blockContinuation(body, prec, exprAlt.infixes, exprAlt.rest).map(exprAlt.k.tupled)
+          blockContinuation(e, prec, exprAlt.infixes, exprAlt.rest).map(exprAlt.k.tupled)
         case N =>
           
           if verbose then printDbg("$ no blockAlt; proceed with rule")
@@ -1011,7 +1028,9 @@ abstract class Parser(
   
   /** `gobbleSpaces` is currently only used to prevent `@foo (2 + 2)` from parsing as `@foo(2 + 2) ...` */
   final def exprCont(acc: Tree, prec: Int, allowNewlines: Bool, gobbleSpaces: Bool = true)(using Line): Tree =
-    wrap(prec, s"`$acc`", allowNewlines)(exprContImpl(acc, prec, allowNewlines, gobbleSpaces))
+    wrap(prec, s"`$acc`", allowNewlines):
+      val before = _cur
+      locateNew(before, exprContImpl(acc, prec, allowNewlines, gobbleSpaces))
   
   final def exprContImpl(acc: Tree, prec: Int, allowNewlines: Bool, gobbleSpaces: Bool): Tree =
     cur match
@@ -1091,7 +1110,7 @@ abstract class Parser(
         consume
         consume
         val inner = bracketedBlock(br)
-        exprCont(OpenIn(acc, Bra(Curly, Block(inner)).withLoc(S(l1))), prec, allowNewlines = allowNewlines)
+        exprCont(OpenIn(acc, Block(inner)), prec, allowNewlines = allowNewlines)
         
       case (PERIOD, l0) :: (LITVAL(lit: (Tree & Literal)), l1) :: _ =>
         consume
@@ -1198,13 +1217,11 @@ abstract class Parser(
           case _ =>
         printDbg(s"! found operator `$opStr` with prec ${opPrec(opStr)}")
         yeetSpaces match
-          case (br @ Bracketed(_: Indent_Curly, toks), l0) :: _ =>
+          case (Bracketed(_: Indent_Curly, toks), l0) :: _ =>
             consume
             // rec(toks, S(br.innerLoc), br.describe).concludeWith(f(_, true))
             val rhs = rec(toks, S(l0), "operator split").concludeWith(_.split)
-            val block = Block(rhs)
-            val body = if br.k is Curly then Bra(Curly, block).withLoc(S(l0)) else block.withLoc(S(l0))
-            exprCont(OpApp(acc, v, body :: Nil),
+            exprCont(OpApp(acc, v, Block(rhs).withLoc(S(l0)) :: Nil),
               prec, allowNewlines = allowNewlines)
           case _ => 
             // val rhs = simpleExpr(opPrec(opStr)._2)
@@ -1322,7 +1339,7 @@ abstract class Parser(
     if prec <= AppPrec && !startsInfixCont(toks) =>
       consume
       val res = rec(toks, S(br.innerLoc), br.describe).concludeWith(_.block(allowNewlines = true))
-      exprCont(Reft(acc, Bra(Curly, Block(res)).withLoc(S(l0))), prec, allowNewlines = allowNewlines)
+      exprCont(Reft(acc, Block(res).withLoc(S(l0))), prec, allowNewlines = allowNewlines)
     case (br @ Bracketed(Indent, toks), l0) :: _
     if prec < AppPrec && (toks.headOption match
       case S((IDENT(nme, symb), _)) => !symb && !Keyword.all.contains(nme)

@@ -4,7 +4,7 @@ package semantics
 import hkmc2.utils.*, shorthands.*
 import syntax.Tree
 import syntax.Tree.*
-import hkmc2.syntax.{BlockLike, PossiblyAnnotated, TypeOrTermDef}
+import hkmc2.syntax.{PossiblyAnnotated, TypeOrTermDef}
 
 
 trait BlockImpl(using Elaborator.State):
@@ -21,15 +21,15 @@ trait BlockImpl(using Elaborator.State):
       stmts match
       // Expand unscoped groups in the enclosing block so `let` declarations stay
       // visible to subsequent statements and annotations apply to every entry.
-      case PossiblyAnnotated(anns, LetLike(kw, BlockLike(Block(bindings)), N, N)) :: stmts =>
+      case PossiblyAnnotated(anns, LetLike(kw, Block(bindings), N, N)) :: stmts =>
         desug(bindings.map(b => PossiblyAnnotated(anns, b.asLetLike(kw, N)))) ::: desug(stmts)
       case syntax.Desugared(PossiblyAnnotated(anns, Assert(kw, cond, N, els))) :: stmts =>
         PossiblyAnnotated(anns, Assert(kw, cond, S(Block(stmts)), els)) :: Nil
       case syntax.Desugared(PossiblyAnnotated(anns, td: TypeDef)) :: stmts =>
         val ctors = td.withPart.toList.flatMap:
-          case BlockLike(Block(sts)) => sts.flatMap:
+          case Block(sts) => sts.flatMap:
             // * Annotations on constructor blocks have no effect; `Elaborator.blockOrRcd` reports them as unused.
-            case syntax.Desugared(PossiblyAnnotated(_, Constructor(BlockLike(Block(ctors))))) => ctors
+            case syntax.Desugared(PossiblyAnnotated(_, Constructor(Block(ctors)))) => ctors
             case _ => Nil
           case _ => Nil
         // A temporary solution for ADTs, which desugars ADTs to normal class definitions.

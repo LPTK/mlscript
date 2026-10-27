@@ -86,18 +86,18 @@ let x = 0
 //│ = 1
 //│ x = 0
 
-// Keyword operands and ordinary parenthesized expressions both retain their brace wrappers.
+// The outer instantiation includes parentheses and braces; the rejected block covers its contents.
 :e
-new ({ let x = 1 in x })
+new ({ let x = 1 in x }) // trailing comment
 //│ ╔══[COMPILATION ERROR] Resolution error in object instantiation
-//│ ║  l.+1: 	new ({ let x = 1 in x })
+//│ ║  l.+1: 	new ({ let x = 1 in x }) // trailing comment
 //│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── Invalid class expression: block
-//│ ║  l.+1: 	new ({ let x = 1 in x })
-//│ ╙──      	    ^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.+1: 	new ({ let x = 1 in x }) // trailing comment
+//│ ╙──      	       ^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
-// The closing brace contributes to the block span even on a separate line.
+// The closing brace contributes to the instantiation span even on a separate line.
 :e
 new {
   let x = 1
@@ -113,17 +113,13 @@ new {
 //│ ║  l.+4: 	}
 //│ ║        	^
 //│ ╟── Invalid class expression: block
-//│ ║  l.+1: 	new {
-//│ ║        	    ^
 //│ ║  l.+2: 	  let x = 1
-//│ ║        	^^^^^^^^^^^
+//│ ║        	  ^^^^^^^^^
 //│ ║  l.+3: 	  x
-//│ ║        	^^^
-//│ ║  l.+4: 	}
-//│ ╙──      	^
+//│ ╙──      	^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
-// Structural block consumers retain both braces even when elaboration discards an annotation.
+// A rejected block retains its source annotation even when elaboration discards it.
 :e
 :w
 :expect 1
@@ -131,12 +127,8 @@ mut {
   @tailrec 1
 }
 //│ ╔══[COMPILATION ERROR] Expected a record after 'mut' keyword; found a block
-//│ ║  l.+1: 	mut {
-//│ ║        	    ^
 //│ ║  l.+2: 	  @tailrec 1
-//│ ║        	^^^^^^^^^^^^
-//│ ║  l.+3: 	}
-//│ ╙──      	^
+//│ ╙──      	  ^^^^^^^^^^
 //│ ╔══[WARNING] This annotation has no effect.
 //│ ║  l.+2: 	  @tailrec 1
 //│ ║        	  ^^^^^^^^
@@ -144,3 +136,31 @@ mut {
 //│ ║  l.+2: 	  @tailrec 1
 //│ ╙──      	           ^
 //│ = 1
+
+// The instantiation span stops at its closing brace, before the following operator or comment.
+:e
+new { let x = 1 in x } + 2 // trailing comment
+//│ ╔══[COMPILATION ERROR] Resolution error in object instantiation
+//│ ║  l.+1: 	new { let x = 1 in x } + 2 // trailing comment
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Invalid class expression: block
+//│ ║  l.+1: 	new { let x = 1 in x } + 2 // trailing comment
+//│ ╙──      	      ^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// Nested instantiations each retain their own span; the innermost block retains only its contents.
+:e
+new new { let x = 1 in x }
+//│ ╔══[COMPILATION ERROR] Resolution error in object instantiation
+//│ ║  l.+1: 	new new { let x = 1 in x }
+//│ ║        	    ^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Invalid class expression: block
+//│ ║  l.+1: 	new new { let x = 1 in x }
+//│ ╙──      	          ^^^^^^^^^^^^^^
+//│ ╔══[COMPILATION ERROR] Resolution error in object instantiation
+//│ ║  l.+1: 	new new { let x = 1 in x }
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Invalid class expression: object instantiation
+//│ ║  l.+1: 	new new { let x = 1 in x }
+//│ ╙──      	    ^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.

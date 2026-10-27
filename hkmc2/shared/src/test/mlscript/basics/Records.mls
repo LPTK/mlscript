@@ -109,16 +109,12 @@ let rcd = new {
 //│ ║  l.+5: 	... (more lines omitted) ...
 //│ ║        	^^^
 //│ ╟── Invalid class expression: block
-//│ ║  l.+1: 	let rcd = new {
-//│ ║        	              ^
 //│ ║  l.+2: 	    foo = 1
-//│ ║        	^^^^^^^^^^^
+//│ ║        	    ^^^^^^^
 //│ ║  l.+3: 	    bar =
 //│ ║        	^^^^^^^^^
 //│ ║  l.+4: 	      "..."
-//│ ║        	^^^^^^^^^^^
-//│ ║  l.+5: 	... (more lines omitted) ...
-//│ ╙──      	^^^
+//│ ╙──      	^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 //│ rcd = undefined
 

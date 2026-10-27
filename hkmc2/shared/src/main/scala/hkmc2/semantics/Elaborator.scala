@@ -352,7 +352,7 @@ object Elaborator:
             case _ => N
 
           val stmts = parent.tree.bodies.headOption match
-            case S(BlockLike(Tree.Block(stmts))) => stmts
+            case S(Tree.Block(stmts)) => stmts
             case _ => Nil
           stmts.flatMap(underlyingTypeDef).collectFirst:
             case td if (td.k is syntax.Mod) && td.name.exists(_.name === nme) =>
@@ -1083,7 +1083,7 @@ extends Importer:
   protected def split(t: IfLike): Ctxl[Term.IfLike] =
     val (form, split) = withScopedConnectives(t.kw):
       t.split match
-      case BlockLike(block) => termSplit(block.desugStmts, identity)
+      case block: Block => termSplit(block.desugStmts, identity)
       case other: Tree => termSplit(Ls(other), identity)
     ifLike(t.kw.kw, form, split, t.toLoc)
   
@@ -1115,10 +1115,10 @@ extends Importer:
     subterm(scrutinee).reference: scrutinee =>
       lazy val innerSplit: Ctxl[SimpleSplit] = expandMatches(matches)(affirmative)
       pattern match
-        case BlockLike(Block(Nil)) =>
+        case Block(Nil) =>
           val recordPattern = Pattern.Record(Nil).withLocOf(pattern)
           mkMatch(scrutinee(), recordPattern, innerSplit) ~: negative
-        case BlockLike(Block(trees)) => trees.foldRight(negative):
+        case Block(trees) => trees.foldRight(negative):
           case (pattern, alternative) =>
             mkMatch(scrutinee(), this.pattern(pattern), innerSplit) ~: alternative
         case _ =>
@@ -1205,7 +1205,7 @@ extends Importer:
     split
   
   private def termBranch(t: Tree, mk: Tree => Tree): Ctxl[(Ctx, SimpleSplit)] = branch.appOrElse(t):
-    case BlockLike(block) => (ctx, termSplit(block.desugStmts, mk))
+    case block: Block => (ctx, termSplit(block.desugStmts, mk))
     case lhs is rhs => (ctx, term(mk(lhs), Trm).reference(patternBranch(_, rhs, identity)))
     // Several matches followed by `and`, `do`, or `then`.
     case matchesTree ~> consequent =>
@@ -1247,7 +1247,7 @@ extends Importer:
   
   private def patternBranch(scrutinee: Reference, t: Tree, mk: Tree => Tree): Ctxl[SimpleSplit] = t match
     case prefix: PrefixOpApp => patternBranch(scrutinee, prefix.toApp, mk)
-    case BlockLike(block) =>
+    case block: Block =>
       val (_, splits) = block.desugStmts.foldLeft((ctx, Ls[SimpleSplit]())):
         case ((curCtx, splits), t) =>
           branch(using curCtx).lift(t).getOrElse:
@@ -1621,16 +1621,8 @@ extends Importer:
       // * In the old syntax, parentheses delimit underscore lambdas, so `e` is elaborated with `term`.
       // * In the new syntax, only `=>` and the RHS of operators ending with `>` delimit them,
       // * so parentheses are transparent, and `x |> (_ + 1)` means `x |> (y => y + 1)`.
-      val res = if lang.newUnderscoreAndApplicationSyntax then subterm(e, interp)
-        else term(e, interp)
-      res match
-      case blk: Blk =>
-        // A surviving block represents the whole bracketed expression. Copy the wrapper so
-        // its delimiter span does not overwrite the location of a shared or embedded term.
-        val located: Blk = blk.copy()
-        located.withLocOf(tree)
-        located
-      case _ => res
+      if lang.newUnderscoreAndApplicationSyntax then subterm(e, interp)
+      else term(e, interp)
     case b: Block =>
       ctx.nestLocal("‹block›").givenIn:
         block(b, hasResult = true, resultInterp = interp)._1 match
@@ -1675,7 +1667,7 @@ extends Importer:
       error
     case TryFinally(tryBody, finallyBody) =>
       Term.Try(subterm(tryBody, interp), subterm(finallyBody))
-    case (hd @ Hndl(id: Ident, c, defs @ BlockLike(_), S(bod))) => ctx.nest(OuterCtx.LambdaOrHandlerBlock).givenIn:
+    case (hd @ Hndl(id: Ident, c, Block(sts_), S(bod))) => ctx.nest(OuterCtx.LambdaOrHandlerBlock).givenIn:
       
       val sym = VarSymbol(id, erasedType = N)
       log(dbg"Processing `handle` statement $id (${sym}) ${ctx.outer}")
@@ -1690,7 +1682,7 @@ extends Importer:
           hd.toLoc, hd.toLoc.map(_.left ++ Loc(id, c)), N))
       
       val elabed = ctx.nestInner(derivedClsSym).givenIn:
-        block(defs, hasResult = false, resultInterp = Trm)._1
+        block(sts_, hasResult = false)._1
       
       elabed.res match
       case Term.Lit(UnitLit(false)) =>
@@ -2124,7 +2116,7 @@ extends Importer:
     case TypeDef(k, head, rhs) =>
       raise(ErrorReport(msg"Illegal type declaration in term position." -> tree.toLoc :: Nil))
       error
-    case Modified(Keywrd(Keyword.`mut`), body @ BlockLike(_)) =>
+    case Modified(Keywrd(Keyword.`mut`), body: Block) =>
       blockOrRcd(body, hasResult = true, resultInterp = interp) match
       case (Blk(Nil, Term.UnitVal()), ctx) =>
         withTypeBinders(Rcd(mut = true, Nil)).withLocOf(body)
@@ -2249,12 +2241,12 @@ extends Importer:
   def block(sts: Ls[Tree], hasResult: Bool)(using UnderCtx): Ctxl[(Blk, Ctx)] =
     block(new Block(sts), hasResult, Trm)
   
-  def block(source: Tree, hasResult: Bool, resultInterp: Interpretation)(using UnderCtx): Ctxl[(Blk, Ctx)] =
-    blockOrRcd(source, hasResult, resultInterp) match
+  def block(blk: Block, hasResult: Bool, resultInterp: Interpretation)(using UnderCtx): Ctxl[(Blk, Ctx)] =
+    blockOrRcd(blk, hasResult, resultInterp) match
     case (blk: Blk, ctx) => (blk, ctx)
     case (rcd: Rcd, ctx) =>
       val wrapped: Blk = Blk(Nil, rcd)
-      wrapped.withLocOf(source)
+      wrapped.withLocOf(blk)
       (wrapped, ctx)
   
   val supportedOverloadings: Set[(OuterKind, OuterKind)] = Set(
@@ -2275,15 +2267,7 @@ extends Importer:
   // * for these, elaborate with `hasResult = false`, which uses `undefined` as the result
   // * when there is no other result available. This is fine since the value is never used.
   // * These useless trailing `undefined`s are then removed by `Lowering`.
-  def blockOrRcd(source: Tree, hasResult: Bool, resultInterp: Interpretation)(using UnderCtx)
-    : Ctxl[(Blk | Rcd, Ctx)]
-    =
-    val blk = source match
-      case BlockLike(blk) => blk
-      case _ => lastWords("Expected block syntax")
-    blockOrRcd(source, blk, hasResult, resultInterp)
-  
-  private def blockOrRcd(source: Tree, blk: Block, hasResult: Bool, resultInterp: Interpretation)(using UnderCtx)
+  def blockOrRcd(blk: Block, hasResult: Bool, resultInterp: Interpretation)(using UnderCtx)
     : Ctxl[(Blk | Rcd, Ctx)]
     = trace[(Blk | Rcd, Ctx)](
         pre = dbg"Elab block ${blk.desugStmts.showAsPlain.truncate(100, "[...]")} ${ctx.outer}", r => s"~> ${r._1.showDbg}"
@@ -2401,10 +2385,10 @@ extends Importer:
       sts match
       case Nil =>
         reportUnusedAnnotations
-        (mkBlk(source, acc, N, hasResult), ctx)
+        (mkBlk(blk, acc, N, hasResult), ctx)
       // * Constructor blocks support no annotations: they are desugared into sibling classes
       // * (in `BlockImpl.desugStmts`), which ignores their annotations.
-      case Constructor(BlockLike(Block(ctors))) :: sts =>
+      case Constructor(Block(ctors)) :: sts =>
         // TODO properly handle (it currently desugars to sibling classes)
         reportUnusedAnnotations
         go(sts, Nil, acc)(N)
@@ -2430,7 +2414,7 @@ extends Importer:
           case Jux(bse, Block(sts)) =>
             // * Old parse of `Option { Some, None }`; I guess the indented version still parses like this
             some(bse -> some(sts))
-          case Reft(bse, BlockLike(Block(sts))) =>
+          case Reft(bse, Block(sts)) =>
             some(bse -> some(sts))
           // * There could be other shapes of open statements...
           case bse: Ident =>
@@ -2887,7 +2871,7 @@ extends Importer:
         def mkBody(extraParams: Ls[ParamList])(using Ctx) = withFields(extraParams):
           body match
           case N | S(Error()) => (new Blk(Nil, Term.Lit(UnitLit(false))), ctx)
-          case S(b @ BlockLike(_)) => block(b, hasResult = false, resultInterp = Trm)
+          case S(b: Block) => block(b, hasResult = false, resultInterp = Trm)
           case S(t) =>
             raise(ErrorReport(
               msg"Illegal body of ${k.desc} definition (should be a block; found ${t.describe})." -> t.toLoc :: Nil))
@@ -2987,7 +2971,7 @@ extends Importer:
           // and modified declarations, possibly without param lists: private constructor
           // The statement loop (see `go`) reports the unsupported annotations of these declarations.
           val ctorDecls: Ls[(Tree, Ls[Tree], Ls[Tree])] = body match
-            case S(BlockLike(blk)) => blk.desugStmts.collect:
+            case S(blk: Block) => blk.desugStmts.collect:
               case decl @ ConstructorDecl(annotationTrees, paramTrees) => (decl, annotationTrees, paramTrees)
             case _ => Nil
           val auxCtorParamTrees: Ls[Tree] = ctorDecls.flatMap(_._3)
@@ -3085,7 +3069,7 @@ extends Importer:
         val res = annotations.foldLeft(st_t):
           case (acc, ann) => annotated(ann, acc)
         sts match
-        case Nil => (mkBlk(source, acc, S(res), hasResult), ctx)
+        case Nil => (mkBlk(blk, acc, S(res), hasResult), ctx)
         case _ => go(sts, Nil, res :: acc)(N)
     end go
     
@@ -3139,7 +3123,7 @@ extends Importer:
     res
   
   
-  def mkBlk(source: Tree, acc: Ls[Statement], res: Opt[Term], hasResult: Bool)(using Ctx): Blk | Rcd =
+  def mkBlk(source: Block, acc: Ls[Statement], res: Opt[Term], hasResult: Bool)(using Ctx): Blk | Rcd =
     // TODO forbid certain kinds of terms in records
     val isRcd = acc.exists:
       case _: (RcdField | RcdSpread) => true

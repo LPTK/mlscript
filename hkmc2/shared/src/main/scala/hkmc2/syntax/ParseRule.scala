@@ -95,7 +95,7 @@ class ParseRules(using State):
     Blk(body, Set.empty)(k) ::
     Nil
   
-  val standaloneExprOrBlk: List[Alt[Tree]] =
+  def standaloneExprOrBlk[Rest, Res]: List[Alt[Tree]] =
     standaloneExpr ::
     Blk(ParseRule("block")(end(())), Set.empty)((l, _: Unit) => l) ::
     Nil
@@ -190,9 +190,9 @@ class ParseRules(using State):
       case S((elsKw, body)) =>
         val clause = PrefixApp(elsKw, body)
         val items = split match
-          case BlockLike(Block(stmts)) => stmts.appended(clause)
+          case Block(stmts) => stmts.appended(clause)
           case _ => split :: clause :: Nil
-        Block(items).mkLocWith(split)
+        Block(items)
       case N => split
     // Keep a block's branches and shared bindings together. Only explicit clauses extend
     // this body; calls, selections and other operators apply to the completed conditional.
@@ -252,8 +252,8 @@ class ParseRules(using State):
       val withRefinement = discardKw(`with`)(
           ParseRule("'new' body")(
             Blk(ParseRule("'new' expression")(end(())), Set.empty) {
-              case (res @ BlockLike(_), ()) => S(res)
-              case (res, ()) => lastWords(s"expected block syntax from the block parse rule; got ${res.describe}")
+              case (res: Block, ()) => S(res) // FIXME: can it be something else?
+              case (res, ()) => lastWords(s"expected a Block from the block parse rule; got ${res.describe}")
             }
           )
         )

@@ -93,14 +93,14 @@ enum Tree extends AutoLocated:
   case PrefixOpApp(op: Ident, rhs: Tree)
   case OpApp(lhs: Tree, op: Tree, rhss: Ls[Tree])
   case Jux(lhs: Tree, rhs: Tree)
-  case Reft(base: Tree, body: Tree)
+  case Reft(base: Tree, body: Block)
   case Sel(prefix: Tree, name: Ident)
   case MemberProj(cls: Tree, name: Ident)
   case PrefixApp(kw: Keywrd[Keyword.Prefix], rhs: Tree)
   case InfixApp(lhs: Tree, kw: Keywrd[Keyword.Infix], rhs: Tree)
   case TryFinally(tryBody: Tree, finallyBody: Tree)
-  case LexicalNew(body: Opt[Tree], rft: Opt[Tree]) // * New as it is parsed, with its weird precedence – eg (new C)(123)
-  case ProperNew(body: Opt[Tree], rft: Opt[Tree]) // * A desugared version of New that sets it right – eg new(C(123))
+  case LexicalNew(body: Opt[Tree], rft: Opt[Block]) // * New as it is parsed, with its weird precedence – eg (new C)(123)
+  case ProperNew(body: Opt[Tree], rft: Opt[Block]) // * A desugared version of New that sets it right – eg new(C(123))
   case DynamicNew(cls: Tree) // * Dynamic version – eg new! C(123)
   case IfLike(kw: Keywrd[Keyword.IfLike], split: Tree)
   case Assert(kw: Keywrd[Keyword.`assert`], cond: Tree, thn: Opt[Tree], els: Opt[Keywrd[Keyword.`else`] -> Tree])
@@ -274,18 +274,18 @@ enum Tree extends AutoLocated:
         val rhs2 = rhs match
           case LabelClause(_, _) =>
             mkImplicitDoLabel(rhs)
-          case block @ BlockLike(_) =>
-            BlockLike.map(block)(block => block.withStmts(block.stmts.mapConserve:
+          case block @ Block(stmts) =>
+            block.withStmts(stmts.mapConserve:
               case labelClause @ LabelClause(_, _) => mkImplicitDoLabel(labelClause)
               case stmt => stmt
-            ))
+            )
           case _ => return stmt
         InfixApp(lhs, kw, rhs2).withLocOf(stmt)
-      case block @ BlockLike(_) =>
-        BlockLike.map(block)(block => block.withStmts(block.stmts.mapConserve:
+      case block @ Block(stmts) =>
+        block.withStmts(stmts.mapConserve:
           case stmt @ InfixApp(_, kw, _) => rewriteImplicitSplitLabels(stmt)
           case stmt => stmt
-        ))
+        )
       case _ => tree
     
     this match
@@ -302,7 +302,7 @@ enum Tree extends AutoLocated:
       if split2 is split then this else IfLike(kw, split2).withLocOf(this)
     case InfixApp(lhs, Keywrd(Keyword.`:`), rhs) =>
       InfixApp(lhs.desugared, Keywrd(Keyword.`:`), rhs.desugared)
-    case PrefixApp(kw @ Keywrd(Keyword.`do`), BlockLike(Block(sts)))
+    case PrefixApp(kw @ Keywrd(Keyword.`do`), Block(sts))
     if sts.nonEmpty
     =>
       def collectAll[A](opts: Ls[Opt[A]]): Opt[Ls[A]] =
@@ -314,7 +314,7 @@ enum Tree extends AutoLocated:
       case S(clauses) =>
         // Only prefix clauses need to host an additional nested `do`; the last clause is the innermost.
         val prefixClauseOpts = clauses.dropRight(1).map:
-          case (labelId, labelBody @ BlockLike(_)) => S(labelId -> labelBody)
+          case (labelId, labelBody: Block) => S(labelId -> labelBody)
           case _ => N
         collectAll(prefixClauseOpts) match
         case S(prefix) =>
@@ -324,7 +324,7 @@ enum Tree extends AutoLocated:
           val nestedClause = prefix.foldRight[Tree](InfixApp(lastId, Keywrd(Keyword.`:`), lastBody)):
             case ((labelId, labelBody), innerClause) =>
               val nestedDo = PrefixApp(new Keywrd(Keyword.`do`).withLocOf(kw), innerClause)
-              val newLabelBody = BlockLike.map(labelBody)(_ :+ nestedDo)
+              val newLabelBody = labelBody :+ nestedDo
               InfixApp(labelId, Keywrd(Keyword.`:`), newLabelBody)
           PrefixApp(kw, nestedClause).withLocOf(this)
         case N => this
@@ -335,12 +335,12 @@ enum Tree extends AutoLocated:
     case Pun(false, id) =>
       InfixApp(id, Keywrd(Keyword.`:`), id)
     
-    case LetLike(kw, BlockLike(group), N, S(body)) =>
+    case LetLike(kw, group: Block, N, S(body)) =>
       // Nest scoped bindings so `set` restores every assigned value after the body.
       group.stmts.foldRight(body): (binding, body) =>
         binding.asLetLike(kw, S(body)).desugared
-    case LetLike(kw, group @ BlockLike(_), N, N) =>
-      BlockLike.map(group)(group => group.withStmts(group.stmts.map(_.asLetLike(kw, N))))
+    case LetLike(kw, group: Block, N, N) =>
+      group.withStmts(group.stmts.map(_.asLetLike(kw, N)))
     
     // TODO generalize to pattern-let and rm this special case
     case LetLike(kw, und @ Under(), r, b) =>
@@ -384,7 +384,7 @@ enum Tree extends AutoLocated:
       ProperNew(S(Apps(body, argss)), N).withLocOf(this)
     case LexicalNew(bodo, rfto) =>
       ProperNew(bodo, rfto).withLocOf(this)
-    case InfixApp(Desugared(ProperNew(bodo, N)), Keywrd(Keyword.`with`), rhs @ BlockLike(_)) =>
+    case InfixApp(Desugared(ProperNew(bodo, N)), Keywrd(Keyword.`with`), rhs: Block) =>
       ProperNew(bodo, S(rhs)).withLocOf(this)
     
     case _ => this
@@ -539,23 +539,6 @@ object PossiblyAnnotated:
     case Annotated(q, PossiblyAnnotated(qs, target)) => S(q :: qs, target)
     case other => S((Nil, other))
 
-/** Structural block consumers accept indentation and braces, but not parentheses.
-  * Keep the original tree when a location is needed: a brace wrapper owns the
-  * delimiters, while its inner Block owns only the enclosed statements.
-  */
-object BlockLike:
-  def unapply(tree: Tree): Opt[Tree.Block] = tree match
-    case block: Tree.Block => S(block)
-    case Tree.Bra(BracketKind.Curly, block: Tree.Block) => S(block)
-    case _ => N
-  
-  def map(tree: Tree)(f: Tree.Block => Tree.Block): Tree = tree match
-    case block: Tree.Block => f(block)
-    case bra @ Tree.Bra(BracketKind.Curly, block: Tree.Block) =>
-      val mapped = f(block)
-      if mapped is block then bra else Tree.Bra(BracketKind.Curly, mapped).withLocOf(bra)
-    case _ => lastWords("Expected block syntax")
-
 object PossiblyParenthesized:
   def unapply(t: Tree): S[Tree] = t match
     case Bra(BracketKind.Round, inner) => S(inner)
@@ -618,13 +601,13 @@ trait TypeOrTermDef extends Located:
   type MaybeIdent = Diagnostic \/ Ident
   
   lazy val (symbName, name, paramLists, typeParams, annotatedResultType, reft)
-      : (Opt[MaybeIdent], MaybeIdent, Ls[Tup], Opt[TyTup], Opt[Tree], Ls[Tree]) =
+      : (Opt[MaybeIdent], MaybeIdent, Ls[Tup], Opt[TyTup], Opt[Tree], Ls[Block]) =
     
     val k = this match
       case td: TypeDef => td.k
       case td: TermDef => td.k
-    def rec(t: Tree, symbName: Opt[MaybeIdent], annot: Opt[Tree], refts: Ls[Tree]):
-      (Opt[MaybeIdent], MaybeIdent, Ls[Tup], Opt[TyTup], Opt[Tree], Ls[Tree]) =
+    def rec(t: Tree, symbName: Opt[MaybeIdent], annot: Opt[Tree], refts: Ls[Block]):
+      (Opt[MaybeIdent], MaybeIdent, Ls[Tup], Opt[TyTup], Opt[Tree], Ls[Block]) =
       def canonicalize(id: Ident): Ident =
         symbolicSuffixBase(id.name) match
         case S(base) =>
@@ -704,7 +687,7 @@ trait TypeOrTermDef extends Located:
     rec(baseHead, N, N, extensionRefts)
   
   val (baseHead, (extension, extensionRefts), withPart) =
-    def splitExt(t: Tree): (Opt[Tree], Ls[Tree]) = t match
+    def splitExt(t: Tree): (Opt[Tree], Ls[Block]) = t match
       case Reft(base, body) =>
         val (base2, refts) = splitExt(base)
         (base2, body :: refts)
@@ -765,7 +748,7 @@ trait TypeDefImpl(using State) extends TypeOrTermDef:
     // val fromParams = 
     // val fromTypeParams = 
     bodies.headOption match
-    case S(BlockLike(blk)) =>
+    case S(blk: Block) =>
       blk.definedSymbols.toMap
     case _ =>
       Map.empty

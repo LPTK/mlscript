@@ -78,7 +78,7 @@ let x
 
 let {}
 //│ Parsed:
-//│ 	LetLike(Keywrd(keyword 'let'),Bra(Curly,Block(List())),None,None)
+//│ 	LetLike(Keywrd(keyword 'let'),Block(List()),None,None)
 
 let ()
 //│ Parsed:

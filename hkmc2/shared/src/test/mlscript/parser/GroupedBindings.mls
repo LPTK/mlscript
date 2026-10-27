@@ -16,11 +16,11 @@ in e
 
 let { x = 1, y = 2 } in e
 //│ Parsed:
-//│ 	LetLike(Keywrd(keyword 'let'),Bra(Curly,Block(List(Def(Ident(x),IntLit(1)), Def(Ident(y),IntLit(2))))),None,Some(Ident(e)))
+//│ 	LetLike(Keywrd(keyword 'let'),Block(List(Def(Ident(x),IntLit(1)), Def(Ident(y),IntLit(2)))),None,Some(Ident(e)))
 
 set { x = 1, y = 2 } in e
 //│ Parsed:
-//│ 	LetLike(Keywrd(keyword 'set'),Bra(Curly,Block(List(Def(Ident(x),IntLit(1)), Def(Ident(y),IntLit(2))))),None,Some(Ident(e)))
+//│ 	LetLike(Keywrd(keyword 'set'),Block(List(Def(Ident(x),IntLit(1)), Def(Ident(y),IntLit(2)))),None,Some(Ident(e)))
 
 let
   x = 1
@@ -70,4 +70,4 @@ in x
 
 set {} in e
 //│ Parsed:
-//│ 	LetLike(Keywrd(keyword 'set'),Bra(Curly,Block(List())),None,Some(Ident(e)))
+//│ 	LetLike(Keywrd(keyword 'set'),Block(List()),None,Some(Ident(e)))

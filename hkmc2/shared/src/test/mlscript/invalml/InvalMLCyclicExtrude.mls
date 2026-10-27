@@ -20,7 +20,7 @@ f => (let g = x => x(x) in f(g(g))) as [A] -> A -> A
 f => (let g = x => f(x(x)) in g) as [A] -> A -> A
 //│ ╔══[COMPILATION ERROR] Type error in block with expected type (A) ->{⊥} A
 //│ ║  l.+1: 	f => (let g = x => f(x(x)) in g) as [A] -> A -> A
-//│ ║        	     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║        	      ^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── because: cannot constrain  ('x) ->{'eff ∨ 'eff1} ('app)  <:  (A) ->{⊥} (A)
 //│ ╟── because: cannot constrain  A  <:  'x
 //│ ╙── because: cannot constrain  A  <:  ('x) ->{'eff1} ('app1)

@@ -17,7 +17,7 @@ M.{
 }
 //│ ┊M┊`.`┊{⟨┊→⟨┊let┊ ┊y┊ ┊=┊ ┊x┊ ┊+┊ ┊1┊↵┊y┊ ┊+┊ ┊2┊⟩←┊↵┊⟩}┊
 //│ Parsed:
-//│ 	OpenIn(Ident(M),Bra(Curly,Block(List(LetLike(Keywrd(keyword 'let'),Ident(y),Some(OpApp(Ident(x),Ident(+),List(IntLit(1)))),None), OpApp(Ident(y),Ident(+),List(IntLit(2)))))))
+//│ 	OpenIn(Ident(M),Block(List(LetLike(Keywrd(keyword 'let'),Ident(y),Some(OpApp(Ident(x),Ident(+),List(IntLit(1)))),None), OpApp(Ident(y),Ident(+),List(IntLit(2))))))
 //│ = 13
 
 :expect 13
