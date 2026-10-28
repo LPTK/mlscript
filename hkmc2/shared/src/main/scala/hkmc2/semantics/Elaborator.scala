@@ -1111,21 +1111,28 @@ extends Importer:
   protected def shorthandSplit(tree: Tree)(using UnderCtx): Ctxl[SimpleSplit] =
     val affirmative = Else(Term.Lit(BoolLit(true)))(N)
     val negative = Else(Term.Lit(BoolLit(false)))(N)
-    val (scrutinee, pattern) :: matches = disaggregate(tree)
-    subterm(scrutinee).reference: scrutinee =>
-      lazy val innerSplit: Ctxl[SimpleSplit] = expandMatches(matches)(affirmative)
-      pattern match
-        case Block(Nil) =>
-          val recordPattern = Pattern.Record(Nil).withLocOf(pattern)
-          mkMatch(scrutinee(), recordPattern, innerSplit) ~: negative
-        case Block(trees) => trees.foldRight(negative):
-          case (pattern, alternative) =>
-            mkMatch(scrutinee(), this.pattern(pattern), innerSplit) ~: alternative
-        case _ =>
-          val firstPattern = this.pattern(pattern)
-          firstPattern.variables.report
-          (ctx ++ firstPattern.variables.allocate).givenIn:
-            mkMatch(scrutinee(), firstPattern, innerSplit) ~: negative
+    tree match
+      case lhs `or` rhs =>
+        // Only exact true skips the right operand. Keeping its split in the
+        // alternative also preserves short-circuiting for effectful operands.
+        subterm(lhs).reference: scrutinee =>
+          mkMatch(scrutinee(), this.pattern(BoolLit(true)), affirmative) ~: shorthandSplit(rhs)
+      case _ =>
+        val (scrutinee, pattern) :: matches = disaggregate(tree)
+        subterm(scrutinee).reference: scrutinee =>
+          lazy val innerSplit: Ctxl[SimpleSplit] = expandMatches(matches)(affirmative)
+          pattern match
+            case Block(Nil) =>
+              val recordPattern = Pattern.Record(Nil).withLocOf(pattern)
+              mkMatch(scrutinee(), recordPattern, innerSplit) ~: negative
+            case Block(trees) => trees.foldRight(negative):
+              case (pattern, alternative) =>
+                mkMatch(scrutinee(), this.pattern(pattern), innerSplit) ~: alternative
+            case _ =>
+              val firstPattern = this.pattern(pattern)
+              firstPattern.variables.report
+              (ctx ++ firstPattern.variables.allocate).givenIn:
+                mkMatch(scrutinee(), firstPattern, innerSplit) ~: negative
   
   /** Desugar a list of trees as a term split. The returned function takes a
     * function, which takes a `Ctx` and returns a `SimpleSplit` representing
@@ -1319,9 +1326,6 @@ extends Importer:
   private def disaggregate(tree: Tree): ::[TT] =
     def go(tree: Tree, acc: TT => ::[TT]): () => ::[TT] = tree match
       case lhs `and` rhs  => go(lhs, ::(_, go(rhs, acc)()))
-      case lhs `or` rhs   =>
-        error(msg"Logical `or` is not yet supported." -> tree.toLoc)
-        go(lhs, ::(_, go(rhs, acc)())) // FIXME: this is currently copy-pasted from the `and` case
       case scrut `is` pat => () => acc((scrut, pat))
       case test           => () => acc((test, Tree.BoolLit(true)))
     go(tree, ::(_, Nil))()

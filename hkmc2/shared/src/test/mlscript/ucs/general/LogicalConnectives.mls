@@ -2,18 +2,10 @@
 :js
 
 
-:fixme
 true or true
-//│ ╔══[COMPILATION ERROR] Logical `or` is not yet supported.
-//│ ║  l.+1: 	true or true
-//│ ╙──      	^^^^^^^^^^^^
 //│ = true
 
-:fixme
 while false or false do print("ok")
-//│ ╔══[COMPILATION ERROR] Logical `or` is not yet supported.
-//│ ║  l.+1: 	while false or false do print("ok")
-//│ ╙──      	      ^^^^^^^^^^^^^^
 
 
 fun test(x) =
@@ -36,16 +28,60 @@ true and test(42)
 //│ > 42
 //│ = false
 
-:fixme
 true or test(42)
-//│ ╔══[COMPILATION ERROR] Logical `or` is not yet supported.
-//│ ║  l.+1: 	true or test(42)
-//│ ╙──      	^^^^^^^^^^^^^^^^
-//│ > 42
-//│ = false
+//│ = true
 
 true and test(true)
 //│ > true
 //│ = true
 
 
+// Both operands use strict Boolean matching, including when neither is Boolean.
+:expect [true, true, true, false, true, false, false]
+[true or true, true or false, false or true, false or false,
+  123 or true, false or 42, 123 or 42]
+//│ = [true, true, true, false, true, false, false]
+
+false or test(true)
+//│ > true
+//│ = true
+
+false or test(42)
+//│ > 42
+//│ = false
+
+// Nested connectives retain their precedence and evaluate each operand once.
+let trace = ""
+fun record(label, value) =
+  set trace = trace + label
+  value
+//│ trace = ""
+
+:expect [true, false, true, "ABDEFG"]
+[record("A", false) or record("B", true) or record("C", true),
+  record("D", true) and record("E", false) or record("F", false),
+  record("G", true) or record("H", true) and record("I", false), trace]
+//│ = [true, false, true, "ABDEFG"]
+
+// Loop conditions must re-evaluate the disjunction on each iteration.
+let iterations = 0
+let rightChecks = 0
+fun atEnd() =
+  set rightChecks = rightChecks + 1
+  false
+while iterations < 2 or atEnd() do
+  set iterations = iterations + 1
+//│ iterations = 2
+//│ rightChecks = 1
+
+:expect [2, 1]
+[iterations, rightChecks]
+//│ = [2, 1]
+
+:expect 42
+if false or true then 42 else 0
+//│ = 42
+
+:expect true
+([42] is [value] and value === 42) or false
+//│ = true
