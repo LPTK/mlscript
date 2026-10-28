@@ -18,10 +18,9 @@ shadowed(()) * 10 + shadowed(Unit)
 //│ Wasm result:
 //│ = 10
 
-:fixme // Wasm strict equality currently accepts only Int31 values.
 if () === originalUnit then 1
 //│ Wasm result:
-//│ ═══[RUNTIME ERROR] RuntimeError: unreachable
+//│ = 1
 
 // A later block must still import the original runtime singleton type.
 if originalUnit is () and not (Unit is ()) then 1
@@ -33,6 +32,6 @@ let unrelated = 42
 //│ Wasm result:
 //│ = {}
 
-if originalUnit is () and not (Unit is ()) then unrelated
+if () === originalUnit and Unit !== originalUnit then unrelated
 //│ Wasm result:
 //│ = 42

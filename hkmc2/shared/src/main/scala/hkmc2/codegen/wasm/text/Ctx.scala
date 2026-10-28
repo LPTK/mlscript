@@ -674,19 +674,22 @@ object Ctx:
     "times_impl" -> i32.mul,
     "div_impl" -> i32.div_s,
     "mod_impl" -> i32.rem_s,
-    "eq_impl" -> i32.eq,
-    "neq_impl" -> i32.ne,
     "lt_impl" -> i32.lt_s,
     "le_impl" -> i32.le_s,
     "gt_impl" -> i32.gt_s,
     "ge_impl" -> i32.ge_s,
+  )
+  val equalityOps: Map[Str, (Expr, Expr) => Expr] = Map(
+    "eq_impl" -> ref.eq,
+    "neq_impl" -> ((lhs, rhs) => i32.eqz(ref.eq(lhs, rhs))),
   )
   val unaryOps: Map[Str, Expr => Expr] = Map(
     "neg_impl" -> (value => i32.sub(i32.const(0), value)),
     "pos_impl" -> identity,
     "not_impl" -> i32.eqz,
   )
-  val wasmIntrinsicArities: Map[Str, Int] = (binaryOps.keys.map(_ -> 2) ++ unaryOps.keys.map(_ -> 1)).toMap
+  val wasmIntrinsicArities: Map[Str, Int] =
+    ((binaryOps.keys ++ equalityOps.keys).map(_ -> 2) ++ unaryOps.keys.map(_ -> 1)).toMap
   val wasmIntrinsicNameSet: Set[Str] = wasmIntrinsicArities.keySet
 
   /** The `wasm.`-prefixed intrinsics, keyed on the instruction they emit.

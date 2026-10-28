@@ -156,12 +156,16 @@ object WatBuilder:
   /** Creates the intrinsic definition for `name`.
     */
   private def createIntrinsic(name: Str, exportName: Opt[Str])(using Ctx, Raise, State): FuncIdx =
-    if Ctx.binaryOps.contains(name) then createBinaryInt31Func(name, Ctx.binaryOps(name), exportName)
+    import Instructions.i31
+    if Ctx.binaryOps.contains(name) then
+      createBinaryRefFunc(name, RefType.i31ref, (lhs, rhs) => Ctx.binaryOps(name)(i31.get_s(lhs), i31.get_s(rhs)), exportName)
+    else if Ctx.equalityOps.contains(name) then
+      createBinaryRefFunc(name, RefType(HeapType.Eq, nullable = true), Ctx.equalityOps(name), exportName)
     else if Ctx.unaryOps.contains(name) then createUnaryInt31Func(name, Ctx.unaryOps(name), exportName)
     else lastWords(s"Unsupported wasm intrinsic '$name'")
 
   private def intrinsicParamSuffixes(name: Str): Ls[Str] =
-    if Ctx.binaryOps.contains(name) then Ls("lhs", "rhs") else Ls("arg")
+    if Ctx.wasmIntrinsicArities(name) == 2 then Ls("lhs", "rhs") else Ls("arg")
 
   private def declareIntrinsicType(name: Str)(using Ctx, Raise, State): TypeIdx =
     summon[Ctx].addType(TypeInfo(
@@ -200,44 +204,47 @@ object WatBuilder:
     )
     summon[Ctx].addFunc(funcInfo)
 
-  /** Builds the body for an Int31 binary operator.
-    */
-  private def binaryInt31Body(
+  /** Check the representation before applying a binary intrinsic. Arithmetic unboxes
+    * Int31 operands; equality compares the references themselves, including objects,
+    * arrays, and null. Unsupported representations still trap rather than being coerced. */
+  private def binaryRefBody(
       lhsIdx: LocalIdx,
       rhsIdx: LocalIdx,
+      operandType: RefType,
       op: (Expr, Expr) => Expr,
   )(using Ctx): Expr =
     import Instructions.*
     val cond = i32.and(
-      ref.test(local.get(lhsIdx, RefType.anyref), RefType.i31ref),
-      ref.test(local.get(rhsIdx, RefType.anyref), RefType.i31ref),
+      ref.test(local.get(lhsIdx, RefType.anyref), operandType),
+      ref.test(local.get(rhsIdx, RefType.anyref), operandType),
     )
-    val i31Op =
+    val result =
       ref.i31(
         op(
-          i31.get_s(ref.cast(local.get(lhsIdx, RefType.anyref), RefType.i31ref)),
-          i31.get_s(ref.cast(local.get(rhsIdx, RefType.anyref), RefType.i31ref)),
+          ref.cast(local.get(lhsIdx, RefType.anyref), operandType),
+          ref.cast(local.get(rhsIdx, RefType.anyref), operandType),
         ),
       )
     `if`(
       condition = cond,
-      ifTrue = i31Op,
+      ifTrue = result,
       ifFalse = S(unreachable),
       resultTypes = Seq(Result(RefType.anyref)),
     )
-  end binaryInt31Body
+  end binaryRefBody
 
-  /** Creates a binary Int31 intrinsic with two parameters and body built from `op`.
+  /** Creates a binary intrinsic with checked reference operands and body built from `op`.
     */
-  private def createBinaryInt31Func(
+  private def createBinaryRefFunc(
       name: Str,
+      operandType: RefType,
       op: (Expr, Expr) => Expr,
       exportName: Opt[Str],
   )(using Ctx, Raise, State): FuncIdx =
     val params = mkIntrinsicParams(Ls("lhs", "rhs"))
     val lhsName = params.head._2
     val rhsName = params(1)._2
-    val body = binaryInt31Body(LocalIdx(lhsName), LocalIdx(rhsName), op)
+    val body = binaryRefBody(LocalIdx(lhsName), LocalIdx(rhsName), operandType, op)
     createIntrinsicFunc(name, params, body, exportName)
 
   /** Builds the body for an Int31 unary operator.

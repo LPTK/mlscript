@@ -403,3 +403,24 @@ not true
 not false
 //│ Wasm result:
 //│ = 1
+
+
+// Strict equality compares object and tuple identity, not their contents.
+data class IdentityBox(value)
+let box = IdentityBox(1)
+let sameBox = box
+let otherBox = IdentityBox(1)
+let pair = [1, 2]
+let samePair = pair
+let otherPair = [1, 2]
+//│ Wasm result:
+//│ = {}
+
+if box === sameBox and box !== otherBox and pair === samePair and pair !== otherPair then 1
+//│ Wasm result:
+//│ = 1
+
+// Null and values with different runtime representations are comparable, too.
+if null === null and null !== box and box !== null and box !== 1 and 1 !== pair then 1
+//│ Wasm result:
+//│ = 1
