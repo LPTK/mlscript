@@ -518,6 +518,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
     summon[SessionExportCtx].emit(SessionClass(
       sym = unitDefn.sym,
       wrapId = typeInfo.wrapId,
+      moduleName = summon[SessionExportCtx].moduleName,
       compType = typeInfo.compType,
       objectTag = typeInfo.objectTag,
       rttiTypeInfo = unitRttiTypeInfo,
@@ -528,7 +529,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       blockSym = unitDefn.sym,
       wrapId = N -> N,
       objectSym = singletonOwner,
-      moduleName = SessionBinding.ReplModuleName,
+      moduleName = summon[SessionExportCtx].moduleName,
       exportName = singletonInfo.globalName,
       globalTy = singletonInfo.globalTy,
     ))
@@ -1119,7 +1120,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
     summon[SessionExportCtx].emit(SessionGlobal(
       sym = sym,
       wrapId = globalInfo.wrapId,
-      moduleName = SessionBinding.ReplModuleName,
+      moduleName = summon[SessionExportCtx].moduleName,
       exportName = exportName,
       globalType = globalType,
     ))
@@ -1183,7 +1184,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
           wrapId = N -> S("typeinfo"),
         )
         val globalIdx = ctx.addGlobalImport(WasmImport(
-          SessionBinding.ReplModuleName,
+          cls.moduleName,
           cls.rttiGlobalExportName,
           globalExtern,
         ))
@@ -2314,7 +2315,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
                     summon[SessionExportCtx].emit(SessionFunc(
                       sym = defn.sym,
                       wrapId = funcInfo.wrapId,
-                      moduleName = SessionBinding.ReplModuleName,
+                      moduleName = summon[SessionExportCtx].moduleName,
                       exportName = sym.nme,
                       funcType = FunctionType(funcInfo.getSignatureType),
                     ))
@@ -2448,6 +2449,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
                     summon[SessionExportCtx].emit(SessionClass(
                       sym = clsLikeDefn.sym,
                       wrapId = typeinfo.wrapId,
+                      moduleName = summon[SessionExportCtx].moduleName,
                       compType = typeinfo.compType,
                       objectTag = typeinfo.objectTag,
                       rttiTypeInfo = rttiTypeInfo,
@@ -2458,7 +2460,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
                       summon[SessionExportCtx].emit(SessionFunc(
                         sym = ctorSym,
                         wrapId = ctorFuncInfo.wrapId,
-                        moduleName = SessionBinding.ReplModuleName,
+                        moduleName = summon[SessionExportCtx].moduleName,
                         exportName = ctorFuncInfo.exportName.get,
                         funcType = FunctionType(ctorFuncInfo.getSignatureType),
                       ))
@@ -2474,7 +2476,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
                           blockSym = clsLikeDefn.sym,
                           wrapId = typeinfo.wrapId,
                           objectSym = singletonOwner,
-                          moduleName = SessionBinding.ReplModuleName,
+                          moduleName = summon[SessionExportCtx].moduleName,
                           exportName = info.globalName,
                           globalTy = info.globalTy,
                         ))
@@ -2803,6 +2805,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       p: Program,
       exprt: Opt[BlockMemberSymbol],
       wd: io.Path,
+      sessionModuleName: Str,
       sessionImports: Seq[SessionBinding],
       preservedSessionSymbols: Set[ScopedSymbol],
   )(using Raise): CompiledWasmModule =
@@ -2824,6 +2827,7 @@ class WatBuilder(private val ctx: Ctx)(using TraceLogger, State) extends CodeBui
       )
 
     val sessionExportCtx = SessionExportCtx(
+      moduleName = sessionModuleName,
       symbolsToExport = preservedSessionSymbols,
       collectedBindings = ArrayBuf.empty,
     )

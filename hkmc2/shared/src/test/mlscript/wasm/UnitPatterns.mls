@@ -18,7 +18,21 @@ shadowed(()) * 10 + shadowed(Unit)
 //│ Wasm result:
 //│ = 10
 
-:fixme // Wasm REPL singleton exports use source names, so a later Unit object overwrites the runtime singleton.
+:fixme // Wasm strict equality currently accepts only Int31 values.
 if () === originalUnit then 1
 //│ Wasm result:
 //│ ═══[RUNTIME ERROR] RuntimeError: unreachable
+
+// A later block must still import the original runtime singleton type.
+if originalUnit is () and not (Unit is ()) then 1
+//│ Wasm result:
+//│ = 1
+
+// An implicit unit result must reuse the same singleton, too.
+let unrelated = 42
+//│ Wasm result:
+//│ = {}
+
+if originalUnit is () and not (Unit is ()) then unrelated
+//│ Wasm result:
+//│ = 42

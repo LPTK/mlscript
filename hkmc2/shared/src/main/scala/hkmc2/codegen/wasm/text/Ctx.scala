@@ -29,12 +29,7 @@ sealed trait SessionBinding:
   /** Returns the symbols that should resolve to this binding. */
   def bindingSyms: Seq[SlotSymbol]
 
-  /** Returns the export name if this binding is re-exported. */
-  def exportNameOpt: Opt[Str] = N
-
 object SessionBinding:
-  val ReplModuleName: Str = "repl"
-
   /** Dependencies to look up among previously exported session bindings.
     * MIR `freeVars` describes lexical bindings, which cannot distinguish a class from
     * its function companion. Follow resolved references and cast targets instead.
@@ -92,7 +87,6 @@ final case class SessionFunc(
 ) extends SessionBinding:
   def bindingKey: Str = s"func:$moduleName:$exportName"
   def bindingSyms: Seq[SlotSymbol] = sym :: Nil
-  override def exportNameOpt: Opt[Str] = S(exportName)
 
 /** Metadata for an exported global that later Wasm REPL modules can import.
   *
@@ -114,7 +108,6 @@ final case class SessionGlobal(
 ) extends SessionBinding:
   def bindingKey: Str = s"global:$moduleName:$exportName"
   def bindingSyms: Seq[SlotSymbol] = sym :: Nil
-  override def exportNameOpt: Opt[Str] = S(exportName)
 
 /** Metadata for a class type made visible to later Wasm REPL modules.
   *
@@ -124,6 +117,8 @@ final case class SessionGlobal(
   *   Identifier wrapping metadata for recreating the class type in importing modules.
   * @param compType
   *   The class composite type that must be recreated in importing modules.
+  * @param moduleName
+  *   The module that owns this class's exported RTTI global.
   * @param objectTag
   *   The runtime object tag assigned to the class type.
   * @param rttiTypeInfo
@@ -136,6 +131,7 @@ final case class SessionGlobal(
 final case class SessionClass(
     sym: BlockMemberSymbol,
     wrapId: Opt[Str] -> Opt[Str],
+    moduleName: Str,
     compType: CompType,
     objectTag: Opt[Int],
     rttiTypeInfo: TypeInfo,
@@ -144,7 +140,6 @@ final case class SessionClass(
 ) extends SessionBinding:
   def bindingKey: Str = s"class:${sym.uid}"
   def bindingSyms: Seq[SlotSymbol] = sym +: aliasSyms
-  override def exportNameOpt: Opt[Str] = S(rttiGlobalExportName)
 
 /** Metadata for a singleton object's backing global made visible to later Wasm REPL modules.
   *
@@ -169,7 +164,6 @@ final case class SessionSingleton(
 ) extends SessionBinding:
   def bindingKey: Str = s"singleton:$moduleName:$exportName"
   def bindingSyms: Ls[SlotSymbol] = blockSym +: objectSym.toList
-  override def exportNameOpt: Opt[Str] = S(exportName)
 
 /** The emitted Wasm module together with REPL/session export metadata.
   *
@@ -191,12 +185,15 @@ final case class CompiledWasmModule(
 
 /** Context used while collecting REPL/session exports for a single Wasm module.
   *
+  * @param moduleName
+  *   The unique session namespace in which the host will retain this module's exports.
   * @param symbolsToExport
   *   The symbols from the current module that should be recorded as session exports.
   * @param collectedBindings
   *   The session bindings accumulated while compiling the current module.
   */
 final class SessionExportCtx(
+    val moduleName: Str,
     val symbolsToExport: Set[ScopedSymbol],
     val collectedBindings: ArrayBuf[SessionBinding],
 ):
@@ -206,7 +203,7 @@ final class SessionExportCtx(
     collectedBindings += binding
 
   def freshCollector(): SessionExportCtx =
-    SessionExportCtx(symbolsToExport, ArrayBuf.empty)
+    SessionExportCtx(moduleName, symbolsToExport, ArrayBuf.empty)
 
 /** A Wasm function and its associated information.
   *

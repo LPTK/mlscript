@@ -80,12 +80,19 @@ abstract class WasmDiffMaker extends InvalMLDiffMaker:
           outerRaise(d)
         case d => outerRaise(d)
       val sessionImports = mutable.LinkedHashMap.empty[Str, SessionBinding]
-      SessionBinding.referencedSymbols(pgrm.main).foreach: sym =>
+      // Code generation can synthesize Unit for an implicit result even when MIR
+      // does not mention it. Reuse the session's singleton instead of creating a
+      // new instance that would change the meaning of subsequent unit literals.
+      (Elaborator.State.unitSymbol :: SessionBinding.referencedSymbols(pgrm.main)).foreach: sym =>
         sessionImportsBySymbol.get(sym).foreach: bindings =>
           bindings.foreach: (bindingKey, binding) =>
             sessionImports.update(bindingKey, binding)
+      // Keep every producing module's exports alive under its own namespace.
+      // A later declaration with the same source name must not replace imports
+      // still associated with an older symbol, including class RTTI and globals.
+      val moduleName = baseScp.allocateName(TempSymbol(N, erasedType = N, "repl"))
       val CompiledWasmModule(modWat, mainFnNme, systemMemMinPages, sessionExports) = ltl.givenIn:
-        WatBuilder.fresh.program(pgrm, N, wd, sessionImports.values.toSeq, symbolsToPreserve)
+        WatBuilder.fresh.program(pgrm, N, wd, moduleName, sessionImports.values.toSeq, symbolsToPreserve)
       val modWatJsLit = JSBuilder.makeStringLiteral(modWat.mkString(output.ColWidth))
 
       if wat.isSet then
@@ -169,7 +176,6 @@ abstract class WasmDiffMaker extends InvalMLDiffMaker:
             # const intrinsicModule = $wasmSuppNme.binaryenCompileToModule($intrinsicWatJsLit, {});
             # Object.assign(system, intrinsicModule.exports);
             # $wasmReplImportsRef = {
-            #   repl: Object.create(null),
             #   system,
             # };
             # })();"""
@@ -196,11 +202,10 @@ abstract class WasmDiffMaker extends InvalMLDiffMaker:
           case r =>
             output(s"Failed to grow wasm REPL session memory: $r")
       end if
-      val exportAssignments = sessionExports.flatMap(_.exportNameOpt.toSeq).map: exportName =>
-        s"""$wasmReplImportsRef.repl["$exportName"] = exports["$exportName"];"""
+      val moduleNameJsLit = JSBuilder.makeStringLiteral(moduleName)
       val jsBody =
-        if exportAssignments.nonEmpty then
-          s"""const result = exports["$mainFnNme"](); ${exportAssignments.mkString(" ")} return result;"""
+        if sessionExports.nonEmpty then
+          s"""const result = exports["$mainFnNme"](); $wasmReplImportsRef[$moduleNameJsLit] = exports; return result;"""
         else
           s"""return exports["$mainFnNme"]();"""
       val jsStr =
