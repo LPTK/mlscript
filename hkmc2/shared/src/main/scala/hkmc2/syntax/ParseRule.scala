@@ -180,7 +180,7 @@ class ParseRules(using State):
   def ifLike(kw: Keyword.IfLike): Alt[Tree] =
     Kw(kw)(
       ParseRule(s"'${kw.name}' keyword")(
-        Expr(
+        exprOrBlk(
           ParseRule(s"'${kw.name}' expression")(
             end(N),
             Kw(`else`)(
@@ -199,10 +199,7 @@ class ParseRules(using State):
               case _ => split :: clause :: Nil
             Block(items)
           case (split, N) => split
-        ,
-        Blk(
-          ParseRule(s"'${kw.name}' block")(end(()))
-        )(discard)
+        *
       )
     ) { case (kw, body) => IfLike(kw, body) }
   

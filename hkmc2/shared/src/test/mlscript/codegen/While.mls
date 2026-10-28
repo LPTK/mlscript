@@ -346,14 +346,14 @@ while print("Hello World"); false
 while { print("Hello World"), false }
   then 0(0)
   else 1
+//│ ╔══[PARSE ERROR] Expected end of input; found 'else' keyword instead
+//│ ║  l.+3: 	  else 1
+//│ ╙──      	  ^^^^
 //│ ╔══[COMPILATION ERROR] Unexpected infix use of keyword 'then' here
 //│ ║  l.+1: 	while { print("Hello World"), false }
 //│ ║        	        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ║  l.+2: 	  then 0(0)
 //│ ╙──      	^^^^^^^^^^^
-//│ ╔══[COMPILATION ERROR] Illegal position for prefix keyword 'else'.
-//│ ║  l.+3: 	  else 1
-//│ ╙──      	  ^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 :fixme
@@ -362,6 +362,9 @@ while
     false
   then 0(0)
   else 1
+//│ ╔══[PARSE ERROR] Expected end of input; found 'else' keyword instead
+//│ ║  l.+5: 	  else 1
+//│ ╙──      	  ^^^^
 //│ ╔══[COMPILATION ERROR] Unexpected infix use of keyword 'then' here
 //│ ║  l.+2: 	    print("Hello World")
 //│ ║        	    ^^^^^^^^^^^^^^^^^^^^
@@ -369,9 +372,6 @@ while
 //│ ║        	^^^^^^^^^
 //│ ║  l.+4: 	  then 0(0)
 //│ ╙──      	^^^^^^^^^^^
-//│ ╔══[COMPILATION ERROR] Illegal position for prefix keyword 'else'.
-//│ ║  l.+5: 	  else 1
-//│ ╙──      	  ^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 

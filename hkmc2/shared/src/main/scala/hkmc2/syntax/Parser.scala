@@ -310,6 +310,28 @@ abstract class Parser(
     val rest = cur.dropWhile(tk => (tk._1 === SPACE || tk._1 === NEWLINE) && { consume; true })
     printDbg(s"Continued with $res, $rest")
     (res, rest)
+
+  /** Rejoin a layout continuation without turning `else` into a new statement.
+    * The enclosing expression may be inside parentheses where statement
+    * newlines are disabled, but its conditional still owns this `else`.
+    */
+  private def rejoinIndented(rest: LTL): Unit = rest match
+    case (KEYWORD(Keyword.`else`), _) :: _ => cur = rest ::: cur
+    case (_, loc) :: _ => cur = (NEWLINE, loc.left) :: rest ::: cur
+    case Nil => ()
+
+  /** An indented expression can end at its enclosing conditional's `else`.
+    * Explicit braces close the expression and never let tokens escape.
+    * Other leftovers remain errors in the block where they were written.
+    */
+  private def expressionBlock(br: BRACKETS): Ls[Tree] =
+    val nested = rec(bracketContents(br), S(br.innerLoc), br.describe)
+    if br.k is Curly then nested.concludeWith(_.block(allowNewlines = true)) else
+      val (body, rest) = nested.continueWith(_.block(allowNewlines = true))
+      rest match
+        case (KEYWORD(Keyword.`else`), _) :: _ => rejoinIndented(rest)
+        case _ => nested.concludeWith(_ => ())
+      body
   
   
   final def maybeIndented[R](f: (Parser, Bool) => R): R =
@@ -576,8 +598,7 @@ abstract class Parser(
         case S(exprAlt) =>
           consume
           if verbose then printDbg("$ found blockAlt; proceed with block")
-          val e = rec(toks, S(br.innerLoc), br.describe).concludeWith(_.block(allowNewlines = true))
-            |> Tree.Block.apply
+          val e = Block(expressionBlock(br))
           parseRule(prec, exprAlt.rest, allowNewlines = true).map(res => exprAlt.k(e, res))
         case N =>
           
@@ -1308,19 +1329,14 @@ abstract class Parser(
             exprCont(res, prec, allowNewlines)
           else
             val (res, rest) = r.continueWith(_.andSplit(acc, prec))
-            rest match
-              case (_, l) :: _ => cur = (NEWLINE, l.left) :: rest ::: cur
-              case _ =>
+            rejoinIndented(rest)
             exprCont(res, prec, allowNewlines)
         else if bk is Curly then closedCurlyCont(br, prec, allowNewlines)(_ => acc)
         else
           val (res, rest) = rec(toks, S(br.innerLoc), br.describe).continueWith:
             _.exprCont(acc, prec, allowNewlines = true)
-          rest match
-          case (_, l) :: _ =>
-            printDbg(s"!! REDUCING BRACKET")
-            cur = (NEWLINE, l.left) :: rest ::: cur
-          case _ =>
+          if rest.nonEmpty then printDbg(s"!! REDUCING BRACKET")
+          rejoinIndented(rest)
           exprCont(res, prec, allowNewlines = allowNewlines)
         
       
