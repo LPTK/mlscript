@@ -92,6 +92,11 @@ final class Erasure private (using Config, Ctx, State)(using Raise):
       // combining it with an unboxed primitive must preserve incompatibility.
       case types => S(ErasedType.Union.mk(types))
 
+  /** Read a delayed type in the context that completed erasure. Cloning can then
+    * rename its symbol without retaining the entire cloning substitution in a thunk.
+    */
+  def typeSymbol(tpe: ErasedType.ValueLike): TypeSymbol = tpe.sym
+
   /** Erase an interpretation registered during elaboration, without installing new listeners. */
   private def erase(resolution: TypeResolution, seen: Set[TypeResolution]): ErasedValueType =
     import TypeShape.*

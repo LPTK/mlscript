@@ -231,7 +231,7 @@ class LabelSymbol(val trm: Opt[Term], name: Str = "lbl")(using State) extends Lo
 class SplitSymbol(val body: Split, name: Str = "split")(using State) extends LocalSymbol:
   var label: Opt[LabelSymbol] = N
   def nme = name
-  def subst(using s: SymbolSubst): SplitSymbol = this // SplitSymbols are not substituted
+  def subst(using s: SymbolSubst): SplitSymbol = s.mapSplitSym(this)
   def toLoc = body.toLoc
   override def prefix: Str = "split:"
 
@@ -559,13 +559,15 @@ sealed trait DefinitionSymbol[Defn <: Definition] extends MemberSymbol:
     case cd: codegen.ClsLikeDefn => cd
   
   /** Whether we know it's pure when selected (eg getters are not always pure). */
-  def isPure: Bool =
+  def isAccessPure: Bool =
     this match
     case _: ModuleOrObjectSymbol => true
     case _ =>
       defn.exists:
         case d: ClassDef => true
+        case TermDefinition(k = syntax.MutVal) => false
         case TermDefinition(k = _: syntax.ValLike) => true
+        case d @ TermDefinition(k = syntax.Fun, params = Nil) => !d.mayRaiseEffects
         case TermDefinition(k = syntax.Fun, params = _ :: _) =>
           true // References to functions are only guaranteed to be pure when the functions have parameter lists
         case _ => false

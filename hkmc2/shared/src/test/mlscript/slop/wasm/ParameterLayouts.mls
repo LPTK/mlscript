@@ -17,7 +17,7 @@ opt(1)
 fun rest(x, ...xs) = xs
 rest(1, 2)
 //│ ╔══[COMPILATION ERROR] Variadic parameters are not supported by the WebAssembly backend.
-//│ ║  l.17: 	fun rest(x, ...xs) = xs
+//│ ║  l.+1: 	fun rest(x, ...xs) = xs
 //│ ╙──      	            ^^^^^
 
 // * Trailing parameters are lowered into a rest parameter, which is rejected in the same way.
@@ -25,10 +25,10 @@ rest(1, 2)
 fun trailing(x, ...xs, y) = y
 trailing(1, 2, 3)
 //│ ╔══[COMPILATION ERROR] Variadic parameters are not supported by the WebAssembly backend.
-//│ ║  l.25: 	fun trailing(x, ...xs, y) = y
+//│ ║  l.+1: 	fun trailing(x, ...xs, y) = y
 //│ ╙──      	            ^^^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] More arguments were supplied than the WebAssembly call supports.
-//│ ║  l.26: 	trailing(1, 2, 3)
+//│ ║  l.+2: 	trailing(1, 2, 3)
 //│ ╙──      	^^^^^^^^^^^^^^^^^
 
 // * Constructors bind omitted optional fields to null.
@@ -48,10 +48,10 @@ private class WiderInput() extends InputContract() with
   override fun pick(value: Any): Int = 0
 WiderInput().pick(1)
 //│ ╔══[COMPILATION ERROR] Parameter 'value' of overriding member 'pick' receives values represented as 'Unknown', but Wasm calls it through the signature of the member it overrides, whose parameter is represented as 'Int'
-//│ ║  l.48: 	  override fun pick(value: Any): Int = 0
+//│ ║  l.+4: 	  override fun pick(value: Any): Int = 0
 //│ ║        	                    ^^^^^^^^^^
 //│ ╟── The overridden member 'pick' is defined here
-//│ ║  l.46: 	  open fun pick(value: Int): Int = value
+//│ ║  l.+2: 	  open fun pick(value: Int): Int = value
 //│ ╙──      	           ^^^^
 //│ Wasm result:
 //│ = 0
@@ -65,10 +65,10 @@ private class OptionalInput() extends RequiredInputContract() with
   override fun pick(value?): Int = 0
 OptionalInput().pick()
 //│ ╔══[COMPILATION ERROR] Parameter 'value' of overriding member 'pick' receives values represented as 'Unknown', but Wasm calls it through the signature of the member it overrides, whose parameter is represented as 'Int'
-//│ ║  l.65: 	  override fun pick(value?): Int = 0
+//│ ║  l.+4: 	  override fun pick(value?): Int = 0
 //│ ║        	                    ^^^^^^
 //│ ╟── The overridden member 'pick' is defined here
-//│ ║  l.63: 	  open fun pick(value: Int): Int = value
+//│ ║  l.+2: 	  open fun pick(value: Int): Int = value
 //│ ╙──      	           ^^^^
 //│ Wasm result:
 //│ = 0
@@ -88,10 +88,10 @@ declare class WiderDeclaredInputContract extends DeclaredInputContract {
   declare override fun pick: WiderDeclaredInput
 }
 //│ ╔══[COMPILATION ERROR] Parameter 1 of overriding member 'pick' receives values represented as 'Unknown', but Wasm calls it through the signature of the member it overrides, whose parameter is represented as 'Int'
-//│ ║  l.88: 	  declare override fun pick: WiderDeclaredInput
+//│ ║  l.+3: 	  declare override fun pick: WiderDeclaredInput
 //│ ║        	                       ^^^^
 //│ ╟── The overridden member 'pick' is defined here
-//│ ║  l.80: 	  declare fun pick: DeclaredInput
+//│ ║  l.XX: 	  declare fun pick: DeclaredInput
 //│ ╙──      	              ^^^^
 //│ Wasm result:
 //│ = {}

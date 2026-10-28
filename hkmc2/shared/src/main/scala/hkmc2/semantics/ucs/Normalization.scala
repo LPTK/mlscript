@@ -320,7 +320,7 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State, C
   private def lowerSplit
       (split: Split, cont: Result => Block)
       (using form: IfLikeForm)
-      (using LoweringCtx)
+      (using Config, LoweringCtx)
       : Block =
     split match
     case Split.Let(sym, trm, tl) =>
@@ -340,16 +340,17 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State, C
             for args <- argsOpt; (arg, _) <- args do LoweringCtx.loweringCtx.collectScopedSym(arg)
             /** Make a continuation that creates the match. */
             def k(ctorSym: ClassLikeSymbol, clsParams: Ls[TermSymbol])(st: Path): Block =
-              val args = argsOpt.map(_.map(_._1)).getOrElse(Nil)
+              val args = argsOpt.getOrElse(Nil)
               // Normalization should reject cases where the user provides
               // more sub-patterns than there are actual class parameters.
               assert(argsOpt.isEmpty || args.length <= clsParams.length, (argsOpt, clsParams))
-              def mkArgs(args: Ls[TermSymbol -> LocalVarSymbol])(using LoweringCtx): Case -> Block = args match
+              def mkArgs(args: Ls[TermSymbol -> (LocalVarSymbol -> Opt[Loc])])(using LoweringCtx): Case -> Block = args match
                 case Nil =>
                   Case.Cls(ctorSym, st) -> lowerSplit(tail, cont)
-                case (param, arg) :: args =>
+                case (param, (arg, loc)) :: args =>
                   val (cse, blk) = mkArgs(args)
-                  (cse, Assign(arg, Select(sr, new Tree.Ident(param.id.name).withLocOf(arg))(S(param), N)(false), blk))
+                  // Positional patterns do not spell the field name. Locate the extraction at the sub-pattern.
+                  (cse, Assign(arg, Select(sr, Tree.Ident(param.id.name))(S(param), loc)(false), blk))
               mkMatch(mkArgs(clsParams.iterator.zip(args).toList))
             symbol match
               case cls: ClassSymbol if ctx.builtins.virtualClasses contains cls =>
@@ -425,9 +426,10 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State, C
     * Make a block that throws the match error. We might add the information of
     * match failure in the future.
     */
-  private def throwMatchErrorBlock =
+  private def throwMatchErrorBlock(using Config) =
     Throw(Instantiate(mut = false, Select(State.globalThisSymbol.asThis, Tree.Ident("Error"))(S(ctx.builtins.Error), N)(false),
-        (Value.Lit(syntax.Tree.StrLit("match error"))(N).asArg :: Nil) :: Nil)(InstantiateMetadata.empty, N)) // TODO add failed-match scrutinee info
+        (Value.Lit(syntax.Tree.StrLit("match error"))(N).asArg :: Nil) :: Nil)(InstantiateMetadata.empty, N), // TODO add failed-match scrutinee info
+      annotations = if config.aggressive then Annot.Pure()(N) :: Nil else Nil)
 
   /** Gives a lowering temp the join of the representations of the results stored into it.
     *

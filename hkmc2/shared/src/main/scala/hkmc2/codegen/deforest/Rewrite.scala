@@ -67,6 +67,8 @@ class DeforestRewriter(val solver: DeforestFusionSolver, additionalTopLevelSymbo
           case _: Int => ErasedType.Array)
       case _: ProdFun => false -> ErasedType.Function(S(false))
       case UnknownProd => false -> fallback
+      // Effect variables do not describe runtime slots; mixing the two would lose representation constraints.
+      case NoProd | UnsafeEta => lastWords("Effect producers cannot determine a runtime representation")
 
   // A proved cast can disappear when fusion changes its operand's representation.
   // Keep other casts: even a check known to succeed can still narrow a physical anyref
@@ -416,8 +418,8 @@ class DeforestRewriter(val solver: DeforestFusionSolver, additionalTopLevelSymbo
   // from the polymorphic analysis
   protected class Rewriter(instId: InstantiationId, refreshSymbolMappingForCopy: Opt[collection.Map[LocalVarSymbol, LocalVarSymbol]]) extends InstantiationRewriter(instId, refreshSymbolMappingForCopy):
     
-    def rewriteFunDefn(fun: FunDefn): RewrittenFunDefn =
-      fun.params.mapConserve(applyParamList) -> applyBlock(fun.body)
+    override def rewriteFunDefn(fun: FunDefn): RewrittenFunDefn =
+      (fun.params.mapConserve(applyParamList), applyBlock(fun.body), fun.annotations)
     
     // calls `fun` with possibly remapped `args`
     def mkCall(fun: Path, args: Ls[LocalVarSymbol])(k: Result => Block): Block =
@@ -584,8 +586,8 @@ class DeforestRewriter(val solver: DeforestFusionSolver, additionalTopLevelSymbo
     new Rewriter(Nil, N):
       override def applyFunDefn(fun: FunDefn): FunDefn =
         rewrittenInPlace.get(fun.dSym) match
-          case Some((params, rewrittenBody)) =>
-            FunDefn(fun.owner, fun.sym, fun.dSym.subst, params, rewrittenBody)(fun.configOverride, fun.annotations)
+          case Some((params, rewrittenBody, annotations)) =>
+            FunDefn(fun.owner, fun.sym, fun.dSym.subst, params, rewrittenBody)(fun.configOverride, annotations)
           case None => super.applyFunDefn(fun)
   // ====== end: implements the abstract members of `PolyInstantiationRewrite` ======
 end DeforestRewriter

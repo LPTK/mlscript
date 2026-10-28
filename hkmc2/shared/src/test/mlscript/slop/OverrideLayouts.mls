@@ -53,10 +53,10 @@ private class OptionalBase() with
 private class RequiredOverride() extends OptionalBase() with
   override fun pick(value: Any): Any = value
 //│ ╔══[COMPILATION ERROR] Overriding member 'pick' requires at least 1 argument, but the overridden member permits 0
-//│ ║  l.54: 	  override fun pick(value: Any): Any = value
+//│ ║  l.+4: 	  override fun pick(value: Any): Any = value
 //│ ║        	                   ^^^^^^^^^^^^
 //│ ╟── The overridden member 'pick' is defined here
-//│ ║  l.52: 	  open fun pick(value?: Any): Any = value
+//│ ║  l.+2: 	  open fun pick(value?: Any): Any = value
 //│ ╙──      	           ^^^^
 
 // Equal minimum arities do not preserve which actual argument fills a trailing slot.
@@ -66,10 +66,10 @@ private class LeadingBase() with
 private class ReboundTail() extends LeadingBase() with
   override fun pick(...middle: Array[Any], last: Any): Any = last
 //│ ╔══[COMPILATION ERROR] Overriding member 'pick' must preserve the arguments bound to inherited parameter 'first'
-//│ ║  l.67: 	  override fun pick(...middle: Array[Any], last: Any): Any = last
+//│ ║  l.+4: 	  override fun pick(...middle: Array[Any], last: Any): Any = last
 //│ ║        	                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── The overridden member 'pick' is defined here
-//│ ║  l.65: 	  open fun pick(first: Any, second?: Any): Any = second
+//│ ║  l.+2: 	  open fun pick(first: Any, second?: Any): Any = second
 //│ ╙──      	           ^^^^
 
 // Extra optional slots must not consume the inherited rest tuple's elements.
@@ -79,10 +79,10 @@ private class RestBase() with
 private class StolenRest() extends RestBase() with
   override fun collect(first?: Any, ...values: Array[Any]): Any = values
 //│ ╔══[COMPILATION ERROR] Overriding member 'collect' must preserve the arguments bound to inherited parameter 'values'
-//│ ║  l.80: 	  override fun collect(first?: Any, ...values: Array[Any]): Any = values
+//│ ║  l.+4: 	  override fun collect(first?: Any, ...values: Array[Any]): Any = values
 //│ ║        	                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── The overridden member 'collect' is defined here
-//│ ║  l.78: 	  open fun collect(...values: Array[Any]): Any = values
+//│ ║  l.+2: 	  open fun collect(...values: Array[Any]): Any = values
 //│ ╙──      	           ^^^^^^^
 
 // Keeping the trailing slot does not permit stealing an element from the middle slice.
@@ -90,11 +90,11 @@ private class StolenRest() extends RestBase() with
 private class StolenMiddle() extends LayoutBase() with
   override fun collect(first: Any, optional?: Any, extra?: Any, ...middle: Array[Any], last: Any): Any = middle
 //│ ╔══[COMPILATION ERROR] Overriding member 'collect' must preserve the arguments bound to inherited parameter 'middle'
-//│ ║  l.91: 	  override fun collect(first: Any, optional?: Any, extra?: Any, ...middle: Array[Any], last: Any): Any = middle
+//│ ║  l.+2: 	  override fun collect(first: Any, optional?: Any, extra?: Any, ...middle: Array[Any], last: Any): Any = middle
 //│ ║        	                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── The overridden member 'collect' is defined here
-//│ ║  l.9: 	  open fun collect(first: Any, optional?: Any, ...middle: Array[Any], last: Any): Any = [first, optional, middle, last]
-//│ ╙──     	           ^^^^^^^
+//│ ║  l.XX: 	  open fun collect(first: Any, optional?: Any, ...middle: Array[Any], last: Any): Any = [first, optional, middle, last]
+//│ ╙──      	           ^^^^^^^
 
 // Implementations may ignore inherited drop slots without shifting the retained inputs.
 :noInline
@@ -114,11 +114,11 @@ private class DropMiddle() with
 private class ShiftedAfterDrop() extends DropMiddle() with
   override fun pick(first: Any, last: Any): Any = last
 //│ ╔══[COMPILATION ERROR] Overriding member 'pick' must preserve the arguments bound to inherited parameter 'last'
-//│ ║  l.115: 	  override fun pick(first: Any, last: Any): Any = last
-//│ ║         	                   ^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.+4: 	  override fun pick(first: Any, last: Any): Any = last
+//│ ║        	                   ^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── The overridden member 'pick' is defined here
-//│ ║  l.113: 	  open fun pick(first: Any, drop ignored: Any, last: Any): Any = last
-//│ ╙──       	           ^^^^
+//│ ║  l.+2: 	  open fun pick(first: Any, drop ignored: Any, last: Any): Any = last
+//│ ╙──      	           ^^^^
 
 // A rest channel may be ignored only when no retained suffix changes its binding.
 :noInline
@@ -137,21 +137,21 @@ private class DropMiddleRest() with
 private class ShiftedAfterRest() extends DropMiddleRest() with
   override fun pick(first: Any, last: Any): Any = last
 //│ ╔══[COMPILATION ERROR] Overriding member 'pick' must preserve the arguments bound to inherited parameter 'last'
-//│ ║  l.138: 	  override fun pick(first: Any, last: Any): Any = last
-//│ ║         	                   ^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.+4: 	  override fun pick(first: Any, last: Any): Any = last
+//│ ║        	                   ^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── The overridden member 'pick' is defined here
-//│ ║  l.136: 	  open fun pick(first: Any, drop ...ignored: Array[Any], last: Any): Any = last
-//│ ╙──       	           ^^^^
+//│ ║  l.+2: 	  open fun pick(first: Any, drop ...ignored: Array[Any], last: Any): Any = last
+//│ ╙──      	           ^^^^
 
 // A retained non-droppable argument cannot disappear, even though JS ignores extras.
 :ge
 private class LostInput() extends FixedPair() with
   override fun pair(first: Any): Any = first
 //│ ╔══[COMPILATION ERROR] Overriding member 'pair' must preserve the arguments bound to inherited parameter 'second'
-//│ ║  l.149: 	  override fun pair(first: Any): Any = first
-//│ ║         	                   ^^^^^^^^^^^^
+//│ ║  l.+2: 	  override fun pair(first: Any): Any = first
+//│ ║        	                   ^^^^^^^^^^^^
 //│ ╟── The overridden member 'pair' is defined here
-//│ ║  l.42: 	  open fun pair(first: Any, second: Any): Any = [first, second]
+//│ ║  l.XX: 	  open fun pair(first: Any, second: Any): Any = [first, second]
 //│ ╙──      	           ^^^^
 
 // Application stages cannot be combined or split by an override.
@@ -161,11 +161,11 @@ private class CurriedBase() with
 private class FlattenedOverride() extends CurriedBase() with
   override fun pick(first: Any, second: Any): Any = second
 //│ ╔══[COMPILATION ERROR] Overriding member 'pick' must preserve the number of parameter lists
-//│ ║  l.162: 	  override fun pick(first: Any, second: Any): Any = second
-//│ ║         	                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.+4: 	  override fun pick(first: Any, second: Any): Any = second
+//│ ║        	                   ^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── The overridden member 'pick' is defined here
-//│ ║  l.160: 	  open fun pick(first: Any)(second: Any): Any = second
-//│ ╙──       	           ^^^^
+//│ ║  l.+2: 	  open fun pick(first: Any)(second: Any): Any = second
+//│ ╙──      	           ^^^^
 
 // Abstract declarations must be checked before executable code is selected.
 :ge
@@ -174,11 +174,11 @@ private abstract class AbstractLayout() with
 private abstract class AbstractNarrowing() extends AbstractLayout() with
   override fun pick(value: Any): Any
 //│ ╔══[COMPILATION ERROR] Overriding member 'pick' requires at least 1 argument, but the overridden member permits 0
-//│ ║  l.175: 	  override fun pick(value: Any): Any
-//│ ║         	                   ^^^^^^^^^^^^
+//│ ║  l.+4: 	  override fun pick(value: Any): Any
+//│ ║        	                   ^^^^^^^^^^^^
 //│ ╟── The overridden member 'pick' is defined here
-//│ ║  l.173: 	  fun pick(value?: Any): Any
-//│ ╙──       	      ^^^^
+//│ ║  l.+2: 	  fun pick(value?: Any): Any
+//│ ╙──      	      ^^^^
 
 // Explicit arrow declarations carry the same optional/rest binding contract without
 // having parameter symbols or executable method bodies.
@@ -190,11 +190,11 @@ declare class ArrowRebinding extends ArrowBase {
   declare override fun pick: (...Array[Any], Any) -> Any
 }
 //│ ╔══[COMPILATION ERROR] Overriding member 'pick' must preserve the arguments bound to inherited parameter 1
-//│ ║  l.190: 	  declare override fun pick: (...Array[Any], Any) -> Any
-//│ ║         	                             ^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.+5: 	  declare override fun pick: (...Array[Any], Any) -> Any
+//│ ║        	                             ^^^^^^^^^^^^^^^^^^^^
 //│ ╟── The overridden member 'pick' is defined here
-//│ ║  l.187: 	  declare fun pick: (Any, Any?) -> Any
-//│ ╙──       	              ^^^^
+//│ ║  l.+2: 	  declare fun pick: (Any, Any?) -> Any
+//│ ╙──      	              ^^^^
 
 // The same declaration-only path checks scalar representations after correspondence.
 :ge
@@ -205,11 +205,11 @@ declare class ArrowNarrowing extends ArrowTypedBase {
   declare override fun pick: (Str) -> Int
 }
 //│ ╔══[COMPILATION ERROR] Parameter 1 of overriding member 'pick' is represented as 'Str', which cannot hold the values represented as 'Int' that the member it overrides accepts
-//│ ║  l.205: 	  declare override fun pick: (Str) -> Int
-//│ ║         	                              ^^^
+//│ ║  l.+5: 	  declare override fun pick: (Str) -> Int
+//│ ║        	                              ^^^
 //│ ╟── The overridden member 'pick' is defined here
-//│ ║  l.202: 	  declare fun pick: (Int) -> Int
-//│ ╙──       	              ^^^^
+//│ ║  l.+2: 	  declare fun pick: (Int) -> Int
+//│ ╙──      	              ^^^^
 
 // A written method does not override a getter-shaped declaration in the current
 // member model; that existing diagnostic must not be bypassed by layout checking.
@@ -217,11 +217,11 @@ declare class ArrowNarrowing extends ArrowTypedBase {
 private class WrittenOverArrow() extends ArrowTypedBase with
   override fun pick(value: Int): Int = value
 //│ ╔══[COMPILATION ERROR] Overriding member 'pick' must preserve whether the member is a field, getter, or method
-//│ ║  l.218: 	  override fun pick(value: Int): Int = value
-//│ ║         	  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.+2: 	  override fun pick(value: Int): Int = value
+//│ ║        	  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── Inherited member 'pick' is defined here
-//│ ║  l.202: 	  declare fun pick: (Int) -> Int
-//│ ╙──       	              ^^^^
+//│ ║  l.XX: 	  declare fun pick: (Int) -> Int
+//│ ╙──      	              ^^^^
 //│ ═══[RUNTIME ERROR] TypeError: Class extends value undefined is not a constructor or null
 
 // Ordinary getters return their whole annotated function value; their arrows are
@@ -245,11 +245,11 @@ private class TailChild() extends TailBase() with
 private fun useTailBase(base: TailBase) = base.apply(1)
 useTailBase(TailChild())
 //│ ╔══[COMPILATION ERROR] Parameter 'value' of overriding member 'apply' is represented as 'Str', which cannot hold the values represented as 'Int' that the member it overrides accepts
-//│ ║  l.244: 	  override fun apply(...rest, value: Str): Int = 0
-//│ ║         	                              ^^^^^^^^^^
+//│ ║  l.+2: 	  override fun apply(...rest, value: Str): Int = 0
+//│ ║        	                              ^^^^^^^^^^
 //│ ╟── The overridden member 'apply' is defined here
-//│ ║  l.240: 	  open fun apply(...rest, value: Int): Int = 0
-//│ ╙──       	           ^^^^^
+//│ ║  l.XX: 	  open fun apply(...rest, value: Int): Int = 0
+//│ ╙──      	           ^^^^^
 //│ = 0
 
 // An unannotated trailing parameter inherits the base member's representation, even across blocks.
@@ -258,8 +258,8 @@ private class InheritedTail() extends TailBase() with
   override fun apply(...rest, value): Int = 0
 InheritedTail().apply("wrong")
 //│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Str' at an unrelated type 'Int'
-//│ ║  l.259: 	InheritedTail().apply("wrong")
-//│ ╙──       	                      ^^^^^^^
+//│ ║  l.+3: 	InheritedTail().apply("wrong")
+//│ ╙──      	                      ^^^^^^^
 //│ = 0
 
 // An extra required trailing slot is rejected even when the override is never called.
@@ -267,11 +267,11 @@ InheritedTail().apply("wrong")
 private class ExtraTail() extends TailBase() with
   override fun apply(...rest, first: Int, value: Int): Int = 0
 //│ ╔══[COMPILATION ERROR] Overriding member 'apply' requires at least 2 arguments, but the overridden member permits 1
-//│ ║  l.268: 	  override fun apply(...rest, first: Int, value: Int): Int = 0
-//│ ║         	                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.+2: 	  override fun apply(...rest, first: Int, value: Int): Int = 0
+//│ ║        	                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── The overridden member 'apply' is defined here
-//│ ║  l.240: 	  open fun apply(...rest, value: Int): Int = 0
-//│ ╙──       	           ^^^^^
+//│ ║  l.XX: 	  open fun apply(...rest, value: Int): Int = 0
+//│ ╙──      	           ^^^^^
 
 
 // Dropping a fixed slot must preserve an optional successor's absence too.
@@ -281,11 +281,11 @@ private class DropBeforeOptional() with
 private class FilledAbsentOptional() extends DropBeforeOptional() with
   override fun pick(first: Any, last?: Any): Any = last
 //│ ╔══[COMPILATION ERROR] Overriding member 'pick' must preserve the arguments bound to inherited parameter 'last'
-//│ ║  l.282: 	  override fun pick(first: Any, last?: Any): Any = last
-//│ ║         	                   ^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.+4: 	  override fun pick(first: Any, last?: Any): Any = last
+//│ ║        	                   ^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── The overridden member 'pick' is defined here
-//│ ║  l.280: 	  open fun pick(first: Any, drop ignored: Any, last?: Any): Any = last
-//│ ╙──       	           ^^^^
+//│ ║  l.+2: 	  open fun pick(first: Any, drop ignored: Any, last?: Any): Any = last
+//│ ╙──      	           ^^^^
 
 
 // Aliases preserve the same physical arrow contract, including optional input flags.
@@ -304,11 +304,11 @@ declare class NarrowedAliasOverride extends AliasedLayoutBase {
   declare override fun pick: RequiredAliasedLayout
 }
 //│ ╔══[COMPILATION ERROR] Overriding member 'pick' requires at least 2 arguments, but the overridden member permits 1
-//│ ║  l.302: 	type RequiredAliasedLayout = (Int, Str) -> Int
-//│ ║         	                             ^^^^^^^^^^
+//│ ║  l.+1: 	type RequiredAliasedLayout = (Int, Str) -> Int
+//│ ║        	                             ^^^^^^^^^^
 //│ ╟── The overridden member 'pick' is defined here
-//│ ║  l.295: 	  declare fun pick: SameAliasedLayout
-//│ ╙──       	              ^^^^
+//│ ║  l.XX: 	  declare fun pick: SameAliasedLayout
+//│ ╙──      	              ^^^^
 
 
 // A compound callback result is one returned value, not another physical parameter list.
@@ -333,12 +333,12 @@ declare class LegacyNarrowingOverride extends LegacyOverrideDeclarations.Optiona
   declare override fun pick: (Int, Str) -> Int
 }
 //│ ╔══[COMPILATION ERROR] Overriding member 'pick' requires at least 2 arguments, but the overridden member permits 1
-//│ ║  l.333: 	  declare override fun pick: (Int, Str) -> Int
-//│ ║         	                             ^^^^^^^^^^
+//│ ║  l.+2: 	  declare override fun pick: (Int, Str) -> Int
+//│ ║        	                             ^^^^^^^^^^
 //│ ╟── The overridden member 'pick' is defined here
 //│ ║  in ../../mlscript-compile/LegacyOverrideDeclarations.mls
-//│ ║  l.4: 	    declare fun pick: (Int, Str?) -> Int
-//│ ╙──     	                ^^^^
+//│ ║  l.XX: 	    declare fun pick: (Int, Str?) -> Int
+//│ ╙──      	                ^^^^
 
 // An imported alias without completed operand metadata must not bypass layout validation.
 :ge
@@ -346,11 +346,11 @@ declare class LegacyAliasedOverride extends LegacyOverrideDeclarations.AliasedBa
   declare override fun pick: (Int) -> Int
 }
 //│ ╔══[COMPILATION ERROR] Overriding member 'pick' has a callable type whose parameter layout cannot be determined from its declaration
-//│ ║  l.8: 	    declare fun pick: Callable
-//│ ║       	                      ^^^^^^^^
+//│ ║  l.XX: 	    declare fun pick: Callable
+//│ ║        	                      ^^^^^^^^
 //│ ╟── The overridden member 'pick' is defined here
-//│ ║  l.8: 	    declare fun pick: Callable
-//│ ╙──     	                ^^^^
+//│ ║  l.XX: 	    declare fun pick: Callable
+//│ ╙──      	                ^^^^
 
 // The same imported callable alias cannot hide additional curried lists in a result.
 :ge
@@ -361,11 +361,11 @@ declare class LegacyCurriedOverride extends LegacyCurriedBase {
   declare override fun pick: (Int) -> LegacyOverrideDeclarations.Callable
 }
 //│ ╔══[COMPILATION ERROR] Overriding member 'pick' has an aliased callable type whose parameter layout cannot be determined from its declaration
-//│ ║  l.361: 	  declare override fun pick: (Int) -> LegacyOverrideDeclarations.Callable
-//│ ║         	                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ║  l.+5: 	  declare override fun pick: (Int) -> LegacyOverrideDeclarations.Callable
+//│ ║        	                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── The overridden member 'pick' is defined here
-//│ ║  l.358: 	  declare fun pick: (Int) -> LegacyOverrideDeclarations.Callable
-//│ ╙──       	              ^^^^
+//│ ║  l.+2: 	  declare fun pick: (Int) -> LegacyOverrideDeclarations.Callable
+//│ ╙──      	              ^^^^
 
 
 // A supplied callable result can hide another binding layout behind a type parameter.
@@ -381,11 +381,11 @@ declare class GenericResultRebinding extends GenericResultBase {
   declare override fun pick: ReturnFn[ResultIdentity[(...Array[Any], Any) -> Any]]
 }
 //│ ╔══[COMPILATION ERROR] Overriding member 'pick' has a declared callable type whose parameter layout cannot be determined
-//│ ║  l.373: 	type ReturnFn[R] = (Int) -> R
-//│ ║         	                            ^
+//│ ║  l.XX: 	type ReturnFn[R] = (Int) -> R
+//│ ║        	                            ^
 //│ ╟── The overridden member 'pick' is defined here
-//│ ║  l.376: 	  declare fun pick: ReturnFn[(Any, Any?) -> Any]
-//│ ╙──       	              ^^^^
+//│ ║  l.XX: 	  declare fun pick: ReturnFn[(Any, Any?) -> Any]
+//│ ╙──      	              ^^^^
 
 // Non-callable supplied results retain ordinary generic erasure, including alias forwarding.
 declare class GenericValueBase {
@@ -401,10 +401,10 @@ declare class ImportedLegacyCurriedOverride extends LegacyOverrideDeclarations.C
   declare override fun pick: (Int) -> Int
 }
 //│ ╔══[COMPILATION ERROR] Overriding member 'pick' has a callable type whose parameter layout cannot be determined from its declaration
-//│ ║  l.12: 	    declare fun pick: (Int) -> Identity[Callable]
+//│ ║  l.XX: 	    declare fun pick: (Int) -> Identity[Callable]
 //│ ║        	                               ^^^^^^^^^^^^^^^^^^
 //│ ╟── The overridden member 'pick' is defined here
-//│ ║  l.12: 	    declare fun pick: (Int) -> Identity[Callable]
+//│ ║  l.XX: 	    declare fun pick: (Int) -> Identity[Callable]
 //│ ╙──      	                ^^^^
 
 
@@ -414,8 +414,8 @@ declare class GenericOutputResultRebinding extends GenericResultBase {
   declare override fun pick: ReturnFn[out ((...Array[Any], Any) -> Any)]
 }
 //│ ╔══[COMPILATION ERROR] Overriding member 'pick' has a declared callable type whose parameter layout cannot be determined
-//│ ║  l.373: 	type ReturnFn[R] = (Int) -> R
-//│ ║         	                            ^
+//│ ║  l.XX: 	type ReturnFn[R] = (Int) -> R
+//│ ║        	                            ^
 //│ ╟── The overridden member 'pick' is defined here
-//│ ║  l.376: 	  declare fun pick: ReturnFn[(Any, Any?) -> Any]
-//│ ╙──       	              ^^^^
+//│ ║  l.XX: 	  declare fun pick: ReturnFn[(Any, Any?) -> Any]
+//│ ╙──      	              ^^^^
