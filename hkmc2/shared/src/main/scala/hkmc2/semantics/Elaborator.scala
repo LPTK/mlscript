@@ -1799,9 +1799,9 @@ extends Importer:
       lhs match
       case Tup(_) =>
         ctx.nest(OuterCtx.LambdaOrHandlerBlock).givenIn:
-          val (syms, nestCtx) = funParams(lhs)
+          val (syms, patterns, nestCtx) = funParams(lhs)
           seedRestParameter(syms)
-          withTypeBinders(Term.Lam(syms, term(rhs, Trm)(using nestCtx)))
+          withTypeBinders(Term.Lam(syms, destructureParams(patterns, term(rhs, Trm)(using nestCtx), rhs.toLoc)))
       case TyTup(tys) =>
         val constraints = tys.flatMap(maybeConstraint)
         val body = term(rhs, interp)
@@ -2635,11 +2635,11 @@ extends Importer:
                 case N => (N, ctx)
               if newResolution then tps.foreach(ps => registerTypeParameters(tsym, ps.map(_.sym)))
               // * Add parameters to context
-              var newCtx = newCtx1
-              val pss = paramLists.map: ps =>
-                val (res, newCtx2) = funParams(ps)(using newCtx)
-                newCtx = newCtx2
-                res
+              val (newCtx, paramGroups) = paramLists.foldLeft((newCtx1, Ls[(ParamList, Ls[(VarSymbol, Pattern)])]())):
+                case ((curCtx, groups), ps) =>
+                  val (res, patterns, nextCtx) = funParams(ps)(using curCtx)
+                  (nextCtx, (res, patterns) :: groups)
+              val (pss, parameterPatterns) = paramGroups.reverse.unzip
               
               // * Elaborate signature
               val st = td.annotatedResultType.orElse(newSignatureTrees.get(id.name)) // FIXME: may elaborate external sig twice!!
@@ -2666,7 +2666,7 @@ extends Importer:
                   if pss.isEmpty && hasGeneratorAnnotation then
                     raise(ErrorReport(msg"Generators are not supported on functions without a parameter list" -> statementLoc :: Nil))
                   newCtx.nest(OuterCtx.Function(nonLocalRetHandler, S(tsym))(pss.nonEmpty && hasGeneratorAnnotation, hasAsyncAnnotation)).givenIn: newCtx ?=>
-                    val b = term(rhs, Trm)(using newCtx)
+                    val b = destructureParams(parameterPatterns.flatten, term(rhs, Trm)(using newCtx), rhs.toLoc)
                     if nonLocalRetHandler.directRefs.isEmpty then b else
                       mkEffectHandleAbortive(
                         nonLocalRetHandler,
@@ -3229,15 +3229,53 @@ extends Importer:
       checkSignatureOptionality(pss, rhs)
     case _ => ()
   
-  def funParams(t: Tree): Ctxl[(ParamList, Ctx)] =
-    val ps_ctx = params(t, inDataClass = false, inPattern = false, inFunction = true, inConstructor = false)
+  /** Tuple parameters occupy one ordinary argument slot. Keep their anonymous
+    * identifiers to associate patterns with parameters by identity: invalid
+    * parameters may be discarded, so positional correspondence is not reliable.
+    * Contextual parameters describe types and must not be treated as patterns.
+    */
+  private def funParams(t: Tree): Ctxl[(ParamList, Ls[(VarSymbol, Pattern)], Ctx)] =
+    def prepare(t: Tree): (Tree, Opt[(Ident, Tree)]) =
+      def bind(tuple: Tree, signature: Opt[(Keywrd[Keyword.Infix], Tree)]): (Tree, Opt[(Ident, Tree)]) =
+        val id = new Ident("_").withLocOf(tuple)
+        val parameter = signature.fold[Tree](id): (kw, sign) =>
+          InfixApp(id, kw, sign).withLocOf(t)
+        (parameter, S(id -> tuple))
+      t.desugared match
+        case tuple: (Tup | TyTup) => bind(tuple, N)
+        case InfixApp(tuple: (Tup | TyTup), kw @ Keywrd(Keyword.`:`), sign) => bind(tuple, S(kw -> sign))
+        case _ => (t, N)
+    val (prepared, patternTrees) = t match
+      case Tup(ts) =>
+        val (ordinary, contextual) = ts.span(!_.isModified(Ins))
+        val (parameters, patterns) = ordinary.map(prepare).unzip
+        (Tup(parameters ::: contextual).withLocOf(t), patterns.flatten)
+      case _ => (t, Nil)
+    val (ps, paramCtx) = params(prepared, inDataClass = false, inPattern = false, inFunction = true, inConstructor = false)
+    val allParams = ps.params ::: ps.variadic.toList.flatMap(_.allParams)
     def checkFlags(p: Param): Unit =
       if p.flags.isVal || p.flags.mut then
         raise(ErrorReport(msg"Illegal function parameter modifiers: ${
           p.flags.show(false)}" -> p.sym.toLoc :: Nil))
-    ps_ctx._1.params.foreach(checkFlags)
-    ps_ctx._1.variadic.foreach(_.allParams.foreach(checkFlags))
-    ps_ctx
+    allParams.foreach(checkFlags)
+    val (bodyCtx, patterns) = patternTrees.foldLeft((paramCtx, Ls[(VarSymbol, Pattern)]())):
+      case ((curCtx, patterns), (id, tree)) =>
+        val sym = allParams.find(_.sym.id is id).getOrElse(lastWords("Missing tuple parameter")).sym
+        val pattern = this.pattern(tree)(using curCtx).withLocOf(tree)
+        pattern.variables.report
+        (curCtx ++ pattern.variables.allocate, (sym, pattern) :: patterns)
+    (ps, patterns.reverse, bodyCtx)
+
+  /** Check arguments before entering the body, using the same extraction and
+    * match failure behavior as an explicit `if argument is pattern then body`.
+    * Folding from the right preserves the written order of parameter checks.
+    */
+  private def destructureParams(patterns: Ls[(VarSymbol, Pattern)], body: Term, loc: Opt[Loc]): Term =
+    if patterns.isEmpty then body else
+      val split = patterns.foldRight[SimpleSplit](Else(body)(N)):
+        case ((sym, pattern), inner) =>
+          mkMatch(syntheticLocalRef(sym).withLoc(sym.toLoc), pattern, inner) ~: End
+      ifLike(Keyword.`if`, IfLikeForm.ReturningIf, split, loc)
   
   /** An unannotated rest parameter has Array's interface even before any call.
     * Seed bottom elements as an inferred shape, not an annotation: argument
