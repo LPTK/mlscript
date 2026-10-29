@@ -20,9 +20,11 @@ missingNamed((s?) => s.length)
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.+2: 	missingNamed((s?) => s.length)
 //│ ║        	                     ^^^^^^^^
+//│ ╟── Problem 1:
 //│ ╟── Null literal does not contain member 'length'
 //│ ║  l.+2: 	missingNamed((s?) => s.length)
 //│ ║        	              ^^
+//│ ╟── Problem 2:
 //│ ╟── Null literal does not contain member 'length'
 //│ ║  l.+1: 	fun missingNamed(f: (s?: Str) -> Int) = f()
 //│ ╙──      	                     ^^^^^^^

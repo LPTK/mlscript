@@ -468,7 +468,14 @@ final class ResolutionContext private[semantics] (
     visit(block)
     state.resolutionProblems.foreach: (key, problems) =>
       val term = key.value
-      val messages = problems.iterator.flatMap(_()).toList.distinct
+      val alternatives = problems.iterator.map(_().distinct).filter(_.nonEmpty).toList.distinct
+      // Each witness describes a possible value, not simultaneous properties of one value.
+      // Keep its provenance together: an unknown result and a known type can flow from the
+      // same expression, for example when a builtin sees both unknown and integer operands.
+      val messages = if alternatives.lengthCompare(1) > 0 then
+        alternatives.zipWithIndex.flatMap: (messages, index) =>
+          (msg"Problem ${index + 1}:" -> N) :: messages
+      else alternatives.flatten
       if messages.nonEmpty then
         markError(term)
         reportResolutionError(term, messages)

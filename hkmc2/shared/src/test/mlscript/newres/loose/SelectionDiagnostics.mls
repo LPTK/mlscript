@@ -10,12 +10,15 @@ fun nested(x: First | (Second | Third)) = x.absent
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.+1: 	fun nested(x: First | (Second | Third)) = x.absent
 //│ ║        	                                          ^^^^^^^^
+//│ ╟── Problem 1:
 //│ ╟── Value of type 'First' does not contain member 'absent'
 //│ ║  l.+1: 	fun nested(x: First | (Second | Third)) = x.absent
 //│ ║        	              ^^^^^
+//│ ╟── Problem 2:
 //│ ╟── Value of type 'Second' does not contain member 'absent'
 //│ ║  l.+1: 	fun nested(x: First | (Second | Third)) = x.absent
 //│ ║        	                       ^^^^^^
+//│ ╟── Problem 3:
 //│ ╟── Value of type 'Third' does not contain member 'absent'
 //│ ║  l.+1: 	fun nested(x: First | (Second | Third)) = x.absent
 //│ ╙──      	                                ^^^^^
@@ -28,9 +31,11 @@ fun aliases(x: Left | Right) = x.absent
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.+3: 	fun aliases(x: Left | Right) = x.absent
 //│ ║        	                               ^^^^^^^^
+//│ ╟── Problem 1:
 //│ ╟── Value of type 'First' does not contain member 'absent'
 //│ ║  l.+3: 	fun aliases(x: Left | Right) = x.absent
 //│ ║        	               ^^^^
+//│ ╟── Problem 2:
 //│ ╟── Value of type 'Second' does not contain member 'absent'
 //│ ║  l.+3: 	fun aliases(x: Left | Right) = x.absent
 //│ ╙──      	                      ^^^^^
@@ -42,9 +47,11 @@ fun applied(x: Box[Int] | Box[Str]) = x.absent
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.+2: 	fun applied(x: Box[Int] | Box[Str]) = x.absent
 //│ ║        	                                      ^^^^^^^^
+//│ ╟── Problem 1:
 //│ ╟── Value of type 'Box' does not contain member 'absent'
 //│ ║  l.+2: 	fun applied(x: Box[Int] | Box[Str]) = x.absent
 //│ ║        	               ^^^^^^^^
+//│ ╟── Problem 2:
 //│ ╟── Value of type 'Box' does not contain member 'absent'
 //│ ║  l.+2: 	fun applied(x: Box[Int] | Box[Str]) = x.absent
 //│ ╙──      	                          ^^^^^^^^
@@ -56,9 +63,11 @@ fun aliasedUnion(x: Alternatives) = x.absent
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.+2: 	fun aliasedUnion(x: Alternatives) = x.absent
 //│ ║        	                                    ^^^^^^^^
+//│ ╟── Problem 1:
 //│ ╟── Value of type 'First' does not contain member 'absent'
 //│ ║  l.+1: 	type Alternatives = First | Second
 //│ ║        	                    ^^^^^
+//│ ╟── Problem 2:
 //│ ╟── Value of type 'Second' does not contain member 'absent'
 //│ ║  l.+1: 	type Alternatives = First | Second
 //│ ╙──      	                            ^^^^^^
@@ -70,6 +79,7 @@ fun unknowns(x: Any | Hidden) = x.absent
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.+2: 	fun unknowns(x: Any | Hidden) = x.absent
 //│ ║        	                                ^^^^^^^^
+//│ ╟── Problem 1:
 //│ ╟── Cannot resolve member 'absent' of a value with unknown shape.
 //│ ║  l.+2: 	fun unknowns(x: Any | Hidden) = x.absent
 //│ ║        	                ^^^
@@ -77,6 +87,7 @@ fun unknowns(x: Any | Hidden) = x.absent
 //│ ║  in ../../decls/Prelude.mls
 //│ ║  l.XX: 	declare type Any
 //│ ║        	             ^^^
+//│ ╟── Problem 2:
 //│ ╟── Cannot resolve member 'absent' of a value with unknown shape.
 //│ ║  in SelectionDiagnostics.mls:+1
 //│ ║  l.+2: 	fun unknowns(x: Any | Hidden) = x.absent
@@ -103,18 +114,22 @@ fun separate(x: First | Second) = [x.left, x.right]
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.+1: 	fun separate(x: First | Second) = [x.left, x.right]
 //│ ║        	                                   ^^^^^^
+//│ ╟── Problem 1:
 //│ ╟── Value of type 'First' does not contain member 'left'
 //│ ║  l.+1: 	fun separate(x: First | Second) = [x.left, x.right]
 //│ ║        	                ^^^^^
+//│ ╟── Problem 2:
 //│ ╟── Value of type 'Second' does not contain member 'left'
 //│ ║  l.+1: 	fun separate(x: First | Second) = [x.left, x.right]
 //│ ╙──      	                        ^^^^^^
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.+1: 	fun separate(x: First | Second) = [x.left, x.right]
 //│ ║        	                                           ^^^^^^^
+//│ ╟── Problem 1:
 //│ ╟── Value of type 'First' does not contain member 'right'
 //│ ║  l.+1: 	fun separate(x: First | Second) = [x.left, x.right]
 //│ ║        	                ^^^^^
+//│ ╟── Problem 2:
 //│ ╟── Value of type 'Second' does not contain member 'right'
 //│ ║  l.+1: 	fun separate(x: First | Second) = [x.left, x.right]
 //│ ╙──      	                        ^^^^^^
@@ -126,9 +141,11 @@ fun eager(x: First | Second | Third) = x.value
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.+2: 	fun eager(x: First | Second | Third) = x.value
 //│ ║        	                                       ^^^^^^^
+//│ ╟── Problem 1:
 //│ ╟── Value of type 'Second' does not contain member 'value'
 //│ ║  l.+2: 	fun eager(x: First | Second | Third) = x.value
 //│ ║        	                     ^^^^^^
+//│ ╟── Problem 2:
 //│ ╟── Value of type 'Third' does not contain member 'value'
 //│ ║  l.+2: 	fun eager(x: First | Second | Third) = x.value
 //│ ╙──      	                              ^^^^^
@@ -141,9 +158,11 @@ exposed(First)
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.+2: 	fun exposed(x) = x.absent
 //│ ║        	                 ^^^^^^^^
+//│ ╟── Problem 1:
 //│ ╟── Module 'First' does not contain member 'absent'
 //│ ║  l.XX: 	module First { val value = 1 }
 //│ ║        	^^^^^^^^^^^^
+//│ ╟── Problem 2:
 //│ ╟── Cannot resolve member 'absent' of a value with unknown shape.
 //│ ╟── Parameter 'x' admits values of unknown shape.
 //│ ║  l.+2: 	fun exposed(x) = x.absent

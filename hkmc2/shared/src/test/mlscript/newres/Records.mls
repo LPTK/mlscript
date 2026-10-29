@@ -155,9 +155,11 @@ changing.value.after
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.+3: 	changing.value.after
 //│ ║        	^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Problem 1:
 //│ ╟── Record literal does not contain member 'after'
 //│ ║  l.+1: 	let changing = mut {value: {before: 0}}
 //│ ║        	                            ^^^^^^^^^
+//│ ╟── Problem 2:
 //│ ╟── Cannot resolve member 'after' of a value with unknown shape.
 //│ ╟── This value is exposed by this compilation unit.
 //│ ║  l.+1: 	let changing = mut {value: {before: 0}}
@@ -175,9 +177,11 @@ nestedWrap({second: 23}).value.second
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.+2: 	nestedWrap({first: 22}).value.first
 //│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Problem 1:
 //│ ╟── Record literal does not contain member 'first'
 //│ ║  l.+3: 	nestedWrap({second: 23}).value.second
 //│ ║        	            ^^^^^^^^^^
+//│ ╟── Problem 2:
 //│ ╟── Cannot resolve member 'first' of a value with unknown shape.
 //│ ╟── Parameter 'x' admits values of unknown shape.
 //│ ║  l.+1: 	fun nestedWrap(x) = {...wrap(x)}
@@ -188,9 +192,11 @@ nestedWrap({second: 23}).value.second
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.+3: 	nestedWrap({second: 23}).value.second
 //│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Problem 1:
 //│ ╟── Record literal does not contain member 'second'
 //│ ║  l.+2: 	nestedWrap({first: 22}).value.first
 //│ ║        	            ^^^^^^^^^
+//│ ╟── Problem 2:
 //│ ╟── Cannot resolve member 'second' of a value with unknown shape.
 //│ ╟── Parameter 'x' admits values of unknown shape.
 //│ ║  l.+1: 	fun nestedWrap(x) = {...wrap(x)}
@@ -357,9 +363,11 @@ set mutableNested.value = {after: 34}
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.+4: 	[stableNested.value.before, mutableNested.value.after]
 //│ ║        	                            ^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Problem 1:
 //│ ╟── Record literal does not contain member 'after'
 //│ ║  l.+1: 	let stableNested = {value: {before: 33}}
 //│ ║        	                            ^^^^^^^^^^
+//│ ╟── Problem 2:
 //│ ╟── Cannot resolve member 'after' of a value with unknown shape.
 //│ ╟── This value is exposed by this compilation unit.
 //│ ║  l.+2: 	let mutableNested = mut {...stableNested}

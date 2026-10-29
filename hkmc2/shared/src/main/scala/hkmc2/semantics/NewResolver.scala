@@ -3338,7 +3338,8 @@ class NewResolver:
     var publishedUnknown = false
     def unknown()(using ResolutionContext): Unit = if !publishedUnknown then
       publishedUnknown = true
-      publish(UnknownValueShape.at(res))
+      publish(UnknownValueShape(res, fromPublicInterface = false)(ShapeProvenance(
+        msg"The result shape of builtin operator '${op.nme}' is unknown for some possible inputs." -> res.toLoc :: Nil)))
     val forwarded = mutable.Set.empty[Int]
     // Unlike literals, which share their class's cached interface, results locate their provenance at the application.
     val resultTypes = mutable.Map.empty[PrimitiveClass, DeclaredType]

@@ -46,9 +46,11 @@ call(M)
 //│ ╔══[COMPILATION ERROR] Resolution error in application
 //│ ║  l.+2: 	fun call(x) = x()
 //│ ║        	              ^^^
+//│ ╟── Problem 1:
 //│ ╟── Module 'M' cannot be called like a function.
 //│ ║  l.+1: 	module M
 //│ ║        	^^^^^^^^
+//│ ╟── Problem 2:
 //│ ╟── Value of unknown shape cannot be called like a function.
 //│ ╟── Parameter 'x' admits values of unknown shape.
 //│ ║  l.+2: 	fun call(x) = x()
@@ -66,9 +68,11 @@ instantiate(Plain)
 //│ ╔══[COMPILATION ERROR] Resolution error in application
 //│ ║  l.+2: 	fun instantiate(cls) = cls()
 //│ ║        	                       ^^^^^
+//│ ╟── Problem 1:
 //│ ╟── Class 'Plain' must be instantiated with 'new'.
 //│ ║  l.+1: 	class Plain
 //│ ║        	^^^^^^^^^^^
+//│ ╟── Problem 2:
 //│ ╟── Value of unknown shape cannot be called like a function.
 //│ ╟── Parameter 'cls' admits values of unknown shape.
 //│ ║  l.+2: 	fun instantiate(cls) = cls()
@@ -86,9 +90,11 @@ overapply(Curried(1)(2))
 //│ ╔══[COMPILATION ERROR] Resolution error in application
 //│ ║  l.+2: 	fun overapply(instance) = instance()
 //│ ║        	                          ^^^^^^^^^^
+//│ ╟── Problem 1:
 //│ ╟── Instance of class 'Curried' cannot receive more argument lists.
 //│ ║  l.+3: 	overapply(Curried(1)(2))
 //│ ║        	          ^^^^^^^^^^^^^
+//│ ╟── Problem 2:
 //│ ╟── Value of unknown shape cannot be called like a function.
 //│ ╟── Parameter 'instance' admits values of unknown shape.
 //│ ║  l.+2: 	fun overapply(instance) = instance()
@@ -106,9 +112,11 @@ overapply(new Plain)
 //│ ╔══[COMPILATION ERROR] Resolution error in application
 //│ ║  l.+2: 	fun overapply(instance) = instance()
 //│ ║        	                          ^^^^^^^^^^
+//│ ╟── Problem 1:
 //│ ╟── Instance of class 'Plain' cannot receive more argument lists.
 //│ ║  l.+3: 	overapply(new Plain)
 //│ ║        	          ^^^^^^^^^
+//│ ╟── Problem 2:
 //│ ╟── Value of unknown shape cannot be called like a function.
 //│ ╟── Parameter 'instance' admits values of unknown shape.
 //│ ║  l.+2: 	fun overapply(instance) = instance()

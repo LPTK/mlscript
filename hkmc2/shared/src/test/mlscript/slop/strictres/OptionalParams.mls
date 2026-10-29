@@ -150,9 +150,11 @@ len()
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.+1: 	fun len(s?) = s.length
 //│ ║        	              ^^^^^^^^
+//│ ╟── Problem 1:
 //│ ╟── Null literal does not contain member 'length'
 //│ ║  l.+1: 	fun len(s?) = s.length
 //│ ║        	        ^^
+//│ ╟── Problem 2:
 //│ ╟── Cannot resolve member 'length' of a value with unknown shape.
 //│ ╟── Parameter 's' admits values of unknown shape.
 //│ ║  l.+1: 	fun len(s?) = s.length

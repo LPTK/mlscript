@@ -15,9 +15,11 @@ receiver.missing
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.+1: 	receiver.missing
 //│ ║        	^^^^^^^^^^^^^^^^
+//│ ╟── Problem 1:
 //│ ╟── Module 'Left' does not contain member 'missing'
 //│ ║  l.XX: 	module Left { fun get() = 1 }
 //│ ║        	^^^^^^^^^^^
+//│ ╟── Problem 2:
 //│ ╟── Module 'Right' does not contain member 'missing'
 //│ ║  l.XX: 	module Right { fun get() = 2 }
 //│ ╙──      	^^^^^^^^^^^^

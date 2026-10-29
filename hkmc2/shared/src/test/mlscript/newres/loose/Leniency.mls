@@ -35,9 +35,11 @@ fun missing(x: M1 | M2) = x.absent
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.+1: 	fun missing(x: M1 | M2) = x.absent
 //│ ║        	                          ^^^^^^^^
+//│ ╟── Problem 1:
 //│ ╟── Value of type 'M1' does not contain member 'absent'
 //│ ║  l.+1: 	fun missing(x: M1 | M2) = x.absent
 //│ ║        	               ^^
+//│ ╟── Problem 2:
 //│ ╟── Value of type 'M2' does not contain member 'absent'
 //│ ║  l.+1: 	fun missing(x: M1 | M2) = x.absent
 //│ ╙──      	                    ^^
@@ -62,9 +64,11 @@ records.absent
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.+2: 	records.absent
 //│ ║        	^^^^^^^^^^^^^^
+//│ ╟── Problem 1:
 //│ ╟── Record literal does not contain member 'absent'
 //│ ║  l.+1: 	let records = if hide(true) then {left: 1} else {right: 2}
 //│ ║        	                                  ^^^^^^^
+//│ ╟── Problem 2:
 //│ ╟── Record literal does not contain member 'absent'
 //│ ║  l.+1: 	let records = if hide(true) then {left: 1} else {right: 2}
 //│ ╙──      	                                                 ^^^^^^^^
@@ -149,6 +153,7 @@ fun noCandidate(x) = x.absent
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.+1: 	fun noCandidate(x) = x.absent
 //│ ║        	                     ^^^^^^^^
+//│ ╟── Problem 1:
 //│ ╟── Cannot resolve member 'absent' of a value with unknown shape.
 //│ ║  l.+2: 	[noCandidate(M2 as Any), noCandidate(M1)]
 //│ ║        	                   ^^^
@@ -156,6 +161,7 @@ fun noCandidate(x) = x.absent
 //│ ║  in ../../decls/Prelude.mls
 //│ ║  l.XX: 	declare type Any
 //│ ║        	             ^^^
+//│ ╟── Problem 2:
 //│ ╟── Module 'M1' does not contain member 'absent'
 //│ ║  in Leniency.mls:XX
 //│ ║  l.XX: 	module M1 { val u = 1 }

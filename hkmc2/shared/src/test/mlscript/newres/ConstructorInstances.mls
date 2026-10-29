@@ -218,9 +218,11 @@ let second = new Box(Second(22))
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.+7: 	[first.copy().item.first, second.copy().item.second]
 //│ ║        	 ^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Problem 1:
 //│ ╟── Instance of class 'Second' does not contain member 'first'
 //│ ║  l.+6: 	let second = new Box(Second(22))
 //│ ║        	                     ^^^^^^^^^^
+//│ ╟── Problem 2:
 //│ ╟── Cannot resolve member 'first' of a value with unknown shape.
 //│ ╟── Parameter 'item' admits values of unknown shape.
 //│ ║  l.+3: 	class Box(val item) with
@@ -231,9 +233,11 @@ let second = new Box(Second(22))
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.+7: 	[first.copy().item.first, second.copy().item.second]
 //│ ║        	                          ^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Problem 1:
 //│ ╟── Instance of class 'First' does not contain member 'second'
 //│ ║  l.+5: 	let first = new Box(First(21))
 //│ ║        	                    ^^^^^^^^^
+//│ ╟── Problem 2:
 //│ ╟── Cannot resolve member 'second' of a value with unknown shape.
 //│ ╟── Parameter 'item' admits values of unknown shape.
 //│ ║  l.+3: 	class Box(val item) with

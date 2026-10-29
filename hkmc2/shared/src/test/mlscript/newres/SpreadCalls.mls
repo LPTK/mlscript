@@ -234,6 +234,7 @@ invokeUnknown(...opaque([() => 95]))
 //│ ╔══[COMPILATION ERROR] Resolution error in application
 //│ ║  l.+1: 	fun invokeUnknown(f) = f()
 //│ ║        	                       ^^^
+//│ ╟── Problem 1:
 //│ ╟── Value with no known interface cannot be called like a function.
 //│ ║  l.XX: 	fun opaque(values): Array[Any] = values
 //│ ║        	                          ^^^
@@ -241,6 +242,7 @@ invokeUnknown(...opaque([() => 95]))
 //│ ║  in ../decls/Prelude.mls
 //│ ║  l.XX: 	declare type Any
 //│ ║        	             ^^^
+//│ ╟── Problem 2:
 //│ ╟── Value of unknown shape cannot be called like a function.
 //│ ╟── Parameter 'f' admits values of unknown shape.
 //│ ║  in SpreadCalls.mls:+1
@@ -259,6 +261,7 @@ inspectUnknown(...opaque([Box(96)]))
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.+1: 	fun inspectUnknown(x) = x.value
 //│ ║        	                        ^^^^^^^
+//│ ╟── Problem 1:
 //│ ╟── Cannot resolve member 'value' of a value with unknown shape.
 //│ ║  l.XX: 	fun opaque(values): Array[Any] = values
 //│ ║        	                          ^^^
@@ -266,6 +269,7 @@ inspectUnknown(...opaque([Box(96)]))
 //│ ║  in ../decls/Prelude.mls
 //│ ║  l.XX: 	declare type Any
 //│ ║        	             ^^^
+//│ ╟── Problem 2:
 //│ ╟── Cannot resolve member 'value' of a value with unknown shape.
 //│ ╟── Parameter 'x' admits values of unknown shape.
 //│ ║  in SpreadCalls.mls:+1
@@ -294,6 +298,7 @@ invokeRest(...opaque([() => 97]), Box(0))
 //│ ╔══[COMPILATION ERROR] Resolution error in application
 //│ ║  l.+1: 	fun invokeRest(f, x, ...tail) = f()
 //│ ║        	                                ^^^
+//│ ╟── Problem 1:
 //│ ╟── Value with no known interface cannot be called like a function.
 //│ ║  l.XX: 	fun opaque(values): Array[Any] = values
 //│ ║        	                          ^^^
@@ -301,6 +306,7 @@ invokeRest(...opaque([() => 97]), Box(0))
 //│ ║  in ../decls/Prelude.mls
 //│ ║  l.XX: 	declare type Any
 //│ ║        	             ^^^
+//│ ╟── Problem 2:
 //│ ╟── Value of unknown shape cannot be called like a function.
 //│ ╟── Parameter 'f' admits values of unknown shape.
 //│ ║  in SpreadCalls.mls:+1
