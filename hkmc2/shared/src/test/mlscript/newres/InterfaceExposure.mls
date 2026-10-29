@@ -11,7 +11,7 @@ foo({a: 1})
 //│ ╟── Parameter 'x' admits values of unknown shape.
 //│ ║  l.+1: 	fun foo(x) = x.a
 //│ ║        	        ^
-//│ ╟── 'foo' is exposed by this compilation unit.
+//│ ╟── 'foo' is exposed by this exported definition.
 //│ ║  l.+1: 	fun foo(x) = x.a
 //│ ╙──      	^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -91,7 +91,7 @@ apply(x => x)
 //│ ╟── Parameter 'f' admits values of unknown shape.
 //│ ║  l.+1: 	fun apply(f) = f(1)
 //│ ║        	          ^
-//│ ╟── 'apply' is exposed by this compilation unit.
+//│ ╟── 'apply' is exposed by this exported definition.
 //│ ║  l.+1: 	fun apply(f) = f(1)
 //│ ╙──      	^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -115,7 +115,7 @@ fun escaped() = x => x.a
 //│ ╟── This value is returned here.
 //│ ║  l.+1: 	fun escaped() = x => x.a
 //│ ║        	                ^^^^^^^^
-//│ ╟── 'escaped' is exposed by this compilation unit.
+//│ ╟── 'escaped' is exposed by this exported definition.
 //│ ║  l.+1: 	fun escaped() = x => x.a
 //│ ╙──      	^^^^^^^^^^^^^
 
@@ -133,7 +133,7 @@ hidden({a: 1})
 //│ ╟── This value is stored in this tuple.
 //│ ║  l.+2: 	val escaped = [hidden]
 //│ ║        	              ^^^^^^^^
-//│ ╟── 'escaped' is exposed by this compilation unit.
+//│ ╟── 'escaped' is exposed by this exported definition.
 //│ ║  l.+2: 	val escaped = [hidden]
 //│ ╙──      	^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -153,7 +153,7 @@ hidden({a: 1})
 //│ ╟── This value is stored in this record field.
 //│ ║  l.+2: 	val escaped = {f: hidden}
 //│ ║        	               ^
-//│ ╟── 'escaped' is exposed by this compilation unit.
+//│ ╟── 'escaped' is exposed by this exported definition.
 //│ ║  l.+2: 	val escaped = {f: hidden}
 //│ ╙──      	^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -191,7 +191,7 @@ hiddenRecord({a: 1})
 //│ ╟── This value is returned here.
 //│ ║  l.+2: 	fun exportRecord() = {callback: hiddenRecord}
 //│ ║        	                      ^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── 'exportRecord' is exposed by this compilation unit.
+//│ ╟── 'exportRecord' is exposed by this exported definition.
 //│ ║  l.+2: 	fun exportRecord() = {callback: hiddenRecord}
 //│ ╙──      	^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -210,7 +210,7 @@ CopyBox({answer: 42}).copy().value.answer
 //│ ╟── Parameter 'value' admits values of unknown shape.
 //│ ║  l.+1: 	class CopyBox(val value) with
 //│ ║        	              ^^^^^^^^^
-//│ ╟── 'CopyBox' is exposed by this compilation unit.
+//│ ╟── 'CopyBox' is exposed by this exported definition.
 //│ ║  l.+1: 	class CopyBox(val value) with
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -233,7 +233,7 @@ val oldEscape = {callback: oldHidden}
 //│ ╟── This value is stored in this record field.
 //│ ║  l.+1: 	val oldEscape = {callback: oldHidden}
 //│ ║        	                 ^^^^^^^^
-//│ ╟── 'oldEscape' is exposed by this compilation unit.
+//│ ╟── 'oldEscape' is exposed by this exported definition.
 //│ ║  l.+1: 	val oldEscape = {callback: oldHidden}
 //│ ╙──      	^^^^^^^^^^^^^
 //│ oldEscape = {callback: fun oldHidden}
@@ -299,7 +299,7 @@ recursiveHidden({a: 1})
 //│ ╟── This value is returned here.
 //│ ║  l.+2: 	fun recursiveExport(n) = if n == 0 then {callback: recursiveHidden} else recursiveExport(n - 1)
 //│ ║        	                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── 'recursiveExport' is exposed by this compilation unit.
+//│ ╟── 'recursiveExport' is exposed by this exported definition.
 //│ ║  l.+2: 	fun recursiveExport(n) = if n == 0 then {callback: recursiveHidden} else recursiveExport(n - 1)
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -320,7 +320,7 @@ fun Shadowed() = 0
 //│ ╟── Member 'bad' is accessible here.
 //│ ║  l.+2: 	  fun bad(x) = x.a
 //│ ║        	  ^^^^^^^^^^
-//│ ╟── 'Shadowed' is exposed by this compilation unit.
+//│ ╟── 'Shadowed' is exposed by this exported definition.
 //│ ║  l.+1: 	class Shadowed {
 //│ ║        	^^^^^^^^^^^^^^^^
 //│ ║  l.+2: 	  fun bad(x) = x.a
@@ -345,7 +345,7 @@ inspect(Holder({a: 1}))
 //│ ╟── Parameter 'x' admits values of unknown shape.
 //│ ║  l.+2: 	fun inspect(x) = if x is Holder(y) then y.a else 0
 //│ ║        	            ^
-//│ ╟── 'inspect' is exposed by this compilation unit.
+//│ ╟── 'inspect' is exposed by this exported definition.
 //│ ║  l.+2: 	fun inspect(x) = if x is Holder(y) then y.a else 0
 //│ ╙──      	^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -373,7 +373,7 @@ inspectGeneric(GenericHolder({a: 1}))
 //│ ╟── Parameter 'x' admits values of unknown shape.
 //│ ║  l.+2: 	fun inspectGeneric(x) = if x is GenericHolder(y) then y.a else 0
 //│ ║        	                   ^
-//│ ╟── 'inspectGeneric' is exposed by this compilation unit.
+//│ ╟── 'inspectGeneric' is exposed by this exported definition.
 //│ ║  l.+2: 	fun inspectGeneric(x) = if x is GenericHolder(y) then y.a else 0
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -418,7 +418,7 @@ hiddenInSpread({a: 1})
 //│ ╟── This value is stored in this tuple.
 //│ ║  l.+3: 	val escapedSpread = [...callbacks]
 //│ ║        	                        ^^^^^^^^^
-//│ ╟── 'escapedSpread' is exposed by this compilation unit.
+//│ ╟── 'escapedSpread' is exposed by this exported definition.
 //│ ║  l.+3: 	val escapedSpread = [...callbacks]
 //│ ╙──      	^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.

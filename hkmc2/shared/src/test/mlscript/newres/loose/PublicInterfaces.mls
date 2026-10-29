@@ -12,7 +12,7 @@ read({value: 1})
 //│ ╟── Parameter 'x' admits values of unknown shape.
 //│ ║  l.+1: 	fun read(x) = x.value
 //│ ║        	         ^
-//│ ╟── 'read' is exposed by this compilation unit.
+//│ ╟── 'read' is exposed by this exported definition.
 //│ ║  l.+1: 	fun read(x) = x.value
 //│ ╙──      	^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -28,7 +28,7 @@ rest({value: 2})
 //│ ╟── Rest parameter 'xs' admits elements of unknown shape.
 //│ ║  l.+1: 	fun rest(...xs) = xs.0.value
 //│ ║        	         ^^^^^
-//│ ╟── 'rest' is exposed by this compilation unit.
+//│ ╟── 'rest' is exposed by this exported definition.
 //│ ║  l.+1: 	fun rest(...xs) = xs.0.value
 //│ ╙──      	^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -47,7 +47,7 @@ escaped()({value: 3})
 //│ ╟── This value is returned here.
 //│ ║  l.+1: 	fun escaped() = x => x.value
 //│ ║        	                ^^^^^^^^^^^^
-//│ ╟── 'escaped' is exposed by this compilation unit.
+//│ ╟── 'escaped' is exposed by this exported definition.
 //│ ║  l.+1: 	fun escaped() = x => x.value
 //│ ╙──      	^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -70,7 +70,7 @@ val exported = {callback: hidden}
 //│ ╟── This value is stored in this record field.
 //│ ║  l.+1: 	val exported = {callback: hidden}
 //│ ║        	                ^^^^^^^^
-//│ ╟── 'exported' is exposed by this compilation unit.
+//│ ╟── 'exported' is exposed by this exported definition.
 //│ ║  l.+1: 	val exported = {callback: hidden}
 //│ ╙──      	^^^^^^^^^^^^
 //│ exported = {callback: fun hidden}
@@ -90,7 +90,7 @@ recordSpread({value: 5})
 //│ ╟── Parameter 'x' admits values of unknown shape.
 //│ ║  l.+1: 	fun recordSpread(x) = ({...{...x}}).value
 //│ ║        	                 ^
-//│ ╟── 'recordSpread' is exposed by this compilation unit.
+//│ ╟── 'recordSpread' is exposed by this exported definition.
 //│ ║  l.+1: 	fun recordSpread(x) = ({...{...x}}).value
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -110,7 +110,7 @@ tupleSpread([{value: 6}])
 //│ ╟── Parameter 'xs' admits values of unknown shape.
 //│ ║  l.+1: 	fun tupleSpread(xs) = [...xs].0.value
 //│ ║        	                ^^
-//│ ╟── 'tupleSpread' is exposed by this compilation unit.
+//│ ╟── 'tupleSpread' is exposed by this exported definition.
 //│ ║  l.+1: 	fun tupleSpread(xs) = [...xs].0.value
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -129,7 +129,7 @@ indexed([{value: 7}])
 //│ ╟── Parameter 'xs' admits values of unknown shape.
 //│ ║  l.+1: 	fun indexed(xs) = xs.[0].value
 //│ ║        	            ^^
-//│ ╟── 'indexed' is exposed by this compilation unit.
+//│ ╟── 'indexed' is exposed by this exported definition.
 //│ ║  l.+1: 	fun indexed(xs) = xs.[0].value
 //│ ╙──      	^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -145,7 +145,7 @@ throughType({value: 8})
 //│ ╟── Parameter 'x' admits values of unknown shape.
 //│ ║  l.+2: 	fun throughType(x) = identity(x).value
 //│ ║        	                ^
-//│ ╟── 'throughType' is exposed by this compilation unit.
+//│ ╟── 'throughType' is exposed by this exported definition.
 //│ ║  l.+2: 	fun throughType(x) = identity(x).value
 //│ ║        	^^^^^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'value' of a value with unknown shape.
@@ -164,7 +164,7 @@ hole([{value: 9}])
 //│ ╟── Parameter 'xs' admits values of unknown shape.
 //│ ║  l.+1: 	fun hole(xs: Array) = xs.0.value
 //│ ║        	         ^^^^^^^^^
-//│ ╟── 'hole' is exposed by this compilation unit.
+//│ ╟── 'hole' is exposed by this exported definition.
 //│ ║  l.+1: 	fun hole(xs: Array) = xs.0.value
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -184,7 +184,7 @@ refined(Box({value: 10}))
 //│ ╟── Parameter 'x' admits values of unknown shape.
 //│ ║  l.+2: 	fun refined(x) = if x is Box(item) then item.value else 0
 //│ ║        	            ^
-//│ ╟── 'refined' is exposed by this compilation unit.
+//│ ╟── 'refined' is exposed by this exported definition.
 //│ ║  l.+2: 	fun refined(x) = if x is Box(item) then item.value else 0
 //│ ╙──      	^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -214,7 +214,7 @@ dynamic({value: 13} as dyn)
 //│ ╟── Parameter 'x' admits values of unknown shape.
 //│ ║  l.+1: 	fun dynamic(x) = x.value
 //│ ║        	            ^
-//│ ╟── 'dynamic' is exposed by this compilation unit.
+//│ ╟── 'dynamic' is exposed by this exported definition.
 //│ ║  l.+1: 	fun dynamic(x) = x.value
 //│ ╙──      	^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -230,7 +230,7 @@ first([14])
 //│ ╟── Parameter 'xs' admits values of unknown shape.
 //│ ║  l.+1: 	fun first(xs) = xs.0
 //│ ║        	          ^^
-//│ ╟── 'first' is exposed by this compilation unit.
+//│ ╟── 'first' is exposed by this exported definition.
 //│ ║  l.+1: 	fun first(xs) = xs.0
 //│ ╙──      	^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.

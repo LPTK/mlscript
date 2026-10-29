@@ -227,7 +227,7 @@ let second = new Box(Second(22))
 //│ ╟── Parameter 'item' admits values of unknown shape.
 //│ ║  l.+3: 	class Box(val item) with
 //│ ║        	          ^^^^^^^^
-//│ ╟── 'Box' is exposed by this compilation unit.
+//│ ╟── 'Box' is exposed by this exported definition.
 //│ ║  l.+3: 	class Box(val item) with
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
@@ -242,7 +242,7 @@ let second = new Box(Second(22))
 //│ ╟── Parameter 'item' admits values of unknown shape.
 //│ ║  l.+3: 	class Box(val item) with
 //│ ║        	          ^^^^^^^^
-//│ ╟── 'Box' is exposed by this compilation unit.
+//│ ╟── 'Box' is exposed by this exported definition.
 //│ ║  l.+3: 	class Box(val item) with
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.

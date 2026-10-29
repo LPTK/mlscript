@@ -185,7 +185,7 @@ module Exposed with
 //│ ╟── Member 'make' is accessible here.
 //│ ║  l.+2: 	  fun make() = mut [x => x.missing]
 //│ ║        	  ^^^^^^^^^^
-//│ ╟── 'Exposed' is exposed by this compilation unit.
+//│ ╟── 'Exposed' is exposed by this exported definition.
 //│ ║  l.+1: 	module Exposed with
 //│ ╙──      	^^^^^^^^^^^^^^
 

@@ -161,7 +161,7 @@ changing.value.after
 //│ ║        	                            ^^^^^^^^^
 //│ ╟── Problem 2:
 //│ ╟── Cannot resolve member 'after' of a value with unknown shape.
-//│ ╟── This value is exposed by this compilation unit.
+//│ ╟── This value is exposed by this exported definition.
 //│ ║  l.+1: 	let changing = mut {value: {before: 0}}
 //│ ╙──      	                    ^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -186,7 +186,7 @@ nestedWrap({second: 23}).value.second
 //│ ╟── Parameter 'x' admits values of unknown shape.
 //│ ║  l.+1: 	fun nestedWrap(x) = {...wrap(x)}
 //│ ║        	               ^
-//│ ╟── 'nestedWrap' is exposed by this compilation unit.
+//│ ╟── 'nestedWrap' is exposed by this exported definition.
 //│ ║  l.+1: 	fun nestedWrap(x) = {...wrap(x)}
 //│ ╙──      	^^^^^^^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
@@ -201,7 +201,7 @@ nestedWrap({second: 23}).value.second
 //│ ╟── Parameter 'x' admits values of unknown shape.
 //│ ║  l.+1: 	fun nestedWrap(x) = {...wrap(x)}
 //│ ║        	               ^
-//│ ╟── 'nestedWrap' is exposed by this compilation unit.
+//│ ╟── 'nestedWrap' is exposed by this exported definition.
 //│ ║  l.+1: 	fun nestedWrap(x) = {...wrap(x)}
 //│ ╙──      	^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -290,7 +290,7 @@ unknownValueOpen({answer3: 2})
 //│ ╟── Parameter 'input' admits values of unknown shape.
 //│ ║  l.+1: 	fun unknownValueOpen(input) =
 //│ ║        	                     ^^^^^
-//│ ╟── 'unknownValueOpen' is exposed by this compilation unit.
+//│ ╟── 'unknownValueOpen' is exposed by this exported definition.
 //│ ║  l.+1: 	fun unknownValueOpen(input) =
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -369,7 +369,7 @@ set mutableNested.value = {after: 34}
 //│ ║        	                            ^^^^^^^^^^
 //│ ╟── Problem 2:
 //│ ╟── Cannot resolve member 'after' of a value with unknown shape.
-//│ ╟── This value is exposed by this compilation unit.
+//│ ╟── This value is exposed by this exported definition.
 //│ ║  l.+2: 	let mutableNested = mut {...stableNested}
 //│ ╙──      	                            ^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.

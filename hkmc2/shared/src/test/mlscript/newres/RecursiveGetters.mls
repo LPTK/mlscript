@@ -123,6 +123,6 @@ fun exposed(value) =
 //│ ╟── Parameter 'value' admits values of unknown shape.
 //│ ║  l.+1: 	fun exposed(value) =
 //│ ║        	            ^^^^^
-//│ ╟── 'exposed' is exposed by this compilation unit.
+//│ ╟── 'exposed' is exposed by this exported definition.
 //│ ║  l.+1: 	fun exposed(value) =
 //│ ╙──      	^^^^^^^^^^^^^^^^^^

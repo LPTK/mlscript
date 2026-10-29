@@ -59,7 +59,7 @@ alias(B).u
 //│ ╟── Parameter 'x' admits values of unknown shape.
 //│ ║  l.XX: 	val foo = x => x
 //│ ║        	          ^
-//│ ╟── 'alias' is exposed by this compilation unit.
+//│ ╟── 'alias' is exposed by this exported definition.
 //│ ║  l.XX: 	val alias = foo
 //│ ╙──      	^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -75,7 +75,7 @@ alias(A).u
 //│ ╟── Parameter 'x' admits values of unknown shape.
 //│ ║  l.XX: 	val foo = x => x
 //│ ║        	          ^
-//│ ╟── 'alias' is exposed by this compilation unit.
+//│ ╟── 'alias' is exposed by this exported definition.
 //│ ║  l.XX: 	val alias = foo
 //│ ╙──      	^^^^^^^^^
 //│ ————————————————| Resolved |————————————————————————————————————————————————————————————————————————

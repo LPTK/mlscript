@@ -41,7 +41,7 @@ Box({answer: 42}).copy().value.answer
 //│ ╟── Parameter 'value' admits values of unknown shape.
 //│ ║  l.+1: 	class Box(val value) with
 //│ ║        	          ^^^^^^^^^
-//│ ╟── 'Box' is exposed by this compilation unit.
+//│ ╟── 'Box' is exposed by this exported definition.
 //│ ║  l.+1: 	class Box(val value) with
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -79,7 +79,7 @@ opened({answer: 44})
 //│ ╟── This value is stored in this record field.
 //│ ║  l.+2: 	let makers = {create: OpenBox}
 //│ ║        	              ^^^^^^
-//│ ╟── This value is exposed by this compilation unit.
+//│ ╟── This value is exposed by this exported definition.
 //│ ║  l.+2: 	let makers = {create: OpenBox}
 //│ ╙──      	              ^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -103,7 +103,7 @@ let pair = finish({answer: 46})
 //│ ╟── Parameter 'second' admits values of unknown shape.
 //│ ║  l.+2: 	  class Pair(val first)(val second)
 //│ ║        	                        ^^^^^^^^^^
-//│ ╟── This value is exposed by this compilation unit.
+//│ ╟── This value is exposed by this exported definition.
 //│ ║  l.+4: 	let finish = partial({answer: 45})
 //│ ╙──      	             ^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.

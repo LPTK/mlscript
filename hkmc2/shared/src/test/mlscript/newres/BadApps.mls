@@ -55,7 +55,7 @@ call(M)
 //│ ╟── Parameter 'x' admits values of unknown shape.
 //│ ║  l.+2: 	fun call(x) = x()
 //│ ║        	         ^
-//│ ╟── 'call' is exposed by this compilation unit.
+//│ ╟── 'call' is exposed by this exported definition.
 //│ ║  l.+2: 	fun call(x) = x()
 //│ ╙──      	^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -77,7 +77,7 @@ instantiate(Plain)
 //│ ╟── Parameter 'cls' admits values of unknown shape.
 //│ ║  l.+2: 	fun instantiate(cls) = cls()
 //│ ║        	                ^^^
-//│ ╟── 'instantiate' is exposed by this compilation unit.
+//│ ╟── 'instantiate' is exposed by this exported definition.
 //│ ║  l.+2: 	fun instantiate(cls) = cls()
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -99,7 +99,7 @@ overapply(Curried(1)(2))
 //│ ╟── Parameter 'instance' admits values of unknown shape.
 //│ ║  l.+2: 	fun overapply(instance) = instance()
 //│ ║        	              ^^^^^^^^
-//│ ╟── 'overapply' is exposed by this compilation unit.
+//│ ╟── 'overapply' is exposed by this exported definition.
 //│ ║  l.+2: 	fun overapply(instance) = instance()
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -121,7 +121,7 @@ overapply(new Plain)
 //│ ╟── Parameter 'instance' admits values of unknown shape.
 //│ ║  l.+2: 	fun overapply(instance) = instance()
 //│ ║        	              ^^^^^^^^
-//│ ╟── 'overapply' is exposed by this compilation unit.
+//│ ╟── 'overapply' is exposed by this exported definition.
 //│ ║  l.+2: 	fun overapply(instance) = instance()
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.

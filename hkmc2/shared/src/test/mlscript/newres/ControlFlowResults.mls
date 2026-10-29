@@ -190,7 +190,7 @@ exposedClosure()({answer: 42})
 //│ ╟── This value is returned here.
 //│ ║  l.+1: 	fun exposedClosure() = return value => value.answer
 //│ ║        	                              ^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── 'exposedClosure' is exposed by this compilation unit.
+//│ ╟── 'exposedClosure' is exposed by this exported definition.
 //│ ║  l.+1: 	fun exposedClosure() = return value => value.answer
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.

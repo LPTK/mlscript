@@ -159,7 +159,7 @@ len()
 //│ ╟── Parameter 's' admits values of unknown shape.
 //│ ║  l.+1: 	fun len(s?) = s.length
 //│ ║        	        ^^
-//│ ╟── 'len' is exposed by this compilation unit.
+//│ ╟── 'len' is exposed by this exported definition.
 //│ ║  l.+1: 	fun len(s?) = s.length
 //│ ╙──      	^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.

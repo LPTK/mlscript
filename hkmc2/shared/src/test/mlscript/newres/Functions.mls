@@ -41,7 +41,7 @@ fun callid0(p) = p.id(1)
 //│ ╟── Parameter 'p' admits values of unknown shape.
 //│ ║  l.+1: 	fun callid0(p) = p.id(1)
 //│ ║        	            ^
-//│ ╟── 'callid0' is exposed by this compilation unit.
+//│ ╟── 'callid0' is exposed by this exported definition.
 //│ ║  l.+1: 	fun callid0(p) = p.id(1)
 //│ ╙──      	^^^^^^^^^^^^^^
 

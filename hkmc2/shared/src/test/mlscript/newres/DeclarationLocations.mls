@@ -291,7 +291,7 @@ fun exposed(f) =
 //│ ╟── Parameter 'f' admits values of unknown shape.
 //│ ║  l.+1: 	fun exposed(f) =
 //│ ║        	            ^
-//│ ╟── 'exposed' is exposed by this compilation unit.
+//│ ╟── 'exposed' is exposed by this exported definition.
 //│ ║  l.+1: 	fun exposed(f) =
 //│ ╙──      	^^^^^^^^^^^^^^
 
@@ -344,7 +344,7 @@ fun invokeAtEachUse(f) =
 //│ ╟── Parameter 'f' admits values of unknown shape.
 //│ ║  l.+1: 	fun invokeAtEachUse(f) =
 //│ ║        	                    ^
-//│ ╟── 'invokeAtEachUse' is exposed by this compilation unit.
+//│ ╟── 'invokeAtEachUse' is exposed by this exported definition.
 //│ ║  l.+1: 	fun invokeAtEachUse(f) =
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Resolution error in application
@@ -354,6 +354,6 @@ fun invokeAtEachUse(f) =
 //│ ╟── Parameter 'f' admits values of unknown shape.
 //│ ║  l.+1: 	fun invokeAtEachUse(f) =
 //│ ║        	                    ^
-//│ ╟── 'invokeAtEachUse' is exposed by this compilation unit.
+//│ ╟── 'invokeAtEachUse' is exposed by this exported definition.
 //│ ║  l.+1: 	fun invokeAtEachUse(f) =
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^

@@ -710,7 +710,7 @@ fun omittedSecond(x: Pair[Int]) = x.value.1.oops
 //│ ╟── Parameter 'x' admits values of unknown shape.
 //│ ║  l.+2: 	fun omittedSecond(x: Pair[Int]) = x.value.1.oops
 //│ ║        	                  ^^^^^^^^^^^^
-//│ ╟── 'omittedSecond' is exposed by this compilation unit.
+//│ ╟── 'omittedSecond' is exposed by this exported definition.
 //│ ║  l.+2: 	fun omittedSecond(x: Pair[Int]) = x.value.1.oops
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -725,6 +725,6 @@ fun omittedAlias(x: HalfPair) = x.value.1.oops
 //│ ╟── Parameter 'x' admits values of unknown shape.
 //│ ║  l.+2: 	fun omittedAlias(x: HalfPair) = x.value.1.oops
 //│ ║        	                 ^^^^^^^^^^^
-//│ ╟── 'omittedAlias' is exposed by this compilation unit.
+//│ ╟── 'omittedAlias' is exposed by this exported definition.
 //│ ║  l.+2: 	fun omittedAlias(x: HalfPair) = x.value.1.oops
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

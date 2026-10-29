@@ -107,7 +107,7 @@ test(bz)
 //│ ╟── Parameter 'x' admits values of unknown shape.
 //│ ║  l.+1: 	fun test(x) =
 //│ ║        	         ^
-//│ ╟── 'test' is exposed by this compilation unit.
+//│ ╟── 'test' is exposed by this exported definition.
 //│ ║  l.+1: 	fun test(x) =
 //│ ╙──      	^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] Error: match error
@@ -183,7 +183,7 @@ val f = case
 //│ ║  l.XX: 	class Foo(val a)
 //│ ║        	              ^
 //│ ╟── Parameter 'caseScrut' admits values of unknown shape.
-//│ ╟── 'f' is exposed by this compilation unit.
+//│ ╟── 'f' is exposed by this exported definition.
 //│ ║  l.+1: 	val f = case
 //│ ╙──      	^^^^^
 //│ f = fun

@@ -249,9 +249,9 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
   def check(exports: Ls[BlockMemberSymbol], values: Ls[(Term, Opt[Loc])]): Unit =
     try
       exports.foreach: symbol =>
-        member(symbol, Nil, ShapeProvenance.empty.via(msg"'${symbol.nme}' is exposed by this compilation unit." -> symbol.headerLoc))
+        member(symbol, Nil, ShapeProvenance.empty.via(msg"'${symbol.nme}' is exposed by this exported definition." -> symbol.headerLoc))
       values.foreach: (value, loc) =>
-        term(value, Nil, ShapeProvenance.empty.via(msg"This value is exposed by this compilation unit." -> loc))
+        term(value, Nil, ShapeProvenance.empty.via(msg"This value is exposed by this exported definition." -> loc))
       // Annotated callbacks can escape even from private code. Delay their
       // exposure until the block is elaborated, so forward definitions and
       // returned closures are available. Processing one root may discover more.

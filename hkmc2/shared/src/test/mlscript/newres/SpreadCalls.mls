@@ -57,7 +57,7 @@ let direct = new Pair(...[Box(53)])(...[Box(54)])
 //│ ╟── Parameter 'x' admits values of unknown shape.
 //│ ║  l.+2: 	fun curried(x)(y) = Pair(x)(y)
 //│ ║        	            ^
-//│ ╟── 'curried' is exposed by this compilation unit.
+//│ ╟── 'curried' is exposed by this exported definition.
 //│ ║  l.+2: 	fun curried(x)(y) = Pair(x)(y)
 //│ ╙──      	^^^^^^^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
@@ -67,7 +67,7 @@ let direct = new Pair(...[Box(53)])(...[Box(54)])
 //│ ╟── Parameter 'y' admits values of unknown shape.
 //│ ║  l.+2: 	fun curried(x)(y) = Pair(x)(y)
 //│ ║        	               ^
-//│ ╟── 'curried' is exposed by this compilation unit.
+//│ ╟── 'curried' is exposed by this exported definition.
 //│ ║  l.+2: 	fun curried(x)(y) = Pair(x)(y)
 //│ ╙──      	^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -248,7 +248,7 @@ invokeUnknown(...opaque([() => 95]))
 //│ ║  in SpreadCalls.mls:+1
 //│ ║  l.+1: 	fun invokeUnknown(f) = f()
 //│ ║        	                  ^
-//│ ╟── 'invokeUnknown' is exposed by this compilation unit.
+//│ ╟── 'invokeUnknown' is exposed by this exported definition.
 //│ ║  l.+1: 	fun invokeUnknown(f) = f()
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -275,7 +275,7 @@ inspectUnknown(...opaque([Box(96)]))
 //│ ║  in SpreadCalls.mls:+1
 //│ ║  l.+1: 	fun inspectUnknown(x) = x.value
 //│ ║        	                   ^
-//│ ╟── 'inspectUnknown' is exposed by this compilation unit.
+//│ ╟── 'inspectUnknown' is exposed by this exported definition.
 //│ ║  l.+1: 	fun inspectUnknown(x) = x.value
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -312,7 +312,7 @@ invokeRest(...opaque([() => 97]), Box(0))
 //│ ║  in SpreadCalls.mls:+1
 //│ ║  l.+1: 	fun invokeRest(f, x, ...tail) = f()
 //│ ║        	               ^
-//│ ╟── 'invokeRest' is exposed by this compilation unit.
+//│ ╟── 'invokeRest' is exposed by this exported definition.
 //│ ║  l.+1: 	fun invokeRest(f, x, ...tail) = f()
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
@@ -354,7 +354,7 @@ invokePublicRest(...callbacks, Box(0))
 //│ ╟── Parameter 'f' admits values of unknown shape.
 //│ ║  l.+1: 	fun invokePublicRest(f, x, ...tail) = f()
 //│ ║        	                     ^
-//│ ╟── 'invokePublicRest' is exposed by this compilation unit.
+//│ ╟── 'invokePublicRest' is exposed by this exported definition.
 //│ ║  l.+1: 	fun invokePublicRest(f, x, ...tail) = f()
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
