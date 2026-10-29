@@ -1,0 +1,310 @@
+:.
+
+// Spreads retain the annotation that hid the operand's interface.
+:e
+private fun spreadAny(xs: Any) = [...xs].0.answer
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+1: 	private fun spreadAny(xs: Any) = [...xs].0.answer
+//│ ║        	                                 ^^^^^^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'answer' of a value with unknown shape.
+//│ ╟── This value is spread here.
+//│ ║  l.+1: 	private fun spreadAny(xs: Any) = [...xs].0.answer
+//│ ║        	                                     ^^
+//│ ╟── The iteration protocol cannot resolve member 'Symbol.iterator' of this value.
+//│ ║  l.+1: 	private fun spreadAny(xs: Any) = [...xs].0.answer
+//│ ║        	                          ^^^
+//│ ╟── Type 'Any' is declared without a member interface.
+//│ ║  in ../../decls/Prelude.mls
+//│ ║  l.XX: 	declare type Any
+//│ ╙──      	             ^^^
+
+:e
+declare type Hidden
+private fun spreadHidden(xs: Hidden) = [...xs].0.answer
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+2: 	private fun spreadHidden(xs: Hidden) = [...xs].0.answer
+//│ ║        	                                       ^^^^^^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'answer' of a value with unknown shape.
+//│ ╟── This value is spread here.
+//│ ║  l.+2: 	private fun spreadHidden(xs: Hidden) = [...xs].0.answer
+//│ ║        	                                           ^^
+//│ ╟── The iteration protocol cannot resolve member 'Symbol.iterator' of this value.
+//│ ║  l.+2: 	private fun spreadHidden(xs: Hidden) = [...xs].0.answer
+//│ ║        	                             ^^^^^^
+//│ ╟── Type 'Hidden' is declared without a member interface.
+//│ ║  l.+1: 	declare type Hidden
+//│ ╙──      	             ^^^^^^
+
+// A record spread needs a field interface, not an iterable element interface.
+:e
+private fun copyAny(xs: Any) =
+  let copied = {answer: 42, ...xs}
+  copied.answer
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+3: 	  copied.answer
+//│ ║        	  ^^^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'answer' across a computed key or unknown record spread.
+//│ ╟── This value is spread into a record here.
+//│ ║  l.+2: 	  let copied = {answer: 42, ...xs}
+//│ ║        	                               ^^
+//│ ╟── The fields copied by this record spread are not known.
+//│ ║  l.+1: 	private fun copyAny(xs: Any) =
+//│ ║        	                        ^^^
+//│ ╟── Type 'Any' is declared without a member interface.
+//│ ║  in ../../decls/Prelude.mls
+//│ ║  l.XX: 	declare type Any
+//│ ╙──      	             ^^^
+
+// Implicit protocol calls keep the particular member and annotation that failed.
+:e
+private fun opaqueIterator(xs: {(Symbol.iterator): Any}) = [...xs].0.answer
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+1: 	private fun opaqueIterator(xs: {(Symbol.iterator): Any}) = [...xs].0.answer
+//│ ║        	                                                           ^^^^^^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'answer' of a value with unknown shape.
+//│ ╟── This value is spread here.
+//│ ║  l.+1: 	private fun opaqueIterator(xs: {(Symbol.iterator): Any}) = [...xs].0.answer
+//│ ║        	                                                               ^^
+//│ ╟── The iteration protocol cannot resolve member 'value' of this value.
+//│ ╟── Value of unknown shape cannot be called like a function.
+//│ ╟── The iteration protocol cannot resolve member 'next' of this value.
+//│ ╟── Value with no known interface cannot be called like a function.
+//│ ║  l.+1: 	private fun opaqueIterator(xs: {(Symbol.iterator): Any}) = [...xs].0.answer
+//│ ║        	                                                   ^^^
+//│ ╟── Type 'Any' is declared without a member interface.
+//│ ║  in ../../decls/Prelude.mls
+//│ ║  l.XX: 	declare type Any
+//│ ╙──      	             ^^^
+
+:e
+private fun opaqueNext(xs: {(Symbol.iterator): () -> ({next: Any})}) = [...xs].0.answer
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+1: 	private fun opaqueNext(xs: {(Symbol.iterator): () -> ({next: Any})}) = [...xs].0.answer
+//│ ║        	                                                                       ^^^^^^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'answer' of a value with unknown shape.
+//│ ╟── This value is spread here.
+//│ ║  l.+1: 	private fun opaqueNext(xs: {(Symbol.iterator): () -> ({next: Any})}) = [...xs].0.answer
+//│ ║        	                                                                           ^^
+//│ ╟── The iteration protocol cannot resolve member 'value' of this value.
+//│ ╟── Value with no known interface cannot be called like a function.
+//│ ║  l.+1: 	private fun opaqueNext(xs: {(Symbol.iterator): () -> ({next: Any})}) = [...xs].0.answer
+//│ ║        	                                                             ^^^
+//│ ╟── Type 'Any' is declared without a member interface.
+//│ ║  in ../../decls/Prelude.mls
+//│ ║  l.XX: 	declare type Any
+//│ ╙──      	             ^^^
+
+:e
+private fun missingValue(xs: {(Symbol.iterator): () -> ({next: () -> ({done: Bool})})}) = [...xs].0.answer
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+1: 	private fun missingValue(xs: {(Symbol.iterator): () -> ({next: () -> ({done: Bool})})}) = [...xs].0.answer
+//│ ║        	                                                                                          ^^^^^^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'answer' of a value with unknown shape.
+//│ ╟── This value is spread here.
+//│ ║  l.+1: 	private fun missingValue(xs: {(Symbol.iterator): () -> ({next: () -> ({done: Bool})})}) = [...xs].0.answer
+//│ ║        	                                                                                              ^^
+//│ ╟── The iteration protocol requires member 'value', which is absent from this value.
+//│ ║  l.+1: 	private fun missingValue(xs: {(Symbol.iterator): () -> ({next: () -> ({done: Bool})})}) = [...xs].0.answer
+//│ ╙──      	                                                                       ^^^^^^^^^^
+
+// Missing member signatures survive further operations on their unknown results.
+:e
+class OriginBox with
+  fun values() = [0]
+  val number = 1
+private fun useMethod(box: OriginBox) = [...box.values()].0.answer
+private fun useField(box: OriginBox) = (box.number + 1).answer
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+4: 	private fun useMethod(box: OriginBox) = [...box.values()].0.answer
+//│ ║        	                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'answer' of a value with unknown shape.
+//│ ╟── This value is spread here.
+//│ ║  l.+4: 	private fun useMethod(box: OriginBox) = [...box.values()].0.answer
+//│ ║        	                                            ^^^^^^^^^^^^
+//│ ╟── The iteration protocol cannot resolve member 'Symbol.iterator' of this value.
+//│ ╟── Member 'values' has no declared result type.
+//│ ║  l.+2: 	  fun values() = [0]
+//│ ║        	  ^^^^^^^^^^^^
+//│ ╙── Only the declared member interface is available here.
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+5: 	private fun useField(box: OriginBox) = (box.number + 1).answer
+//│ ║        	                                       ^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'answer' of a value with unknown shape.
+//│ ╟── The result shape of builtin operator '+' is unknown for some possible inputs.
+//│ ║  l.+5: 	private fun useField(box: OriginBox) = (box.number + 1).answer
+//│ ║        	                                        ^^^^^^^^^^^^^^
+//│ ╟── Operand 1: value of unknown shape.
+//│ ╟── Member 'number' has no declared type.
+//│ ║  l.+3: 	  val number = 1
+//│ ║        	  ^^^^^^^^^^
+//│ ╟── Only the declared member interface is available here.
+//│ ║  l.+5: 	private fun useField(box: OriginBox) = (box.number + 1).answer
+//│ ║        	                          ^^^^^^^^^
+//│ ╟── Operand 2: integer literal.
+//│ ║  l.+5: 	private fun useField(box: OriginBox) = (box.number + 1).answer
+//│ ╙──      	                                                     ^
+
+// Recursive tuple widening explains its deliberate loss of element precision.
+:e
+private fun growing(n: Int) =
+  if n == 0 then [{answer: 0}] else [{answer: 1}, ...growing(n - 1)]
+growing(2).at(1).answer
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+3: 	growing(2).at(1).answer
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'answer' of a value with unknown shape.
+//│ ╟── The element shapes of this recursive spread are not tracked.
+//│ ║  l.+2: 	  if n == 0 then [{answer: 0}] else [{answer: 1}, ...growing(n - 1)]
+//│ ╙──      	                                                     ^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// Synthesized Any payloads retain their own generator's source, even in one block.
+:e
+@annotations.generator
+private fun numbers() = yield 1
+@annotations.generator
+private fun records() = yield {answer: 42}
+[numbers().next().value.answer, records().next().value.answer]
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+5: 	[numbers().next().value.answer, records().next().value.answer]
+//│ ║        	 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'answer' of a value with unknown shape.
+//│ ╟── The yielded and final value types of this generator are not tracked.
+//│ ║  l.+1: 	@annotations.generator
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+5: 	[numbers().next().value.answer, records().next().value.answer]
+//│ ║        	                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'answer' of a value with unknown shape.
+//│ ╟── The yielded and final value types of this generator are not tracked.
+//│ ║  l.+3: 	@annotations.generator
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// Both ordinary and by-name async members locate the missing payload annotation.
+:e
+class Tasks with
+  @annotations.async
+  fun fetch() = {answer: 42}
+  @annotations.async
+  fun cached = {answer: 43}
+private fun useFetch(x: Tasks) = x.fetch().then(y => y.answer)
+private fun useCached(x: Tasks) = x.cached.then(y => y.answer)
+@annotations.async
+private fun fetchAgain(x: Tasks) = x.fetch()
+@annotations.async
+private fun cachedAgain(x: Tasks) = x.cached
+private fun useFetchAgain(x: Tasks) = fetchAgain(x).then(y => y.answer)
+private fun useCachedAgain(x: Tasks) = cachedAgain(x).then(y => y.answer)
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+6: 	private fun useFetch(x: Tasks) = x.fetch().then(y => y.answer)
+//│ ║        	                                                     ^^^^^^^^
+//│ ╟── Cannot resolve member 'answer' of a value with unknown shape.
+//│ ╟── Member 'fetch' has no declared result type.
+//│ ║  l.+3: 	  fun fetch() = {answer: 42}
+//│ ║        	  ^^^^^^^^^^^
+//│ ╙── Only the declared member interface is available here.
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+7: 	private fun useCached(x: Tasks) = x.cached.then(y => y.answer)
+//│ ║        	                                                     ^^^^^^^^
+//│ ╟── Cannot resolve member 'answer' of a value with unknown shape.
+//│ ╟── Member 'cached' has no declared result type.
+//│ ║  l.+5: 	  fun cached = {answer: 43}
+//│ ║        	  ^^^^^^^^^^
+//│ ╟── Only the declared member interface is available here.
+//│ ║  l.+7: 	private fun useCached(x: Tasks) = x.cached.then(y => y.answer)
+//│ ╙──      	                         ^^^^^
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+12: 	private fun useFetchAgain(x: Tasks) = fetchAgain(x).then(y => y.answer)
+//│ ║         	                                                              ^^^^^^^^
+//│ ╟── Cannot resolve member 'answer' of a value with unknown shape.
+//│ ╟── Member 'fetch' has no declared result type.
+//│ ║  l.+3: 	  fun fetch() = {answer: 42}
+//│ ║        	  ^^^^^^^^^^^
+//│ ╙── Only the declared member interface is available here.
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+13: 	private fun useCachedAgain(x: Tasks) = cachedAgain(x).then(y => y.answer)
+//│ ║         	                                                                ^^^^^^^^
+//│ ╟── Cannot resolve member 'answer' of a value with unknown shape.
+//│ ╟── Member 'cached' has no declared result type.
+//│ ║  l.+5: 	  fun cached = {answer: 43}
+//│ ║        	  ^^^^^^^^^^
+//│ ╟── Only the declared member interface is available here.
+//│ ║  l.+11: 	private fun cachedAgain(x: Tasks) = x.cached
+//│ ╙──       	                           ^^^^^
+
+// Builtins retain the operand's origin through another builtin result.
+:e
+private fun arithmetic(x: Any) = (-(x + 1)).answer
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+1: 	private fun arithmetic(x: Any) = (-(x + 1)).answer
+//│ ║        	                                 ^^^^^^^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'answer' of a value with unknown shape.
+//│ ╟── The result shape of builtin operator '-' is unknown for some possible inputs.
+//│ ║  l.+1: 	private fun arithmetic(x: Any) = (-(x + 1)).answer
+//│ ║        	                                  ^^^^^^^^
+//│ ╟── Operand 1: value of unknown shape.
+//│ ╟── The result shape of builtin operator '+' is unknown for some possible inputs.
+//│ ║  l.+1: 	private fun arithmetic(x: Any) = (-(x + 1)).answer
+//│ ║        	                                    ^^^^^
+//│ ╟── Operand 1: value with no known interface.
+//│ ║  l.+1: 	private fun arithmetic(x: Any) = (-(x + 1)).answer
+//│ ║        	                          ^^^
+//│ ╟── Type 'Any' is declared without a member interface.
+//│ ║  in ../../decls/Prelude.mls
+//│ ║  l.XX: 	declare type Any
+//│ ║        	             ^^^
+//│ ╟── Operand 2: integer literal.
+//│ ║  in UnknownOrigins.mls:+1
+//│ ║  l.+1: 	private fun arithmetic(x: Any) = (-(x + 1)).answer
+//│ ╙──      	                                        ^
+
+// Unsupported known operands also identify the type that defeated approximation.
+:e
+private fun unsupported(x: Bool) = (x * 1).answer
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+1: 	private fun unsupported(x: Bool) = (x * 1).answer
+//│ ║        	                                   ^^^^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'answer' of a value with unknown shape.
+//│ ╟── The result shape of builtin operator '*' is unknown for some possible inputs.
+//│ ║  l.+1: 	private fun unsupported(x: Bool) = (x * 1).answer
+//│ ║        	                                    ^^^^^
+//│ ╟── Operand 1: value of type 'Bool'.
+//│ ║  l.+1: 	private fun unsupported(x: Bool) = (x * 1).answer
+//│ ║        	                           ^^^^
+//│ ╟── Operand 2: integer literal.
+//│ ║  l.+1: 	private fun unsupported(x: Bool) = (x * 1).answer
+//│ ╙──      	                                        ^
+
+// Recursive builtin flow reaches a fixed point without extending its witness on every pass.
+:e
+private fun increment(x, n: Int) =
+  if n == 0 then x else increment(x + 1, n - 1)
+private fun recursiveBuiltin(x: Any) = increment(x, 2).answer
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+3: 	private fun recursiveBuiltin(x: Any) = increment(x, 2).answer
+//│ ║        	                                       ^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Problem 1:
+//│ ╟── Cannot resolve member 'answer' of a value with unknown shape.
+//│ ╟── The result shape of builtin operator '+' is unknown for some possible inputs.
+//│ ║  l.+2: 	  if n == 0 then x else increment(x + 1, n - 1)
+//│ ║        	                                  ^^^^^
+//│ ╟── Operand 1: value with no known interface.
+//│ ║  l.+3: 	private fun recursiveBuiltin(x: Any) = increment(x, 2).answer
+//│ ║        	                                ^^^
+//│ ╟── Type 'Any' is declared without a member interface.
+//│ ║  in ../../decls/Prelude.mls
+//│ ║  l.XX: 	declare type Any
+//│ ║        	             ^^^
+//│ ╟── Operand 2: integer literal.
+//│ ║  in UnknownOrigins.mls:+1
+//│ ║  l.+2: 	  if n == 0 then x else increment(x + 1, n - 1)
+//│ ║        	                                      ^
+//│ ╟── Problem 2:
+//│ ╟── Cannot resolve member 'answer' of a value with unknown shape.
+//│ ║  l.+3: 	private fun recursiveBuiltin(x: Any) = increment(x, 2).answer
+//│ ║        	                                ^^^
+//│ ╟── Type 'Any' is declared without a member interface.
+//│ ║  in ../../decls/Prelude.mls
+//│ ║  l.XX: 	declare type Any
+//│ ╙──      	             ^^^

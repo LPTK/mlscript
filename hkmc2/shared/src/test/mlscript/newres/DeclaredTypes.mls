@@ -108,9 +108,10 @@ read(new Box)
 //│ ║  l.+5: 	fun read(box: Box) = box.item().extra
 //│ ║        	                     ^^^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'extra' of a value with unknown shape.
-//│ ╟── The shape of this value is unknown.
-//│ ║  l.+5: 	fun read(box: Box) = box.item().extra
-//│ ╙──      	                     ^^^^^^^^
+//│ ╟── Member 'item' has no declared result type.
+//│ ║  l.+4: 	  fun item() = new Item
+//│ ║        	  ^^^^^^^^^^
+//│ ╙── Only the declared member interface is available here.
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 //│ ═══[RUNTIME ERROR] Expected: '42', got: 'undefined'
 
@@ -402,9 +403,12 @@ class Box with
 //│ ║  l.+5: 	(new Box as Box).Box#item.extra
 //│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'extra' of a value with unknown shape.
-//│ ╟── The shape of this value is unknown.
+//│ ╟── Member 'item' has no declared type.
+//│ ║  l.+4: 	  val item = new Item
+//│ ║        	  ^^^^^^^^
+//│ ╟── Only the declared member interface is available here.
 //│ ║  l.+5: 	(new Box as Box).Box#item.extra
-//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╙──      	            ^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 //│ ═══[RUNTIME ERROR] Expected: '42', got: 'undefined'
 
@@ -422,9 +426,12 @@ hidden(Types)
 //│ ║  l.+6: 	fun hidden(module types: Types) = types.Item.extra
 //│ ║        	                                  ^^^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'extra' of a value with unknown shape.
-//│ ╟── The shape of this value is unknown.
+//│ ╟── Member 'Item' has no declared type.
+//│ ║  l.+5: 	  val Item = new Secret
+//│ ║        	  ^^^^^^^^
+//│ ╟── Only the declared member interface is available here.
 //│ ║  l.+6: 	fun hidden(module types: Types) = types.Item.extra
-//│ ╙──      	                                  ^^^^^^^^^^
+//│ ╙──      	                         ^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 //│ ═══[RUNTIME ERROR] Expected: '42', got: 'undefined'
 

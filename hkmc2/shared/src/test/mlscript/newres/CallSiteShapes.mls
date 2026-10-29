@@ -42,16 +42,18 @@ apply(id, new A).get() + apply(id, new B).get()
 //│ ║  l.+4: 	apply(id, new A).get() + apply(id, new B).get()
 //│ ║        	^^^^^^^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'get' of a value with unknown shape.
-//│ ╟── The shape of this value is unknown.
-//│ ║  l.+3: 	val apply = Id::apply
-//│ ╙──      	              ^^^^^^^
+//│ ╟── Member 'apply' has no declared result type.
+//│ ║  l.+1: 	class Id { fun apply(value) = value }
+//│ ║        	           ^^^^^^^^^^^^^^^^
+//│ ╙── Only the declared member interface is available here.
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.+4: 	apply(id, new A).get() + apply(id, new B).get()
 //│ ║        	                         ^^^^^^^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'get' of a value with unknown shape.
-//│ ╟── The shape of this value is unknown.
-//│ ║  l.+3: 	val apply = Id::apply
-//│ ╙──      	              ^^^^^^^
+//│ ╟── Member 'apply' has no declared result type.
+//│ ║  l.+1: 	class Id { fun apply(value) = value }
+//│ ║        	           ^^^^^^^^^^^^^^^^
+//│ ╙── Only the declared member interface is available here.
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 //│ ═══[RUNTIME ERROR] Expected: '40', got: 'undefined'
 //│ apply = fun

@@ -128,9 +128,10 @@ read(new Child)
 //│ ║  l.+7: 	private fun read(x: Base) = x.item().value
 //│ ║        	                            ^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'value' of a value with unknown shape.
-//│ ╟── The shape of this value is unknown.
-//│ ║  l.+7: 	private fun read(x: Base) = x.item().value
-//│ ╙──      	                            ^^^^^^
+//│ ╟── Member 'item' has no declared result type.
+//│ ║  l.+4: 	  open fun item() = Item(1)
+//│ ║        	  ^^^^^^^^^^^^^^^
+//│ ╙── Only the declared member interface is available here.
 //│ ╔══[COMPILATION ERROR] Overriding member 'item' produces values represented as 'Other', which the member it overrides cannot produce: its results are represented as 'Item'
 //│ ║  l.+6: 	  override fun item() = Other(2)
 //│ ║        	               ^^^^

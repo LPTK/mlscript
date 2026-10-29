@@ -56,9 +56,9 @@ c.a
 //│ ║  l.+1: 	c.a
 //│ ║        	^^^
 //│ ╟── Cannot resolve member 'a' of a value with unknown shape.
-//│ ╟── The shape of this value is unknown.
-//│ ║  l.XX: 	let c = b(100)
-//│ ╙──      	        ^^^^^^
+//│ ╟── Instance of class 'Bar' cannot receive more argument lists.
+//│ ║  l.XX: 	let b = Bar(123)(1234)
+//│ ╙──      	        ^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 :ge
@@ -74,9 +74,9 @@ Bar(123)(1234)(100).a
 //│ ║  l.+1: 	Bar(123)(1234)(100).a
 //│ ║        	^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'a' of a value with unknown shape.
-//│ ╟── The shape of this value is unknown.
+//│ ╟── Instance of class 'Bar' cannot receive more argument lists.
 //│ ║  l.+1: 	Bar(123)(1234)(100).a
-//│ ╙──      	^^^^^^^^^^^^^^^^^^^
+//│ ╙──      	^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 :ge
@@ -86,16 +86,16 @@ Bar(123)(1234)(100).a
 //│ ║  l.+1: 	[c.x, c.y]
 //│ ║        	 ^^^
 //│ ╟── Cannot resolve member 'x' of a value with unknown shape.
-//│ ╟── The shape of this value is unknown.
-//│ ║  l.XX: 	let c = b(100)
-//│ ╙──      	        ^^^^^^
+//│ ╟── Instance of class 'Bar' cannot receive more argument lists.
+//│ ║  l.XX: 	let b = Bar(123)(1234)
+//│ ╙──      	        ^^^^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.+1: 	[c.x, c.y]
 //│ ║        	      ^^^
 //│ ╟── Cannot resolve member 'y' of a value with unknown shape.
-//│ ╟── The shape of this value is unknown.
-//│ ║  l.XX: 	let c = b(100)
-//│ ╙──      	        ^^^^^^
+//│ ╟── Instance of class 'Bar' cannot receive more argument lists.
+//│ ║  l.XX: 	let b = Bar(123)(1234)
+//│ ╙──      	        ^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 let b0 = Bar
@@ -140,9 +140,9 @@ c.a
 //│ ║  l.+1: 	c.a
 //│ ║        	^^^
 //│ ╟── Cannot resolve member 'a' of a value with unknown shape.
-//│ ╟── The shape of this value is unknown.
-//│ ║  l.XX: 	let c = b(100)
-//│ ╙──      	        ^^^^^^
+//│ ╟── Instance of class 'Bar' cannot receive more argument lists.
+//│ ║  l.XX: 	let b = b1(1234)
+//│ ╙──      	        ^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 :ge
@@ -152,16 +152,16 @@ c.a
 //│ ║  l.+1: 	[c.x, c.y]
 //│ ║        	 ^^^
 //│ ╟── Cannot resolve member 'x' of a value with unknown shape.
-//│ ╟── The shape of this value is unknown.
-//│ ║  l.XX: 	let c = b(100)
-//│ ╙──      	        ^^^^^^
+//│ ╟── Instance of class 'Bar' cannot receive more argument lists.
+//│ ║  l.XX: 	let b = b1(1234)
+//│ ╙──      	        ^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.+1: 	[c.x, c.y]
 //│ ║        	      ^^^
 //│ ╟── Cannot resolve member 'y' of a value with unknown shape.
-//│ ╟── The shape of this value is unknown.
-//│ ║  l.XX: 	let c = b(100)
-//│ ╙──      	        ^^^^^^
+//│ ╟── Instance of class 'Bar' cannot receive more argument lists.
+//│ ║  l.XX: 	let b = b1(1234)
+//│ ╙──      	        ^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
@@ -190,14 +190,14 @@ let c = b(100)
 //│ ║  l.+1: 	[c.x, c.y]
 //│ ║        	 ^^^
 //│ ╟── Cannot resolve member 'x' of a value with unknown shape.
-//│ ╟── The shape of this value is unknown.
-//│ ║  l.XX: 	let c = b(100)
-//│ ╙──      	        ^^^^^^
+//│ ╟── Instance of class 'Baz' cannot receive more argument lists.
+//│ ║  l.XX: 	let b = Baz(123)(1234)
+//│ ╙──      	        ^^^^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.+1: 	[c.x, c.y]
 //│ ║        	      ^^^
 //│ ╟── Cannot resolve member 'y' of a value with unknown shape.
-//│ ╟── The shape of this value is unknown.
-//│ ║  l.XX: 	let c = b(100)
-//│ ╙──      	        ^^^^^^
+//│ ╟── Instance of class 'Baz' cannot receive more argument lists.
+//│ ║  l.XX: 	let b = Baz(123)(1234)
+//│ ╙──      	        ^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.

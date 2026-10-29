@@ -95,9 +95,10 @@ apply(identity, new Answer).get()
 //│ ║  l.+5: 	apply(identity, new Answer).get()
 //│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'get' of a value with unknown shape.
-//│ ╟── The shape of this value is unknown.
-//│ ║  l.+4: 	val apply = Identity::apply
-//│ ╙──      	                    ^^^^^^^
+//│ ╟── Member 'apply' has no declared result type.
+//│ ║  l.+1: 	class Identity { fun apply(x) = x }
+//│ ║        	                 ^^^^^^^^^^^^
+//│ ╙── Only the declared member interface is available here.
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 //│ ═══[RUNTIME ERROR] Expected: '17', got: 'undefined'
 //│ apply = fun

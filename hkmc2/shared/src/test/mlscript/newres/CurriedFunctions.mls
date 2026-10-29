@@ -26,6 +26,17 @@ f(3)
 //│ ╟── The result shape of builtin operator '+' is unknown for some possible inputs.
 //│ ║  l.XX: 	  x + y
 //│ ║        	  ^^^^^
+//│ ╟── Operand 1: value of unknown shape.
+//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ║  l.XX: 	fun foo(x)(y) =
+//│ ║        	        ^
+//│ ╟── 'foo' is exposed by this compilation unit.
+//│ ║  l.XX: 	fun foo(x)(y) =
+//│ ║        	^^^^^^^^^^^^^
+//│ ╟── Operand 2: value of unknown shape.
+//│ ╟── Parameter 'y' admits values of unknown shape.
+//│ ║  l.XX: 	fun foo(x)(y) =
+//│ ║        	           ^
 //│ ╟── Problem 2:
 //│ ╟── Value of type 'Int' cannot be called like a function.
 //│ ║  l.XX: 	  x + y
@@ -56,6 +67,17 @@ g(3)
 //│ ╟── The result shape of builtin operator '+' is unknown for some possible inputs.
 //│ ║  l.XX: 	  x + y
 //│ ║        	  ^^^^^
+//│ ╟── Operand 1: value of unknown shape.
+//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ║  l.XX: 	fun foo(x)(y) =
+//│ ║        	        ^
+//│ ╟── 'foo' is exposed by this compilation unit.
+//│ ║  l.XX: 	fun foo(x)(y) =
+//│ ║        	^^^^^^^^^^^^^
+//│ ╟── Operand 2: value of unknown shape.
+//│ ╟── Parameter 'y' admits values of unknown shape.
+//│ ║  l.XX: 	fun foo(x)(y) =
+//│ ║        	           ^
 //│ ╟── Problem 2:
 //│ ╟── Value of type 'Int' cannot be called like a function.
 //│ ║  l.XX: 	  x + y
@@ -96,7 +118,18 @@ fun callSum(x)(y) = (x + y)()
 //│ ╟── Value of unknown shape cannot be called like a function.
 //│ ╟── The result shape of builtin operator '+' is unknown for some possible inputs.
 //│ ║  l.+1: 	fun callSum(x)(y) = (x + y)()
-//│ ╙──      	                     ^^^^^
+//│ ║        	                     ^^^^^
+//│ ╟── Operand 1: value of unknown shape.
+//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ║  l.+1: 	fun callSum(x)(y) = (x + y)()
+//│ ║        	            ^
+//│ ╟── 'callSum' is exposed by this compilation unit.
+//│ ║  l.+1: 	fun callSum(x)(y) = (x + y)()
+//│ ║        	^^^^^^^^^^^^^^^^^
+//│ ╟── Operand 2: value of unknown shape.
+//│ ╟── Parameter 'y' admits values of unknown shape.
+//│ ║  l.+1: 	fun callSum(x)(y) = (x + y)()
+//│ ╙──      	               ^
 
 
 let f = x => y => x + y

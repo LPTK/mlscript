@@ -861,6 +861,9 @@ final case class CallableTypeShape(source: Term, paramLists: NELs[DeclaredParams
 enum TypeInterfaceReason:
   case MissingOutput(source: Term)
   case MissingFieldOutput(source: Term)
+  case MissingResult(source: Term)
+  case MissingMemberType(declaration: TermDefinition, annotation: Opt[Term])
+  case GeneratorElement(annotation: Annot.Generator)
   case ContravariantParameter(parameter: TyParam, source: Term)
   case Unrestricted(source: Term)
   case AbstractDeclaration(symbol: TypeAliasSymbol, source: Term)
@@ -875,6 +878,14 @@ enum TypeInterfaceReason:
     val result = ShapeProvenance(this match
       case MissingOutput(source) => missingOutput(source, "type argument")
       case MissingFieldOutput(source) => missingOutput(source, "field")
+      case MissingResult(source) =>
+        msg"This function signature does not declare a result type." -> source.toLoc :: Nil
+      case MissingMemberType(declaration, annotation) =>
+        val subject = if declaration.k is syntax.Fun then "result type" else "type"
+        (msg"Member '${declaration.bsym.nme}' has no declared $subject." -> declaration.headerLoc) ::
+          (msg"Only the declared member interface is available here." -> annotation.flatMap(_.toLoc)) :: Nil
+      case GeneratorElement(annotation) =>
+        msg"The yielded and final value types of this generator are not tracked." -> annotation.toLoc :: Nil
       case ContravariantParameter(parameter, source) =>
         (msg"This type argument supplies only an input bound for '${parameter.sym.nme}'." -> source.toLoc) ::
           (msg"Type parameter '${parameter.sym.nme}' is declared contravariant here." -> parameter.sym.toLoc) ::
@@ -1131,11 +1142,13 @@ final class RigidTypeShape(val parameter: VarSymbol, val source: Term) extends C
 object UnknownValueShape:
   def at(source: Term): UnknownValueShape =
     UnknownValueShape(source, fromPublicInterface = false)(ShapeProvenance(msg"The shape of this value is unknown." -> source.toLoc :: Nil))
-  def spread(source: Term, value: TermShape): UnknownValueShape =
-    val origin = value.applicationHead._1 match
-      case unknown: UnknownValueShape => unknown
-      case _ => UnknownValueShape(source, fromPublicInterface = false)(ShapeProvenance.empty)
-    UnknownValueShape(source, origin.fromPublicInterface)(origin.provenance.via(msg"This spread has no known element shape." -> source.toLoc))
+  /** The spread keeps its receiver's exposure obligation. Its diagnostic witness
+    * describes the failed protocol step or record interface, without changing that key. */
+  def spread(source: Term, value: TermShape, provenance: ShapeProvenance): UnknownValueShape =
+    val exposed = value.applicationHead._1 match
+      case unknown: UnknownValueShape => unknown.fromPublicInterface
+      case _ => false
+    UnknownValueShape(source, exposed)(provenance)
 
 object TupleShape:
   /** Tuple candidates are compared by identity (see ShapeIdentity), so each
@@ -1165,7 +1178,7 @@ object TupleShape:
     def withMarks(outer: Ls[Marks]): Fixed = this match
       case Field(field, inner) => Field(field, inner ::: outer)
       case TypedField(tpe, inner) => TypedField(tpe, inner ::: outer)
-      case UnknownField(source, inner) => UnknownField(source, inner ::: outer)
+      case field @ UnknownField(source, inner) => UnknownField(source, inner ::: outer)(field.provenance)
       case ValueField(value, inner) => ValueField(value, inner ::: outer)
       case ViewedField(source, instances, inner) => ViewedField(source, instances, inner ::: outer)
     def instantiate(instances: TypeSubstitution): Fixed =
@@ -1192,9 +1205,10 @@ object TupleShape:
     protected def sameValue(other: ValueKey): Bool = other match
       case that: TypedField => tpe == that.tpe && marks == that.marks
       case _ => false
-  // Mutable tuple slots retain their positions, but their initializer cannot
-  // supply the shape of later reads (including reads through a spread copy).
-  final case class UnknownField(source: Term, marks: Ls[Marks]) extends Fixed:
+  // Missing callback annotations and recursive spread widening both introduce
+  // unknown elements. Retain the reason across slicing and scope transfers,
+  // but do not distinguish inference candidates by their diagnostic witnesses.
+  final case class UnknownField(source: Term, marks: Ls[Marks])(val provenance: ShapeProvenance) extends Fixed:
     protected val valueHash: Int = ValueKey.hash(ValueKey.tag(this), source.hashCode, marks.hashCode)
     protected def sameValue(other: ValueKey): Bool = other match
       case that: UnknownField => source == that.source && marks == that.marks
@@ -1214,8 +1228,8 @@ object TupleShape:
     protected def sameValue(other: ValueKey): Bool = other match
       case that: Spread => shape == that.shape && marks == that.marks
       case _ => false
-  def unknown(source: Term)(resolver: NewResolver)(using ResolutionContext): TupleShape =
-    TupleShape(source, Unknown(source, UnknownField(source, Nil)) :: Nil)(resolver)
+  def unknown(source: Term, provenance: ShapeProvenance)(resolver: NewResolver)(using ResolutionContext): TupleShape =
+    TupleShape(source, Unknown(source, UnknownField(source, Nil)(provenance)) :: Nil)(resolver)
   /** Retain the original candidate as well as the selected residual segments:
     * flattening away the parent would hide recursive producer dependencies from
     * containsSpread, allowing recursion through rest slicing to evade widening. */

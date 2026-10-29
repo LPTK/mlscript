@@ -266,7 +266,7 @@ recursiveRecord(2).answer
 //│ ║  l.+4: 	recursiveRecord(2).answer
 //│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'answer' across a computed key or unknown record spread.
-//│ ╟── This spread has no known element shape.
+//│ ╟── The fields of this recursive record spread are not tracked.
 //│ ║  l.+3: 	  else {...recursiveRecord(n - 1)}
 //│ ╙──      	           ^^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.

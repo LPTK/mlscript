@@ -1714,7 +1714,8 @@ class NewResolver:
     val provenance = ShapeProvenance(
       msg"This generator annotation makes calls return an iterator instead of the body's result." -> N :: Nil)
       .withTypeOrigin(annotation)
-    NominalInstanceView(cls, Map(cls.tparams.head.sym -> extremeType(true)), implicitParent(cls))(N, provenance)(this)
+    val element = extremeType(true).withOrigin(S(TypeInterfaceReason.GeneratorElement(annotation)))
+    NominalInstanceView(cls, Map(cls.tparams.head.sym -> element), implicitParent(cls))(N, provenance)(this)
 
   /** The object that replaces a function's result once all its written parameter lists are applied. */
   private def wrapperShape(annotation: Annot.Async | Annot.Generator, payload: DeclaredType)
@@ -1730,10 +1731,17 @@ class NewResolver:
     val symbol = prelude.builtins.Awaited match
       case symbol: TypeAliasSymbol => symbol
       case _ => lastWords("The builtin Awaited must be an abstract type alias")
-    appliedType(symbol, new ::(tpe, Nil))
+    // The synthesized projection is shared by semantic type. Its opaque result
+    // must explain this payload's origin, not the first payload that cached Awaited[Any].
+    appliedType(symbol, new ::(tpe, Nil)).withOrigin(tpe.origin)
 
   private def listenAwaitedValue(value: TermShape, source: Term)(listener: Listener)(using ResolutionContext): Unit =
-    listenInstanceViews(value)(view => listenAwaitedView(view, source)(listener))
+    listenInstanceViews(value): view =>
+      view.applicationHead._1 match
+        // Awaiting an opaque value is an identity operation. Forward this
+        // observation, rather than replaying another origin from the shared cache.
+        case _: (DynShape | UnknownValueShape | OpaqueTypeShape | RigidTypeShape) => listener(view)
+        case _ => listenAwaitedView(view, source)(listener)
 
   private def listenAwaitedView(value: TermShape, source: Term)(listener: Listener)(using ResolutionContext): Unit =
     // Intern before following nested promises, so recursive fulfillment edges
@@ -1750,16 +1758,14 @@ class NewResolver:
         rctx.state.awaitedValues(key) = result
         def publish(value: TermShape)(using ResolutionContext): Unit = resolution.publish(TypeShape.Inferred(value))
         if !listenPromisePayload(value)(payload => listenAwaitedValue(payload, source)(publish)) then
-          value.applicationHead._1 match
-            case _: (DynShape | UnknownValueShape | OpaqueTypeShape | RigidTypeShape) => publish(value)
-            // JavaScript may adopt a structural thenable instead of returning
-            // the object itself. Until its callback interface can be inferred,
-            // preserve uncertainty rather than exposing the object's fields.
-            // Awaiting a value only calls its public `then` method.
-            case _ => value.getMember("then").visibleFrom(_ => false, reportInaccessible = false) match
-              case MemberLookup.Missing => publish(value)
-              case _ => publish(UnknownValueShape(source, fromPublicInterface = false)(ShapeProvenance(
-                msg"This value may be a thenable; its fulfillment interface is not known." -> value.toLoc :: Nil)))
+          // JavaScript may adopt a structural thenable instead of returning
+          // the object itself. Until its callback interface can be inferred,
+          // preserve uncertainty rather than exposing the object's fields.
+          // Awaiting a value only calls its public `then` method.
+          value.getMember("then").visibleFrom(_ => false, reportInaccessible = false) match
+            case MemberLookup.Missing => publish(value)
+            case _ => publish(UnknownValueShape(source, fromPublicInterface = false)(ShapeProvenance(
+              msg"This value may be a thenable; its fulfillment interface is not known." -> value.toLoc :: Nil)))
         result
     listenTypeViews(tpe)(listener)
 
@@ -1786,12 +1792,14 @@ class NewResolver:
     * the async or generator wrapper pending, even across the nested arrows of a full signature.
     */
   private[semantics] def listenCallableResult(callable: CallableTypeShape)(listener: Listener)(using ResolutionContext): Unit =
+    def missingResult = callable.declaration.fold[TypeInterfaceReason](TypeInterfaceReason.MissingResult(callable.source))(
+      TypeInterfaceReason.MissingMemberType(_, N))
     callable.wrappedResult match
       case S(WrappedResult(annotation, 1)) =>
         softAssert(callable.paramLists.tail.isEmpty)
         // A nominal member without a result annotation still returns its wrapper,
         // but its interface must not recover a payload type from the hidden body.
-        listener(wrapperShape(annotation, callable.result.getOrElse(extremeType(true))))
+        listener(wrapperShape(annotation, callable.result.getOrElse(extremeType(true).withOrigin(S(missingResult)))))
       case pending =>
         val remaining = pending.map(info => WrappedResult(info.annotation, info.remainingLists - 1))
         callable.paramLists.tail match
@@ -1801,7 +1809,7 @@ class NewResolver:
               case Marked(next: CallableTypeShape, marks) => listener(Marked(next.copy(wrappedResult = remaining), marks))
               case other => listener(other)
             case S(tpe) => listenTypeInstances(tpe)(listener)
-            case N => listener(UnknownValueShape.at(callable.source))
+            case N => listener(UnknownValueShape(callable.source, fromPublicInterface = false)(missingResult.provenance))
 
   /** Retain a scope transfer on the reference, including deferred fields and
     * both argument parts. Flatten existing transfers before interning, so a
@@ -1906,7 +1914,8 @@ class NewResolver:
               ,
               result, N, N, S(td), N))
             case Nil if td.asyncAnnotation.nonEmpty =>
-              publish(promiseShape(td.asyncAnnotation.get, result.getOrElse(extremeType(true))))
+              publish(promiseShape(td.asyncAnnotation.get, result.getOrElse(
+                extremeType(true).withOrigin(S(TypeInterfaceReason.MissingMemberType(td, annotation))))))
             case Nil => result match
               case S(tpe) => listenTypeInstances(tpe)(publish)
               case N =>
@@ -1917,7 +1926,8 @@ class NewResolver:
                     (msg"Constructor parameter '${param.sym.nme}' has no type annotation." -> param.toLoc) ::
                     annotation.toList.map(sign =>
                       msg"This type annotation does not provide a type for field '${member.nme}'." -> sign.toLoc)))
-                  case _ => UnknownValueShape.at(source)
+                  case _ => UnknownValueShape(source, fromPublicInterface = false)(
+                    TypeInterfaceReason.MissingMemberType(td, annotation).provenance)
                 publish(unknown)
         case _ =>
           // A nested nominal declaration denotes its statically selected symbol;
@@ -2219,7 +2229,7 @@ class NewResolver:
         case _ =>
           // A structural interface only describes public members.
           val lookup = actual.getMember(field.key.get).visibleFrom(_ => false, reportInaccessible = false)
-          listenMemberValue(lookup, flow, field.rhs, TypeSubstitution.empty, () => ())(receive)
+          listenMemberValue(lookup, flow, field.rhs, TypeSubstitution.empty, _ => ())(receive)
           if mutable then
             assignableTargets(lookup): (target, inner) =>
               listenTypeInstances(expected.input)(writeField(target, _, inner))
@@ -2231,7 +2241,7 @@ class NewResolver:
     * a missing/opaque member contributes uncertainty or no new constraint.
     */
   private def listenMemberValue(info: MemberLookup, flow: FlowSymbol, source: Term,
-      instances: TypeSubstitution, unresolved: () => ResolutionContext ?=> Unit)(receive: Listener)
+      instances: TypeSubstitution, unresolved: MemberLookup => ResolutionContext ?=> Unit)(receive: Listener)
       (using ResolutionContext): Unit = info match
     case MemberLookup.All(members) => members.foreach(listenMemberValue(_, flow, source, instances, unresolved)(receive))
     case MemberLookup.Contextual(nested, substitution) => listenMemberValue(nested, flow, source, instances.withOverrides(substitution), unresolved)(receive)
@@ -2258,7 +2268,7 @@ class NewResolver:
         transportShape(instantiateShape(value, instances), inner) match
           case value: TermShape => receive(value)
           case NoShape => ()
-    case _ => unresolved()
+    case _ => unresolved(info)
 
   /** Function constraints reverse the parameter flow and preserve result flow.
     * Read an implementation only while checking it against its declared interface;
@@ -2443,10 +2453,11 @@ class NewResolver:
     */
   private def zipCallbackArguments(mss: Ls[Marks], arity: Arity, declared: DeclaredParams, source: Term, marks: Marks)(
       publish: (Int, TermShape | NoShape) => ResolutionContext ?=> Unit)(using ResolutionContext): Unit =
-    def fields(params: Ls[DeclaredParam]): Ls[TupleShape.Fixed] = params.map: param =>
+    def fields(params: Ls[DeclaredParam]): Ls[TupleShape.Fixed] = params.zipWithIndex.map: (param, index) =>
       param.tpe match
         case S(tpe) => TupleShape.TypedField(tpe, Nil)
-        case N => TupleShape.UnknownField(source, Nil)
+        case N => TupleShape.UnknownField(source, Nil)(ShapeProvenance(
+          msg"Parameter ${index + 1} of this function has no declared type." -> source.toLoc :: Nil))
     if !declared.hasRest && declared.leadingRequired == declared.params.length && arity.required <= declared.params.length then
       zipTupleShapes(mss, arity, TupleShape(source, fields(declared.params))(this), marks)(publish)
     else
@@ -2675,7 +2686,8 @@ class NewResolver:
     field match
       case TupleShape.Field(field, _) => listenTerm(field.term)(receive)
       case TupleShape.TypedField(tpe, _) => listenTypeInstances(tpe)(receive)
-      case TupleShape.UnknownField(source, _) => receive(UnknownValueShape.at(source))
+      case field @ TupleShape.UnknownField(source, _) =>
+        receive(UnknownValueShape(source, fromPublicInterface = false)(field.provenance))
       case TupleShape.ValueField(value, _) => receive(value)
       case TupleShape.ViewedField(source, instances, _) =>
         listenTupleField(source)(value => receive(instantiateShape(value, instances)))(using rctx.withInstances(instances))
@@ -2693,6 +2705,23 @@ class NewResolver:
             case value: TermShape => listener(value)
             case NoShape => ())
       case _ => listenClassArgument(shape, prelude.builtins.Array.defn.get)(listener)
+
+  /** Protocol lookup is permissive, but a later use of its unknown result must
+    * identify the failed step and the interface that prevented resolving it. */
+  private def listenIterationMember(value: TermShape, key: MemberKey, name: Str, site: FlowSymbol, source: Term)(
+      receive: Listener, unresolved: Listener)(using ResolutionContext): Unit =
+    listenInstanceViews(value): view =>
+      def missing(info: MemberLookup)(using ResolutionContext): Unit =
+        val message = info match
+          case MemberLookup.Missing => msg"The iteration protocol requires member '$name', which is absent from this value."
+          case _ => msg"The iteration protocol cannot resolve member '$name' of this value."
+        val provenance = ShapeProvenance(info match
+          case MemberLookup.Unknown(_, _, provenance) => provenance.diagnostic(message, N)
+          case _ => view.diagnostic(message)
+        ).via(msg"This value is spread here." -> source.toLoc)
+        unresolved(UnknownValueShape.spread(source, view, provenance))
+      listenMemberValue(view.getMember(key).visibleFrom(_ => false, reportInaccessible = false),
+        site, source, TypeSubstitution.empty, missing)(receive)
 
   /** Follow the actual iteration protocol. Each spread owns stable selection and
     * application sites; all operand alternatives contribute to one element host.
@@ -2713,10 +2742,8 @@ class NewResolver:
       rctx.recordTemplateBinders(elements, scope)
       val flow = new IterationFlow(elements, call("iterator"), call("next"),
         site("iterator member"), site("next member"), site("iteration done"), site("iteration value"))
-      def select(value: TermShape, key: MemberKey, site: FlowSymbol)(receive: Listener)(using ResolutionContext): Unit =
-        listenInstanceViews(value): view =>
-          listenMemberValue(view.getMember(key).visibleFrom(_ => false, reportInaccessible = false),
-            site, source, TypeSubstitution.empty, () => receive(UnknownValueShape.spread(source, view)))(receive)
+      def select(value: TermShape, name: Str, site: FlowSymbol)(receive: Listener)(using ResolutionContext): Unit =
+        listenIterationMember(value, name, name, site, source)(receive, receive)
       listenTerm(flow.iterator): iterator =>
         select(iterator, "next", flow.nextMember)(applyShape(_, empty, flow.next, checked = false))
       listenTerm(flow.next): step =>
@@ -2737,11 +2764,9 @@ class NewResolver:
     val iterator = Term.NewSel(module, Tree.Ident("iterator"), N)(FlowSymbol.synthSel("iterator"))
     val iteratorKey = SymbolKey(symbols.module :: symbols.iterator :: Nil)(
       iterator)
-    listenInstanceViews(value): view =>
-      listenMemberValue(view.getMember(iteratorKey).visibleFrom(_ => false, reportInaccessible = false),
-        flow.iteratorMember, flow.elements.source, TypeSubstitution.empty,
-        () => flow.elements.publish(TypeShape.Inferred(UnknownValueShape.spread(flow.elements.source, view)))):
-          method => applyShape(method, flow.iterator.rhs, flow.iterator, checked = false)
+    listenIterationMember(value, iteratorKey, "Symbol.iterator", flow.iteratorMember, flow.elements.source)(
+      method => applyShape(method, flow.iterator.rhs, flow.iterator, checked = false),
+      unknown => flow.elements.publish(TypeShape.Inferred(unknown)))
 
   private[semantics] def listenPromisePayload(shape: TermShape)(listener: Listener)(using ResolutionContext): Bool =
     listenClassArgument(shape, prelude.builtins.Promise.defn.get)(listener)
@@ -3336,10 +3361,9 @@ class NewResolver:
     import BuiltinOperatorResults.{PrimitiveClass, Alternative}
     def publish(shape: TermShape)(using ResolutionContext): Unit = publishViewed(res, shape, rctx.instances)
     var publishedUnknown = false
-    def unknown()(using ResolutionContext): Unit = if !publishedUnknown then
+    def unknown(provenance: => ShapeProvenance)(using ResolutionContext): Unit = if !publishedUnknown then
       publishedUnknown = true
-      publish(UnknownValueShape(res, fromPublicInterface = false)(ShapeProvenance(
-        msg"The result shape of builtin operator '${op.nme}' is unknown for some possible inputs." -> res.toLoc :: Nil)))
+      publish(UnknownValueShape(res, fromPublicInterface = false)(provenance))
     val forwarded = mutable.Set.empty[Int]
     // Unlike literals, which share their class's cached interface, results locate their provenance at the application.
     val resultTypes = mutable.Map.empty[PrimitiveClass, DeclaredType]
@@ -3348,7 +3372,7 @@ class NewResolver:
         case (Fld(_, value, _), S(rest)) => S(value :: rest)
         case _ => N
       case _ => N
-    def produce(terms: Ls[Term], approximation: Opt[Ls[Alternative]])(using ResolutionContext): Unit =
+    def produce(terms: Ls[Term], approximation: Opt[Ls[Alternative]], inputs: Ls[TermShape])(using ResolutionContext): Unit =
       approximation match
         case S(alternatives) => alternatives.foreach:
           case Alternative.Of(primitive) =>
@@ -3361,7 +3385,10 @@ class NewResolver:
               case PrimitiveClass.BigInt => builtins.BigInt
             listenPrimitiveInterface(resultTypes.getOrElseUpdate(primitive, primitiveType(cls, res)))(publish)
           case Alternative.Operand(index) => if forwarded.add(index) then listenTerm(terms(index))(publish)
-        case N => unknown()
+        case N => unknown(ShapeProvenance(
+          (msg"The result shape of builtin operator '${op.nme}' is unknown for some possible inputs." -> res.toLoc) ::
+            inputs.zipWithIndex.flatMap: (input, index) =>
+              input.diagnostic(msg"Operand ${index + 1}: ${input.describe}.")))
     def primitiveOf(view: TermShape)(using ResolutionContext): Opt[PrimitiveClass] =
       val builtins = prelude.builtins
       def is(cls: ClassSymbol) = view.isInstanceOfClass(cls.defn.get)
@@ -3375,23 +3402,30 @@ class NewResolver:
       case S(terms) if (config.target is CompilationTarget.JS) && BuiltinOperatorResults.approximates(op.nme, terms.length) =>
         BuiltinOperatorResults(op.nme, terms.map(_ => N)) match
           // Approximations that hold for operands of any class do not wait for the operands' shapes.
-          case S(alternatives) => produce(terms, S(alternatives))
+          case S(alternatives) => produce(terms, S(alternatives), Nil)
           case N =>
             // Combine each class newly seen for one operand with the classes already seen for the others. Classes
             // seen in different activations are combined as well, which over-approximates the results. An operand
             // without any shapes yields no results, like any other use of a value without shapes.
-            val seen = terms.map(_ => mutable.LinkedHashSet.empty[Opt[PrimitiveClass]])
+            // Keep one witness per primitive classification, outside the inference key.
+            // Retaining every path would make recursive operands accumulate diagnostics
+            // without discovering any new result classes.
+            val seen = terms.map(_ => mutable.LinkedHashMap.empty[Opt[PrimitiveClass], TermShape])
             terms.zipWithIndex.foreach: (term, index) =>
               listenTerm(term): shape =>
                 listenInstanceViews(shape): view =>
                   val primitive = primitiveOf(view)
-                  if seen(index).add(primitive) then
+                  if !seen(index).contains(primitive) then
+                    seen(index)(primitive) = view
                     val choices = seen.zipWithIndex.map: (classes, other) =>
-                      if other == index then primitive :: Nil else classes.toList
-                    choices.foldRight(Nil :: Nil: Ls[Ls[Opt[PrimitiveClass]]]): (options, suffixes) =>
+                      if other == index then (primitive -> view) :: Nil else classes.toList
+                    choices.foldRight(Nil :: Nil: Ls[Ls[(Opt[PrimitiveClass], TermShape)]]): (options, suffixes) =>
                       options.flatMap(option => suffixes.map(option :: _))
-                    .foreach(classes => produce(terms, BuiltinOperatorResults(op.nme, classes)))
-      case _ => unknown()
+                    .foreach(inputs => produce(terms, BuiltinOperatorResults(op.nme, inputs.map(_._1)), inputs.map(_._2)))
+      case _ => unknown(ShapeProvenance(
+        (if config.target is CompilationTarget.Wasm then
+          msg"The result shape of builtin operator '${op.nme}' is not tracked for the WebAssembly target."
+        else msg"The result shape of builtin operator '${op.nme}' is not tracked for this argument layout.") -> res.toLoc :: Nil))
 
   def appShape(source: TermShape, args: Term, res: App)(using ResolutionContext): Unit =
     applyShape(source, args, res, checked = true)
@@ -3495,7 +3529,9 @@ class NewResolver:
           case unknown: UnknownValueShape => unknown.fromPublicInterface
           case _ => false
         rctx.resolutionProblem(res, config.language.eagerResolution || exposed)(lhs.diagnostic(message))
-      publish(UnknownValueShape.at(res))
+      // Implicit protocol calls deliberately defer compatibility errors. Their
+      // unknown results must still explain the callee that prevented resolution.
+      publish(UnknownValueShape(res, fromPublicInterface = false)(ShapeProvenance(lhs.diagnostic(message))))
       return
     if checked then res.callableTargets.currentShapes.add(source)
     if sh.isSaturated then
@@ -4830,7 +4866,8 @@ class NewResolver:
                   // Earlier candidates remain valid alternatives. A pending spread
                   // never reaches this branch: it waits for a shape notification.
                   val spread = if shape.containsSpread(shape.source, marks)
-                    then TupleShape.unknown(shape.source)(this)
+                    then TupleShape.unknown(shape.source, ShapeProvenance(
+                      msg"The element shapes of this recursive spread are not tracked." -> term.toLoc :: Nil))(this)
                     else shape
                   expand(rest, TupleShape.Spread(spread, marks) :: reversed)
                 case Marked(_: DynShape, marks) =>
@@ -4869,11 +4906,15 @@ class NewResolver:
                   // Bound recursive record producers just as for tuple spreads.
                   // Keep surrounding explicit fields even when the spread widens.
                   val spread = if shape.containsSpread(shape.source, marks)
-                    then RecordShape(shape.source, RecordShape.Unknown(UnknownValueShape.spread(term, shape)) :: Nil)
+                    then RecordShape(shape.source, RecordShape.Unknown(UnknownValueShape.spread(term, shape, ShapeProvenance(
+                      msg"The fields of this recursive record spread are not tracked." -> term.toLoc :: Nil))) :: Nil)
                     else shape
                   expand(rest, RecordShape.Spread(spread, marks) :: reversed)
                 case Marked(_: DynShape, marks) => expand(rest, RecordShape.Dynamic(marks :: Nil) :: reversed)
-                case _ => expand(rest, RecordShape.Unknown(UnknownValueShape.spread(term, shape)) :: reversed)
+                case _ =>
+                  val provenance = ShapeProvenance(shape.diagnostic(msg"The fields copied by this record spread are not known."))
+                    .via(msg"This value is spread into a record here." -> term.toLoc)
+                  expand(rest, RecordShape.Unknown(UnknownValueShape.spread(term, shape, provenance)) :: reversed)
           case _ :: rest => expand(rest, reversed)
         expand(record.stats, Nil)
     // Ignore undefined during resolution. Runtime literals and pattern tests

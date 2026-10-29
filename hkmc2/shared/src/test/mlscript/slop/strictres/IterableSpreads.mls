@@ -193,9 +193,12 @@ fun namedOnly(xs: {iterator: () -> Iterator[Box]}) = [...xs].0.value
 //│ ║  l.+1: 	fun namedOnly(xs: {iterator: () -> Iterator[Box]}) = [...xs].0.value
 //│ ║        	                                                     ^^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'value' of a value with unknown shape.
-//│ ╟── This spread has no known element shape.
+//│ ╟── This value is spread here.
 //│ ║  l.+1: 	fun namedOnly(xs: {iterator: () -> Iterator[Box]}) = [...xs].0.value
-//│ ╙──      	                                                         ^^
+//│ ║        	                                                         ^^
+//│ ╟── The iteration protocol requires member 'Symbol.iterator', which is absent from this value.
+//│ ║  l.+1: 	fun namedOnly(xs: {iterator: () -> Iterator[Box]}) = [...xs].0.value
+//│ ╙──      	                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 // Iterator only promises next; iterable implementations supply their own method.
 import "../../../mlscript-compile/Iter.mjs"

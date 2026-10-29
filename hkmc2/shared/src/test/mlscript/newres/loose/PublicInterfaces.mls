@@ -83,9 +83,10 @@ recordSpread({value: 5})
 //│ ║  l.+1: 	fun recordSpread(x) = ({...{...x}}).value
 //│ ║        	                      ^^^^^^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'value' across a computed key or unknown record spread.
-//│ ╟── This spread has no known element shape.
+//│ ╟── This value is spread into a record here.
 //│ ║  l.+1: 	fun recordSpread(x) = ({...{...x}}).value
 //│ ║        	                               ^
+//│ ╟── The fields copied by this record spread are not known.
 //│ ╟── Parameter 'x' admits values of unknown shape.
 //│ ║  l.+1: 	fun recordSpread(x) = ({...{...x}}).value
 //│ ║        	                 ^
@@ -102,9 +103,10 @@ tupleSpread([{value: 6}])
 //│ ║  l.+1: 	fun tupleSpread(xs) = [...xs].0.value
 //│ ║        	                      ^^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'value' of a value with unknown shape.
-//│ ╟── This spread has no known element shape.
+//│ ╟── This value is spread here.
 //│ ║  l.+1: 	fun tupleSpread(xs) = [...xs].0.value
 //│ ║        	                          ^^
+//│ ╟── The iteration protocol cannot resolve member 'Symbol.iterator' of this value.
 //│ ╟── Parameter 'xs' admits values of unknown shape.
 //│ ║  l.+1: 	fun tupleSpread(xs) = [...xs].0.value
 //│ ║        	                ^^

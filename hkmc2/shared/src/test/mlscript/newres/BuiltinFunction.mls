@@ -245,10 +245,11 @@ private fun spreadResult(f: Function) = [...f()].0.value
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.+1: 	private fun spreadResult(f: Function) = [...f()].0.value
 //│ ║        	                                        ^^^^^^^^^^^^^^^^
-//│ ╟── This spread has no known element shape.
+//│ ╟── Cannot resolve member 'value' of a value with unknown shape.
+//│ ╟── This value is spread here.
 //│ ║  l.+1: 	private fun spreadResult(f: Function) = [...f()].0.value
 //│ ║        	                                            ^^^
-//│ ╟── Cannot resolve member 'value' of a value with unknown shape.
+//│ ╟── The iteration protocol cannot resolve member 'Symbol.iterator' of this value.
 //│ ║  l.+1: 	private fun spreadResult(f: Function) = [...f()].0.value
 //│ ║        	                            ^^^^^^^^
 //│ ╙── The 'Function' type does not specify a return type.

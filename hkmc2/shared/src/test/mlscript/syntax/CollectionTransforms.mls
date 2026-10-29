@@ -108,9 +108,10 @@ xs.map(=> _ + 1).map(=> _ * 2)
 //│ ║  l.+1: 	xs.map(=> _ + 1).map(=> _ * 2)
 //│ ║        	^^^^^^^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'map' of a value with unknown shape.
-//│ ╟── The shape of this value is unknown.
-//│ ║  l.+1: 	xs.map(=> _ + 1).map(=> _ * 2)
-//│ ╙──      	^^^^^^
+//│ ╟── Member 'map' has no declared result type.
+//│ ║  l.XX: 	  fun map[B](f: A -> B) = new Seq \ elements.map \ pass1 \ f
+//│ ║        	  ^^^^^^^^^^^^^^^^^^^^^
+//│ ╙── Only the declared member interface is available here.
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
