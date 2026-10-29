@@ -9,40 +9,135 @@ import Term.*
 import ucs.FlatPattern
 
 
+/** Allocate binding scopes and nominal declarations before rewriting references or representations. */
+private[semantics] final class Cloner(outer: SymbolSubst)(using State, Erasure):
+  private def copy[A](allocate: CloneScope => Unit)(rewrite: CloneScope => A): A =
+    val scope = new CloneScope(outer)
+    allocate(scope)
+    scope.completeBindings()
+    scope.initializeMetadata()
+    val result = rewrite(scope)
+    scope.checkConsumed()
+    result
+
+  def block(source: Blk): Blk = copy(_.allocateBlock(source))(_.block(source))
+  def statementRoot(source: Statement): Statement = copy(s => {
+    s.prepare(source :: Nil)
+    s.allocateStatement(source)
+  })(_.statement(source))
+  def annotation(source: Annot): Annot = copy(_.allocateAnnotation(source))(_.annotation(source))
+  def term(source: Term): Term = copy(_.allocateStatement(source))(_.term(source))
+  def simpleSplit(source: SimpleSplit): SimpleSplit = copy(_.allocateSimpleSplit(source))(_.simpleSplit(source))
+  def flatPattern(source: FlatPattern): FlatPattern = copy(_.allocateFlatPattern(source))(_.flatPattern(source))
+  def branch(source: Branch): Branch = copy(_.allocateBranch(source))(_.branch(source))
+  def split(source: Split): Split = copy(_.allocateSplit(source))(_.split(source))
+
+end Cloner
+
+
+/** Nominal identities can escape their lexical scope in inferred types and member
+  * targets. Lexically bound references retain their nearest enclosing binding.
+  * For escaped identities, search descendants of the nearest containing occurrence.
+  * A shared subtree has a separate scope on each visit; never choose arbitrarily
+  * between its copies when a reference has no occurrence that disambiguates them.
+  */
+private final class CloneBindings[S <: Symbol](parent: Opt[CloneBindings[S]], external: S => S):
+  val local = mutable.Map.empty[S, S]
+  private var descendants = Map.empty[S, Set[S]]
+
+  def complete(children: Seq[CloneBindings[S]]): Unit =
+    descendants = children.iterator.flatMap(_.all).toList.groupMapReduce(_._1)(_._2)(_ ++ _)
+
+  private def all: Map[S, Set[S]] = descendants ++ local.iterator.map((s, copy) => s -> Set(copy))
+
+  private def lexical(source: S): Opt[S] = local.get(source).orElse(parent.flatMap(_.lexical(source)))
+
+  private def escaped(source: S): Opt[S] = descendants.get(source) match
+    case S(copies) =>
+      assert(copies.sizeIs == 1, "A cloned nominal reference must identify a unique binding occurrence")
+      S(copies.head)
+    case N => parent.flatMap(_.escaped(source))
+
+  private def unbound(source: S): S = parent.fold(external(source))(_.unbound(source))
+
+  def apply(source: S): S = lexical(source).orElse(escaped(source)).getOrElse(unbound(source))
+
+end CloneBindings
+
+
 /** Copy resolved code for another executable occurrence. Each binding scope owns a
   * substitution: copies of a shared subtree get different binders, while free references
   * still denote the enclosing scope. Inference graphs are completed source witnesses;
   * their subscriptions are not copied or restarted during lowering.
   */
-private[semantics] final class Cloner(outer: SymbolSubst)(using State, Erasure) extends SymbolSubst:
+private final class CloneScope(outer: SymbolSubst)(using State, Erasure) extends SymbolSubst:
   private given SymbolSubst = this
 
   private lazy val variables = mutable.Map.empty[VarSymbol, VarSymbol]
   private lazy val temporaries = mutable.Map.empty[TempSymbol, TempSymbol]
   private lazy val labels = mutable.Map.empty[LabelSymbol, LabelSymbol]
   private lazy val splits = mutable.Map.empty[SplitSymbol, SplitSymbol]
-  private lazy val members = mutable.Map.empty[BlockMemberSymbol, BlockMemberSymbol]
-  private lazy val terms = mutable.Map.empty[TermSymbol, TermSymbol]
-  private lazy val classes = mutable.Map.empty[ClassSymbol, ClassSymbol]
-  private lazy val modules = mutable.Map.empty[ModuleOrObjectSymbol, ModuleOrObjectSymbol]
-  private lazy val aliases = mutable.Map.empty[TypeAliasSymbol, TypeAliasSymbol]
-  private lazy val patterns = mutable.Map.empty[PatternSymbol, PatternSymbol]
-  private lazy val constructors = mutable.Map.empty[ClassCtorSymbol, ClassCtorSymbol]
+  private lazy val members: CloneBindings[BlockMemberSymbol] = bindings(_.members, outer.mapBlockMemberSym)
+  private lazy val terms: CloneBindings[TermSymbol] = bindings(_.terms, outer.mapTermSym)
+  private lazy val classes: CloneBindings[ClassSymbol] = bindings(_.classes, outer.mapClsSym)
+  private lazy val modules: CloneBindings[ModuleOrObjectSymbol] = bindings(_.modules, outer.mapModuleSym)
+  private lazy val aliases: CloneBindings[TypeAliasSymbol] = bindings(_.aliases, outer.mapTypeAliasSym)
+  private lazy val patterns: CloneBindings[PatternSymbol] = bindings(_.patterns, outer.mapPatSym)
+  private lazy val constructors: CloneBindings[ClassCtorSymbol] = bindings(_.constructors, outer.mapClassCtorSym)
   private lazy val definitions = mutable.Map.empty[Identity[Definition], Definition]
+  private val children = mutable.ArrayBuffer.empty[CloneScope]
+  private val occurrences = mutable.Map.empty[Identity[AnyRef], mutable.Queue[CloneScope]]
+  private val definitionScopes = mutable.Map.empty[Identity[Definition], (Symbol, CloneScope)]
+  private val delayedMetadata = mutable.ArrayBuffer.empty[() => Unit]
+  private var consumed = false
+
+  private def bindings[S <: Symbol](select: CloneScope => CloneBindings[S], external: S => S): CloneBindings[S] =
+    new CloneBindings(outer match
+      case parent: CloneScope => S(select(parent))
+      case _ => N, external)
 
   override def mapVarSym(s: VarSymbol): VarSymbol = variables.getOrElse(s, outer.mapVarSym(s))
   override def mapTempSym(s: TempSymbol): TempSymbol = temporaries.getOrElse(s, outer.mapTempSym(s))
   override def mapLabelSym(s: LabelSymbol): LabelSymbol = labels.getOrElse(s, outer.mapLabelSym(s))
   override def mapSplitSym(s: SplitSymbol): SplitSymbol = splits.getOrElse(s, outer.mapSplitSym(s))
-  override def mapBlockMemberSym(s: BlockMemberSymbol): BlockMemberSymbol = members.getOrElse(s, outer.mapBlockMemberSym(s))
-  override def mapTermSym(s: TermSymbol): TermSymbol = terms.getOrElse(s, outer.mapTermSym(s))
-  override def mapClsSym(s: ClassSymbol): ClassSymbol = classes.getOrElse(s, outer.mapClsSym(s))
-  override def mapModuleSym(s: ModuleOrObjectSymbol): ModuleOrObjectSymbol = modules.getOrElse(s, outer.mapModuleSym(s))
-  override def mapTypeAliasSym(s: TypeAliasSymbol): TypeAliasSymbol = aliases.getOrElse(s, outer.mapTypeAliasSym(s))
-  override def mapPatSym(s: PatternSymbol): PatternSymbol = patterns.getOrElse(s, outer.mapPatSym(s))
-  override def mapClassCtorSym(s: ClassCtorSymbol): ClassCtorSymbol = constructors.getOrElse(s, outer.mapClassCtorSym(s))
+  override def mapBlockMemberSym(s: BlockMemberSymbol): BlockMemberSymbol = members(s)
+  override def mapTermSym(s: TermSymbol): TermSymbol = terms(s)
+  override def mapClsSym(s: ClassSymbol): ClassSymbol = classes(s)
+  override def mapModuleSym(s: ModuleOrObjectSymbol): ModuleOrObjectSymbol = modules(s)
+  override def mapTypeAliasSym(s: TypeAliasSymbol): TypeAliasSymbol = aliases(s)
+  override def mapPatSym(s: PatternSymbol): PatternSymbol = patterns(s)
+  override def mapClassCtorSym(s: ClassCtorSymbol): ClassCtorSymbol = constructors(s)
 
-  private def nested = new Cloner(this)
+  private def newScope(): CloneScope =
+    val scope = new CloneScope(this)
+    children += scope
+    scope
+
+  private def allocateNested(source: AnyRef): CloneScope =
+    val scope = newScope()
+    occurrences.getOrElseUpdate(Identity(source), mutable.Queue.empty).enqueue(scope)
+    scope
+
+  private def nested(source: AnyRef): CloneScope =
+    val pending = occurrences.getOrElse(Identity(source), lastWords("Missing cloned binding scope"))
+    assert(pending.nonEmpty, "Each copied occurrence must have its own allocated scope")
+    val scope = pending.dequeue()
+    scope.consumed = true
+    scope
+
+  def completeBindings(): Unit =
+    children.foreach(_.completeBindings())
+    members.complete(children.toSeq.map(_.members))
+    terms.complete(children.toSeq.map(_.terms))
+    classes.complete(children.toSeq.map(_.classes))
+    modules.complete(children.toSeq.map(_.modules))
+    aliases.complete(children.toSeq.map(_.aliases))
+    patterns.complete(children.toSeq.map(_.patterns))
+    constructors.complete(children.toSeq.map(_.constructors))
+
+  def checkConsumed(): Unit = children.foreach: scope =>
+    assert(scope.consumed, "An allocated binding occurrence was not copied")
+    scope.checkConsumed()
 
   private def mapSimple(s: SimpleRefSymbol): SimpleRefSymbol = s match
     case s: LocalVarSymbol => s.subst
@@ -93,14 +188,15 @@ private[semantics] final class Cloner(outer: SymbolSubst)(using State, Erasure) 
   private def bindLocal(symbol: LocalVarSymbol): Unit = symbol match
     case s: VarSymbol => variables.getOrElseUpdate(s, {
       val copy = new VarSymbol(s.id, mut = s.mut)
-      if s.isErased then copy.erasedType = s.erasedType.map(valueType)
+      delayedMetadata += (() => if s.isErased then copy.erasedType = s.erasedType.map(valueType))
       copy.sourceAliases = s.sourceAliases
       copy.decl = s.decl
       copy.shapes.copyFrom(s.shapes)
       copy
     })
     case s: TempSymbol => temporaries.getOrElseUpdate(s, {
-      val copy = new TempSymbol(s.trm, s.erasedType.map(valueType), s.nme)
+      val copy = new TempSymbol(s.trm, N, s.nme)
+      delayedMetadata += (() => summon[Erasure].copyTemporaryType(s, copy)(valueType))
       copy.shapes.copyFrom(s.shapes)
       copy
     })
@@ -109,9 +205,9 @@ private[semantics] final class Cloner(outer: SymbolSubst)(using State, Erasure) 
     labels(s) = new LabelSymbol(s.trm, s.nme)
 
   private def bindTerm(s: TermSymbol): Unit = s match
-    case s: ClassCtorSymbol => constructors.getOrElseUpdate(s,
+    case s: ClassCtorSymbol => constructors.local.getOrElseUpdate(s,
       new ClassCtorSymbol(s.k, s.owner.map(_.subst), s.associatedCls.subst))
-    case s => terms.getOrElseUpdate(s, {
+    case s => terms.local.getOrElseUpdate(s, {
       val copy = new TermSymbol(s.k, s.owner.map(_.subst), s.id)
       copy.sourceAliases = s.sourceAliases
       copy
@@ -119,25 +215,35 @@ private[semantics] final class Cloner(outer: SymbolSubst)(using State, Erasure) 
 
   private def bindInner(s: ClassSymbol | ModuleOrObjectSymbol | PatternSymbol): Unit =
     val copy = s match
-      case s: ClassSymbol => classes.getOrElseUpdate(s, new ClassSymbol(s.tree, s.id))
-      case s: ModuleOrObjectSymbol => modules.getOrElseUpdate(s, new ModuleOrObjectSymbol(s.tree, s.id))
-      case s: PatternSymbol => patterns.getOrElseUpdate(s, new PatternSymbol(s.id, s.params, s.body))
+      case s: ClassSymbol => classes.local.getOrElseUpdate(s, new ClassSymbol(s.tree, s.id))
+      case s: ModuleOrObjectSymbol => modules.local.getOrElseUpdate(s, new ModuleOrObjectSymbol(s.tree, s.id))
+      case s: PatternSymbol => patterns.local.getOrElseUpdate(s, new PatternSymbol(s.id, s.params, s.body))
     temporaries.getOrElseUpdate(s.thisProxy, copy.thisProxy)
 
   /** A source type tree owns its definition symbol. Copy its outer node as well as
     * the block member so `symbols`/`asCls` cannot lead back to the old definition.
     * Its syntax children remain source witnesses; executable bodies are copied below.
     */
-  private def bindMember(s: BlockMemberSymbol): Unit = members.getOrElseUpdate(s, {
+  private def bindMember(s: BlockMemberSymbol): Unit = members.local.getOrElseUpdate(s, {
     val trees = s.trees.map:
       case tree: Tree.TypeDef =>
         val copy = located(tree, tree.copy())
         (tree.symbol, copy.symbol) match
-          case (old: ClassSymbol, fresh: ClassSymbol) => classes(old) = fresh
-          case (old: ModuleOrObjectSymbol, fresh: ModuleOrObjectSymbol) => modules(old) = fresh
-          case (old: TypeAliasSymbol, fresh: TypeAliasSymbol) => aliases(old) = fresh
-          case (old: PatternSymbol, fresh: PatternSymbol) => patterns(old) = fresh
+          case (old: ClassSymbol, fresh: ClassSymbol) => classes.local(old) = fresh
+          case (old: ModuleOrObjectSymbol, fresh: ModuleOrObjectSymbol) => modules.local(old) = fresh
+          case (old: TypeAliasSymbol, fresh: TypeAliasSymbol) => aliases.local(old) = fresh
+          case (old: PatternSymbol, fresh: PatternSymbol) => patterns.local(old) = fresh
           case _ => lastWords("A copied type declaration must retain its kind")
+        // Constructor-flow analysis also reads the field identities from this
+        // syntax witness. Use those same fresh fields in the semantic parameters
+        // and selections, rather than allocating a second set for one class.
+        tree.symbol match
+          case _: (ClassSymbol | ModuleOrObjectSymbol) =>
+            tree.clsParams.lazyZip(copy.clsParams).foreach: (sourceParams, copyParams) =>
+              sourceParams.lazyZip(copyParams).foreach: (source, fresh) =>
+                terms.local(source) = fresh
+                fresh.sourceAliases = source.sourceAliases
+          case _ => ()
         copy
       case tree => tree
     val copy = new BlockMemberSymbol(s.nme, trees, s.nameIsMeaningful)
@@ -145,7 +251,7 @@ private[semantics] final class Cloner(outer: SymbolSubst)(using State, Erasure) 
     copy
   })
 
-  private def bindImport(s: BlockMemberSymbol): Unit = members.getOrElseUpdate(s, {
+  private def bindImport(s: BlockMemberSymbol): Unit = members.local.getOrElseUpdate(s, {
     // Importing creates a local binding for an existing module, not another
     // declaration of that module or of any of its nominal types.
     val copy = new BlockMemberSymbol(s.nme, s.trees, s.nameIsMeaningful)
@@ -172,7 +278,7 @@ private[semantics] final class Cloner(outer: SymbolSubst)(using State, Erasure) 
     stats.foreach:
       case d: ClassLikeDef => d.sym match
         case s: (ClassSymbol | ModuleOrObjectSymbol | PatternSymbol) => bindInner(s)
-      case d: TypeDef => aliases.getOrElseUpdate(d.sym, new TypeAliasSymbol(d.sym.id))
+      case d: TypeDef => aliases.local.getOrElseUpdate(d.sym, new TypeAliasSymbol(d.sym.id))
       case _ => ()
     stats.foreach:
       case d: TermDefinition => bindTerm(d.tsym)
@@ -186,38 +292,243 @@ private[semantics] final class Cloner(outer: SymbolSubst)(using State, Erasure) 
     stats.foreach:
       case d: ClassLikeDef => prepareDefinitions(d.body.blk.stats ::: fieldDefinitions(d))
       case _ => ()
-    members.foreach: (source, copy) =>
+    members.local.foreach: (source, copy) =>
       copy.tsym = source.tsym.map(_.subst)
 
   private def prepareLocals(stats: Ls[Statement]): Unit = stats.foreach:
     case LetDecl(s: LocalVarSymbol, _) => bindLocal(s)
     case _ => ()
 
-  private def prepare(stats: Ls[Statement]): Unit =
+  def prepare(stats: Ls[Statement]): Unit =
     prepareDefinitions(stats)
     prepareLocals(stats)
-    (terms.iterator ++ constructors.iterator).foreach: (source, copy) =>
+
+  def initializeMetadata(): Unit =
+    delayedMetadata.foreach(_())
+    (terms.local.iterator ++ constructors.local.iterator).foreach: (source, copy) =>
+      val scope = source.defn.flatMap(plannedDefinition).getOrElse(this)
       copy.initializeErasure:
         source.erasure.map:
-          case sig: ErasedFuncSignature => signature(sig)
-          case tpe: ErasedValueType => valueType(tpe)
-      summon[Erasure].copyBodyResultType(source, copy)(valueType)
+          case sig: ErasedFuncSignature => scope.signature(sig)
+          case tpe: ErasedValueType => scope.valueType(tpe)
+      summon[Erasure].copyBodyResultType(source, copy)(scope.valueType)
     // All member names, including nested classes' methods, now have replacements.
     // Override edges must follow them for common-member selection during lowering.
-    (members.iterator ++ terms.iterator).foreach: (source, copy) =>
+    (members.local.iterator ++ terms.local.iterator).foreach: (source, copy) =>
       copy.overrideLinks.shapes.mapFrom(source.overrideLinks.shapes)(_.subst, identity)
+    children.foreach(_.initializeMetadata())
+
+  /** Allocation follows executable occurrences, including resolution expansions.
+    * In particular it must not deduplicate terms by identity: normalization can
+    * reuse one consequent in several branches, each with its own local classes.
+    * Definitions exposed twice by one binding (companions/handlers/fields) do share
+    * a plan, just as they share the freshly allocated definition symbol.
+    */
+  def allocateBlock(source: Blk): Unit =
+    val scope = allocateNested(source)
+    scope.prepare(source.stats)
+    source.stats.foreach(scope.allocateStatement)
+    scope.allocateStatement(source.res)
+
+  def allocateAnnotation(source: Annot): Unit = source.subTerms.foreach(allocateStatement)
+
+  private def allocateParameters(lists: Ls[ParamList]): Unit =
+    bindParameters(lists)
+    lists.foreach(_.subTerms.foreach(allocateStatement))
+
+  private def definitionAllocation(source: Definition): Opt[(Symbol, CloneScope)] =
+    definitionScopes.get(Identity(source)).orElse(outer match
+      case parent: CloneScope => parent.definitionAllocation(source)
+      case _ => N)
+
+  private def plannedDefinition(source: Definition): Opt[CloneScope] =
+    definitionAllocation(source).filter((symbol, _) => symbol is source.sym.subst).map(_._2)
+
+  private def definitionScope(source: Definition): CloneScope =
+    val scope = plannedDefinition(source).getOrElse(lastWords("Missing cloned definition scope"))
+    scope.consumed = true
+    scope
+
+  private def allocateDefinition(source: Definition): Unit = if plannedDefinition(source).isEmpty then
+    val scope = newScope()
+    definitionScopes(Identity(source)) = source.sym.subst -> scope
+    source match
+      case source: TermDefinition =>
+        scope.allocateParameters(source.params)
+        source.tparams.foreach(_.foreach: p =>
+          scope.bindLocal(p.sym)
+          p.subTerms.foreach(scope.allocateStatement))
+        source.sign.foreach(scope.allocateStatement)
+        source.body.foreach(scope.allocateStatement)
+        source.annotations.foreach(scope.allocateAnnotation)
+      case source: TypeDef =>
+        source.tparams.foreach(p => scope.bindLocal(p.sym))
+        source.rhs.foreach(scope.allocateStatement)
+        source.companion.foreach(allocateDefinition)
+        source.annotations.foreach(scope.allocateAnnotation)
+      case source: ClassLikeDef =>
+        source.tparams.foreach(p => scope.bindLocal(p.sym))
+        scope.allocateParameters(source.paramsOpt.toList ::: source.auxParams)
+        scope.prepareLocals(source.body.blk.stats)
+        source.body.blk.stats.foreach(scope.allocateStatement)
+        scope.allocateStatement(source.body.blk.res)
+        fieldDefinitions(source).foreach(scope.allocateDefinition)
+        source.ext.foreach(scope.allocateStatement)
+        source.annotations.foreach(scope.allocateAnnotation)
+        source match
+          case source: ClassDef => source.ctorAnnotations.foreach(scope.allocateAnnotation)
+          case source: PatternDef =>
+            source.parameters.foreach(p => scope.bindLocal(p.sym))
+            scope.bindPattern(source.pattern)
+            (source.parameters ::: source.patternParams ::: source.extractionParams)
+              .foreach(_.subTerms.foreach(scope.allocateStatement))
+            scope.allocatePattern(source.pattern)
+          case _ => ()
+
+  private def allocatePattern(source: Pattern): Unit =
+    import Pattern.*
+    source match
+      case Constructor(target, arguments) =>
+        allocateStatement(target)
+        arguments.foreach(_.foreach(allocatePattern))
+      case Composition(_, left, right) => allocatePattern(left); allocatePattern(right)
+      case Negation(inner) => allocatePattern(inner)
+      case Wildcard() | Literal(_) | Range(_, _, _) => ()
+      case Concatenation(left, right) => allocatePattern(left); allocatePattern(right)
+      case Tuple(leading, spread) =>
+        leading.foreach(allocatePattern)
+        spread.foreach: (_, middle, trailing) =>
+          allocatePattern(middle)
+          trailing.foreach(allocatePattern)
+      case Record(fields) => fields.foreach((_, value) => allocatePattern(value))
+      case Chain(first, second) => allocatePattern(first); allocatePattern(second)
+      case Alias(inner, _) => allocatePattern(inner)
+      case Transform(inner, parameters, transform) =>
+        val scope = allocateNested(source)
+        scope.bindPattern(inner)
+        parameters.foreach((_, param) => scope.bindLocal(param))
+        scope.allocatePattern(inner)
+        scope.allocateStatement(transform)
+      case Annotated(inner, annotations) =>
+        allocatePattern(inner)
+        annotations.foreach(_.foreach(allocateStatement))
+      case Guarded(inner, guard) => allocatePattern(inner); allocateStatement(guard)
+
+  def allocateSimpleSplit(source: SimpleSplit): Unit = source match
+    case SimpleSplit.Cons(SimpleSplit.Head.Let(binding, value), tail) =>
+      val scope = allocateNested(source)
+      scope.bindLocal(binding)
+      allocateStatement(value)
+      scope.allocateSimpleSplit(tail)
+    case SimpleSplit.Cons(SimpleSplit.Head.Match(value, pat, consequent), tail) =>
+      val scope = allocateNested(source)
+      scope.bindPattern(pat)
+      allocateStatement(value)
+      scope.allocatePattern(pat)
+      scope.allocateSimpleSplit(consequent)
+      allocateSimpleSplit(tail)
+    case SimpleSplit.Else(default) => allocateStatement(default)
+    case SimpleSplit.End => ()
+
+  def allocateFlatPattern(source: FlatPattern): Unit = source match
+    case FlatPattern.ClassLike(constructor, _, arguments, _) =>
+      arguments.foreach(_.foreach((sym, _) => bindLocal(sym)))
+      allocateStatement(constructor)
+    case FlatPattern.Record(entries) => entries.foreach((_, sym) => bindLocal(sym))
+    case _ => ()
+
+  def allocateBranch(source: Branch): Unit =
+    val scope = allocateNested(source)
+    allocateStatement(source.scrutinee)
+    scope.allocateFlatPattern(source.pattern)
+    scope.allocateSplit(source.continuation)
+
+  def allocateSplit(source: Split): Unit = source match
+    case Split.Cons(head, tail) => allocateBranch(head); allocateSplit(tail)
+    case Split.Let(sym, value, tail) =>
+      val scope = allocateNested(source)
+      scope.bindLocal(sym)
+      allocateStatement(value)
+      scope.allocateSplit(tail)
+    case Split.Else(default) => allocateStatement(default)
+    case Split.End | Split.UseSplit(_) => ()
+    case Split.LetSplit(sym, tail) =>
+      val scope = allocateNested(source)
+      allocateSplit(sym.body)
+      scope.allocateSplit(tail)
+
+  def allocateStatement(source: Statement): Unit =
+    source match
+      case source: Blk => allocateBlock(source)
+      case source: Definition => allocateDefinition(source)
+      case Lam(params, body) =>
+        val scope = allocateNested(source)
+        scope.allocateParameters(params :: Nil)
+        scope.allocateStatement(body)
+      case Forall(tvs, outer, body) =>
+        val scope = allocateNested(source)
+        (tvs.map(_.sym) ::: outer.toList).foreach(scope.bindLocal)
+        tvs.foreach: tv =>
+          tv.ub.foreach(scope.allocateStatement)
+          tv.lb.foreach(scope.allocateStatement)
+        scope.allocateStatement(body)
+      case Rcd(_, stats) =>
+        val scope = allocateNested(source)
+        scope.prepare(stats)
+        stats.foreach(scope.allocateStatement)
+      case New(cls, args, rft) =>
+        rft.foreach: (cs, _) =>
+          val scope = allocateNested(source)
+          val declaration = cs.defn.getOrElse(lastWords("An anonymous refinement must have a class declaration"))
+          scope.prepare(declaration :: Nil)
+          scope.allocateDefinition(declaration)
+        allocateStatement(cls)
+        args.foreach(allocateStatement)
+      case Region(name, body) =>
+        val scope = allocateNested(source)
+        scope.bindLocal(name)
+        scope.allocateStatement(body)
+      case Label(label, result, body, _) =>
+        val scope = allocateNested(source)
+        scope.bindLabel(label)
+        scope.bindLocal(result)
+        scope.allocateStatement(body)
+      case Handle(lhs, rhs, args, derivedClsSym, defs, body) =>
+        val scope = allocateNested(source)
+        scope.bindLocal(lhs)
+        scope.bindInner(derivedClsSym)
+        scope.prepare(derivedClsSym.defn.toList ::: defs.map(_.td))
+        defs.foreach: handler =>
+          val handlerScope = scope.allocateNested(handler)
+          handlerScope.bindLocal(handler.resumeSym)
+          handlerScope.allocateDefinition(handler.td)
+          scope.definitionScopes(Identity(handler.td)) = handler.td.sym.subst(using scope) ->
+            handlerScope.plannedDefinition(handler.td).getOrElse(lastWords("Missing handler definition scope"))
+        derivedClsSym.defn.foreach(scope.allocateDefinition)
+        allocateStatement(rhs)
+        args.foreach(allocateStatement)
+        scope.allocateStatement(body)
+      case IfLike(_, _, split) => allocateSimpleSplit(split)
+      case SynthIf(split) => allocateSplit(split)
+      case SynthWhile(split) => allocateSplit(split)
+      case _ => source.subTerms.foreach(allocateStatement)
+    source match
+      case term: Resolvable => term.expansion.foreach(_.foreach(allocateStatement))
+      case _ => ()
+    source match
+      case term: AnySel => term.resolvedTargets.foreach:
+        case flow.SelectionTarget.CompanionMember(comp, _) => allocateStatement(comp)
+        case _ => ()
+      case term: LeadingDotSel => term.resolvedTargets.foreach:
+        case flow.SelectionTarget.CompanionMember(comp, _) => allocateStatement(comp)
+      case _ => ()
 
   def block(source: Blk): Blk =
-    val scope = nested
-    scope.prepare(source.stats)
+    val scope = nested(source)
     val copy = new Blk(source.stats.map(scope.statement), scope.term(source.res))
     copyMetadata(source, copy)
 
-  def statementRoot(source: Statement): Statement =
-    prepare(source :: Nil)
-    statement(source)
-
-  private def statement(source: Statement): Statement = source match
+  def statement(source: Statement): Statement = source match
     case t: Term => term(t)
     case d: Definition => definition(d)
     case imp: Import =>
@@ -277,9 +588,7 @@ private[semantics] final class Cloner(outer: SymbolSubst)(using State, Erasure) 
     copy
 
   private def termDefinition(source: TermDefinition): TermDefinition =
-    val scope = nested
-    scope.bindParameters(source.params)
-    source.tparams.foreach(_.foreach(p => scope.bindLocal(p.sym)))
+    val scope = definitionScope(source)
     val copy = source.copy(sym = source.sym.subst, tsym = source.tsym.subst,
       params = source.params.map(scope.parameterList), tparams = source.tparams.map(_.map(scope.parameter)),
       sign = source.sign.map(scope.term), body = source.body.map(scope.term),
@@ -291,7 +600,7 @@ private[semantics] final class Cloner(outer: SymbolSubst)(using State, Erasure) 
 
   private def knownDefinition(source: Definition): Opt[Definition] =
     definitions.get(Identity(source)).orElse(outer match
-      case parent: Cloner => parent.knownDefinition(source)
+      case parent: CloneScope => parent.knownDefinition(source)
       case _ => N)
     .filter(_.sym is source.sym.subst)
 
@@ -299,8 +608,7 @@ private[semantics] final class Cloner(outer: SymbolSubst)(using State, Erasure) 
     val copy = source match
       case source: TermDefinition => termDefinition(source)
       case source: TypeDef =>
-        val scope = nested
-        source.tparams.foreach(p => scope.bindLocal(p.sym))
+        val scope = definitionScope(source)
         val companion = source.companion.map: companion =>
           definition(companion) match
             case copy: CompanionValue => copy
@@ -311,10 +619,7 @@ private[semantics] final class Cloner(outer: SymbolSubst)(using State, Erasure) 
         copy.sym.defn = S(copy)
         copy
       case source: ClassLikeDef =>
-        val scope = nested
-        source.tparams.foreach(p => scope.bindLocal(p.sym))
-        scope.bindParameters(source.paramsOpt.toList ::: source.auxParams)
-        scope.prepareLocals(source.body.blk.stats)
+        val scope = definitionScope(source)
         val body = ObjBody(copyMetadata(source.body.blk,
           Blk(source.body.blk.stats.map(scope.statement), scope.term(source.body.blk.res))))
         fieldDefinitions(source).foreach(scope.definition)
@@ -344,8 +649,6 @@ private[semantics] final class Cloner(outer: SymbolSubst)(using State, Erasure) 
             c.sym.defn = S(c)
             c
           case s: PatternDef =>
-            s.parameters.foreach(p => scope.bindLocal(p.sym))
-            scope.bindPattern(s.pattern)
             val c = s.copy(owner = s.owner.map(_.subst), sym = s.sym.subst, bsym = s.bsym.subst,
               tparams = tparams, parameters = s.parameters.map(scope.parameter),
               patternParams = s.patternParams.map(scope.parameter), extractionParams = s.extractionParams.map(scope.parameter),
@@ -395,9 +698,7 @@ private[semantics] final class Cloner(outer: SymbolSubst)(using State, Erasure) 
         source.symbolOption.foreach(sym => copy.symbol = sym.subst)
         copy
       case Transform(inner, parameters, transform) =>
-        val scope = nested
-        scope.bindPattern(inner)
-        parameters.foreach((_, param) => scope.bindLocal(param))
+        val scope = nested(source)
         Transform(scope.pattern(inner), parameters.map((binding, param) =>
           scope.mapVarSym(binding) -> scope.mapVarSym(param)), scope.term(transform))
       case Annotated(inner, annotations) => Pattern.Annotated(pattern(inner), annotations.map:
@@ -417,12 +718,10 @@ private[semantics] final class Cloner(outer: SymbolSubst)(using State, Erasure) 
     import SimpleSplit.*
     val copy = source match
       case Cons(head @ Head.Let(binding, value), tail) =>
-        val scope = nested
-        scope.bindLocal(binding)
+        val scope = nested(source)
         Cons(located(head, Head.Let(scope.mapLocal(binding), term(value))), scope.simpleSplit(tail))
       case Cons(head @ Head.Match(value, pat, consequent), tail) =>
-        val scope = nested
-        scope.bindPattern(pat)
+        val scope = nested(source)
         Cons(located(head, Head.Match(scrutinee(value), scope.pattern(pat), scope.simpleSplit(consequent))), simpleSplit(tail))
       case e @ Else(default) => Else(term(default))(e.kw)
       case End => End
@@ -434,7 +733,6 @@ private[semantics] final class Cloner(outer: SymbolSubst)(using State, Erasure) 
     val copy = source match
       case FlatPattern.Lit(literal) => FlatPattern.Lit(literal)
       case p @ FlatPattern.ClassLike(constructor, symbol, arguments, refined) =>
-        arguments.foreach(_.foreach((sym, _) => bindLocal(sym)))
         val cls: ClassSymbol | ModuleOrObjectSymbol = symbol match
           case s: ClassSymbol => s.subst
           case s: ModuleOrObjectSymbol => s.subst
@@ -442,12 +740,11 @@ private[semantics] final class Cloner(outer: SymbolSubst)(using State, Erasure) 
           arguments.map(_.map((sym, loc) => sym.subst -> loc)), refined)(Tree.Dummy)
       case FlatPattern.Tuple(size, inf) => FlatPattern.Tuple(size, inf)
       case FlatPattern.Record(entries) =>
-        entries.foreach((_, sym) => bindLocal(sym))
         FlatPattern.Record(entries.map((id, sym) => id -> sym.subst))
     located(source, copy)
 
   def branch(source: Branch): Branch =
-    val scope = nested
+    val scope = nested(source)
     val pat = scope.flatPattern(source.pattern)
     located(source, Branch(simpleRef(source.scrutinee), pat, scope.split(source.continuation)))
 
@@ -455,13 +752,14 @@ private[semantics] final class Cloner(outer: SymbolSubst)(using State, Erasure) 
     val copy = source match
       case Split.Cons(head, tail) => Split.Cons(branch(head), split(tail))
       case Split.Let(sym, value, tail) =>
-        val scope = nested
-        scope.bindLocal(sym)
+        val scope = nested(source)
         Split.Let(scope.mapLocal(sym), term(value), scope.split(tail))
       case Split.Else(default) => Split.Else(term(default))
       case Split.End => Split.End
       case Split.LetSplit(sym, tail) =>
-        val scope = nested
+        val scope = nested(source)
+        // A split symbol owns its immutable executable body, so construct it
+        // after copying that body. Erased types never refer to split symbols.
         val fresh = new SplitSymbol(split(sym.body), sym.nme)
         scope.splits(sym) = fresh
         Split.LetSplit(fresh, scope.split(tail))
@@ -548,13 +846,11 @@ private[semantics] final class Cloner(outer: SymbolSubst)(using State, Erasure) 
       case SynthIf(value) => SynthIf(split(value))
       case SynthWhile(value) => SynthWhile(split(value))
       case Lam(params, body) =>
-        val scope = nested
-        scope.bindParameters(params :: Nil)
+        val scope = nested(source)
         Lam(scope.parameterList(params), scope.term(body))
       case FunTy(lhs, rhs, eff) => FunTy(lhs.cloned, rhs.cloned, eff.map(_.cloned))
       case Forall(tvs, outer, body) =>
-        val scope = nested
-        (tvs.map(_.sym) ::: outer.toList).foreach(scope.bindLocal)
+        val scope = nested(source)
         Forall(tvs.map(tv => QuantVar(scope.mapVarSym(tv.sym), tv.ub.map(scope.term), tv.lb.map(scope.term))),
           outer.map(scope.mapVarSym), scope.term(body))
       case Constrained(constraints, body) => Constrained(constraints.map(c =>
@@ -562,17 +858,15 @@ private[semantics] final class Cloner(outer: SymbolSubst)(using State, Erasure) 
       case WildcardTy(in, out) => WildcardTy(in.map(_.cloned), out.map(_.cloned))
       case blk: Blk => return block(blk)
       case term @ Rcd(mut, stats) =>
-        val scope = nested
-        scope.prepare(stats)
+        val scope = nested(source)
         Rcd(mut, stats.map(scope.statement))
       case Quoted(body) => Quoted(body.cloned)
       case Unquoted(body) => Unquoted(body.cloned)
       case term @ New(cls, args, rft) =>
         val refinement = rft.map: (cs, ob) =>
-          val scope = nested
+          val scope = nested(source)
           val declaration = cs.defn.getOrElse(lastWords("An anonymous refinement must have a class declaration"))
           assert(declaration.body.blk is ob.blk, "An anonymous refinement must use its class declaration's body")
-          scope.prepare(declaration :: Nil)
           scope.definition(declaration) match
             case copy: ClassDef => copy.sym -> copy.body
             case _ => lastWords("A cloned refinement must remain a class")
@@ -584,8 +878,7 @@ private[semantics] final class Cloner(outer: SymbolSubst)(using State, Erasure) 
       case CompType(lhs, rhs, pol) => CompType(lhs.cloned, rhs.cloned, pol)
       case Neg(rhs) => Neg(rhs.cloned)
       case Region(name, body) =>
-        val scope = nested
-        scope.bindLocal(name)
+        val scope = nested(source)
         Region(scope.mapVarSym(name), scope.term(body))
       case RegRef(reg, value) => RegRef(reg.cloned, value.cloned)
       case Assgn(lhs, rhs) => Assgn(lhs.cloned, rhs.cloned)
@@ -595,22 +888,16 @@ private[semantics] final class Cloner(outer: SymbolSubst)(using State, Erasure) 
       case Ret(result) => Ret(result.cloned)
       case Throw(result) => Throw(result.cloned)
       case Label(label, result, body, hasNonLocalContinueDispatch) =>
-        val scope = nested
-        scope.bindLabel(label)
-        scope.bindLocal(result)
+        val scope = nested(source)
         Label(scope.mapLabelSym(label), scope.mapTempSym(result), scope.term(body), hasNonLocalContinueDispatch)
       case Break(label, result, value) => Break(label.subst, result.subst, value.map(_.cloned))
       case Continue(label) => Continue(label.subst)
       case Try(body, finallyDo) => Try(body.cloned, finallyDo.cloned)
       case Annotated(annot, target) => Annotated(annotation(annot), target.cloned)
       case handle @ Handle(lhs, rhs, args, derivedClsSym, defs, body) =>
-        val scope = nested
-        scope.bindLocal(lhs)
-        scope.bindInner(derivedClsSym)
-        scope.prepare(derivedClsSym.defn.toList ::: defs.map(_.td))
+        val scope = nested(source)
         val handlers = defs.map: handler =>
-          val handlerScope = scope.nested
-          handlerScope.bindLocal(handler.resumeSym)
+          val handlerScope = scope.nested(handler)
           val definition = handlerScope.termDefinition(handler.td)
           // Abortive handlers also expose these same definitions in their synthetic
           // class body. They are one binding, with the resumption symbol in scope.
@@ -620,4 +907,4 @@ private[semantics] final class Cloner(outer: SymbolSubst)(using State, Erasure) 
         Handle(scope.mapLocal(lhs), rhs.cloned, args.map(_.cloned), scope.mapClsSym(derivedClsSym), handlers, scope.term(body))(handle.isAbortive)
     copyMetadata(source, that)
   
-end Cloner
+end CloneScope

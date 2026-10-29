@@ -207,14 +207,48 @@ fun clonedMutableRecord(x) =
 //│ = [4, 5]
 
 // An inferred result can name a class declared inside the function's own body.
-// Cloning still needs to rename that result through the nested body's bindings;
-// otherwise the original and copied classes are reported as unrelated types.
-:fixme
+// Its erased signature and the field selection must refer to the same fresh Box
+// as its constructor, including in independent copies of the transformation.
 pattern InnerClass = x =>
   fun make() =
     data class Box(value: Int)
     Box(x)
   make().value
-//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Box' at an unrelated type 'Box'
-//│ ║  l.+4: 	    Box(x)
-//│ ╙──      	    ^^^^^^
+
+:noOpt
+fun innerClass(x) =
+  if x is (@compile InnerClass) as first then
+    if first + 1 is (@compile InnerClass) as second then second else 0
+  else 0
+
+fun innerClassOptimized(x) =
+  if x is (@compile InnerClass) as first then
+    if first + 1 is (@compile InnerClass) as second then second else 0
+  else 0
+
+:expect [4, 5, 4, 5]
+[innerClass(3), innerClass(4), innerClassOptimized(3), innerClassOptimized(4)]
+//│ = [4, 5, 4, 5]
+
+// Forward calls infer parameters from a class inside a later function. Both
+// that parameter's erased type and the selected override escape the class scope.
+pattern InnerMembers = x =>
+  fun read(box) = box.get() + 1
+  fun make() =
+    class Base with
+      open fun get(): Int = 0
+    class Box extends Base with
+      override fun get(): Int = x
+    new Box
+  let box = make()
+  read(box)
+
+:noOpt
+fun innerMembers(x) =
+  if x is (@compile InnerMembers) as first then
+    if first is (@compile InnerMembers) as second then second else 0
+  else 0
+
+:expect [5, 6]
+[innerMembers(3), innerMembers(4)]
+//│ = [5, 6]

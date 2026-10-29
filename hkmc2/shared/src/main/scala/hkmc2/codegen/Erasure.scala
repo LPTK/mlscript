@@ -39,6 +39,11 @@ final class Erasure private (using Config, Ctx, State)(using Raise):
     source.getState.erasedBodyResults.get(source).foreach: tpe =>
       copy.getState.erasedBodyResults(copy) = tpe.map(mapType)
 
+  /** Cloning allocates slots before nominal symbols in their types are all available. */
+  private[hkmc2] def copyTemporaryType(source: TempSymbol, copy: TempSymbol)
+      (mapType: ErasedValueType => ErasedValueType): Unit =
+    copy.erasedType = source.erasedType.map(mapType)
+
   private def valueType(shape: TermShape): Opt[ErasedValueType] = valueTypes.getOrElseUpdate(shape, shape match
     case MarkedShape(value, _) => valueType(value)
     case ContextualShape(value, _) => valueType(value)
