@@ -24,15 +24,17 @@ let y = new Bar()
 //│         disamb = class:Bar⁰
 //│       argss = Ls of
 //│         Nil
-//│     rest = Assign: \
-//│     lhs = y⁰
-//│     rhs = Instantiate:
-//│       mut = false
-//│       cls = MemberRef{disamb=class:Bar⁰}:
-//│         bms = member:Bar¹
-//│         disamb = class:Bar⁰
-//│       argss = Ls of
-//│         Nil
+//│     rest = Assign:
+//│       lhs = y⁰
+//│       rhs = Instantiate:
+//│         mut = false
+//│         cls = MemberRef{disamb=class:Bar⁰}:
+//│           bms = member:Bar¹
+//│           disamb = class:Bar⁰
+//│         argss = Ls of
+//│           Nil
+//│       reassign = false
+//│     reassign = false
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ set x⁰ = new Bar⁰(); set y⁰ = new Bar⁰(); end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -63,15 +65,17 @@ let y = new Bar()
 //│         disamb = class:Bar²
 //│       argss = Ls of
 //│         Nil
-//│     rest = Assign: \
-//│     lhs = y¹
-//│     rhs = Instantiate:
-//│       mut = false
-//│       cls = MemberRef{disamb=class:Bar²}:
-//│         bms = member:Bar³
-//│         disamb = class:Bar²
-//│       argss = Ls of
-//│         Nil
+//│     rest = Assign:
+//│       lhs = y¹
+//│       rhs = Instantiate:
+//│         mut = false
+//│         cls = MemberRef{disamb=class:Bar²}:
+//│           bms = member:Bar³
+//│           disamb = class:Bar²
+//│         argss = Ls of
+//│           Nil
+//│       reassign = false
+//│     reassign = false
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ set x¹ = new Bar²(); set y¹ = new Bar²(); end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -131,17 +135,19 @@ let x = new Foo.Bar()
 //│           name = Ident of "Bar"
 //│         argss = Ls of
 //│           Nil
-//│       rest = Assign: \
-//│       lhs = x³
-//│       rhs = Instantiate:
-//│         mut = false
-//│         cls = Select{sym=class:Bar⁵}:
-//│           qual = MemberRef{disamb=module:Foo²}:
-//│             bms = member:Foo⁰
-//│             disamb = module:Foo²
-//│           name = Ident of "Bar"
-//│         argss = Ls of
-//│           Nil
+//│       rest = Assign:
+//│         lhs = x³
+//│         rhs = Instantiate:
+//│           mut = false
+//│           cls = Select{sym=class:Bar⁵}:
+//│             qual = MemberRef{disamb=module:Foo²}:
+//│               bms = member:Foo⁰
+//│               disamb = module:Foo²
+//│             name = Ident of "Bar"
+//│           argss = Ls of
+//│             Nil
+//│         reassign = false
+//│       reassign = false
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let x; set x = new Foo².Bar⁵(); set x³ = new Foo².Bar⁵(); end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————

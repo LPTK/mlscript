@@ -287,7 +287,7 @@ class DeforestRewriter(val solver: DeforestFusionSolver, additionalTopLevelSymbo
             if !inCtx(fv)
           do freeVars.add(fv)
           super.applyPath(m.scrut)
-        case Assign(lhs: LocalVarSymbol, rhs, rest) =>
+        case Assign(lhs: LocalVarSymbol, rhs, rest, _) =>
           if !inCtx(lhs) then freeVars.add(lhs)
           applyResult(rhs)
           applyBlock(rest)
@@ -423,7 +423,7 @@ class DeforestRewriter(val solver: DeforestFusionSolver, additionalTopLevelSymbo
             case (Arg(N, a) -> fieldSym, rest) =>
               applyPath(a): fusedField =>
                 coerceIntoFlowTypedSlot(fusedField, fieldSym.erasedType.getOrElse(ErasedType.Unknown)): value =>
-                  Scoped(Set.single(fieldSym), Assign(fieldSym, value, rest))
+                  Scoped(Set.single(fieldSym), Assign.init(fieldSym, value, rest))
             case _ => TODO("spread args are not supported")
         
         solver.finalCtorDests.get(ctor.uid.concreteId) match
@@ -468,7 +468,7 @@ class DeforestRewriter(val solver: DeforestFusionSolver, additionalTopLevelSymbo
           case p: Path => k(p)
           case r =>
             val tmp = TempSymbol(N, r.erasedType, "fused")
-            Scoped(Set.single(tmp), Assign(tmp, r, k(tmp.asPath)))
+            Scoped(Set.single(tmp), Assign.init(tmp, r, k(tmp.asPath)))
       case ctor@CtorProducer(_, args, _) if solver.finalCtorDests.isDefinedAt(ctor.uid.concreteId) =>
         assert(args.isEmpty)
         val (branchFunBms, branchFunTSym) = branchFunSyms(ctorWhichBranch(ctor.uid.concreteId))
@@ -476,7 +476,7 @@ class DeforestRewriter(val solver: DeforestFusionSolver, additionalTopLevelSymbo
           val lambdaSym = new TempSymbol(N, initErasedType = callBranchFun.erasedType, "deforest$lam")
           Scoped(
             Set.single(lambdaSym),
-            Assign(
+            Assign.init(
               lambdaSym,
               callBranchFun,
               k(lambdaSym.asSimpleRef)
@@ -503,7 +503,7 @@ class DeforestRewriter(val solver: DeforestFusionSolver, additionalTopLevelSymbo
       case m@Match(scrut, _, _, _) if solver.finalDtorSrcs.isDefinedAt(scrut.uid.concreteId) =>
         applyPath(scrut): newScrut =>
           mkCall(newScrut, dtorBranchFnFvs(scrut.uid.concreteId))(returnCall)
-      case Assign(l: LocalVarSymbol, r, rst) =>
+      case Assign(l: LocalVarSymbol, r, rst, re) =>
         applyResult(r): r2 =>
           val l2 = applyAssignLhs(l)
           val slot = l2 match
@@ -511,7 +511,7 @@ class DeforestRewriter(val solver: DeforestFusionSolver, additionalTopLevelSymbo
             case NoSymbol => (N, N)
           intoRetypedSlot(r2, slot): r3 =>
             val rst2 = applySubBlock(rst)
-            if (l2 is l) && (r3 is r) && (rst2 is rst) then b else Assign(l2, r3, rst2)
+            if (l2 is l) && (r3 is r) && (rst2 is rst) then b else Assign(l2, r3, rst2, re)
       case Return(res) =>
         applyResult(res): res2 =>
           intoRetypedSlot(res2, returnType): res3 =>

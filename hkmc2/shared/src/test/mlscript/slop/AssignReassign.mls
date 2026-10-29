@@ -1,0 +1,499 @@
+:.
+:global
+:js
+
+// The source assignment stays a reassignment after flattening and optimization.
+:lot
+:olot
+:expect 3
+let assigned = 1
+if assigned == 1 then
+  set assigned = assigned + 2
+assigned
+//│ —————————————| Lowered IR Tree |————————————————————————————————————————————————————————————————————
+//│ Program:
+//│   main = Scoped(syms = {tmp:scrut⁰, tmp:tmp⁰, tmp:tmp¹}):
+//│     body = Assign:
+//│       lhs = assigned⁰
+//│       rhs = Lit of IntLit of 1
+//│       rest = Assign:
+//│         lhs = tmp:scrut⁰
+//│         rhs = Call:
+//│           fun = Select{sym=term:Predef⁰/equals⁰}:
+//│             qual = MemberRef{disamb=module:Predef⁰}:
+//│               bms = member:Predef¹
+//│               disamb = module:Predef⁰
+//│             name = Ident of "equals"
+//│           argss = Ls of
+//│             Ls of
+//│               Arg:
+//│                 value = SimpleRef of assigned⁰
+//│               Arg:
+//│                 value = Lit of IntLit of 1
+//│         rest = Match:
+//│           scrut = SimpleRef of tmp:scrut⁰
+//│           arms = Ls of
+//│             Tuple2:
+//│               _1 = Lit of BoolLit of true
+//│               _2 = Assign:
+//│                 lhs = tmp:tmp⁰
+//│                 rhs = Call:
+//│                   fun = SimpleRef of builtin:+⁰
+//│                   argss = Ls of
+//│                     Ls of
+//│                       Arg:
+//│                         value = SimpleRef of assigned⁰
+//│                       Arg:
+//│                         value = Lit of IntLit of 2
+//│                 rest = Assign:
+//│                   lhs = assigned⁰
+//│                   rhs = SimpleRef of tmp:tmp⁰
+//│                   rest = Assign:
+//│                     lhs = tmp:tmp¹
+//│                     rhs = Select{sym=object:Unit⁰}:
+//│                       qual = SimpleRef of runtime⁰
+//│                       name = Ident of "Unit"
+//│                     rest = Return of SimpleRef of assigned⁰
+//│                     reassign = false
+//│                   reassign = true
+//│                 reassign = false
+//│           dflt = S of Throw:
+//│             exc = Instantiate:
+//│               mut = false
+//│               cls = Select{sym=class:Error⁰}:
+//│                 qual = This of globalThis:globalThis⁰
+//│                 name = Ident of "Error"
+//│               argss = Ls of
+//│                 Ls of
+//│                   Arg:
+//│                     value = Lit of StrLit of "match error"
+//│           rest = End of "Rest moved to non-abortive branch(es)"
+//│         reassign = false
+//│       reassign = false
+//│ ————————————| Optimized IR Tree |———————————————————————————————————————————————————————————————————
+//│ Program:
+//│   main = Scoped(syms = {tmp:scrut⁰}):
+//│     body = Assign:
+//│       lhs = assigned⁰
+//│       rhs = Lit of IntLit of 1
+//│       rest = Assign:
+//│         lhs = tmp:scrut⁰
+//│         rhs = Call:
+//│           fun = Select{sym=term:Predef⁰/equals⁰}:
+//│             qual = MemberRef{disamb=module:Predef⁰}:
+//│               bms = member:Predef¹
+//│               disamb = module:Predef⁰
+//│             name = Ident of "equals"
+//│           argss = Ls of
+//│             Ls of
+//│               Arg:
+//│                 value = Lit of IntLit of 1
+//│               Arg:
+//│                 value = Lit of IntLit of 1
+//│         rest = Match:
+//│           scrut = SimpleRef of tmp:scrut⁰
+//│           arms = Ls of
+//│             Tuple2:
+//│               _1 = Lit of BoolLit of true
+//│               _2 = Assign:
+//│                 lhs = assigned⁰
+//│                 rhs = Lit of IntLit of 3
+//│                 rest = Return of Lit of IntLit of 3
+//│                 reassign = true
+//│           dflt = S of Throw:
+//│             exc = Instantiate:
+//│               mut = false
+//│               cls = Select{sym=class:Error⁰}:
+//│                 qual = This of globalThis:globalThis⁰
+//│                 name = Ident of "Error"
+//│               argss = Ls of
+//│                 Ls of
+//│                   Arg:
+//│                     value = Lit of StrLit of "match error"
+//│           rest = End of "Rest moved to non-abortive branch(es)"
+//│         reassign = false
+//│       reassign = false
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 3
+//│ assigned = 3
+
+// Naming a lambda must preserve whether its destination already has a value.
+:lot
+:olot
+:expect 2
+let next = () => 1
+set next = () => 2
+next()
+//│ —————————————| Lowered IR Tree |————————————————————————————————————————————————————————————————————
+//│ Program:
+//│   main = Scoped(syms = {member:lambda⁰, member:next⁰}):
+//│     body = Define:
+//│       defn = FunDefn:
+//│         sym = member:next⁰
+//│         dSym = term:next¹
+//│         params = Ls of
+//│           LoweredParamList: ‹empty›
+//│         body = Return of Lit of IntLit of 1
+//│       rest = Assign: \
+//│       lhs = next²
+//│       rhs = MemberRef{disamb=term:next¹}:
+//│         bms = member:next⁰
+//│         disamb = term:next¹
+//│       rest = Define:
+//│         defn = FunDefn:
+//│           sym = member:lambda⁰
+//│           dSym = term:lambda¹
+//│           params = Ls of
+//│             LoweredParamList: ‹empty›
+//│           body = Return of Lit of IntLit of 2
+//│         rest = Assign: \
+//│         lhs = next²
+//│         rhs = MemberRef{disamb=term:lambda¹}:
+//│           bms = member:lambda⁰
+//│           disamb = term:lambda¹
+//│         rest = Return of Call:
+//│           fun = SimpleRef of next²
+//│           argss = Ls of
+//│             Nil
+//│         reassign = true
+//│       reassign = false
+//│ ————————————| Optimized IR Tree |———————————————————————————————————————————————————————————————————
+//│ Program:
+//│   main = Scoped(syms = {member:lambda⁰, member:next⁰}):
+//│     body = Define:
+//│       defn = FunDefn:
+//│         sym = member:next⁰
+//│         dSym = term:next¹
+//│         params = Ls of
+//│           LoweredParamList: ‹empty›
+//│         body = Return of Lit of IntLit of 1
+//│       rest = Assign: \
+//│       lhs = next²
+//│       rhs = MemberRef{disamb=term:next¹}:
+//│         bms = member:next⁰
+//│         disamb = term:next¹
+//│       rest = Define:
+//│         defn = FunDefn:
+//│           sym = member:lambda⁰
+//│           dSym = term:lambda¹
+//│           params = Ls of
+//│             LoweredParamList: ‹empty›
+//│           body = Return of Lit of IntLit of 2
+//│         rest = Assign: \
+//│         lhs = next²
+//│         rhs = MemberRef{disamb=term:lambda¹}:
+//│           bms = member:lambda⁰
+//│           disamb = term:lambda¹
+//│         rest = Return of Lit of IntLit of 2
+//│         reassign = true
+//│       reassign = false
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 2
+//│ next = fun
+
+// Tail-call parameters are reassigned; argument temporaries are initialized.
+:olot
+:expect 10
+@annotations.noInline
+fun sumDown(n: Int, acc: Int): Int =
+  if n == 0 then acc else sumDown(n - 1, acc + n)
+sumDown(4, 0)
+//│ —————————————| Lowered IR Tree |————————————————————————————————————————————————————————————————————
+//│ Program:
+//│   main = Define:
+//│     defn = FunDefn:
+//│       sym = member:sumDown⁰
+//│       dSym = term:sumDown¹
+//│       params = Ls of
+//│         LoweredParamList:
+//│           params = Ls of
+//│             Param:
+//│               sym = n⁰
+//│               sign = S of Capture:
+//│                 base = MemberRef of member:Int⁰
+//│                 thru = term:sumDown¹
+//│               modulefulness = Modulefulness of N
+//│             Param:
+//│               sym = acc⁰
+//│               sign = S of Capture:
+//│                 base = MemberRef of member:Int⁰
+//│                 thru = term:sumDown¹
+//│               modulefulness = Modulefulness of N
+//│       body = Scoped(syms = {tmp:scrut¹, tmp:tmp², tmp:tmp³}):
+//│         body = Assign:
+//│           lhs = tmp:scrut¹
+//│           rhs = Call:
+//│             fun = Select{sym=term:Predef⁰/equals⁰}:
+//│               qual = MemberRef{disamb=module:Predef⁰}:
+//│                 bms = member:Predef¹
+//│                 disamb = module:Predef⁰
+//│               name = Ident of "equals"
+//│             argss = Ls of
+//│               Ls of
+//│                 Arg:
+//│                   value = SimpleRef of n⁰
+//│                 Arg:
+//│                   value = Lit of IntLit of 0
+//│           rest = Match:
+//│             scrut = SimpleRef of tmp:scrut¹
+//│             arms = Ls of
+//│               Tuple2:
+//│                 _1 = Lit of BoolLit of true
+//│                 _2 = Return of SimpleRef of acc⁰
+//│             dflt = S of Assign:
+//│               lhs = tmp:tmp²
+//│               rhs = Call:
+//│                 fun = SimpleRef of builtin:-⁰
+//│                 argss = Ls of
+//│                   Ls of
+//│                     Arg:
+//│                       value = SimpleRef of n⁰
+//│                     Arg:
+//│                       value = Lit of IntLit of 1
+//│               rest = Assign:
+//│                 lhs = tmp:tmp³
+//│                 rhs = Call:
+//│                   fun = SimpleRef of builtin:+⁰
+//│                   argss = Ls of
+//│                     Ls of
+//│                       Arg:
+//│                         value = SimpleRef of acc⁰
+//│                       Arg:
+//│                         value = SimpleRef of n⁰
+//│                 rest = Return of Call:
+//│                   fun = MemberRef{disamb=term:sumDown¹}:
+//│                     bms = member:sumDown⁰
+//│                     disamb = term:sumDown¹
+//│                   argss = Ls of
+//│                     Ls of
+//│                       Arg:
+//│                         value = SimpleRef of tmp:tmp²
+//│                       Arg:
+//│                         value = SimpleRef of tmp:tmp³
+//│                 reassign = false
+//│               reassign = false
+//│           reassign = false
+//│     rest = Return of Call:
+//│       fun = MemberRef{disamb=term:sumDown¹}:
+//│         bms = member:sumDown⁰
+//│         disamb = term:sumDown¹
+//│       argss = Ls of
+//│         Ls of
+//│           Arg:
+//│             value = Lit of IntLit of 4
+//│           Arg:
+//│             value = Lit of IntLit of 0
+//│ ————————————| Optimized IR Tree |———————————————————————————————————————————————————————————————————
+//│ Program:
+//│   main = Define:
+//│     defn = FunDefn:
+//│       sym = member:sumDown⁰
+//│       dSym = term:sumDown¹
+//│       params = Ls of
+//│         LoweredParamList:
+//│           params = Ls of
+//│             Param:
+//│               sym = n⁰
+//│               sign = S of Capture:
+//│                 base = MemberRef of member:Int⁰
+//│                 thru = term:sumDown¹
+//│               modulefulness = Modulefulness of N
+//│             Param:
+//│               sym = acc⁰
+//│               sign = S of Capture:
+//│                 base = MemberRef of member:Int⁰
+//│                 thru = term:sumDown¹
+//│               modulefulness = Modulefulness of N
+//│       body = Label:
+//│         label = label:loopLabel⁰
+//│         loop = true
+//│         body = Scoped(syms = {tmp:scrut¹, tmp:tmp², tmp:tmp³}):
+//│           body = Assign:
+//│             lhs = tmp:scrut¹
+//│             rhs = Call:
+//│               fun = Select{sym=term:Predef⁰/equals⁰}:
+//│                 qual = MemberRef{disamb=module:Predef⁰}:
+//│                   bms = member:Predef¹
+//│                   disamb = module:Predef⁰
+//│                 name = Ident of "equals"
+//│               argss = Ls of
+//│                 Ls of
+//│                   Arg:
+//│                     value = SimpleRef of n⁰
+//│                   Arg:
+//│                     value = Lit of IntLit of 0
+//│             rest = Match:
+//│               scrut = SimpleRef of tmp:scrut¹
+//│               arms = Ls of
+//│                 Tuple2:
+//│                   _1 = Lit of BoolLit of true
+//│                   _2 = Return of SimpleRef of acc⁰
+//│               dflt = S of Assign:
+//│                 lhs = tmp:tmp²
+//│                 rhs = Call:
+//│                   fun = SimpleRef of builtin:-⁰
+//│                   argss = Ls of
+//│                     Ls of
+//│                       Arg:
+//│                         value = SimpleRef of n⁰
+//│                       Arg:
+//│                         value = Lit of IntLit of 1
+//│                 rest = Assign:
+//│                   lhs = tmp:tmp³
+//│                   rhs = Call:
+//│                     fun = SimpleRef of builtin:+⁰
+//│                     argss = Ls of
+//│                       Ls of
+//│                         Arg:
+//│                           value = SimpleRef of acc⁰
+//│                         Arg:
+//│                           value = SimpleRef of n⁰
+//│                   rest = Assign:
+//│                     lhs = n⁰
+//│                     rhs = SimpleRef of tmp:tmp²
+//│                     rest = Assign:
+//│                       lhs = acc⁰
+//│                       rhs = SimpleRef of tmp:tmp³
+//│                       rest = Continue of label:loopLabel⁰
+//│                       reassign = true
+//│                     reassign = true
+//│                   reassign = false
+//│                 reassign = false
+//│             reassign = false
+//│         rest = Unreachable of "Rest of abortive labelled block"
+//│     rest = Return of Call:
+//│       fun = MemberRef{disamb=term:sumDown¹}:
+//│         bms = member:sumDown⁰
+//│         disamb = term:sumDown¹
+//│       argss = Ls of
+//│         Ls of
+//│           Arg:
+//│             value = Lit of IntLit of 4
+//│           Arg:
+//│             value = Lit of IntLit of 0
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 10
+
+// Effect checks must preserve the reassignment of an existing source variable.
+:lot
+:effectHandlers
+:lift
+:expect 3
+@annotations.noInline
+fun provide() = 3
+let updated = 1
+set updated = provide()
+updated
+//│ —————————————| Lowered IR Tree |————————————————————————————————————————————————————————————————————
+//│ Program:
+//│   main = Scoped(syms = {tmp:tmp⁴}):
+//│     body = Assign:
+//│       lhs = ‹no symbol›
+//│       rhs = Call:
+//│         fun = Select:
+//│           qual = SimpleRef of runtime⁰
+//│           name = Ident of "resetEffects"
+//│         argss = Ls of
+//│           Nil
+//│       rest = Define:
+//│         defn = FunDefn:
+//│           sym = member:provide⁰
+//│           dSym = term:provide¹
+//│           params = Ls of
+//│             LoweredParamList: ‹empty›
+//│           body = Return of Lit of IntLit of 3
+//│         rest = Assign: \
+//│         lhs = updated⁰
+//│         rhs = Lit of IntLit of 1
+//│         rest = Assign:
+//│           lhs = tmp:tmp⁴
+//│           rhs = Call:
+//│             fun = MemberRef{disamb=term:provide¹}:
+//│               bms = member:provide⁰
+//│               disamb = term:provide¹
+//│             argss = Ls of
+//│               Nil
+//│           rest = Match:
+//│             scrut = Select:
+//│               qual = SimpleRef of runtime⁰
+//│               name = Ident of "curEffect"
+//│             arms = Ls of
+//│               Tuple2:
+//│                 _1 = Lit of UnitLit of true
+//│             dflt = S of Assign:
+//│               lhs = tmp:tmp⁴
+//│               rhs = Call:
+//│                 fun = Select:
+//│                   qual = SimpleRef of runtime⁰
+//│                   name = Ident of "topLevelEffect"
+//│                 argss = Ls of
+//│                   Ls of
+//│                     Arg:
+//│                       value = Lit of BoolLit of false
+//│               reassign = true
+//│             rest = Assign: \
+//│             lhs = updated⁰
+//│             rhs = SimpleRef of tmp:tmp⁴
+//│             rest = Return of SimpleRef of updated⁰
+//│             reassign = true
+//│           reassign = false
+//│         reassign = false
+//│       reassign = false
+//│ ————————————| Optimized IR Tree |———————————————————————————————————————————————————————————————————
+//│ Program:
+//│   main = Scoped(syms = {tmp:tmp⁴}):
+//│     body = Assign:
+//│       lhs = ‹no symbol›
+//│       rhs = Call:
+//│         fun = Select:
+//│           qual = SimpleRef of runtime⁰
+//│           name = Ident of "resetEffects"
+//│         argss = Ls of
+//│           Nil
+//│       rest = Define:
+//│         defn = FunDefn:
+//│           sym = member:provide⁰
+//│           dSym = term:provide¹
+//│           params = Ls of
+//│             LoweredParamList: ‹empty›
+//│           body = Return of Lit of IntLit of 3
+//│         rest = Assign: \
+//│         lhs = updated⁰
+//│         rhs = Lit of IntLit of 1
+//│         rest = Assign:
+//│           lhs = tmp:tmp⁴
+//│           rhs = Call:
+//│             fun = MemberRef{disamb=term:provide¹}:
+//│               bms = member:provide⁰
+//│               disamb = term:provide¹
+//│             argss = Ls of
+//│               Nil
+//│           rest = Match:
+//│             scrut = Select:
+//│               qual = SimpleRef of runtime⁰
+//│               name = Ident of "curEffect"
+//│             arms = Ls of
+//│               Tuple2:
+//│                 _1 = Lit of UnitLit of true
+//│             dflt = S of Assign:
+//│               lhs = tmp:tmp⁴
+//│               rhs = Call:
+//│                 fun = Select:
+//│                   qual = SimpleRef of runtime⁰
+//│                   name = Ident of "topLevelEffect"
+//│                 argss = Ls of
+//│                   Ls of
+//│                     Arg:
+//│                       value = Lit of BoolLit of false
+//│               reassign = true
+//│             rest = Assign: \
+//│             lhs = updated⁰
+//│             rhs = SimpleRef of tmp:tmp⁴
+//│             rest = Return of SimpleRef of tmp:tmp⁴
+//│             reassign = true
+//│           reassign = false
+//│         reassign = false
+//│       reassign = false
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 3
+//│ updated = 3

@@ -56,7 +56,7 @@ class UsedVarAnalyzer(b: Block, scopeData: ScopeData)(using State):
       override def applyBlock(b: Block): Unit = b match
         case s: Scoped =>
           accessed.refdDefns.add(scopeData.getUID(s))
-        case Assign(lhs, rhs, rest) =>
+        case Assign(lhs, rhs, rest, _) =>
           lhs match
           case NoSymbol => ()
           case lhs: LocalVarSymbol =>
@@ -328,7 +328,7 @@ class UsedVarAnalyzer(b: Block, scopeData: ScopeData)(using State):
           case l: Label if l.loop =>
             rec(l.body)(using linearVars = Set.empty) |> merge
             applySubBlock(l.rest)
-          case Assign(lhs, rhs, rest) =>
+          case Assign(lhs, rhs, rest, _) =>
             applyResult(rhs)
             lhs match
             case NoSymbol => ()

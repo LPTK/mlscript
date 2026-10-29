@@ -67,11 +67,11 @@ private[codegen] object ConstructorElision:
               if isParameter(value.rhs, param)
               restFields <- stores(rest, inBody)
             yield restFields + value.tsym
-          case Assign(sym: VarSymbol, _, _) if params.contains(sym) => N
-          case Assign(NoSymbol, Call(Value.SimpleRef(parentCall), _), rest)
+          case Assign(sym: VarSymbol, _, _, _) if params.contains(sym) => N
+          case Assign(NoSymbol, Call(Value.SimpleRef(parentCall), _), rest, _)
               if parentCall is Elaborator.State.superSymbol =>
             if inBody then N else stores(rest, inBody)
-          case Assign(_, _: Path, rest) => stores(rest, inBody)
+          case Assign(_, _: Path, rest, _) => stores(rest, inBody)
           case Scoped(_, body) => stores(body, inBody)
           case Begin(first, rest) =>
             for
@@ -93,11 +93,11 @@ private[codegen] object ConstructorElision:
           harmlessBlock(rest, locals)
         case Define(value: ValDefn, rest) if value.owner.contains(cls.isym) && value.rhs.isPure =>
           harmlessBlock(rest, locals)
-        case Assign(local, value: Path, rest) if value.isPure && (local match
+        case Assign(local, value: Path, rest, _) if value.isPure && (local match
             case sym: LocalVarSymbol => locals(sym)
             case NoSymbol => true) =>
           harmlessBlock(rest, locals)
-        case Assign(NoSymbol, Call(Value.SimpleRef(parentCall), argss), rest)
+        case Assign(NoSymbol, Call(Value.SimpleRef(parentCall), argss), rest, _)
             if (parentCall is Elaborator.State.superSymbol) && argss.forall(_.forall(arg => arg.spread.isEmpty && arg.value.isPure)) =>
           cls.parentPath.flatMap(_.targetSymbol).collect { case parent: ClassSymbol => parent }
             .flatMap(_.irClsLikeDefn).exists(harmlessClass(_, next)) && harmlessBlock(rest, locals)

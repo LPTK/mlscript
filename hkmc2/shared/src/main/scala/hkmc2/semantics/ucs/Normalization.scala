@@ -326,7 +326,7 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State, C
     case Split.Let(sym, trm, tl) =>
       LoweringCtx.loweringCtx.collectScopedSym(sym)
       term_nonTail(trm): r =>
-        Assign(sym, r, lowerSplit(tl, cont))
+        Assign.init(sym, r, lowerSplit(tl, cont))
     case Split.Cons(Branch(scrut, pat, tail), restSplit) =>
       subTerm_nonTail(scrut): sr =>
         tl.log(dbg"Binding scrut $scrut to $sr (${summon[LoweringCtx].localVals})")
@@ -350,7 +350,7 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State, C
                 case (param, (arg, loc)) :: args =>
                   val (cse, blk) = mkArgs(args)
                   // Positional patterns do not spell the field name. Locate the extraction at the sub-pattern.
-                  (cse, Assign(arg, Select(sr, Tree.Ident(param.id.name))(S(param), loc)(false), blk))
+                  (cse, Assign.init(arg, Select(sr, Tree.Ident(param.id.name))(S(param), loc)(false), blk))
               mkMatch(mkArgs(clsParams.iterator.zip(args).toList))
             symbol match
               case cls: ClassSymbol if ctx.builtins.virtualClasses contains cls =>
@@ -377,7 +377,7 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State, C
                 case ((fieldName, fieldSymbol), blk) =>
                   mkMatch(
                     Case.Field(fieldName, safe = true), // we know we have an object, no need to check again
-                    Assign(fieldSymbol, Select(sr, fieldName)(N, N)(false), blk)
+                    Assign.init(fieldSymbol, Select(sr, fieldName)(N, N)(false), blk)
                   )
             )
     case Split.Else(els) =>
@@ -412,7 +412,7 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State, C
         var pathTypes: Ls[Opt[codegen.ErasedValueType]] = Nil
         val exitCont: Result => Block = r =>
           if !r.isUndefined then pathTypes ::= r.erasedType
-          Assign(tmp, r, Break(exitLabel))
+          Assign.init(tmp, r, Break(exitLabel))
         val bodyBlock = lowerSplit(sym.body, exitCont)
         val tailBlock = lowerSplit(tail, exitCont)
         joinTempType(tmp, pathTypes)
@@ -508,9 +508,9 @@ class Normalization(lowering: Lowering)(using tl: TL)(using Raise, Ctx, State, C
           if (k is Ret) || (k is Thrw) then k(r)
           else
             if !r.isUndefined then branchTypes ::= r.erasedType
-            Assign(l, r, End())
+            Assign.init(l, r, End())
         case IfLikeForm.ImperativeIf => Assign.discard(r, End())
-        case IfLikeForm.While => Assign(NoSymbol, r, loopCont)
+        case IfLikeForm.While => Assign.init(NoSymbol, r, loopCont)
       // NOTE: `shouldRewriteWhile` is not the same as `config.rewriteWhileLoops`
       // as shouldRewriteWhile is always true when effect handler lowering is on
       lazy val loopCont = if config.shouldRewriteWhile

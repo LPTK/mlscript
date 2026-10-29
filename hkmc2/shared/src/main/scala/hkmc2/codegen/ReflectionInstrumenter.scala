@@ -55,7 +55,7 @@ class ReflectionInstrumenter(using State, Raise, Ctx) extends BlockTransformer(n
   def assign(res: Result, symName: Str = "tmp")(k: Path => Block): Block =
     // TODO: skip assignment if res: Path?
     val sym = new TempSymbol(N, initErasedType = res.erasedType, symName)
-    Scoped(Set(sym), Assign(sym, res, k(sym.asSimpleRef)))
+    Scoped(Set(sym), Assign.init(sym, res, k(sym.asSimpleRef)))
 
   def tuple(elems: Ls[ArgWrappable], symName: Str = "tmp")(k: Path => Block): Block =
     assign(Tuple(false, elems.map(asArg))(N), symName)(k)
@@ -291,11 +291,11 @@ class ReflectionInstrumenter(using State, Raise, Ctx) extends BlockTransformer(n
     case Return(res) =>
       transformResult(res): x =>
         blockCtor("Return", Ls(x), "return")(k(_, ctx))
-    case Assign(x, r, b) =>
+    case Assign(x, r, b, re) =>
       transformResult(r): y =>
         transformSymbol(x): xSym =>
           blockCtor("ValueSimpleRef", Ls(xSym)): xStaged =>
-            (Assign(x, xStaged, _)):
+            (Assign(x, xStaged, _, re)):
               given Context = x match
                 case NoSymbol => ctx.clone()
                 case x: ValueSymbol => ctx.clone() += x.asPath -> xStaged

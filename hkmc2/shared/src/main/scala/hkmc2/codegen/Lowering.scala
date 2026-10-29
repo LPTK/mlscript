@@ -111,7 +111,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
   private def withClassParent(parent: Path)(k: Path => Block)(using LoweringCtx): Block =
     def save(path: Path)(k: Path => Block): Block =
       val saved = loweringCtx.registerTempSymbol(N, erasedType = N, "superBase")
-      Assign(saved, path, k(saved.asSimpleRef))
+      Assign.init(saved, path, k(saved.asSimpleRef))
     parent match
     case Value.MemberRef(_, _: ClassSymbol) | Value.SimpleRef(_: TempSymbol) => k(parent)
     case sel: Select if sel.symbol.exists(_.isInstanceOf[ClassSymbol]) =>
@@ -255,7 +255,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
       isMlsFun = true,
       args,
       loc,
-    )(c => Assign(NoSymbol, c, End()))
+    )(c => Assign.init(NoSymbol, c, End()))
   
   // * Used to work around Scala's @tailrec annotation for those few calls that are not in tail position.
   final def term_nonTail(t: st, inStmtPos: Bool = false)(k: Result => Block)(using LoweringCtx): Block =
@@ -535,7 +535,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
               // Read a stored class before evaluating arguments or building a
               // partial constructor, even if its binding is assigned later.
               val saved = loweringCtx.registerTempSymbol(S(trm), erasedType = N, "classValue")
-              Assign(saved, classPath, k(saved.asSimpleRef, classParamLists(cls)))
+              Assign.init(saved, classPath, k(saved.asSimpleRef, classParamLists(cls)))
           case Nil => fail:
             ErrorReport(msg"Cannot resolve the class referenced here" -> trm.toLoc :: Nil,
               source = Diagnostic.Source.Compilation)
@@ -642,7 +642,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
         case acc: NELs[Ls[Arg]] =>
           val call = Call(fr, acc)(CallMetadata(isMlsFun, mayRaiseEffects, Nil), loc)
           val tmp = loweringCtx.registerTempSymbol(N, erasedType = call.erasedType, "baseCall")
-          Assign(tmp, call, lowerRemainingCalls(tmp.asSimpleRef, args, remainingArgss, annotations, loc)(k))
+          Assign.init(tmp, call, lowerRemainingCalls(tmp.asSimpleRef, args, remainingArgss, annotations, loc)(k))
       case (_ :: _, Nil) =>
         k(Call(fr, acc.reverse.ne_!)(CallMetadata(isMlsFun, mayRaiseEffects, annotations), loc))
     fr.targetSymbol match
@@ -661,7 +661,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
       case Nil => k(call)
       case args :: remainingArgss =>
         val tmp = loweringCtx.registerTempSymbol(N, erasedType = call.erasedType, "callPrefix")
-        Assign(tmp, call,
+        Assign.init(tmp, call,
           lowerRemainingCalls(tmp.asSimpleRef, args, remainingArgss, annotations, loc)(k))
   
   /** Lower an instantiation with multiple argument lists into `Instantiate` and `Call` nodes,
@@ -686,7 +686,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
       case (Nil, args :: remainingArgss) =>
         val inst = buildInstantiate(acc.reverse)
         val tmp = loweringCtx.registerTempSymbol(N, erasedType = inst.erasedType, "baseInst")
-        Assign(tmp, inst,
+        Assign.init(tmp, inst,
           lowerRemainingCalls(tmp.asSimpleRef, args, remainingArgss, annotations, N)(k))
       case (remainingParamss, Nil) =>
         // * Eta-expand missing argument lists by creating lambdas for each remaining param list.
@@ -720,7 +720,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
           case remainingArgss =>
             val inst = buildInstantiate(as :: Nil)
             val tmp = loweringCtx.registerTempSymbol(N, erasedType = inst.erasedType, "baseInst")
-            Assign(tmp, inst,
+            Assign.init(tmp, inst,
               lowerRemainingCalls(tmp.asSimpleRef, remainingArgss.head, remainingArgss.tail, annotations, N)(k))
     else zipArgs(ctorParamLists.lists, args, Nil)
   
@@ -754,7 +754,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
             OptionalParams.bindFromTuple(tuple.asSimpleRef, index, slot, isMls && param.flags.opt,
               bind(rest, slot.asSimpleRef.asArg :: acc))
           case Nil => k(acc.reverse)
-        Assign(tuple, Tuple(false, args)(arg.toLoc), bind(ps.params.zipWithIndex, Nil))
+        Assign.init(tuple, Tuple(false, args)(arg.toLoc), bind(ps.params.zipWithIndex, Nil))
   
   def lowerArgs(arg: Term, expectedTypes: Ls[Opt[ErasedValueType]])(k: Ls[Arg] => Block)(using LoweringCtx): Block =
     arg match
@@ -795,7 +795,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
       case S(owner) => AssignField(owner.asThis, sym.id, castTo(rhs, sym.erasedType, loco), rest)(S(sym))
       case N => nope
     case sym: LocalVarSymbol =>
-      if !sym.mut then nope else Assign(sym, castTo(rhs, sym.erasedType, loco), rest)
+      if !sym.mut then nope else Assign.reassign(sym, castTo(rhs, sym.erasedType, loco), rest)
     case sym => nope
 
   private def defineSymbol(sym: Symbol, rhs: Result, rest: Block)(using LoweringCtx): Block =
@@ -805,7 +805,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
       case S(owner) => AssignField(owner.asThis, sym.id, castTo(rhs, sym.erasedType, sym.toLoc), rest)(S(sym))
       case N => lastWords(s"tried to define top-level symbol ${sym.showDbg} in a local scope")
     case sym: LocalVarSymbol =>
-      Assign(sym, castTo(rhs, sym.erasedType, sym.toLoc), rest)
+      Assign.init(sym, castTo(rhs, sym.erasedType, sym.toLoc), rest)
     case sym =>
       lastWords(s"tried to define non-variable symbol ${sym.showDbg}")
   
@@ -1127,7 +1127,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
       else r =>
         val l = loweringCtx.registerTempSymbol(N, erasedType = S(ErasedType.Unknown))
         // TODO: Does `@untyped` on a primitive make sense? How should be handle it?
-        Assign(l, r, k0(l.asSimpleRef))
+        Assign.init(l, r, k0(l.asSimpleRef))
     
     trm match
     case st.UnitVal() => k(unit)
@@ -1145,15 +1145,15 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
       loweringCtx.collectScopedSym(result)
       val bodyBlock =
         if !hasNonLocalContinueDispatch then
-          term_nonTail(body)(r => Assign(result, r, Break(label)))
+          term_nonTail(body)(r => Assign.init(result, r, Break(label)))
         else
           val bodyResult = loweringCtx.registerTempSymbol(N, erasedType = N, "labelBodyResult")
           val isContinue = loweringCtx.registerTempSymbol(N, erasedType = S(ErasedType.Bool), "labelContinueDispatch")
           term_nonTail(body): r =>
-            Assign(
+            Assign.init(
               bodyResult,
               r,
-              Assign(
+              Assign.init(
                 isContinue,
                 Call(
                   State.builtinOpsMap("===").asSimpleRef,
@@ -1162,7 +1162,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
                 Match(
                   isContinue.asSimpleRef,
                   (Case.Lit(Tree.BoolLit(true)) -> Continue(label)) :: Nil,
-                  S(Assign(result, bodyResult.asSimpleRef, Break(label))),
+                  S(Assign.init(result, bodyResult.asSimpleRef, Break(label))),
                   End("label continue-sentinel dispatch")
                 )
               )
@@ -1175,8 +1175,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
       )
     case st.Break(label, result, value) =>
       value match
-        case S(v) => term(v)(r => Assign(result, r, Break(label)))
-        case N => Assign(result, Value.Lit(Tree.UnitLit(false))(trm.toLoc), Break(label))
+        case S(v) => term(v)(r => Assign.init(result, r, Break(label)))
+        case N => Assign.init(result, Value.Lit(Tree.UnitLit(false))(trm.toLoc), Break(label))
     case st.Continue(label) =>
       Continue(label)
     case st.Asc(lhs, rhs) =>
@@ -1255,8 +1255,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
               val ts = loweringCtx.registerTempSymbol(N, erasedType = S(ErasedType.Bool))
               Match(
                 ar1,
-                (Case.Lit(posLit) -> term_nonTail(arg2)(Assign(ts, _, End()))) :: Nil,
-                S(Assign(ts, Value.Lit(negLit)(trm.toLoc), End())),
+                (Case.Lit(posLit) -> term_nonTail(arg2)(Assign.init(ts, _, End()))) :: Nil,
+                S(Assign.init(ts, Value.Lit(negLit)(trm.toLoc), End())),
                 k(ts.asSimpleRef),
               )
           sym match
@@ -1600,7 +1600,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
     case Try(sub, finallyDo) =>
       val l = loweringCtx.registerTempSymbol(S(sub), erasedType = N)
       TryBlock(
-        subTerm_nonTail(sub)(p => Assign(l, p, End())),
+        subTerm_nonTail(sub)(p => Assign.init(l, p, End())),
         subTerm_nonTail(finallyDo)(_ => End()),
         k(l.asSimpleRef)
       )
@@ -1615,7 +1615,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
     case Resolved(inner, sym) => TODO(s"lowering for Resolved($inner)")
     case Region(reg, body) =>
       loweringCtx.collectScopedSym(reg)
-      Assign(reg, Instantiate(mut = true, Select(State.globalThisSymbol.asThis, Tree.Ident("Region"))(N, trm.toLoc)(false), Nil :: Nil)(InstantiateMetadata.empty, trm.toLoc),
+      Assign.init(reg, Instantiate(mut = true, Select(State.globalThisSymbol.asThis, Tree.Ident("Region"))(N, trm.toLoc)(false), Nil :: Nil)(InstantiateMetadata.empty, trm.toLoc),
         term_nonTail(body)(k))
     case RegRef(reg, value) =>
       plainArgs(reg :: value :: Nil): args =>
@@ -1677,22 +1677,22 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
     case Split.Cons(Branch(scrutinee, pattern, continuation), tail) => quote(scrutinee): r1 =>
       val l1, l2, l3, l4, l5 = loweringCtx.registerTempSymbol(N, erasedType = N)
       blockBuilder.assign(l1, r1)
-        .chain(b => quotePattern(pattern)(r2 => Assign(l2, r2, b)))
-        .chain(b => quoteSplit(continuation, splitTmps)(r3 => Assign(l3, r3, b)))
-        .chain(b => setupTerm("Branch", (l1 :: l2 :: l3 :: Nil).map(s => s.asSimpleRef))(r4 => Assign(l4, r4, b)))
-        .chain(b => quoteSplit(tail, splitTmps)(r5 => Assign(l5, r5, b)))
+        .chain(b => quotePattern(pattern)(r2 => Assign.init(l2, r2, b)))
+        .chain(b => quoteSplit(continuation, splitTmps)(r3 => Assign.init(l3, r3, b)))
+        .chain(b => setupTerm("Branch", (l1 :: l2 :: l3 :: Nil).map(s => s.asSimpleRef))(r4 => Assign.init(l4, r4, b)))
+        .chain(b => quoteSplit(tail, splitTmps)(r5 => Assign.init(l5, r5, b)))
         .rest(setupTerm("Cons", (l4 :: l5 :: Nil).map(s => s.asSimpleRef))(k))
     case Split.Let(sym: LocalVarSymbol, term, tail) => setupSymbol(sym): r1 =>
       loweringCtx.collectScopedSym(sym)
       val l1, l2, l3 = loweringCtx.registerTempSymbol(N, erasedType = N)
       blockBuilder.assign(l1, r1)
-        .chain(b => setupTerm("Ref", l1.asSimpleRef :: Nil)(r => Assign(sym, r, b)))
-        .chain(b => quote(term)(r2 => Assign(l2, r2, b)))
-        .chain(b => quoteSplit(tail, splitTmps)(r3 => Assign(l3, r3, b)))
+        .chain(b => setupTerm("Ref", l1.asSimpleRef :: Nil)(r => Assign.init(sym, r, b)))
+        .chain(b => quote(term)(r2 => Assign.init(l2, r2, b)))
+        .chain(b => quoteSplit(tail, splitTmps)(r3 => Assign.init(l3, r3, b)))
         .rest(setupTerm("Let", (l1 :: l2 :: l3 :: Nil).map(s => s.asSimpleRef))(k))
     case Split.Else(default) => quote(default): r =>
       val l = loweringCtx.registerTempSymbol(N, erasedType = N)
-      Assign(l, r, setupTerm("Else", l.asSimpleRef :: Nil)(k))
+      Assign.init(l, r, setupTerm("Else", l.asSimpleRef :: Nil)(k))
     case Split.End => setupTerm("End", Nil)(k)
     case Split.LetSplit(sym, tail) =>
       val tmp =  loweringCtx.registerTempSymbol(N, erasedType = N, sym.nme + "_splitTmp")
@@ -1700,9 +1700,9 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
       setupSymbol(tmp): r1 =>
         val l1, l2, l3 = loweringCtx.registerTempSymbol(N, erasedType = N)
         blockBuilder.assign(l1, r1)
-          .chain(b => Assign(tmp, l1.asSimpleRef, b))
-          .chain(b => quoteSplit(sym.body, splitTmps2)(r2 => Assign(l2, r2, b)))
-          .chain(b => quoteSplit(tail, splitTmps2)(r3 => Assign(l3, r3, b)))
+          .chain(b => Assign.init(tmp, l1.asSimpleRef, b))
+          .chain(b => quoteSplit(sym.body, splitTmps2)(r2 => Assign.init(l2, r2, b)))
+          .chain(b => quoteSplit(tail, splitTmps2)(r3 => Assign.init(l3, r3, b)))
           .rest(setupTerm("LetSplit", (l1 :: l2 :: l3 :: Nil).map(_.asSimpleRef))(k))
     case Split.UseSplit(sym) => setupTerm("UseSplit", splitTmps(sym).asSimpleRef :: Nil)(k)
 
@@ -1727,8 +1727,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
     case SynthSel(Ref(sym: ModuleOrObjectSymbol), name) => // Module/object cross-stage references
       setupSymbol(sym): r1 =>
         val l1, l2 = loweringCtx.registerTempSymbol(N, erasedType = N)
-        Assign(l1, r1, setupTerm("CSRef", l1.asSimpleRef :: setupFilename :: Value.Lit(syntax.Tree.UnitLit(false))(N) :: Nil)(r2 =>
-          Assign(l2, r2, setupTerm("Sel", l2.asSimpleRef :: Value.Lit(syntax.Tree.StrLit(name.name))(N) :: Nil)(k))
+        Assign.init(l1, r1, setupTerm("CSRef", l1.asSimpleRef :: setupFilename :: Value.Lit(syntax.Tree.UnitLit(false))(N) :: Nil)(r2 =>
+          Assign.init(l2, r2, setupTerm("Sel", l2.asSimpleRef :: Value.Lit(syntax.Tree.StrLit(name.name))(N) :: Nil)(k))
         ))
     case SynthSel(Ref(sym: BlockMemberSymbol), name) => // Multi-file cross-stage references
       if config.qqEnabled then fail:
@@ -1743,8 +1743,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
           val basePath = base.up
           val targetPath = filename
           val relPath = targetPath.relativeTo(basePath).map(_.toString).getOrElse(targetPath.toString)
-          Assign(l1, r1, setupTerm("CSRef", l1.asSimpleRef :: setupFilename :: Value.Lit(syntax.Tree.StrLit(relPath))(N) :: Nil)(r2 =>
-            Assign(l2, r2, setupTerm("Sel", l2.asSimpleRef :: Value.Lit(syntax.Tree.StrLit(name.name))(N) :: Nil)(k))
+          Assign.init(l1, r1, setupTerm("CSRef", l1.asSimpleRef :: setupFilename :: Value.Lit(syntax.Tree.StrLit(relPath))(N) :: Nil)(r2 =>
+            Assign.init(l2, r2, setupTerm("Sel", l2.asSimpleRef :: Value.Lit(syntax.Tree.StrLit(name.name))(N) :: Nil)(k))
           ))
         case _ => fail:
           ErrorReport(
@@ -1757,32 +1757,32 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
         case Nil => quote(body): r =>
           val l = loweringCtx.registerTempSymbol(N, erasedType = N)
           val arr = loweringCtx.registerTempSymbol(N, erasedType = S(ErasedType.Array), "arr")
-          Assign(
+          Assign.init(
             arr,
             Tuple(mut = false, ds.reverse.map(_.asArg))(N),
-            Assign(l, r, setupTerm("Lam", arr.asSimpleRef :: l.asSimpleRef :: Nil)(k)))
+            Assign.init(l, r, setupTerm("Lam", arr.asSimpleRef :: l.asSimpleRef :: Nil)(k)))
         case sym :: rest =>
           loweringCtx.collectScopedSym(sym)
           setupSymbol(sym): r =>
             val l = loweringCtx.registerTempSymbol(N, erasedType = N)
-            Assign(l, r, setupTerm("Ref", l.asSimpleRef :: Nil): r1 =>
-              Assign(sym, r1, rec(rest, l.asSimpleRef :: ds)(k)))
+            Assign.init(l, r, setupTerm("Ref", l.asSimpleRef :: Nil): r1 =>
+              Assign.init(sym, r1, rec(rest, l.asSimpleRef :: ds)(k)))
       rec(params.params.map(_.sym), Nil)(k) // TODO: restParam?
     case App(lhs, Tup(rhs)) => quote(lhs): r1 =>
       def rec(es: Ls[Elem], xs: Ls[Path])(k: Result => Block): Block = es match
         case Nil =>
           val arrSym = loweringCtx.registerTempSymbol(N, erasedType = S(ErasedType.Array), "arr")
-          Assign(
+          Assign.init(
             arrSym,
             Tuple(mut = false, xs.reverse.map(_.asArg))(N),
             setupTerm("Tup", arrSym.asSimpleRef :: Nil): r2 =>
               val l1 = loweringCtx.registerTempSymbol(N, erasedType = N)
               val l2 = loweringCtx.registerTempSymbol(N, erasedType = N)
-              Assign(l1, r1, Assign(l2, r2, setupTerm("App", l1.asSimpleRef :: l2.asSimpleRef :: Nil)(k)))
+              Assign.init(l1, r1, Assign.init(l2, r2, setupTerm("App", l1.asSimpleRef :: l2.asSimpleRef :: Nil)(k)))
           )
         case Fld(_, t, _) :: rest => quote(t): r2 =>
           val l = loweringCtx.registerTempSymbol(N, erasedType = N)
-          Assign(l, r2, rec(rest, l.asSimpleRef :: xs)(k))
+          Assign.init(l, r2, rec(rest, l.asSimpleRef :: xs)(k))
         case Spd(eager, term, _) :: rest =>
           fail:
             ErrorReport(
@@ -1798,17 +1798,17 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
         val l1, l2, l3, l4, l5 = loweringCtx.registerTempSymbol(N, erasedType = N)
         val arrSym = loweringCtx.registerTempSymbol(N, erasedType = S(ErasedType.Array), "arr")
         blockBuilder.assign(l1, r1)
-          .chain(b => setupTerm("Ref", l1.asSimpleRef :: Nil)(r => Assign(sym, r, b)))
-          .chain(b => quote(rhs)(r2 => Assign(l2, r2, b)))
-          .chain(b => quote(res)(r3 => Assign(l3, r3, b)))
-          .chain(b => setupTerm("LetDecl", l1.asSimpleRef :: Nil)(r4 => Assign(l4, r4, b)))
-          .chain(b => setupTerm("DefineVar", l1.asSimpleRef :: l2.asSimpleRef :: Nil)(r5 => Assign(l5, r5, b)))
+          .chain(b => setupTerm("Ref", l1.asSimpleRef :: Nil)(r => Assign.init(sym, r, b)))
+          .chain(b => quote(rhs)(r2 => Assign.init(l2, r2, b)))
+          .chain(b => quote(res)(r3 => Assign.init(l3, r3, b)))
+          .chain(b => setupTerm("LetDecl", l1.asSimpleRef :: Nil)(r4 => Assign.init(l4, r4, b)))
+          .chain(b => setupTerm("DefineVar", l1.asSimpleRef :: l2.asSimpleRef :: Nil)(r5 => Assign.init(l5, r5, b)))
           .assign(arrSym, Tuple(mut = false, (l4 :: l5 :: Nil).map(s => s.asSimpleRef.asArg))(N))
           .rest(setupTerm("Blk", arrSym.asSimpleRef :: l3.asSimpleRef :: Nil)(k))
       }
     case IfLike(_, IfLikeForm.ReturningIf, split) => quoteSplit(split.getExpandedSplit, Map.empty): r =>
       val l = loweringCtx.registerTempSymbol(N, erasedType = N)
-      Assign(l, r, setupTerm("IfLike", setupQuotedKeyword("If") :: l.asSimpleRef :: Nil)(k))
+      Assign.init(l, r, setupTerm("IfLike", setupQuotedKeyword("If") :: l.asSimpleRef :: Nil)(k))
     case Unquoted(body) => term(body)(k)
     case _ => fail:
       ErrorReport(
@@ -1891,7 +1891,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
       val rcdSym = loweringCtx.registerTempSymbol(N, erasedType = N, "rcd")
       Begin(
         b,
-        Assign(
+        Assign.init(
           rcdSym,
           Record(mut = false, fsr.reverse)(N),
           k((Arg(N, rcdSym.asSimpleRef) :: asr).reverse)))
@@ -1923,7 +1923,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
         Define(lamDef, k(lamDef.asPath))
       case r =>
         val l = loweringCtx.registerTempSymbol(N, erasedType = r.erasedType)
-        Assign(l, r, k(l.asSimpleRef))
+        Assign.init(l, r, k(l.asSimpleRef))
 
   /** Wraps the lowered result `r` with a [[Cast]] when it must be downcasted to fit the `expected` erased type of the
     * slot it flows into.
@@ -2062,12 +2062,12 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
           :: trailing.zipWithIndex.map((p, i) => p.sym -> at(args, i - k))
         (optional ::: variadicParam :: trailing).foreach(p => loweringCtx.collectScopedSym(p.sym))
         val extractedRest = extractions.foldRight(body):
-          case ((sym, res), rest) => Assign(sym, castTo(res, sym.erasedType, sym.toLoc), rest)
+          case ((sym, res), rest) => Assign.init(sym, castTo(res, sym.erasedType, sym.toLoc), rest)
         // * Exclude trailing arguments before checking optional slot presence, so they cannot
         // * accidentally fill a missing optional parameter.
         val extracted = if optional.isEmpty then extractedRest else
           val leading = loweringCtx.registerTempSymbol(N, erasedType = S(ErasedType.Array), "leadingArgs")
-          Assign(leading, slice(args, 0, k), optional.zipWithIndex.foldRight(extractedRest):
+          Assign.init(leading, slice(args, 0, k), optional.zipWithIndex.foldRight(extractedRest):
             case ((param, index), rest) =>
               OptionalParams.bindFromTuple(leading.asSimpleRef, index, param.sym, true, rest))
         check.fold(extracted)(Assign.discard(_, extracted))
@@ -2153,7 +2153,7 @@ trait LoweringTraceLog(instrument: Bool)(using TL, Raise, State)
     
   private def assignStmts(stmts: (Assignable, Result)*)(rest: Block) =
     stmts.foldRight(rest):
-      case ((sym, res), acc) => Assign(sym, res, acc)
+      case ((sym, res), acc) => Assign.init(sym, res, acc)
   
   private def pureCall(fn: Path, args: Ls[Arg]): Result =
     Call(fn, args ne_:: Nil)(CallMetadata.defaultMlsFun, N)
@@ -2257,8 +2257,8 @@ object TrivialStatementsAndMatch:
       S(S(newK), m)
     b match
     case m: Match => S(N, m)
-    case Assign(lhs, rhs, TrivialStatementsAndMatch(k, m)) if rhs.isPure =>
-      handleAssignAndMatch(r => Assign(lhs, rhs, r), m, k)
+    case Assign(lhs, rhs, TrivialStatementsAndMatch(k, m), re) if rhs.isPure =>
+      handleAssignAndMatch(r => Assign(lhs, rhs, r, re), m, k)
     case Define(defn, TrivialStatementsAndMatch(k, m)) if defn.isPure =>
       handleAssignAndMatch(r => Define(defn, r), m, k)
     case _ => N

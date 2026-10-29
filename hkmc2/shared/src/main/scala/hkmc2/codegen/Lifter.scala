@@ -121,8 +121,8 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
       
     def asArg(using ctx: LifterCtxNew) = read.asArg
     
-    def assign(value: Result, rest: Block)(using ctx: LifterCtxNew): Block = this match
-      case Sym(l: Assignable) => Assign(l, value, rest)
+    def assign(value: Result, rest: Block, reassign: Bool)(using ctx: LifterCtxNew): Block = this match
+      case Sym(l: Assignable) => Assign(l, value, rest, reassign)
       case Sym(l) => lastWords(s"Tried to assign to non-variable local ${l.nme}")
       case ThisPath(sym) => lastWords(s"Tried to assign to this-path ${sym.nme}")
       case BmsRef(l, d) => lastWords("Tried to assign to a BlockMemberSymbol")
@@ -526,15 +526,15 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
           if (sub2 is sub) && (fin2 is fin) && (rst2 is rst) then rewritten else TryBlock(sub2, fin2, rst2)
         
         // Assignment to variables
-        case Assign(NoSymbol, _, _) => super.applyBlock(rewritten)
-        case Assign(lhs: LocalVarSymbol, rhs, rest) => ctx.symbolsMap.get(lhs) match
+        case Assign(NoSymbol, _, _, _) => super.applyBlock(rewritten)
+        case Assign(lhs: LocalVarSymbol, rhs, rest, re) => ctx.symbolsMap.get(lhs) match
           case Some(path) => applyResult(rhs): rhs2 =>
-            path.assign(rhs2, applySubBlock(rest))
+            path.assign(rhs2, applySubBlock(rest), re)
           case _ => super.applyBlock(rewritten)
         // rewrite object definitions, assigning to the saved symbol
         case Define(d @ ClsLikeDefn(k = syntax.Obj), rest: Block) => ctx.liftedScopes.get(d.isym) match
           case Some(l: LiftedClass) if l.obj.isObj =>
-            ctx.symbolsMap(l.cls.isym).assign(l.instObject, applySubBlock(rest))
+            ctx.symbolsMap(l.cls.isym).assign(l.instObject, applySubBlock(rest), reassign = false)
           case _ => super.applyBlock(rewritten)
         case _ => super.applyBlock(rewritten)
       
@@ -707,7 +707,7 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
         val inst = instantiateCapture
         Scoped(
           objSyms.toSet + captureSym,
-          Assign(captureSym, inst, b)
+          Assign.init(captureSym, inst, b)
         )
       else
         Scoped(objSyms.toSet, b)
@@ -1341,15 +1341,15 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
       val ctorWithPassed = passedSymsOrdered.foldRight(ctorWithCap):
         case (sym, acc) =>
           val (vs, ts) = passedSymsMap_(sym)
-          LocalPath.privateSelfField(ts).assign(vs.asPath, acc)
+          LocalPath.privateSelfField(ts).assign(vs.asPath, acc, reassign = false)
       val ctorWithCaps = capturesOrdered.foldRight(ctorWithPassed):
         case (sym, acc) =>
           val (vs, ts) = capSymsMap_(sym)
-          LocalPath.privateSelfField(ts).assign(vs.asPath, acc)
+          LocalPath.privateSelfField(ts).assign(vs.asPath, acc, reassign = false)
       val ctorWithDefns = reqDefnsOrdered.foldRight(ctorWithCaps):
         case (sym, acc) =>
           val (vs, ts) = defnSymsMap_(sym)
-          LocalPath.privateSelfField(ts).assign(vs.asPath, acc)
+          LocalPath.privateSelfField(ts).assign(vs.asPath, acc, reassign = false)
       
       val newAuxList = 
         if isTrivial then cls.auxParams

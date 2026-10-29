@@ -222,7 +222,7 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
       
       val loweredMapped = pgrm.copy(main = Scoped(exportedScoped, pgrm.main.mapReturn:
         case Return(res) =>
-          Assign(resSym, res, End())
+          Assign.init(resSym, res, End())
       ))
     
       if showJS.isSet then config.copy(sanityChecks = N).givenIn:
@@ -292,7 +292,7 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
         valuesToPrint.foreach: (nme, sym, expect) =>
           val le =
             import codegen.*
-            Assign(
+            Assign.init(
               NoSymbol,
               Call(
                 Elaborator.State.runtimeSymbol.asSimpleRef.selSN("printRaw"),

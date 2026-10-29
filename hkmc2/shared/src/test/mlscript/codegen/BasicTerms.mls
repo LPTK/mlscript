@@ -51,6 +51,7 @@ print("Hi")
 //│           Arg:
 //│             value = Lit of StrLit of "Hi"
 //│     rest = Return of Lit of IntLit of 2
+//│     reassign = false
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ Predef.print("Hi"); return 2
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————

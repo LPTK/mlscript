@@ -51,7 +51,7 @@ object OptionalParams:
     // Tuple reads are dynamically typed even when the destination slot has a precise representation.
     // Preserve that boundary for constructor fields, extracted parameters, and tail-call assignments.
     def bind(value: Result, rest: Block): Block =
-      Assign(sym, value.coerceTo(sym.erasedType.getOrElse(ErasedType.Unknown), sym.toLoc), rest)
+      Assign.init(sym, value.coerceTo(sym.erasedType.getOrElse(ErasedType.Unknown), sym.toLoc), rest)
     if !optional then bind(value, rest)
     else
       assert(index >= 0, "Optional slots are indexed from the start of the argument tuple")
@@ -63,4 +63,4 @@ object OptionalParams:
     case _: Value.Lit => k(value)
     case _ =>
       val slot = TempSymbol(N, initErasedType = value.erasedType, "optionalArg")
-      Scoped(Set(slot), Assign(slot, value, k(slot.asSimpleRef)))
+      Scoped(Set(slot), Assign.init(slot, value, k(slot.asSimpleRef)))

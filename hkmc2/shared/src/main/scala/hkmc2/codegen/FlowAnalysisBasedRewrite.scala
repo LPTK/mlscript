@@ -154,7 +154,7 @@ class FlowAnalysisBasedRewrite(
       case _ => super.applyValue(v)(k)
     
     override def applyBlock(b: Block): Block = b match
-      case Assign(lhs: VarSymbol, rhs, rst) if activeEliminatedParams(lhs) =>
+      case Assign(lhs: VarSymbol, rhs, rst, _) if activeEliminatedParams(lhs) =>
         applyResult(rhs): rhs2 =>
           Assign.discard(rhs2, applySubBlock(rst))
       case Return(res) if activeEtaArgss.nonEmpty =>
@@ -172,7 +172,7 @@ class FlowAnalysisBasedRewrite(
             val tmp = TempSymbol(N, initErasedType = N, "eta$res")
             Scoped(
               Set.single(tmp),
-              Assign(tmp, res2, Return(etaCall(tmp.asPath).withLocOf(res2))))
+              Assign.init(tmp, res2, Return(etaCall(tmp.asPath).withLocOf(res2))))
       case _ => super.applyBlock(b)
     
     override def applyResult(r: Result)(k: Result => Block): Block =
@@ -193,7 +193,7 @@ class FlowAnalysisBasedRewrite(
                   val tmp = TempSymbol(N, initErasedType = arg2.value.erasedType, "arg")
                   Scoped(
                     Set.single(tmp),
-                    Assign(tmp, arg2.value, rec(tl, idx + 1, true, arg2.copy(value = tmp.asPath) :: accRev)))
+                    Assign.init(tmp, arg2.value, rec(tl, idx + 1, true, arg2.copy(value = tmp.asPath) :: accRev)))
                 else rec(tl, idx + 1, changed || !(arg2 is arg), arg2 :: accRev)
           rec(args, 0, false, Nil)
       end rewriteArgs

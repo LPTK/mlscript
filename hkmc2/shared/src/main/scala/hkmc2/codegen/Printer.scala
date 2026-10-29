@@ -86,9 +86,9 @@ class Printer(using Config, Ctx, Raise, ShowCfg, State, SymbolPrinter):
       doc"begin #{  # ${print(sub)}; #}  # ${print(rest)}"
     case TryBlock(sub, finallyDo, rest) =>
       doc"try #{  # ${print(sub)} #}  # finally #{  # ${print(finallyDo)}; #  #} ${print(rest)}"
-    case Assign(NoSymbol, rhs, rest) =>
+    case Assign(NoSymbol, rhs, rest, _) =>
       doc"do ${print(rhs)}; # ${print(rest)}"
-    case Assign(lhs: (LocalVarSymbol | TermSymbol), rhs, rest) =>
+    case Assign(lhs: (LocalVarSymbol | TermSymbol), rhs, rest, _) =>
       doc"set ${print(lhs)} = ${print(rhs)}; # ${print(rest)}"
     case asf @ AssignField(lhs, nme, rhs, rest) =>
       doc"set ${print(lhs)}.${showRefSymbol(nme.name, asf.symbol)} = ${print(rhs)}; # ${print(rest)}"
