@@ -441,7 +441,7 @@ class CompilerTest extends AnyFunSuite:
                                 |""".stripMargin)
     val compiler = new MLsCompiler(_ => summon[Raise])
     compiler.compileModule(Path("/Unsafe.mls"))
-    assert(errors.exists(_.allMsgs.exists(_._1.show.contains("exposed by this compilation unit"))))
+    assert(errors.exists(_.allMsgs.exists(_._1.show.contains("exposed by this exported definition"))))
 
   test("compiler can report errors"):
     val (fs, compiler) = createCompiler()

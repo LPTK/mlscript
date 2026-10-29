@@ -886,7 +886,7 @@ class NewResolver:
       // unrecorded type use (a synthesized or legacy annotation) gives them no
       // fixed scope.
       rctx.recordTemplateBinders(resolution, rctx.lexicalBindersOf(source.source))
-      resolution.publish(TypeShape.Hole(bounds.inferenceHost))
+      resolution.publish(TypeShape.Hole(bounds.inferenceHost)(parameter))
       declaredType(resolution, Map.empty)
     })
 
@@ -955,7 +955,15 @@ class NewResolver:
         case value: TermShape => exposeTypeHoles(child, value, marks)
         case NoShape => ()
       current.resolution.listen:
-        case TypeShape.Hole(host) => unknown.enter(captures) match
+        case hole @ TypeShape.Hole(host) => unknown.enter(captures) match
+          // The enclosing annotation can fix the parameter's outer interface
+          // while this omitted argument still admits unknown external inputs.
+          // Keep the original candidate identity and exposure obligation.
+          case Marked(origin: UnknownValueShape, context) =>
+            val provenance = origin.provenance
+              .via(msg"Type parameter '${hole.parameter.nme}' is declared here." -> hole.parameter.toLoc)
+              .via(msg"The omitted type argument '${hole.parameter.nme}' admits values of unknown shape." -> current.resolution.source.toLoc)
+            host.publish(Marked(UnknownValueShape(origin.source, origin.fromPublicInterface)(provenance), context))
           case value: TermShape => host.publish(value)
           case NoShape => ()
         case TypeShape.Parameter(symbol, _) =>

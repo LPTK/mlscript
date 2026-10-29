@@ -161,7 +161,15 @@ hole([{value: 9}])
 //│ ║  l.+1: 	fun hole(xs: Array) = xs.0.value
 //│ ║        	                      ^^^^^^^^^^
 //│ ╟── Cannot resolve member 'value' of a value with unknown shape.
-//│ ╟── Parameter 'xs' admits values of unknown shape.
+//│ ╟── The omitted type argument 'T' admits values of unknown shape.
+//│ ║  l.+1: 	fun hole(xs: Array) = xs.0.value
+//│ ║        	             ^^^^^
+//│ ╟── Type parameter 'T' is declared here.
+//│ ║  in ../../decls/Prelude.mls
+//│ ║  l.XX: 	declare class Array[T](val length: Int) {
+//│ ║        	                    ^
+//│ ╟── Parameter 'xs' is part of this exposed interface.
+//│ ║  in PublicInterfaces.mls:+1
 //│ ║  l.+1: 	fun hole(xs: Array) = xs.0.value
 //│ ║        	         ^^^^^^^^^
 //│ ╟── 'hole' is exposed by this exported definition.

@@ -707,7 +707,13 @@ fun omittedSecond(x: Pair[Int]) = x.value.1.oops
 //│ ║  l.+2: 	fun omittedSecond(x: Pair[Int]) = x.value.1.oops
 //│ ║        	                                  ^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'oops' of a value with unknown shape.
-//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ╟── The omitted type argument 'B' admits values of unknown shape.
+//│ ║  l.+2: 	fun omittedSecond(x: Pair[Int]) = x.value.1.oops
+//│ ║        	                     ^^^^
+//│ ╟── Type parameter 'B' is declared here.
+//│ ║  l.+1: 	class Pair[A, B](val value: [A, B])
+//│ ║        	              ^
+//│ ╟── Parameter 'x' is part of this exposed interface.
 //│ ║  l.+2: 	fun omittedSecond(x: Pair[Int]) = x.value.1.oops
 //│ ║        	                  ^^^^^^^^^^^^
 //│ ╟── 'omittedSecond' is exposed by this exported definition.
@@ -722,7 +728,13 @@ fun omittedAlias(x: HalfPair) = x.value.1.oops
 //│ ║  l.+2: 	fun omittedAlias(x: HalfPair) = x.value.1.oops
 //│ ║        	                                ^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'oops' of a value with unknown shape.
-//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ╟── The omitted type argument 'T' admits values of unknown shape.
+//│ ║  l.+2: 	fun omittedAlias(x: HalfPair) = x.value.1.oops
+//│ ║        	                    ^^^^^^^^
+//│ ╟── Type parameter 'T' is declared here.
+//│ ║  l.+1: 	type HalfPair[T] = Pair[Int, T]
+//│ ║        	              ^
+//│ ╟── Parameter 'x' is part of this exposed interface.
 //│ ║  l.+2: 	fun omittedAlias(x: HalfPair) = x.value.1.oops
 //│ ║        	                 ^^^^^^^^^^^
 //│ ╟── 'omittedAlias' is exposed by this exported definition.

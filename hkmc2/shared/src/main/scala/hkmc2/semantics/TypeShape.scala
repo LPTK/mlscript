@@ -118,7 +118,8 @@ object TypeShape:
       case _ => false
   // An omitted argument owns one source inference node. It is not a quantified
   // binder and is never instantiated at a call site; marks distinguish its flows.
-  final case class Hole(host: Publisher.Data[TermShape]) extends TypeShape:
+  // The omitted formal identifies the diagnostic cause, not a new inference key.
+  final case class Hole(host: Publisher.Data[TermShape])(val parameter: VarSymbol) extends TypeShape:
     protected val valueHash: Int = ValueKey.hash(ValueKey.tag(this), System.identityHashCode(host))
     protected def sameValue(other: ValueKey): Bool = other match
       case that: Hole => host == that.host

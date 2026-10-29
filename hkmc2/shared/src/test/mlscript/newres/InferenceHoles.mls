@@ -66,7 +66,13 @@ read(Box(Item(8)))
 //│ ║  l.+3: 	fun read(box: Box) = box.item.value
 //│ ║        	                     ^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'value' of a value with unknown shape.
-//│ ╟── Parameter 'box' admits values of unknown shape.
+//│ ╟── The omitted type argument 'T' admits values of unknown shape.
+//│ ║  l.+3: 	fun read(box: Box) = box.item.value
+//│ ║        	              ^^^
+//│ ╟── Type parameter 'T' is declared here.
+//│ ║  l.+2: 	class Box[T](val item: T)
+//│ ║        	          ^
+//│ ╟── Parameter 'box' is part of this exposed interface.
 //│ ║  l.+3: 	fun read(box: Box) = box.item.value
 //│ ║        	         ^^^^^^^^
 //│ ╟── 'read' is exposed by this exported definition.
@@ -154,6 +160,12 @@ read(Box(Item(13)))
 //│ ║  l.+3: 	fun read(box: Box): Int = box.item.value
 //│ ║        	                          ^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'value' of a value with unknown shape.
+//│ ╟── The omitted type argument 'T' admits values of unknown shape.
+//│ ║  l.+3: 	fun read(box: Box): Int = box.item.value
+//│ ║        	              ^^^
+//│ ╟── Type parameter 'T' is declared here.
+//│ ║  l.+2: 	class Box[T](val item: T)
+//│ ║        	          ^
 //│ ╟── 'read' is exposed by this exported definition.
 //│ ║  l.+3: 	fun read(box: Box): Int = box.item.value
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^
@@ -169,7 +181,13 @@ read(() => Box(Item(14)))
 //│ ║  l.+3: 	fun read(callback: () -> Box) = callback().item.value
 //│ ║        	                                ^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'value' of a value with unknown shape.
-//│ ╟── Parameter 'callback' admits values of unknown shape.
+//│ ╟── The omitted type argument 'T' admits values of unknown shape.
+//│ ║  l.+3: 	fun read(callback: () -> Box) = callback().item.value
+//│ ║        	                         ^^^
+//│ ╟── Type parameter 'T' is declared here.
+//│ ║  l.+2: 	class Box[T](val item: T)
+//│ ║        	          ^
+//│ ╟── Parameter 'callback' is part of this exposed interface.
 //│ ║  l.+3: 	fun read(callback: () -> Box) = callback().item.value
 //│ ║        	         ^^^^^^^^^^^^^^^^^^^
 //│ ╟── 'read' is exposed by this exported definition.

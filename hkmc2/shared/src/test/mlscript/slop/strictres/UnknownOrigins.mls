@@ -308,3 +308,78 @@ private fun recursiveBuiltin(x: Any) = increment(x, 2).answer
 //│ ║  in ../../decls/Prelude.mls
 //│ ║  l.XX: 	declare type Any
 //│ ╙──      	             ^^^
+
+// Nested omissions identify their own formal and source use, even in one parameter.
+:e
+class Pair[A, B](val value: [A, B])
+fun nestedHoles(x: {left: Pair, right: Pair[Int]}) =
+  [x.left.value.0.oops, x.left.value.1.oops, x.right.value.1.oops]
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+3: 	  [x.left.value.0.oops, x.left.value.1.oops, x.right.value.1.oops]
+//│ ║        	   ^^^^^^^^^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'oops' of a value with unknown shape.
+//│ ╟── The omitted type argument 'A' admits values of unknown shape.
+//│ ║  l.+2: 	fun nestedHoles(x: {left: Pair, right: Pair[Int]}) =
+//│ ║        	                          ^^^^
+//│ ╟── Type parameter 'A' is declared here.
+//│ ║  l.+1: 	class Pair[A, B](val value: [A, B])
+//│ ║        	           ^
+//│ ╟── Parameter 'x' is part of this exposed interface.
+//│ ║  l.+2: 	fun nestedHoles(x: {left: Pair, right: Pair[Int]}) =
+//│ ║        	                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── 'nestedHoles' is exposed by this exported definition.
+//│ ║  l.+2: 	fun nestedHoles(x: {left: Pair, right: Pair[Int]}) =
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+3: 	  [x.left.value.0.oops, x.left.value.1.oops, x.right.value.1.oops]
+//│ ║        	                        ^^^^^^^^^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'oops' of a value with unknown shape.
+//│ ╟── The omitted type argument 'B' admits values of unknown shape.
+//│ ║  l.+2: 	fun nestedHoles(x: {left: Pair, right: Pair[Int]}) =
+//│ ║        	                          ^^^^
+//│ ╟── Type parameter 'B' is declared here.
+//│ ║  l.+1: 	class Pair[A, B](val value: [A, B])
+//│ ║        	              ^
+//│ ╟── Parameter 'x' is part of this exposed interface.
+//│ ║  l.+2: 	fun nestedHoles(x: {left: Pair, right: Pair[Int]}) =
+//│ ║        	                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── 'nestedHoles' is exposed by this exported definition.
+//│ ║  l.+2: 	fun nestedHoles(x: {left: Pair, right: Pair[Int]}) =
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+3: 	  [x.left.value.0.oops, x.left.value.1.oops, x.right.value.1.oops]
+//│ ║        	                                             ^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'oops' of a value with unknown shape.
+//│ ╟── The omitted type argument 'B' admits values of unknown shape.
+//│ ║  l.+2: 	fun nestedHoles(x: {left: Pair, right: Pair[Int]}) =
+//│ ║        	                                       ^^^^
+//│ ╟── Type parameter 'B' is declared here.
+//│ ║  l.+1: 	class Pair[A, B](val value: [A, B])
+//│ ║        	              ^
+//│ ╟── Parameter 'x' is part of this exposed interface.
+//│ ║  l.+2: 	fun nestedHoles(x: {left: Pair, right: Pair[Int]}) =
+//│ ║        	                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── 'nestedHoles' is exposed by this exported definition.
+//│ ║  l.+2: 	fun nestedHoles(x: {left: Pair, right: Pair[Int]}) =
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+// An omission in an alias body points there, rather than blaming the outer value.
+:e
+type HiddenTail = Pair[Int]
+fun hiddenTail(x: HiddenTail) = x.value.1.oops
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+2: 	fun hiddenTail(x: HiddenTail) = x.value.1.oops
+//│ ║        	                                ^^^^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'oops' of a value with unknown shape.
+//│ ╟── The omitted type argument 'B' admits values of unknown shape.
+//│ ║  l.+1: 	type HiddenTail = Pair[Int]
+//│ ║        	                  ^^^^
+//│ ╟── Type parameter 'B' is declared here.
+//│ ║  l.XX: 	class Pair[A, B](val value: [A, B])
+//│ ║        	              ^
+//│ ╟── Parameter 'x' is part of this exposed interface.
+//│ ║  l.+2: 	fun hiddenTail(x: HiddenTail) = x.value.1.oops
+//│ ║        	               ^^^^^^^^^^^^^
+//│ ╟── 'hiddenTail' is exposed by this exported definition.
+//│ ║  l.+2: 	fun hiddenTail(x: HiddenTail) = x.value.1.oops
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

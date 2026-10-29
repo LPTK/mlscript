@@ -84,9 +84,13 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
 
   private def parameter(param: Param, marks: Ls[Marks], path: Path)(using ResolutionContext): Unit =
     val ref = SimpleRef(param.sym)(N)
-    val unknown = UnknownValueShape(ref, fromPublicInterface = true)(path.via(
-      msg"Parameter '${param.sym.nme}' admits values of unknown shape." -> param.toLoc))
-    resolver.parameterSignature(param) match
+    val signature = resolver.parameterSignature(param)
+    // For an annotated parameter, this candidate flows only into omitted arguments.
+    // exposeTypeHoles locates those omissions while preserving the written interface.
+    val note = if signature.isEmpty then msg"Parameter '${param.sym.nme}' admits values of unknown shape."
+      else msg"Parameter '${param.sym.nme}' is part of this exposed interface."
+    val unknown = UnknownValueShape(ref, fromPublicInterface = true)(path.via(note -> param.toLoc))
+    signature match
       case N => resolver.constrainParameter(param, unknown.enter(marks), marks)
       case S(tpe) => unknown.enter(marks) match
         case value: TermShape => resolver.exposeTypeHoles(tpe.instantiate(rctx.instances), value, marks)
