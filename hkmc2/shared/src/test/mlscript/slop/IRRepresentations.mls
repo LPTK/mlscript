@@ -1,0 +1,74 @@
+:.
+:js
+open annotations
+
+// Known representations agree across definitions, calls, assignments and returns.
+// Widening to a parent, explicit narrowing, and missing evidence are all legitimate.
+:checkIR
+:noInline
+:expect [42, 43, 44]
+class Parent
+class Child extends Parent
+fun widen(value: Child): Parent = value
+fun narrow(value: Any): Int = value
+fun unknown(value) = value
+val result: Int = narrow(42)
+[if widen(new Child) is Parent then result else 0, narrow(43), unknown(44)]
+//│ = [42, 43, 44]
+//│ result = 42
+
+// Missing body-result information and undefined do not prove an incompatible representation.
+:checkIR
+:noInline
+fun unconstrained(value) = value
+fun undefinedResult(): Int = unsafe.undefined
+fun acceptUndefined(value: Int): Int = 0
+acceptUndefined(unsafe.undefined)
+//│ = 0
+
+// Returning a local nominal value is valid even outside the class's lexical scope.
+:checkIR
+:noInline
+fun escaping() =
+  class Local
+  new Local
+escaping()
+//│ = Local
+
+// A spread ends the known positional prefix. The following Bool is the last
+// argument, not the Str slot immediately after the first argument.
+:checkIR
+:noInline
+:expect [true, false]
+fun spreadTarget(first: Int, second: Str, last: Bool): Bool = last
+fun spreadAll(values: Array[Any]) = spreadTarget(...values, true)
+fun spreadAfterFirst(values: Array[Any]) = spreadTarget(1, ...values, false)
+[spreadAll([1, "two"]), spreadAfterFirst(["two"])]
+//│ = [true, false]
+
+// Nested closures and constructors have their own return boundaries.
+:checkIR
+:noOpt
+:expect 42
+fun nestedReturns(): Int =
+  let text = (value: Str) => value
+  class Nested with
+    fun text(): Str = "hello"
+  if text(new Nested().text()) == "hello" then 42 else 0
+nestedReturns()
+//│ = 42
+
+// TODO: SymbolRefresher must rename nominal types alongside the classes it copies.
+// Each inlined construction must agree with its own temporary and parameter slots.
+:fixme
+:checkIR
+@inline fun copiedNominal() =
+  class Local
+  @noInline fun identity(value: Local): Local = value
+  identity(new Local)
+[copiedNominal(), copiedNominal()]
+//│ ╔══[INTERNAL ERROR] Invalid IR: incompatible representations at assignment to 'tmp'
+//│ ╙── The value and its destination refer to different copies of type 'Local'
+//│ ╔══[INTERNAL ERROR] Invalid IR: incompatible representations at assignment to 'tmp'
+//│ ╙── The value and its destination refer to different copies of type 'Local'
+//│ = [Local, Local]

@@ -28,6 +28,7 @@ let lambda = (x?) => x is null
 //│ lambda = fun lambda
 
 // Each curried parameter list supplies its own defaults.
+:checkIR
 :noInline
 fun curried(a, b, c)(x?) = x is null
 [curried(1, 2, 3)(), curried(1, 2, 3)(unsafe.undefined), curried(1, 2, 3)(null), curried(1, 2, 3)(())]
@@ -39,6 +40,7 @@ fun curried(a, b, c)(x?) = x is null
 //│ = [true, false, true, false]
 
 // Fixed optional slots precede the rest tuple, including calls through spreads.
+:checkIR
 :noInline
 fun withRest(x?, ...xs) = [x is null, xs.length]
 fun fromSpread(xs: Array[Any]) = withRest(...xs)
@@ -46,10 +48,16 @@ fun fromSpread(xs: Array[Any]) = withRest(...xs)
 //│ = [[true, 0], [true, 0], [false, 2], [true, 0], [true, 0]]
 
 // Optional slots must not consume required trailing arguments.
+// TODO: Lowering moves optional slots into the rest tuple but leaves them in the erased signature.
+:fixme
+:checkIR
 :noInline
 fun trailing(x?, ...xs, last) = [x is null, xs.length, last]
 fun trailingSpread(xs: Array[Any]) = trailing(...xs, 3)
 [trailing(3), trailing(unsafe.undefined, 3), trailing(0, 2, 3), trailingSpread([]), trailingSpread([unsafe.undefined])]
+//│ ╔══[INTERNAL ERROR] Invalid IR: parameter lists of 'trailing' disagree with its erased signature
+//│ ║  l.+1: 	fun trailing(x?, ...xs, last) = [x is null, xs.length, last]
+//│ ╙──      	    ^^^^^^^^
 //│ = [[true, 0, 3], [false, 0, 3], [false, 1, 3], [true, 0, 3], [false, 0, 3]]
 
 // Tail-call jumps bind null again when the next iteration omits an earlier value.
