@@ -110,7 +110,7 @@ let provider = new ReceiverProvider
 :expect 41
 provider.chosen.Middle.Inner.read()
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let receiver; set receiver = provider⁰.chosen⁰; return +⁰(receiver.value⁰, receiver.Middle⁰.extra⁰)
+//│ let tmp; set tmp = provider⁰.chosen⁰; return +⁰(tmp.value⁰, tmp.Middle⁰.extra⁰)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 41
 
@@ -274,11 +274,11 @@ module ReceiverFactory with
 :expect 1
 ReceiverFactory.fresh.Nested.bump()
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let receiver, tmp;
-//│ set receiver = ReceiverFactory⁰.fresh⁰;
-//│ set tmp = +⁰(receiver.count⁰, 1);
-//│ set receiver.count⁰ = tmp;
-//│ return receiver.count⁰
+//│ let tmp, tmp1;
+//│ set tmp = ReceiverFactory⁰.fresh⁰;
+//│ set tmp1 = +⁰(tmp.count⁰, 1);
+//│ set tmp.count⁰ = tmp1;
+//│ return tmp.count⁰
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 1
 

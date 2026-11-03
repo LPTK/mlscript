@@ -10,7 +10,7 @@ import hkmc2.utils.*
 
 import Elaborator.State
 import Tree.Ident
-import hkmc2.codegen.{ErasedType, ErasedResult, ErasedCallableSignature, ErasedFuncSignature, ErasedGetterSignature, ErasedValueType, HasDelayedErasedType}
+import hkmc2.codegen.{ErasedType, ErasedResult, ErasedCallableSignature, ErasedFuncSignature, ErasedGetterSignature, ErasedParamList, ErasedValueType, HasDelayedErasedType}
 import hkmc2.utils.SymbolSubst
 import sourcecode.{FileName, Line}
 
@@ -347,7 +347,7 @@ final class BuiltinSymbol(val nme: Str, val arity: BuiltinSymbol.Arity, val isPu
       case "!" | "==" | "!=" | "===" | "!==" | "<" | "<=" | ">" | ">=" => S(ErasedType.Bool)
       case "typeof" => S(ErasedType.Str)
       case _ => N
-    ErasedFuncSignature.Signature(List(List.fill(count)(N)), ErasedResult.Direct(ret))
+    ErasedFuncSignature.Signature(ErasedParamList(List.fill(count)(N), N) :: Nil, ErasedResult.Direct(ret))
   
   // * A basic approximation of builtin operator types
   lazy val signature : semantics.flow.Producer =

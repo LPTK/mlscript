@@ -430,30 +430,51 @@ object ErasedResult:
 /** Immutable result information shared by parameterized definitions and getters.
   * TermSymbol publishes the complete signature once, before lowering or importing it.
   * Copying a source body must rename its payload types along with the parameter types.
+  *
+  * Every IR [[Call]] also carries one of these, describing the callee as seen by that call site.
   */
 sealed abstract class ErasedCallableSignature extends Canonicalizable:
   type Canonical <: ErasedCallableSignature
   val result: ErasedResult[ErasedValueType]
   def ret: Opt[ErasedValueType] = result.callType
 
+  /** The number of argument lists that a call can apply at most: none for a getter. */
+  def paramListCount: Int = this match
+    case sig: ErasedFuncSignature => sig.paramLists.length
+    case _: ErasedGetterSignature => 0
+
   def mapTypes(f: ErasedValueType => ErasedValueType): ErasedCallableSignature = this match
     case sig: ErasedFuncSignature =>
-      ErasedFuncSignature.Signature(sig.paramLists.map(_.map(_.map(f))), result.map(f))
+      ErasedFuncSignature.Signature(sig.paramLists.map(_.map(f)), result.map(f))
     case _: ErasedGetterSignature => ErasedGetterSignature.Signature(result.map(f))
 
 end ErasedCallableSignature
 
 
+/** The erased types of one physical parameter list: its fixed parameters, followed by its rest parameter if it has
+  * one. As with fixed parameters, the type of a rest parameter may be unknown, so `rest` is `N` when the list has no
+  * rest parameter and `S(N)` when it has one of unknown type.
+  */
+final case class ErasedParamList[+T <: ErasedValueType](params: Ls[Opt[T]], rest: Opt[Opt[T]]):
+  def map[U <: ErasedValueType](f: T => U): ErasedParamList[U] =
+    ErasedParamList(params.map(_.map(f)), rest.map(_.map(f)))
+
+object ErasedParamList:
+  /** The physical layout of a lowered parameter list, typed by its parameter symbols. */
+  def of(ps: LoweredParamList): ErasedParamList[ErasedValueType] =
+    ErasedParamList(ps.params.map(_.sym.erasedType), ps.restParam.map(_.sym.erasedType))
+
+
 object ErasedFuncSignature:
   /** The signature of a definition, whose parameter and body-result types may be unknown. */
-  case class Signature(override val paramLists: Ls[Ls[Opt[ErasedValueType]]],
+  case class Signature(override val paramLists: Ls[ErasedParamList[ErasedValueType]],
       override val result: ErasedResult[ErasedValueType]) extends ErasedFuncSignature:
     assertHasParamLists(paramLists)
     type Canonical = CanonicalSignature
     override protected def computeCanonicalize(using Ctx, State): CanonicalSignature =
-      CanonicalSignature(paramLists.map(_.map(_.map(_.canonicalize))), result.map(_.canonicalize))
+      CanonicalSignature(paramLists.map(_.map(_.canonicalize)), result.map(_.canonicalize))
   /** An analogue to `Signature` with canonicalized parameter and result representations. */
-  case class CanonicalSignature(override val paramLists: Ls[Ls[Opt[CanonicalErasedValueType]]],
+  case class CanonicalSignature(override val paramLists: Ls[ErasedParamList[CanonicalErasedValueType]],
       override val result: ErasedResult[CanonicalErasedValueType])(using Ctx, State) extends ErasedFuncSignature:
     assertHasParamLists(paramLists)
     override val ret: Opt[CanonicalErasedValueType] = result.callType.map(_.canonicalize)
@@ -464,8 +485,21 @@ object ErasedFuncSignature:
     *
     * See the documentation of [[ErasedFuncSignature]] for the rationale.
     */
-  def assertHasParamLists(paramLists: Ls[Ls[?]]): Unit =
+  def assertHasParamLists(paramLists: Ls[?]): Unit =
     assert(paramLists.nonEmpty, "a signature must describe at least one parameter list")
+
+  /** The signature of a call whose callee is not known: `listCount` argument lists, each passed to a function value
+    * that accepts any number of arguments of any type, as in `(...Array) => (...Array) => ?` for two lists.
+    *
+    * Lowering applies a single argument list to each callee it knows nothing about, so a call starts with one list;
+    * passes that merge such a call with the call of its result accumulate the lists. `super` calls also take this
+    * form, because the `super` builtin has no fixed signature: its parameters are those of the parent constructor.
+    *
+    * Each use builds its own signature: a signature memoizes its canonical form, which is only meaningful in the
+    * state that computed it.
+    */
+  def dynamic(listCount: Int): Signature =
+    Signature(List.fill(listCount)(ErasedParamList(Nil, S(S(ErasedType.Array)))), ErasedResult.Direct(N))
 
 
 /** The erased signature of a definition with parameter lists.
@@ -482,7 +516,7 @@ object ErasedFuncSignature:
   */
 sealed abstract class ErasedFuncSignature extends ErasedCallableSignature:
   type Canonical <: ErasedFuncSignature.CanonicalSignature
-  val paramLists: Ls[Ls[Opt[ErasedValueType]]]
+  val paramLists: Ls[ErasedParamList[ErasedValueType]]
 
 
 object ErasedGetterSignature:
@@ -495,6 +529,11 @@ object ErasedGetterSignature:
     override val ret: Opt[CanonicalErasedValueType] = result.callType.map(_.canonicalize)
     type Canonical = this.type
     override protected def computeCanonicalize(using Ctx, State): this.type = this
+
+  /** The signature of reading a property that resolution did not identify: it may be a plain field or a getter,
+    * and its value is unknown.
+    */
+  def dynamic: Signature = Signature(ErasedResult.Direct(N))
 
 /** A getter evaluates to its call result, without allocating a first-class function.
   * It still needs the body's result descriptor for async payload coercions.

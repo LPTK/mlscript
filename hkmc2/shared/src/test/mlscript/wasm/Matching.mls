@@ -295,7 +295,7 @@ isInt(1)
 //│       return 0
 //│   end
 //│ };
-//│ return isInt¹(1)
+//│ return isInt¹‹(?) => ?›(1)
 //│ Wasm result:
 //│ = 1
 

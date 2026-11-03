@@ -174,6 +174,7 @@ class CompilerCtx(
         given Config = artifactConfig
         given ShowCfg = ShowCfg(
           showErasedTypes = false,
+          showCallSignatures = false,
           showExpansionMappings = false,
           showFlowSymbols = true,
           debug = false,

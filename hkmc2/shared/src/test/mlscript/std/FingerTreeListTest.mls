@@ -102,11 +102,11 @@ if xs is
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ let element0$;
 //│ if (runtime.Tuple.isArrayLike(xs2) && xs2.length >= 1) {
-//│   let xs3, inlinedVal27, tmp16;
+//│   let xs3, inlinedVal27, tmp21;
 //│   element0$ = runtime.Tuple.get(xs2, 0);
 //│   xs3 = xs2;
-//│   tmp16 = xs3.length - 0;
-//│   inlinedVal27 = runtime.safeCall(xs3.slice(1, tmp16));
+//│   tmp21 = xs3.length - 0;
+//│   inlinedVal27 = runtime.safeCall(xs3.slice(1, tmp21));
 //│   return globalThis.Object.freeze([
 //│     element0$,
 //│     inlinedVal27
@@ -140,19 +140,19 @@ fun popByIndex(start, end, acc, lft: Indexable) =
 //│ let popByIndex;
 //│ popByIndex = function popByIndex(start, end, acc, lft) {
 //│   loopLabel: while (true) {
-//│     let scrut, tmp16, tmp17, tmp18;
+//│     let scrut, tmp21, tmp22, tmp23;
 //│     scrut = start >= end;
 //│     if (scrut === true) {
 //│       return acc
 //│     }
-//│     tmp16 = start + 1;
-//│     tmp17 = runtime.safeCall(lft.at(start));
-//│     tmp18 = globalThis.Object.freeze([
+//│     tmp21 = start + 1;
+//│     tmp22 = runtime.safeCall(lft.at(start));
+//│     tmp23 = globalThis.Object.freeze([
 //│       ...acc,
-//│       tmp17
+//│       tmp22
 //│     ]);
-//│     start = tmp16;
-//│     acc = tmp18;
+//│     start = tmp21;
+//│     acc = tmp23;
 //│     continue loopLabel;
 //│   }
 //│ };

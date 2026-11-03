@@ -599,11 +599,11 @@ sum(prodDouble(4))
 //│ deforest > >>> fusing >>>
 //│ deforest > Nil⁰ ->
 //│ deforest > 	match: ls⁰
-//│ deforest > Cons⁰(n⁰, tmp¹³) ->
+//│ deforest > Cons⁰(arg⁰, tmp¹³) ->
 //│ deforest > 	match: ls⁰
 //│ deforest > 	fields: ls⁰.h⁰
 //│ deforest > 	fields: ls⁰.t⁰
-//│ deforest > Cons⁰(n⁰, tmp¹⁴) ->
+//│ deforest > Cons⁰(arg¹, tmp¹⁴) ->
 //│ deforest > 	match: ls⁰
 //│ deforest > 	fields: ls⁰.h⁰
 //│ deforest > 	fields: ls⁰.t⁰

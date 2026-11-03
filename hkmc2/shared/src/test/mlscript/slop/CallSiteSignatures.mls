@@ -1,0 +1,201 @@
+:.
+:noInline
+:flowBasedOpt off
+
+
+// A call of a parameter takes its signature from the parameter's declared function type.
+// The argument is cast to the declared parameter type, and the result keeps the declared result type.
+:sir
+:siret
+:expect "42"
+fun apply(f: Int -> Str, x: Any): Str = f(x)
+apply(n => n.toString(), 42)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let lambda;
+//│ define apply⁰ as fun apply¹(f: Function⁰, x: Unknown): Str⁰ {
+//│   return f‹(Int⁰) => Str⁰›((x as! Int⁰))
+//│ };
+//│ define lambda as fun lambda⁰(n: ?): ? {
+//│   return n.toString⁰‹(...Array⁰) => Str⁰›()
+//│ };
+//│ return apply¹‹(Function⁰, Unknown) => Str⁰›(lambda⁰, 42)
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = "42"
+
+
+// A curried function type describes one argument list at a time.
+:sir
+:siret
+:expect 3
+fun applyCurried(f: Int -> Int -> Int): Int = f(1)(2)
+applyCurried(a => b => a + b)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let lambda;
+//│ define applyCurried⁰ as fun applyCurried¹(f: Function⁰): Int⁰ {
+//│   let callPrefix: Function⁰;
+//│   set callPrefix = f‹(Int⁰) => Function⁰›(1);
+//│   return callPrefix‹(Int⁰) => Int⁰›(2)
+//│ };
+//│ define lambda as fun lambda²(a: ?): ? {
+//│   let lambda1;
+//│   @private
+//│   define lambda1 as fun lambda¹(b: ?): ? {
+//│     return +⁰‹(?, ?) => ?›(a, b)
+//│   };
+//│   return lambda¹
+//│ };
+//│ return applyCurried¹‹(Function⁰) => Int⁰›(lambda²)
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 3
+
+
+// The remaining argument lists of a call take their signatures from the declared result of the definition.
+:sir
+:siret
+:expect 3
+fun adder(a: Int): Int -> Int = b => a + b
+adder(1)(2)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let baseCall: Function⁰;
+//│ define adder⁰ as fun adder¹(a: Int⁰): Function⁰ {
+//│   let lambda;
+//│   @private
+//│   define lambda as fun lambda³(b: ?): ? {
+//│     return +⁰‹(?, ?) => ?›(a, b)
+//│   };
+//│   return lambda³
+//│ };
+//│ set baseCall = adder¹‹(Int⁰) => Function⁰›(1);
+//│ return baseCall‹(Int⁰) => Int⁰›(2)
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 3
+
+
+// A callee without a declared type gets a dynamic signature, and so does the result of its call.
+:sir
+:siret
+:expect 3
+fun applyDynamic(f) = f(1)(2)
+applyDynamic(a => b => a + b)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let lambda;
+//│ define applyDynamic⁰ as fun applyDynamic¹(f: ?): ? {
+//│   let callPrefix: ?;
+//│   set callPrefix = f‹(...Array⁰) => ?›(1);
+//│   return callPrefix‹(...Array⁰) => ?›(2)
+//│ };
+//│ define lambda as fun lambda⁵(a: ?): ? {
+//│   let lambda1;
+//│   @private
+//│   define lambda1 as fun lambda⁴(b: ?): ? {
+//│     return +⁰‹(?, ?) => ?›(a, b)
+//│   };
+//│   return lambda⁴
+//│ };
+//│ return applyDynamic¹‹(?) => ?›(lambda⁵)
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 3
+
+
+// Rest parameters are part of the signatures of definitions and function types.
+:sir
+:siret
+:expect 3
+fun count(first: Int, ...rest) = rest.length + 1
+fun applyVariadic(f: (Int, ...Int) -> Int): Int = f(1, 2, 3)
+applyVariadic(count)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define count⁰ as fun count¹(first: Int⁰, ...rest: Array⁰): ? {
+//│   return +⁰‹(?, ?) => ?›(rest.length⁰, 1)
+//│ };
+//│ define applyVariadic⁰ as fun applyVariadic¹(f: Function⁰): Int⁰ {
+//│   return f‹(Int⁰, ...Array⁰) => Int⁰›(1, 2, 3)
+//│ };
+//│ return applyVariadic¹‹(Function⁰) => Int⁰›(count¹)
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 3
+
+
+// Reading a getter is a call of the selection without argument lists, with the getter's signature.
+:sir
+:siret
+:expect 42
+class Box with
+  fun value: Int = 42
+let box = new Box
+box.value
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define Box⁰ as class Box¹ {
+//│   method value⁰ = fun value¹: Int⁰ {
+//│     return 42
+//│   }
+//│ };
+//│ set box⁰ = new Box¹();
+//│ return box⁰.value¹‹=> Int⁰›
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 42
+//│ box = Box
+
+
+// A call with arguments of a getter's selection applies the getter's result, as described by its declared type.
+:sir
+:siret
+:expect 42
+class Adder with
+  fun add: Int -> Int = x => x + 1
+let adder = new Adder
+adder.add(41)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define Adder⁰ as class Adder¹ {
+//│   method add⁰ = fun add¹: Function⁰ {
+//│     let lambda;
+//│     @private
+//│     define lambda as fun lambda⁶(x: ?): ? {
+//│       return +⁰‹(?, ?) => ?›(x, 1)
+//│     };
+//│     return lambda⁶
+//│   }
+//│ };
+//│ set adder² = new Adder¹();
+//│ return adder².add¹‹(Int⁰) => Int⁰›(41)
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 42
+//│ adder = Adder
+
+
+// A property that resolution did not identify may be a getter: reading it is a call with an unknown signature.
+:sir
+:siret
+:expect 42
+fun readDynamic(r: dyn) = r.value
+readDynamic(value: 42)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let rcd: ?;
+//│ define readDynamic⁰ as fun readDynamic¹(r: Unknown): ? {
+//│   return r.value﹖‹=> ?›
+//│ };
+//│ set rcd = { "value": 42 };
+//│ return readDynamic¹‹(Unknown) => ?›(rcd)
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = 42
+
+
+// Arguments are evaluated from left to right: a path argument whose value can change, such as a mutable
+// variable, is read before a later argument runs code, whether that code is a call or a getter read.
+:expect 0
+let counter = 0
+fun first(a, b) = a
+fun bumpNow() = set counter += 1
+first(counter, bumpNow())
+//│ = 0
+//│ counter = 1
+
+:expect 1
+class Bumper with
+  fun bump = set counter += 1
+let bumper = new Bumper
+first(counter, bumper.bump)
+//│ = 1
+//│ bumper = Bumper
+
+

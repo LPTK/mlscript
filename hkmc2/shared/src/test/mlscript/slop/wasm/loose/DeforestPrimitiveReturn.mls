@@ -33,15 +33,15 @@ wasm.ref.i31(f(wasm.i32.const(42)))
 //│ @private
 //│ define f⁰ as fun f¹(n: Int32): Int32 {
 //│   let b: ?;
-//│   set b = $b_Empty⁰();
-//│   return b(n)
+//│   set b = $b_Empty⁰‹() => (Int32) => ?›();
+//│   return b‹(...Array⁰) => ?›(n)
 //│ };
 //│ @data
 //│ define Empty¹ as class Empty² {
 //│   constructor Empty⁰
 //│ };
-//│ set tmp = wasm⁰.i32⁰.const⁰(42);
-//│ set tmp1 = f¹(tmp);
-//│ return wasm⁰.ref⁰.i31⁰(tmp1)
+//│ set tmp = wasm⁰.i32⁰.const⁰‹(Int⁰) => Int32›(42);
+//│ set tmp1 = f¹‹(Int32) => Int32›(tmp);
+//│ return wasm⁰.ref⁰.i31⁰‹(Int32) => Int31⁰›(tmp1)
 //│ Wasm result:
 //│ = 42

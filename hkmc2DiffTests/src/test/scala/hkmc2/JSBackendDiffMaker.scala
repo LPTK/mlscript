@@ -116,6 +116,7 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
       lazy val blockPrinter =
         given ShowCfg = ShowCfg(
           showErasedTypes = showIRErasedTypes.isSet,
+          showCallSignatures = showIRErasedTypes.isSet,
           showExpansionMappings = false,
           showFlowSymbols = true,
           debug = debug.isSet,
@@ -294,9 +295,9 @@ abstract class JSBackendDiffMaker extends MLsDiffMaker:
             import codegen.*
             Assign(
               NoSymbol,
-              Call(
+              Call.of(
                 Elaborator.State.runtimeSymbol.asSimpleRef.selSN("printRaw"),
-                (Arg(N, sym.asPath) :: Nil) ne_:: Nil)(CallMetadata.defaultMlsFun, N),
+                (Arg(N, sym.asPath) :: Nil) :: Nil)(CallMetadata.defaultMlsFun, N),
               End())
           val je = nestedScp.givenIn:
             jsb.block(le, endSemi = false)

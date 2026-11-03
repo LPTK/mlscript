@@ -290,6 +290,7 @@ wasm.f64.add(Boxed(wasm.i64.const(1), wasm.f64.const(1.5)).f, wasm.f64.const(0.2
 //│     (local $tmp i64)
 //│     (local $tmp1 f64)
 //│     (local $tmp2 (ref null any))
+//│     (local $arg f64)
 //│     (local $tmp3 f64)
 //│     (block (result f64)
 //│       (local.set $tmp
@@ -300,13 +301,15 @@ wasm.f64.add(Boxed(wasm.i64.const(1), wasm.f64.const(1.5)).f, wasm.f64.const(0.2
 //│         (call $Boxed_ctor
 //│           (local.get $tmp)
 //│           (local.get $tmp1)))
+//│       (local.set $arg
+//│         (struct.get $Boxed $f
+//│           (ref.cast (ref $Boxed)
+//│             (local.get $tmp2))))
 //│       (local.set $tmp3
 //│         (f64.const 0.25))
 //│       (return
 //│         (f64.add
-//│           (struct.get $Boxed $f
-//│             (ref.cast (ref $Boxed)
-//│               (local.get $tmp2)))
+//│           (local.get $arg)
 //│           (local.get $tmp3)))))
 //│   (elem $Boxed_init declare func $Boxed_init)
 //│   (elem $Boxed_ctor declare func $Boxed_ctor)

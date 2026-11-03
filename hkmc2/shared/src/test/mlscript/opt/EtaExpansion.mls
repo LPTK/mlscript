@@ -104,7 +104,9 @@ g(f, 1)(2) + g(h, 3)(4)
 //│ let tmp, baseCall, tmp1, g$g;
 //│ @private
 //│ define g$g as fun g$g⁰(k, x)(eta$0$0) {
-//│   return k(x)(eta$0$0)
+//│   let callPrefix;
+//│   set callPrefix = k(x);
+//│   return callPrefix(eta$0$0)
 //│ };
 //│ @affine(1)
 //│ define f⁶ as fun f⁷(a)(b) {
@@ -373,7 +375,9 @@ f(k1, 1) + f(k2, 5)
 //│ let a, b, tmp, tmp1, f_a_b$b, f_a$a, f$f;
 //│ @private
 //│ define f_a_b$b as fun f_a_b$b⁰(k, y)(eta$0$0) {
-//│   return k(y)(eta$0$0)
+//│   let callPrefix;
+//│   set callPrefix = k(y);
+//│   return callPrefix(eta$0$0)
 //│ };
 //│ @private
 //│ define f_a$a as fun f_a$a⁰(k, y)(eta$0$0) {
@@ -428,7 +432,9 @@ f(k1, 1) + f(k2, 5)
 //│ let g, get, tmp, tmp1, f_g$g, f$f;
 //│ @private
 //│ define f_g$g as fun f_g$g⁰(k, y)(eta$0$0) {
-//│   return k(y)(eta$0$0)
+//│   let callPrefix;
+//│   set callPrefix = k(y);
+//│   return callPrefix(eta$0$0)
 //│ };
 //│ @private
 //│ define f$f as fun f$f¹(k, x) {

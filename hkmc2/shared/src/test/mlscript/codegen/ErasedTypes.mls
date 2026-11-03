@@ -67,7 +67,7 @@ val box: ArrBox = new ArrBox(["x"])
 //│   return 0
 //│ };
 //│ set tmp = [9];
-//│ do firstOf¹(tmp);
+//│ do firstOf¹‹(Array⁰) => Int⁰›(tmp);
 //│ define ArrBox¹ as class ArrBox⁰ {
 //│   val arr⁰: Array⁰;
 //│   constructor ArrBox²(arr: Array⁰) {
@@ -100,7 +100,7 @@ val n: Boxed = o
 //│     end
 //│   }
 //│ };
-//│ set tmp = mkObj¹();
+//│ set tmp = mkObj¹‹() => Object⁰›();
 //│ define o⁰ as val o¹: Object⁰ = tmp;
 //│ define n⁰ as val n¹: Boxed⁰ = (o¹ as! Boxed⁰);
 //│ end
@@ -117,7 +117,7 @@ takeInt(vi)
 //│   return m
 //│ };
 //│ define vi⁰ as val vi¹: Int⁰ = 1;
-//│ return takeInt¹(vi¹)
+//│ return takeInt¹‹(Int⁰) => Int⁰›(vi¹)
 
 
 // A written `()` erases to `Unit` in every position - parameter, result and argument alike. The unit value
@@ -132,7 +132,9 @@ fun passUnit(): () = takesUnit(())
 //│ define takesUnit⁰ as fun takesUnit¹(u: Unit⁰): Unit⁰ {
 //│   return u
 //│ };
-//│ define passUnit⁰ as fun passUnit¹(): Unit⁰ { return takesUnit¹(runtime⁰.Unit⁰) };
+//│ define passUnit⁰ as fun passUnit¹(): Unit⁰ {
+//│   return takesUnit¹‹(Unit⁰) => Unit⁰›(runtime⁰.Unit⁰)
+//│ };
 //│ end
 
 
@@ -175,7 +177,7 @@ fun main =
 //│ define mk⁰ as fun mk¹(a: ?): ? {
 //│   return new Bar⁰((a as! Str⁰))
 //│ };
-//│ define main⁴ as fun main⁵(): ? { let made: ?; set made = mk¹(1); return made.y¹ };
+//│ define main⁴ as fun main⁵(): ? { let made: ?; set made = mk¹‹(?) => ?›(1); return made.y¹ };
 //│ end
 
 
@@ -196,9 +198,9 @@ fun add1(x: Num, y: Num) = x + y
 fun add2(x: Num, y: Num): Int = x + y
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define add1⁰ as fun add1¹(x: Num⁰, y: Num⁰): ? {
-//│   return +⁰(x, y)
+//│   return +⁰‹(?, ?) => ?›(x, y)
 //│ };
-//│ define add2⁰ as fun add2¹(x: Num⁰, y: Num⁰): Int⁰ { return (+⁰(x, y) as! Int⁰) };
+//│ define add2⁰ as fun add2¹(x: Num⁰, y: Num⁰): Int⁰ { return (+⁰‹(?, ?) => ?›(x, y) as! Int⁰) };
 //│ end
 
 
@@ -248,7 +250,7 @@ class Cell(mut val v: Int) with
 //│     return Cell².this.v³
 //│   }
 //│   method twice⁰ = fun twice¹(x: Num⁰): Int⁰ {
-//│     return (+⁰(x, x) as! Int⁰)
+//│     return (+⁰‹(?, ?) => ?›(x, x) as! Int⁰)
 //│   }
 //│   method whatever⁰ = fun whatever¹(a: ?): ? { return a }
 //│ };
@@ -279,7 +281,7 @@ fun counter(x: Int) =
 //│ };
 //│ define bump as fun bump⁰(scope0$cap: Capture$scope0¹, x: Int⁰): ? {
 //│   let tmp: Unknown;
-//│   set tmp = +⁰(scope0$cap.n$0¹, x);
+//│   set tmp = +⁰‹(?, ?) => ?›(scope0$cap.n$0¹, x);
 //│   set scope0$cap.n$0¹ = tmp;
 //│   return runtime⁰.Unit⁰
 //│ };
@@ -287,7 +289,7 @@ fun counter(x: Int) =
 //│   let n: ?, scope0$cap: Capture$scope0¹;
 //│   set scope0$cap = new mut Capture$scope0¹(n);
 //│   set scope0$cap.n$0¹ = 0;
-//│   do bump⁰(scope0$cap, x);
+//│   do bump⁰‹(Capture$scope0¹, Int⁰) => ?›(scope0$cap, x);
 //│   return scope0$cap.n$0¹
 //│ };
 //│ end
@@ -312,7 +314,7 @@ resetCounter(41)
 //│ };
 //│ define reset as fun reset⁰(scope0$cap: Capture$scope0³): ? {
 //│   let tmp: Unknown;
-//│   set tmp = +⁰(scope0$cap.x$0¹, 1);
+//│   set tmp = +⁰‹(?, ?) => ?›(scope0$cap.x$0¹, 1);
 //│   set scope0$cap.x$0¹ = tmp;
 //│   return runtime⁰.Unit⁰
 //│ };
@@ -320,10 +322,10 @@ resetCounter(41)
 //│   let x1: ?, scope0$cap: Capture$scope0³;
 //│   set scope0$cap = new mut Capture$scope0³(x1);
 //│   set scope0$cap.x$0¹ = x;
-//│   do reset⁰(scope0$cap);
+//│   do reset⁰‹(Capture$scope0³) => ?›(scope0$cap);
 //│   return (scope0$cap.x$0¹ as! Int⁰)
 //│ };
-//│ return resetCounter¹(41)
+//│ return resetCounter¹‹(Int⁰) => Int⁰›(41)
 
 
 // `Int` and `Int32` are both represented as host primitives, so both are *siblings* of `Object` rather than
@@ -366,10 +368,10 @@ fun f(o: Object, i: Int, x: Int32) =
 //│   return n
 //│ };
 //│ define f² as fun f³(o: Object⁰, i: Int⁰, x: Int32): ? {
-//│   do useObj¹(i);
-//│   do useInt¹(o);
-//│   do useObj¹(x);
-//│   return useInt32¹(o)
+//│   do useObj¹‹(Object⁰) => ?›(i);
+//│   do useInt¹‹(Int⁰) => ?›(o);
+//│   do useObj¹‹(Object⁰) => ?›(x);
+//│   return useInt32¹‹(Int32) => Int32›(o)
 //│ };
 //│ end
 
@@ -385,7 +387,7 @@ fun f(x: Int32) = id(x)
 //│ define id⁰ as fun id¹(x: Unknown): ? {
 //│   return runtime⁰.Unit⁰
 //│ };
-//│ define f⁴ as fun f⁵(x: Int32): ? { return id¹(x) };
+//│ define f⁴ as fun f⁵(x: Int32): ? { return id¹‹(Unknown) => ?›(x) };
 //│ end
 
 
@@ -397,10 +399,10 @@ fun f2(x: Int) = id(x)
 fun f3(x: Anything): Anything = x
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define f1⁰ as fun f1¹(x: Int31⁰): ? {
-//│   return id¹(x)
+//│   return id¹‹(Unknown) => ?›(x)
 //│ };
 //│ define f2⁰ as fun f2¹(x: Int⁰): ? {
-//│   return id¹(x)
+//│   return id¹‹(Unknown) => ?›(x)
 //│ };
 //│ define f3⁰ as fun f3¹(x: Unknown): Unknown { return x };
 //│ end
@@ -429,7 +431,7 @@ module Encl with
 //│     define Shape² as class Shape³;
 //│     end
 //│   }
-//│   method bad⁰ = fun bad¹(x: Shape³): ? { return useShape¹(x) }
+//│   method bad⁰ = fun bad¹(x: Shape³): ? { return useShape¹‹(Shape⁰) => ?›(x) }
 //│ };
 //│ end
 
@@ -444,8 +446,8 @@ fun g(i: Int, i31: Int31) =
 //│   return n
 //│ };
 //│ define g⁰ as fun g¹(i: Int⁰, i31: Int31⁰): ? {
-//│   do useInt¹(i31);
-//│   return useInt31¹((i as! Int31⁰))
+//│   do useInt¹‹(Int⁰) => ?›(i31);
+//│   return useInt31¹‹(Int31⁰) => ?›((i as! Int31⁰))
 //│ };
 //│ end
 
@@ -488,7 +490,7 @@ fun useMyI32(x: MyI32): Int32 = useI32(x)
 //│ define useI32⁰ as fun useI32¹(n: Int32): Int32 {
 //│   return n
 //│ };
-//│ define useMyI32⁰ as fun useMyI32¹(x: Int32): Int32 { return useI32¹(x) };
+//│ define useMyI32⁰ as fun useMyI32¹(x: Int32): Int32 { return useI32¹‹(Int32) => Int32›(x) };
 //│ end
 
 
@@ -549,16 +551,16 @@ fun unionIntoSubtype(x: A | B) = takesSubtype(x)
 //│   return runtime⁰.Unit⁰
 //│ };
 //│ define unionIntoBase⁰ as fun unionIntoBase¹(x: Base⁰): ? {
-//│   return takesBase¹(x)
+//│   return takesBase¹‹(Base⁰) => Unit⁰›(x)
 //│ };
 //│ define memberIntoUnion⁰ as fun memberIntoUnion¹(a: A⁰): ? {
-//│   return takesUnion¹(a)
+//│   return takesUnion¹‹(Base⁰) => Unit⁰›(a)
 //│ };
 //│ define baseIntoUnion⁰ as fun baseIntoUnion¹(b: Base⁰): ? {
-//│   return takesUnion¹(b)
+//│   return takesUnion¹‹(Base⁰) => Unit⁰›(b)
 //│ };
 //│ define unionIntoSubtype⁰ as fun unionIntoSubtype¹(x: Base⁰): ? {
-//│   return takesSubtype¹((x as! A⁰))
+//│   return takesSubtype¹‹(A⁰) => Unit⁰›((x as! A⁰))
 //│ };
 //│ define Base¹ as class Base⁰;
 //│ define A¹ as class A⁰ extends Base⁰ {};
@@ -592,7 +594,10 @@ fun intoMixed(n: Int32) = mixed(n)
 //│ ║  l.+1: 	fun intoMixed(n: Int32) = mixed(n)
 //│ ╙──      	                                ^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define intoMixed⁰ as fun intoMixed¹(n: Int32): ? { return mixed¹(n) }; end
+//│ define intoMixed⁰ as fun intoMixed¹(n: Int32): ? {
+//│   return mixed¹‹(‹incompatible(Int32, Str⁰)›) => ?›(n)
+//│ };
+//│ end
 
 
 // Widening fails too: an unrepresentable value cannot enter an `Object` slot either. Both errors are
@@ -623,9 +628,13 @@ fun sccF(): Int = sccG()
 fun sccG(): Num = sccF() + 0.5
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define sccF⁰ as fun sccF¹(): Int⁰ {
-//│   return (sccG⁰() as! Int⁰)
+//│   return (sccG⁰‹() => Num⁰›() as! Int⁰)
 //│ };
-//│ define sccG¹ as fun sccG⁰(): Num⁰ { let tmp: Int⁰; set tmp = sccF¹(); return +⁰(tmp, 0.5) };
+//│ define sccG¹ as fun sccG⁰(): Num⁰ {
+//│   let tmp: Int⁰;
+//│   set tmp = sccF¹‹() => Int⁰›();
+//│   return +⁰‹(?, ?) => ?›(tmp, 0.5)
+//│ };
 //│ end
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let sccF_sccG;
@@ -641,8 +650,8 @@ fun sccG(): Num = sccF() + 0.5
 //│         continue loopLabel
 //│       1 =>
 //│         let tmp: Int⁰, exitResult: Num⁰;
-//│         set tmp = (sccF_sccG⁰(0) as! Int⁰);
-//│         set exitResult = +⁰(tmp, 0.5);
+//│         set tmp = (sccF_sccG⁰‹(Int⁰) => Num⁰›(0) as! Int⁰);
+//│         set exitResult = +⁰‹(?, ?) => ?›(tmp, 0.5);
 //│         match sccF$deferred
 //│           true =>
 //│             return (exitResult as! Int⁰)
@@ -656,10 +665,10 @@ fun sccG(): Num = sccF() + 0.5
 //│ };
 //│ @inline
 //│ define sccF⁰ as fun sccF¹(): Int⁰ {
-//│   return (sccF_sccG⁰(0) as! Int⁰)
+//│   return (sccF_sccG⁰‹(Int⁰) => Num⁰›(0) as! Int⁰)
 //│ };
 //│ @inline
-//│ define sccG¹ as fun sccG⁰(): Num⁰ { return sccF_sccG⁰(1) };
+//│ define sccG¹ as fun sccG⁰(): Num⁰ { return sccF_sccG⁰‹(Int⁰) => Num⁰›(1) };
 //│ end
 
 
@@ -673,20 +682,20 @@ annotHelper(100000)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ @tailrec
 //│ define annotLoop⁰ as fun annotLoop¹(n: Int⁰): Unit⁰ {
-//│   return (annotHelper⁰(n) as! Unit⁰)
+//│   return (annotHelper⁰‹(?) => ?›(n) as! Unit⁰)
 //│ };
 //│ define annotHelper¹ as fun annotHelper⁰(n: ?): ? {
 //│   let scrut: ?, tmp: Unknown;
-//│   set scrut = <=⁰(n, 0);
+//│   set scrut = <=⁰‹(?, ?) => Bool⁰›(n, 0);
 //│   match scrut
 //│     true =>
 //│       return runtime⁰.Unit⁰
 //│     else
-//│       set tmp = -⁰(n, 1);
-//│       return annotLoop¹((tmp as! Int⁰))
+//│       set tmp = -⁰‹(?, ?) => ?›(n, 1);
+//│       return annotLoop¹‹(Int⁰) => Unit⁰›((tmp as! Int⁰))
 //│   end
 //│ };
-//│ return annotHelper⁰(100000)
+//│ return annotHelper⁰‹(?) => ?›(100000)
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let annotLoop_annotHelper;
 //│ @private
@@ -698,12 +707,12 @@ annotHelper(100000)
 //│         continue loopLabel
 //│       1 =>
 //│         let scrut: ?, tmp: Unknown;
-//│         set scrut = <=⁰(param0, 0);
+//│         set scrut = <=⁰‹(?, ?) => Bool⁰›(param0, 0);
 //│         match scrut
 //│           true =>
 //│             return runtime⁰.Unit⁰
 //│           else
-//│             set tmp = -⁰(param0, 1);
+//│             set tmp = -⁰‹(?, ?) => ?›(param0, 1);
 //│             set param0 = (tmp as! Int⁰);
 //│             set id = 0;
 //│             continue loopLabel
@@ -715,13 +724,13 @@ annotHelper(100000)
 //│ };
 //│ @inline @tailrec
 //│ define annotLoop⁰ as fun annotLoop¹(n: Int⁰): Unit⁰ {
-//│   return (annotLoop_annotHelper⁰(0, n) as! Unit⁰)
+//│   return (annotLoop_annotHelper⁰‹(Int⁰, ?) => ?›(0, n) as! Unit⁰)
 //│ };
 //│ @inline
 //│ define annotHelper¹ as fun annotHelper⁰(n: ?): ? {
-//│   return annotLoop_annotHelper⁰(1, n)
+//│   return annotLoop_annotHelper⁰‹(Int⁰, ?) => ?›(1, n)
 //│ };
-//│ return annotLoop_annotHelper⁰(1, 100000)
+//│ return annotLoop_annotHelper⁰‹(Int⁰, ?) => ?›(1, 100000)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 
@@ -739,21 +748,21 @@ sccHelper(100000)
 //│ @tailrec
 //│ define sccLoop⁰ as fun sccLoop¹(n: Int⁰): Int⁰ {
 //│   let r: ?;
-//│   set r = sccHelper⁰(n);
+//│   set r = sccHelper⁰‹(Int⁰) => Num⁰›(n);
 //│   return (r as! Int⁰)
 //│ };
 //│ define sccHelper¹ as fun sccHelper⁰(n: Int⁰): Num⁰ {
 //│   let scrut: ?, tmp: Int⁰;
-//│   set scrut = <=⁰(n, 0);
+//│   set scrut = <=⁰‹(?, ?) => Bool⁰›(n, 0);
 //│   match scrut
 //│     true =>
 //│       return 0
 //│     else
-//│       set tmp = -⁰(n, 1);
-//│       return sccLoop¹(tmp)
+//│       set tmp = -⁰‹(?, ?) => ?›(n, 1);
+//│       return sccLoop¹‹(Int⁰) => Int⁰›(tmp)
 //│   end
 //│ };
-//│ return sccHelper⁰(100000)
+//│ return sccHelper⁰‹(Int⁰) => Num⁰›(100000)
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let sccLoop_sccHelper;
 //│ @private
@@ -765,12 +774,12 @@ sccHelper(100000)
 //│         continue loopLabel
 //│       1 =>
 //│         let scrut: ?, tmp: Int⁰;
-//│         set scrut = <=⁰(param0, 0);
+//│         set scrut = <=⁰‹(?, ?) => Bool⁰›(param0, 0);
 //│         match scrut
 //│           true =>
 //│             return 0
 //│           else
-//│             set tmp = -⁰(param0, 1);
+//│             set tmp = -⁰‹(?, ?) => ?›(param0, 1);
 //│             set param0 = tmp;
 //│             set id = 0;
 //│             continue loopLabel
@@ -782,13 +791,13 @@ sccHelper(100000)
 //│ };
 //│ @inline @tailrec
 //│ define sccLoop⁰ as fun sccLoop¹(n: Int⁰): Int⁰ {
-//│   return (sccLoop_sccHelper⁰(0, n) as! Int⁰)
+//│   return (sccLoop_sccHelper⁰‹(Int⁰, ?) => Num⁰›(0, n) as! Int⁰)
 //│ };
 //│ @inline
 //│ define sccHelper¹ as fun sccHelper⁰(n: Int⁰): Num⁰ {
-//│   return sccLoop_sccHelper⁰(1, n)
+//│   return sccLoop_sccHelper⁰‹(Int⁰, ?) => Num⁰›(1, n)
 //│ };
-//│ return sccLoop_sccHelper⁰(1, 100000)
+//│ return sccLoop_sccHelper⁰‹(Int⁰, ?) => Num⁰›(1, 100000)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 0
 
@@ -801,17 +810,20 @@ useFn(curried(1))
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let tmp: Function⁰;
 //│ define curried⁰ as fun curried¹(a: Int⁰)(b: Int⁰): Int⁰ {
-//│   return +⁰(a, b)
+//│   return +⁰‹(?, ?) => ?›(a, b)
 //│ };
 //│ define useFn⁰ as fun useFn¹(g: Function⁰): ? {
-//│   return g(1)
+//│   return g‹(...Array⁰) => ?›(1)
 //│ };
-//│ set tmp = curried¹(1);
-//│ return useFn¹(tmp)
+//│ set tmp = curried¹‹(Int⁰) => (Int⁰) => Int⁰›(1);
+//│ return useFn¹‹(Function⁰) => ?›(tmp)
 
 val done: Int = curried(1)(2)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let tmp: Int⁰; set tmp = curried¹(1)(2); define done⁰ as val done¹: Int⁰ = tmp; end
+//│ let tmp: Int⁰;
+//│ set tmp = curried¹‹(Int⁰) => (Int⁰) => Int⁰›(1)(2);
+//│ define done⁰ as val done¹: Int⁰ = tmp;
+//│ end
 
 
 // Counting lists must account for normalization: a `fun` with no parameter list keeps `Nil` in its
@@ -825,12 +837,12 @@ val over: Int = thunk(2)
 //│   let lambda;
 //│   @private
 //│   define lambda as fun lambda⁰(b: Int⁰): ? {
-//│     return +⁰(b, 1)
+//│     return +⁰‹(?, ?) => ?›(b, 1)
 //│   };
 //│   return lambda⁰
 //│ };
-//│ set tmp = thunk¹();
-//│ set tmp1 = tmp(2);
+//│ set tmp = thunk¹‹() => Function⁰›();
+//│ set tmp1 = tmp‹(...Array⁰) => ?›(2);
 //│ define over⁰ as val over¹: Int⁰ = (tmp1 as! Int⁰);
 //│ end
 
@@ -841,7 +853,7 @@ val bad: Str = thunk
 //│ ║  l.+1: 	val bad: Str = thunk
 //│ ╙──      	               ^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ let tmp: Function⁰; set tmp = thunk¹(); define bad² as val bad³: Str⁰ = tmp; end
+//│ let tmp: Function⁰; set tmp = thunk¹‹() => Function⁰›(); define bad² as val bad³: Str⁰ = tmp; end
 
 
 // *No* parameter list must stay distinct from *one empty* one: only the former is auto-invoked, so a bare
@@ -875,18 +887,21 @@ module M with
 
 fun useLocal: Int = localGetter
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define useLocal⁰ as fun useLocal¹(): Int⁰ { return localGetter¹() }; end
+//│ define useLocal⁰ as fun useLocal¹(): Int⁰ { return localGetter¹‹() => Int⁰›() }; end
 
 fun useMember: Int = M.memberGetter
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define useMember⁰ as fun useMember¹(): Int⁰ { return M².memberGetter¹ }; end
+//│ define useMember⁰ as fun useMember¹(): Int⁰ { return M².memberGetter¹‹=> Int⁰› }; end
 
 // Applying the getter applies its *result*, which its signature says nothing about, so the call is untyped
 // and returning it from `: Int` needs a cast. Were the call read as the getter's own auto-invocation, this
 // would silently take the getter's result type and the cast would be dropped.
 fun callMember: Int = M.memberGetter{as Function}()
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define callMember⁰ as fun callMember¹(): Int⁰ { return (M².memberGetter¹() as! Int⁰) }; end
+//│ define callMember⁰ as fun callMember¹(): Int⁰ {
+//│   return (M².memberGetter¹‹(...Array⁰) => ?›() as! Int⁰)
+//│ };
+//│ end
 
 
 // An instantiation is typed as its class, so it cannot fill a primitive slot. Were the `Instantiate` type
@@ -900,7 +915,7 @@ fun badInst() = useInt(new Bar("x"))
 //│ define badInst⁰ as fun badInst¹(): ? {
 //│   let tmp: Bar⁰;
 //│   set tmp = new Bar⁰("x");
-//│   return useInt¹(tmp)
+//│   return useInt¹‹(Int⁰) => ?›(tmp)
 //│ };
 //│ end
 
@@ -929,7 +944,7 @@ val g: Int -> Int = (x: Int) => x
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let lambda, lambda1;
 //│ define applyF⁰ as fun applyF¹(f: Function⁰): Int⁰ {
-//│   return (f(1) as! Int⁰)
+//│   return f‹(Int⁰) => Int⁰›(1)
 //│ };
 //│ define mk² as fun mk³(): Function⁰ {
 //│   let lambda2;
@@ -942,7 +957,7 @@ val g: Int -> Int = (x: Int) => x
 //│ define lambda as fun lambda²(x: Int⁰): ? {
 //│   return x
 //│ };
-//│ do applyF¹(lambda²);
+//│ do applyF¹‹(Function⁰) => Int⁰›(lambda²);
 //│ define lambda1 as fun lambda³(x: Int⁰): ? {
 //│   return x
 //│ };
@@ -957,7 +972,7 @@ fun badFn() = applyF(42)
 //│ ║  l.+1: 	fun badFn() = applyF(42)
 //│ ╙──      	                     ^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define badFn⁰ as fun badFn¹(): ? { return applyF¹(42) }; end
+//│ define badFn⁰ as fun badFn¹(): ? { return applyF¹‹(Function⁰) => Int⁰›(42) }; end
 
 
 // A `Str`-typed helper for the `declare fun` blocks below.
@@ -973,9 +988,9 @@ declare fun addInts: (Int, Int) -> Int
 fun useAdd() = useInt(addInts(1, 2))
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useAdd⁰ as fun useAdd¹(): ? {
-//│   let tmp: ?;
-//│   set tmp = globalThis⁰.addInts⁰(1, 2);
-//│   return useInt¹((tmp as! Int⁰))
+//│   let tmp: Int⁰;
+//│   set tmp = globalThis⁰.addInts⁰‹(Int⁰, Int⁰) => Int⁰›(1, 2);
+//│   return useInt¹‹(Int⁰) => ?›(tmp)
 //│ };
 //│ end
 
@@ -988,8 +1003,8 @@ fun useCurried() = useInt(curried(1)(2))
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useCurried⁰ as fun useCurried¹(): ? {
 //│   let tmp: Int⁰;
-//│   set tmp = globalThis⁰.curried²(1)(2);
-//│   return useInt¹(tmp)
+//│   set tmp = globalThis⁰.curried²‹(Int⁰) => (Int⁰) => Int⁰›(1)(2);
+//│   return useInt¹‹(Int⁰) => ?›(tmp)
 //│ };
 //│ end
 
@@ -997,8 +1012,8 @@ fun usePartial() = useFn(curried(1))
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define usePartial⁰ as fun usePartial¹(): ? {
 //│   let tmp: Function⁰;
-//│   set tmp = globalThis⁰.curried²(1);
-//│   return useFn¹(tmp)
+//│   set tmp = globalThis⁰.curried²‹(Int⁰) => (Int⁰) => Int⁰›(1);
+//│   return useFn¹‹(Function⁰) => ?›(tmp)
 //│ };
 //│ end
 
@@ -1009,8 +1024,8 @@ fun useParse() = useInt(parseIt("1", 10))
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useParse⁰ as fun useParse¹(): ? {
 //│   let tmp: Int⁰;
-//│   set tmp = globalThis⁰.parseIt⁰("1", 10);
-//│   return useInt¹(tmp)
+//│   set tmp = globalThis⁰.parseIt⁰‹(Str⁰, Int⁰) => Int⁰›("1", 10);
+//│   return useInt¹‹(Int⁰) => ?›(tmp)
 //│ };
 //│ end
 
@@ -1024,8 +1039,8 @@ fun badParse() = useStr(parseIt("1", 10))
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define badParse⁰ as fun badParse¹(): ? {
 //│   let tmp: Int⁰;
-//│   set tmp = globalThis⁰.parseIt⁰("1", 10);
-//│   return useStr¹(tmp)
+//│   set tmp = globalThis⁰.parseIt⁰‹(Str⁰, Int⁰) => Int⁰›("1", 10);
+//│   return useStr¹‹(Str⁰) => ?›(tmp)
 //│ };
 //│ end
 
@@ -1037,8 +1052,8 @@ fun useGetFn() = useFn(getFn)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define useGetFn⁰ as fun useGetFn¹(): ? {
 //│   let tmp: Function⁰;
-//│   set tmp = getFn⁰();
-//│   return useFn¹(tmp)
+//│   set tmp = getFn⁰‹() => Function⁰›();
+//│   return useFn¹‹(Function⁰) => ?›(tmp)
 //│ };
 //│ end
 
@@ -1049,7 +1064,7 @@ fun viaUntyped(s, radix): Str = @untyped parseIt(s, radix)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define viaUntyped⁰ as fun viaUntyped¹(s: ?, radix: ?): Str⁰ {
 //│   let tmp: Unknown;
-//│   set tmp = globalThis⁰.parseIt⁰((s as! Str⁰), (radix as! Int⁰));
+//│   set tmp = globalThis⁰.parseIt⁰‹(Str⁰, Int⁰) => Int⁰›((s as! Str⁰), (radix as! Int⁰));
 //│   return (tmp as! Str⁰)
 //│ };
 //│ end
@@ -1063,7 +1078,7 @@ fun viaTyped(s, radix): Str = parseIt(s, radix)
 //│ ╙──      	                              ^^^^^^^^^^^^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define viaTyped⁰ as fun viaTyped¹(s: ?, radix: ?): Str⁰ {
-//│   return globalThis⁰.parseIt⁰((s as! Str⁰), (radix as! Int⁰))
+//│   return globalThis⁰.parseIt⁰‹(Str⁰, Int⁰) => Int⁰›((s as! Str⁰), (radix as! Int⁰))
 //│ };
 //│ end
 
@@ -1093,11 +1108,21 @@ declare module Ext with
 // Selecting the member yields the function value the signature describes.
 fun useExt() = useFn(Ext.member)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define useExt⁰ as fun useExt¹(): ? { return useFn¹(globalThis⁰.Ext⁰.member⁰) }; end
+//│ define useExt⁰ as fun useExt¹(): ? {
+//│   let tmp: Function⁰;
+//│   set tmp = globalThis⁰.Ext⁰.member⁰‹=> Function⁰›;
+//│   return useFn¹‹(Function⁰) => ?›(tmp)
+//│ };
+//│ end
 
 fun usePlain() = useFn(Plain.f)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define usePlain⁰ as fun usePlain¹(): ? { return useFn¹(Plain².f⁷) }; end
+//│ define usePlain⁰ as fun usePlain¹(): ? {
+//│   let tmp: Function⁰;
+//│   set tmp = Plain².f⁷‹=> Function⁰›;
+//│   return useFn¹‹(Function⁰) => ?›(tmp)
+//│ };
+//│ end
 
 
 // *Applying* the selected member is a call on that function value, and since `Function` does not store its
@@ -1105,18 +1130,18 @@ fun usePlain() = useFn(Plain.f)
 fun applyExt() = useInt(Ext.member(1))
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define applyExt⁰ as fun applyExt¹(): ? {
-//│   let tmp: ?;
-//│   set tmp = globalThis⁰.Ext⁰.member⁰(1);
-//│   return useInt¹((tmp as! Int⁰))
+//│   let tmp: Int⁰;
+//│   set tmp = globalThis⁰.Ext⁰.member⁰‹(Int⁰) => Int⁰›(1);
+//│   return useInt¹‹(Int⁰) => ?›(tmp)
 //│ };
 //│ end
 
 fun applyPlain() = useInt(Plain.f(1))
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define applyPlain⁰ as fun applyPlain¹(): ? {
-//│   let tmp: ?;
-//│   set tmp = Plain².f⁷(1);
-//│   return useInt¹((tmp as! Int⁰))
+//│   let tmp: Int⁰;
+//│   set tmp = Plain².f⁷‹(Int⁰) => Int⁰›(1);
+//│   return useInt¹‹(Int⁰) => ?›(tmp)
 //│ };
 //│ end
 
@@ -1127,9 +1152,9 @@ fun applyGetFn() = useInt(getFn(1))
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define applyGetFn⁰ as fun applyGetFn¹(): ? {
 //│   let tmp: Function⁰, tmp1: ?;
-//│   set tmp = getFn⁰();
-//│   set tmp1 = tmp(1);
-//│   return useInt¹((tmp1 as! Int⁰))
+//│   set tmp = getFn⁰‹() => Function⁰›();
+//│   set tmp1 = tmp‹(...Array⁰) => ?›(1);
+//│   return useInt¹‹(Int⁰) => ?›((tmp1 as! Int⁰))
 //│ };
 //│ end
 
@@ -1160,7 +1185,7 @@ fun selUntyped(): Int = @untyped Plain.f
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define selUntyped⁰ as fun selUntyped¹(): Int⁰ {
 //│   let tmp: Unknown;
-//│   set tmp = Plain².f⁷;
+//│   set tmp = Plain².f⁷‹=> Function⁰›;
 //│   return (tmp as! Int⁰)
 //│ };
 //│ end
@@ -1171,7 +1196,7 @@ fun selTyped(): Int = Plain.f
 //│ ║  l.+1: 	fun selTyped(): Int = Plain.f
 //│ ╙──      	                      ^^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ define selTyped⁰ as fun selTyped¹(): Int⁰ { return Plain².f⁷ }; end
+//│ define selTyped⁰ as fun selTyped¹(): Int⁰ { return Plain².f⁷‹=> Function⁰› }; end
 
 
 // A lambda is disclaimed too: it reaches `LambdaRewriter` as the binding's RHS and is floated into a
@@ -1221,8 +1246,8 @@ fun asWrapper(x: Wrapper): Wrapper = x
 asWrapper(fortyTwo).whoami
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let tmp: ?, tmp1: Wrapper⁰;
-//│ set tmp = fortyTwo¹();
-//│ set tmp1 = asWrapper¹((tmp as!! Wrapper⁰));
+//│ set tmp = fortyTwo¹‹() => ?›();
+//│ set tmp1 = asWrapper¹‹(Wrapper⁰) => Wrapper⁰›((tmp as!! Wrapper⁰));
 //│ return tmp1.whoami¹
 //│ ————————————| JS (unsanitized) |————————————————————————————————————————————————————————————————————
 //│ return (42 /* as!! Wrapper */).whoami
@@ -1237,12 +1262,12 @@ if asWrapper(fortyTwo) is
   else "other"
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let scrut: ?, a: ?, b: ?, element1$: ?, element0$: ?, tmp: ?;
-//│ set tmp = fortyTwo¹();
-//│ set scrut = asWrapper¹((tmp as!! Wrapper⁰));
+//│ set tmp = fortyTwo¹‹() => ?›();
+//│ set scrut = asWrapper¹‹(Wrapper⁰) => Wrapper⁰›((tmp as!! Wrapper⁰));
 //│ match scrut
 //│   Array(2) =>
-//│     set element0$ = runtime⁰.Tuple⁰.get²(scrut, 0);
-//│     set element1$ = runtime⁰.Tuple⁰.get²(scrut, 1);
+//│     set element0$ = runtime⁰.Tuple⁰.get²‹(Unknown, Int⁰) => ?›(scrut, 0);
+//│     set element1$ = runtime⁰.Tuple⁰.get²‹(Unknown, Int⁰) => ?›(scrut, 1);
 //│     set b = element1$;
 //│     set a = element0$;
 //│     return "pair"
@@ -1279,7 +1304,7 @@ class Box(content: Int) with
 //│     define content¹ as val content⁰: Int⁰ = content;
 //│     end
 //│   }
-//│   method unwrap⁰ = fun unwrap¹(): ? { return peek⁰(Box⁰.this) }
+//│   method unwrap⁰ = fun unwrap¹(): ? { return peek⁰‹(Box⁰) => ?›(Box⁰.this) }
 //│ };
 //│ end
 
@@ -1299,14 +1324,14 @@ fun tagged(x: Int) =
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let describe;
 //│ define describe as fun describe⁰(Tag: Tag⁰): ? {
-//│   return Tag.label⁰()
+//│   return Tag.label⁰‹() => ?›()
 //│ };
 //│ define tagged⁰ as fun tagged¹(x: Int⁰): ? {
 //│   let Tag;
 //│   define Tag as object Tag⁰ {
 //│     method label¹ = fun label⁰(): ? { return "tag" }
 //│   };
-//│   return describe⁰(Tag⁰)
+//│   return describe⁰‹(Tag⁰) => ?›(Tag⁰)
 //│ };
 //│ end
 
@@ -1332,7 +1357,7 @@ fun mk() =
 //│     end
 //│   }
 //│   method get³ = fun get⁴(): ? {
-//│     return Holder⁰.this.Tag¹.label²()
+//│     return Holder⁰.this.Tag¹.label²‹() => ?›()
 //│   }
 //│ };
 //│ define mk⁴ as fun mk⁵(): ? {
@@ -1359,7 +1384,7 @@ fun capturingLoop(n: Int, acc: Str) =
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ define capturingLoop⁰ as fun capturingLoop¹(n: Int⁰, acc: Str⁰): ? {
 //│   let scrut: ?, g: ?, h: ?, tmp: Int⁰, tmp1: ?;
-//│   set scrut = <=⁰(n, 0);
+//│   set scrut = <=⁰‹(?, ?) => Bool⁰›(n, 0);
 //│   match scrut
 //│     true =>
 //│       return acc
@@ -1371,9 +1396,9 @@ fun capturingLoop(n: Int, acc: Str) =
 //│       };
 //│       set g = g⁴;
 //│       set h = g;
-//│       set tmp = -⁰(n, 1);
-//│       set tmp1 = h();
-//│       return capturingLoop¹(tmp, (tmp1 as! Str⁰))
+//│       set tmp = -⁰‹(?, ?) => ?›(n, 1);
+//│       set tmp1 = h‹(...Array⁰) => ?›();
+//│       return capturingLoop¹‹(Int⁰, Str⁰) => ?›(tmp, (tmp1 as! Str⁰))
 //│   end
 //│ };
 //│ end
@@ -1382,7 +1407,7 @@ fun capturingLoop(n: Int, acc: Str) =
 //│   loop loopLabel:
 //│     let scrut: ?, tmp: Int⁰, tmp1: ?, acc1: Str⁰;
 //│     set acc1 = acc;
-//│     set scrut = <=⁰(n, 0);
+//│     set scrut = <=⁰‹(?, ?) => Bool⁰›(n, 0);
 //│     match scrut
 //│       true =>
 //│         return acc1
@@ -1392,8 +1417,8 @@ fun capturingLoop(n: Int, acc: Str) =
 //│         define g as fun g⁴(): ? {
 //│           return acc1
 //│         };
-//│         set tmp = -⁰(n, 1);
-//│         set tmp1 = g⁴();
+//│         set tmp = -⁰‹(?, ?) => ?›(n, 1);
+//│         set tmp1 = g⁴‹() => ?›();
 //│         set n = tmp;
 //│         set acc = (tmp1 as! Str⁰);
 //│         continue loopLabel

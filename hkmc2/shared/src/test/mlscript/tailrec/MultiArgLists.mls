@@ -325,7 +325,7 @@ fun f(a)(b) = f(a)(b)
 //│             LoweredParamList: ‹empty›
 //│           erasure = Signature:
 //│             paramLists = Ls of
-//│               Nil
+//│               ErasedParamList: ‹empty›
 //│             result = Direct of N
 //│         body = Label:
 //│           label = label:loopLabel⁰
@@ -350,10 +350,12 @@ fun f(a)(b) = f(a)(b)
 //│                   modulefulness = Modulefulness of N
 //│           erasure = Signature:
 //│             paramLists = Ls of
-//│               Ls of
-//│                 N
-//│               Ls of
-//│                 N
+//│               ErasedParamList:
+//│                 params = Ls of
+//│                   N
+//│               ErasedParamList:
+//│                 params = Ls of
+//│                   N
 //│             result = Direct of N
 //│         body = Return of Call:
 //│           fun = MemberRef{disamb=term:f$tailrec²}:

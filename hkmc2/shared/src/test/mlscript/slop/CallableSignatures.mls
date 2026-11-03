@@ -13,10 +13,10 @@ increment(41)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let lambda;
 //│ define lambda as fun lambda⁰(value: Int⁰): ? {
-//│   return +⁰(value, 1)
+//│   return +⁰‹(?, ?) => ?›(value, 1)
 //│ };
 //│ define increment⁰ as val increment¹: Function⁰ = lambda⁰;
-//│ return increment¹(41)
+//│ return increment¹‹(Int⁰) => Int⁰›(41)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 42
 //│ increment = fun
@@ -40,16 +40,16 @@ partiallyApply(1)(2)
 //│ let partiallyApply$partiallyApply;
 //│ @private
 //│ define partiallyApply$partiallyApply as fun partiallyApply$partiallyApply⁰(value: Int⁰)(eta$0$0: Int⁰): Int⁰ {
-//│   return add⁰(value)(eta$0$0)
+//│   return add⁰‹(Int⁰) => (Int⁰) => Int⁰›(value)(eta$0$0)
 //│ };
 //│ @affine(1)
 //│ define add¹ as fun add⁰(first: Int⁰)(second: Int⁰): Int⁰ {
-//│   return +⁰(first, second)
+//│   return +⁰‹(?, ?) => ?›(first, second)
 //│ };
 //│ define partiallyApply⁰ as fun partiallyApply¹(value: Int⁰)(eta$0$0: Int⁰): Int⁰ {
-//│   return add⁰(value)(eta$0$0)
+//│   return add⁰‹(Int⁰) => (Int⁰) => Int⁰›(value)(eta$0$0)
 //│ };
-//│ return partiallyApply$partiallyApply⁰(1)(2)
+//│ return partiallyApply$partiallyApply⁰‹(Int⁰) => (Int⁰) => Int⁰›(1)(2)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 3
 
@@ -64,8 +64,10 @@ private fun discarded(unused: Str, value: Int): Int = value
 discarded("unused", 42)
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ @private
-//│ define discarded⁰ as fun discarded¹(value: Int⁰): Int⁰ { return value };
-//│ return discarded¹(42)
+//│ define discarded⁰ as fun discarded¹(value: Int⁰): Int⁰ {
+//│   return value
+//│ };
+//│ return discarded¹‹(Int⁰) => Int⁰›(42)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 42
 
@@ -86,13 +88,13 @@ capture(39)
 //│ let addCaptured;
 //│ define addCaptured as fun addCaptured⁰(value: Int⁰, first: Int⁰)(second: Int⁰): Int⁰ {
 //│   let tmp: Int⁰;
-//│   set tmp = +⁰(value, first);
-//│   return +⁰(tmp, second)
+//│   set tmp = +⁰‹(?, ?) => ?›(value, first);
+//│   return +⁰‹(?, ?) => ?›(tmp, second)
 //│ };
 //│ define capture⁰ as fun capture¹(value: Int⁰): Int⁰ {
-//│   return (addCaptured⁰(value, 1)(2) as! Int⁰)
+//│   return (addCaptured⁰‹(Int⁰, Int⁰) => (Int⁰) => Int⁰›(value, 1)(2) as! Int⁰)
 //│ };
-//│ return capture¹(39)
+//│ return capture¹‹(Int⁰) => Int⁰›(39)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 42
 
@@ -109,22 +111,22 @@ fun captureFunction(value: Int): Int -> Int -> Int =
   addValue
 captureFunction(39)(1)(2)
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ let addValue, baseCall: Function⁰, callPrefix: ?, addValue$;
+//│ let addValue, baseCall: Function⁰, callPrefix: Function⁰, addValue$;
 //│ @inline
 //│ define addValue$ as fun addValue$⁰(value: Int⁰)(first: Int⁰): Function⁰ {
-//│   return addValue⁰(value, first)
+//│   return addValue⁰‹(Int⁰, Int⁰) => (Int⁰) => Int⁰›(value, first)
 //│ };
 //│ define addValue as fun addValue⁰(value: Int⁰, first: Int⁰)(second: Int⁰): Int⁰ {
 //│   let tmp: Int⁰;
-//│   set tmp = +⁰(value, first);
-//│   return +⁰(tmp, second)
+//│   set tmp = +⁰‹(?, ?) => ?›(value, first);
+//│   return +⁰‹(?, ?) => ?›(tmp, second)
 //│ };
 //│ define captureFunction⁰ as fun captureFunction¹(value: Int⁰): Function⁰ {
-//│   return addValue$⁰(value)
+//│   return addValue$⁰‹(Int⁰) => (Int⁰) => Function⁰›(value)
 //│ };
-//│ set baseCall = captureFunction¹(39);
-//│ set callPrefix = baseCall(1);
-//│ return callPrefix(2)
+//│ set baseCall = captureFunction¹‹(Int⁰) => Function⁰›(39);
+//│ set callPrefix = baseCall‹(Int⁰) => Function⁰›(1);
+//│ return callPrefix‹(Int⁰) => Int⁰›(2)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 42
 
@@ -144,21 +146,21 @@ capturedGenerator(40).next().value
 //│ let tmp: ?, tmp1: Unknown, capturedGenerator_generate$generate, capturedGenerator_generate$generate1, capturedGenerator$capturedGenerator;
 //│ @private @generator
 //│ define capturedGenerator_generate$generate as fun capturedGenerator_generate$generate⁰(value: Int⁰, n: Int⁰): generator Int⁰ {
-//│   return +⁰(value, n)
+//│   return +⁰‹(?, ?) => ?›(value, n)
 //│ };
 //│ @private @generator
 //│ define capturedGenerator_generate$generate1 as fun capturedGenerator_generate$generate¹(value: Int⁰, n: Int⁰): generator Int⁰ {
-//│   return +⁰(value, n)
+//│   return +⁰‹(?, ?) => ?›(value, n)
 //│ };
 //│ @private
 //│ define capturedGenerator$capturedGenerator as fun capturedGenerator$capturedGenerator⁰(value: Int⁰): ? {
-//│   return capturedGenerator_generate$generate¹(value, 2)
+//│   return capturedGenerator_generate$generate¹‹(Int⁰, Int⁰) => generator Int⁰›(value, 2)
 //│ };
 //│ define capturedGenerator⁰ as fun capturedGenerator¹(value: Int⁰): ? {
-//│   return capturedGenerator_generate$generate⁰(value, 2)
+//│   return capturedGenerator_generate$generate⁰‹(Int⁰, Int⁰) => generator Int⁰›(value, 2)
 //│ };
-//│ set tmp = capturedGenerator$capturedGenerator⁰(40);
-//│ set tmp1 = tmp.next⁰();
+//│ set tmp = capturedGenerator$capturedGenerator⁰‹(Int⁰) => ?›(40);
+//│ set tmp1 = tmp.next⁰‹() => Unknown›();
 //│ return tmp1.value⁰
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 42
@@ -178,18 +180,18 @@ capturedGeneratorFunction(40)(2).next().value
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let generate, baseCall: ?, tmp: ?, tmp1: Unknown, generate$;
 //│ define generate$ as fun generate$⁰(value: Int⁰)(n: Int⁰): Iterator⁰ {
-//│   return generate⁰(value, n)
+//│   return generate⁰‹(Int⁰, Int⁰) => generator Int⁰›(value, n)
 //│ };
 //│ @generator
 //│ define generate as fun generate⁰(value: Int⁰, n: Int⁰): generator Int⁰ {
-//│   return +⁰(value, n)
+//│   return +⁰‹(?, ?) => ?›(value, n)
 //│ };
 //│ define capturedGeneratorFunction⁰ as fun capturedGeneratorFunction¹(value: Int⁰): ? {
-//│   return generate$⁰(value)
+//│   return generate$⁰‹(Int⁰) => (Int⁰) => Iterator⁰›(value)
 //│ };
-//│ set baseCall = capturedGeneratorFunction¹(40);
-//│ set tmp = baseCall(2);
-//│ set tmp1 = tmp.next⁰();
+//│ set baseCall = capturedGeneratorFunction¹‹(Int⁰) => ?›(40);
+//│ set tmp = baseCall‹(...Array⁰) => ?›(2);
+//│ set tmp1 = tmp.next⁰‹() => Unknown›();
 //│ return tmp1.value⁰
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 42
@@ -210,21 +212,21 @@ capturedAsyncFunction(40)(2)
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let add, baseCall: ?, add$, add1;
 //│ define add1 as fun add²(value: Int⁰, n: Int⁰)(): Int⁰ {
-//│   return +⁰(value, n)
+//│   return +⁰‹(?, ?) => ?›(value, n)
 //│ };
 //│ define add$ as fun add$⁰(value: Int⁰)(n: Int⁰): Promise⁰ {
-//│   return add³(value, n)
+//│   return add³‹(Int⁰, Int⁰) => Promise⁰›(value, n)
 //│ };
 //│ define add as fun add³(value: Int⁰, n: Int⁰): Promise⁰ {
 //│   let tmp: Function⁰;
-//│   set tmp = add²(value, n);
-//│   return runtime⁰.toJsAsync﹖(tmp)
+//│   set tmp = add²‹(Int⁰, Int⁰) => () => Int⁰›(value, n);
+//│   return runtime⁰.toJsAsync﹖‹(...Array⁰) => ?›(tmp)
 //│ };
 //│ define capturedAsyncFunction⁰ as fun capturedAsyncFunction¹(value: Int⁰): ? {
-//│   return add$⁰(value)
+//│   return add$⁰‹(Int⁰) => (Int⁰) => Promise⁰›(value)
 //│ };
-//│ set baseCall = capturedAsyncFunction¹(40);
-//│ return baseCall(2)
+//│ set baseCall = capturedAsyncFunction¹‹(Int⁰) => ?›(40);
+//│ return baseCall‹(...Array⁰) => ?›(2)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 42
 
@@ -245,23 +247,23 @@ capturedCurriedAsyncFunction(39)(1)(2)
 //│ let add, baseCall: ?, callPrefix: ?, add$, add1;
 //│ define add1 as fun add⁴(value: Int⁰, first: Int⁰, second: Int⁰)(): Int⁰ {
 //│   let tmp: Int⁰;
-//│   set tmp = +⁰(value, first);
-//│   return +⁰(tmp, second)
+//│   set tmp = +⁰‹(?, ?) => ?›(value, first);
+//│   return +⁰‹(?, ?) => ?›(tmp, second)
 //│ };
 //│ define add$ as fun add$¹(value: Int⁰)(first: Int⁰): Function⁰ {
-//│   return add⁵(value, first)
+//│   return add⁵‹(Int⁰, Int⁰) => (Int⁰) => Promise⁰›(value, first)
 //│ };
 //│ define add as fun add⁵(value: Int⁰, first: Int⁰)(second: Int⁰): Promise⁰ {
 //│   let tmp: Function⁰;
-//│   set tmp = add⁴(value, first, second);
-//│   return runtime⁰.toJsAsync﹖(tmp)
+//│   set tmp = add⁴‹(Int⁰, Int⁰, Int⁰) => () => Int⁰›(value, first, second);
+//│   return runtime⁰.toJsAsync﹖‹(...Array⁰) => ?›(tmp)
 //│ };
 //│ define capturedCurriedAsyncFunction⁰ as fun capturedCurriedAsyncFunction¹(value: Int⁰): ? {
-//│   return add$¹(value)
+//│   return add$¹‹(Int⁰) => (Int⁰) => Function⁰›(value)
 //│ };
-//│ set baseCall = capturedCurriedAsyncFunction¹(39);
-//│ set callPrefix = baseCall(1);
-//│ return callPrefix(2)
+//│ set baseCall = capturedCurriedAsyncFunction¹‹(Int⁰) => ?›(39);
+//│ set callPrefix = baseCall‹(...Array⁰) => ?›(1);
+//│ return callPrefix‹(...Array⁰) => ?›(2)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 42
 
@@ -294,12 +296,12 @@ singleton(42)
 //│ };
 //│ define singleton⁰ as fun singleton¹(value: Int⁰): Int⁰ {
 //│   let empty: ?;
-//│   set empty = $empty_Empty⁰();
-//│   return (empty(value) as! Int⁰)
+//│   set empty = $empty_Empty⁰‹() => (Int⁰) => ?›();
+//│   return (empty‹(...Array⁰) => ?›(value) as! Int⁰)
 //│ };
 //│ @data
 //│ define Empty¹ as class Empty² { constructor Empty⁰ };
-//│ return singleton¹(42)
+//│ return singleton¹‹(Int⁰) => Int⁰›(42)
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 42
 
@@ -329,7 +331,7 @@ continuation(42, "done")
 //│   set fv_arg$Item$0$ = Item_value;
 //│   set fv_x = fv_arg$Item$0$;
 //│   set fv_tmp = fv_x;
-//│   return $item_rest⁰(fv_ignored, fv_tmp, fv_result)
+//│   return $item_rest⁰‹(?, ?, Str⁰) => ?›(fv_ignored, fv_tmp, fv_result)
 //│ };
 //│ @private
 //│ define $item_rest as fun $item_rest⁰(fv_ignored: ?, fv_tmp: ?, fv_result: Str⁰): ? {
@@ -339,8 +341,8 @@ continuation(42, "done")
 //│ define continuation⁰ as fun continuation¹(value: Int⁰, result: Str⁰): Str⁰ {
 //│   let item: ?, ignored: ?, x: ?, arg$Item$0$: ?, tmp: ?, Item_value: Int⁰;
 //│   set Item_value = value;
-//│   set item = $item_Item⁰(Item_value);
-//│   return (item(arg$Item$0$, x, tmp, ignored, result) as! Str⁰)
+//│   set item = $item_Item⁰‹(Int⁰) => (?, ?, ?, ?, Str⁰) => ?›(Item_value);
+//│   return (item‹(...Array⁰) => ?›(arg$Item$0$, x, tmp, ignored, result) as! Str⁰)
 //│ };
 //│ @data
 //│ define Item¹ as class Item² {
@@ -350,6 +352,6 @@ continuation(42, "done")
 //│     end
 //│   }
 //│ };
-//│ return continuation¹(42, "done")
+//│ return continuation¹‹(Int⁰, Str⁰) => Str⁰›(42, "done")
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = "done"

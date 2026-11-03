@@ -307,7 +307,7 @@ class TailRecOpt(checkAnnotations: Bool)(using Config, State, TL, Raise, Ctx):
       if restParam.isDefined then
         val sliceResSym = TempSymbol(N, initErasedType = S(ErasedType.Array), "sliceRes")
         // runtime.Tuple.slice(tupleSym, paramList.length, 0)
-        val sliceRes = Call(
+        val sliceRes = Call.of(
           State.runtimeSymbol.asSimpleRef
             .sel(Tree.Ident("Tuple"), State.tupleSymbol)
             .sel(Tree.Ident("slice"), State.tupleSliceSymbol),
@@ -508,7 +508,7 @@ class TailRecOpt(checkAnnotations: Bool)(using Config, State, TL, Raise, Ctx):
           case Some(pth) => Arg(N, pth)
           case None => Arg(N, Value.Lit(Tree.UnitLit(false))(N))
       val argsWithId = if funsLen > 1 then Value.Lit(Tree.IntLit(dSymIds(callee.dSym)))(N).asArg :: args else args
-      Call(loopDefnPath, argsWithId ne_:: Nil)(CallMetadata.defaultMlsFun, N)
+      Call.of(loopDefnPath, argsWithId :: Nil)(CallMetadata.defaultMlsFun, N)
     
     class FunRewriter(f: FunDefn) extends BlockTransformerShallow(SymbolSubst.Id):
       val params = f.allParamSyms
