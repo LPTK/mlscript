@@ -13,21 +13,40 @@ type ShapeListener[-A] = A => ResolutionContext ?=> Unit
 /** Equality policy chosen at the host's payload type, never by the collection. */
 trait CandidateKey[A]:
   def apply(value: A)(using ResolutionContext): Any
+  /** Accumulating payloads keep one immutable aggregate per key. A successful
+    * merge returns the new aggregate and only the newly contributed payload.
+    * Ordinary candidates have no proper extensions at an existing key.
+    */
+  def accumulates: Bool = false
+  def merge(previous: A, incoming: A)(using ResolutionContext): Opt[(A, A)] = N
 
 object CandidateKey:
   given [A]: CandidateKey[A] with
     def apply(value: A)(using ResolutionContext): Any = value
 
-/** Distinct candidates in publication order. The index provides constant-time
-  * deduplication; the append-only buffer permits bounded replay during callbacks.
+/** Distinct keys in publication order. Accumulating payloads replace an entry
+  * with its monotone extension; ordinary candidates remain append-only.
   */
 final class Candidates[A](key: CandidateKey[A]) extends Iterable[A]:
-  private val keys = mutable.HashSet.empty[Any]
+  private val keys = mutable.HashMap.empty[Any, Int]
   private val ordered = ArrayBuffer.empty[A]
+  private def insert(candidate: A)(using ResolutionContext): Int =
+    val candidateKey = key(candidate)
+    val previous = keys.getOrElse(candidateKey, -1)
+    if previous < 0 then
+      keys(candidateKey) = ordered.size
+      ordered += candidate
+    previous
   def add(candidate: A)(using ResolutionContext): Bool =
-    val added = keys.add(key(candidate))
-    if added then ordered += candidate
-    added
+    val previous = insert(candidate)
+    if previous < 0 then true else key.merge(ordered(previous), candidate) match
+      case S((merged, _)) => ordered(previous) = merged; true
+      case N => false
+  def addDelta(candidate: A)(using ResolutionContext): Opt[A] =
+    val previous = insert(candidate)
+    if previous < 0 then S(candidate) else key.merge(ordered(previous), candidate).map: (merged, delta) =>
+      ordered(previous) = merged
+      delta
   /** Copy a host's existing candidates with their portable semantic keys. This
     * also serves post-resolution syntax cloning, which has no inference context.
     */
@@ -40,13 +59,21 @@ final class Candidates[A](key: CandidateKey[A]) extends Iterable[A]:
     */
   def mapFrom(other: Candidates[A])(f: A => A, portableKey: A => Any): Unit =
     assert(isEmpty, "Candidate copies must start with an empty host")
+    assert(!key.accumulates, "Renaming accumulating candidates requires a context for joining mapped keys")
     other.foreach: candidate =>
       val value = f(candidate)
-      if keys.add(portableKey(value)) then ordered += value
+      val mappedKey = portableKey(value)
+      if !keys.contains(mappedKey) then
+        keys(mappedKey) = ordered.size
+        ordered += value
   override def size: Int = ordered.size
   override def knownSize: Int = ordered.size
   /** The candidates present when iteration starts. */
-  def snapshot: Iterator[A] = Iterator.range(0, ordered.size).map(ordered(_))
+  def snapshot: Iterator[A] =
+    // Freeze cumulative entries too: a callback can extend a later key and
+    // deliver its delta before replay reaches that key's original aggregate.
+    if key.accumulates then ordered.toVector.iterator
+    else Iterator.range(0, ordered.size).map(ordered(_))
   def iterator: Iterator[A] = snapshot
   /** Also visits candidates appended by `f`. */
   def foreachGrowing[U](f: A => U): Unit =
@@ -83,7 +110,8 @@ object Publisher:
 
     def publish(shape: A)(using state: ResolutionContext): Unit =
       val data = state.local(this)
-      if data.shapes.add(shape) then data.notify(shape)
+      if key.accumulates then data.shapes.addDelta(shape).foreach(data.notify)
+      else if data.shapes.add(shape) then data.notify(shape)
     def notify(shape: A)(using ResolutionContext): Unit =
       // Appended listeners receive this candidate through replay.
       val count = listeners.size

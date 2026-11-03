@@ -133,6 +133,53 @@ Type aliases must also be excluded at elaboration: ignoring an alias capture
 only in type interpretation would leave the same fictitious boundary on the
 term receiver used by a qualified selection.
 
+## Collective type views
+
+`TypeView` groups paths only when their core shapes have the same semantic key.
+That key includes retained substitutions and captured references. Different
+instantiations remain separate; grouping their paths independently of their
+bindings would invent flows between unrelated activations. A singleton keeps
+its original value, including its member-cache identity.
+
+`MarkPaths` stores the exact finite set of normalized words in a trie, with the
+most recent crossing first and equal suffixes shared in a DAG. Union and
+difference operate on pairs of nodes. Entering prepends a crossing; leaving
+filters compatible leading entries and retains the exits that locate deferred
+references. These operations use the scalar mark rules above, including wildcard
+provenance and the existing treatment of self-contained values. They require no
+additional closed-shape analysis. Complete paths retain correlations between
+sites: two correlated pairs never become four independent combinations.
+
+A type-view host stores one cumulative path set per core and publishes only
+new paths. Replay delivers the stored group, so contextual transport can filter
+it before a consumer expands its paths. The host installs its new aggregate
+before invoking callbacks, which makes recursive forwarding idempotent. Replay
+freezes the old aggregates as well as their number: a callback can add paths to
+a later core and deliver that delta before replay reaches that core. Publisher
+copy-on-write isolates consumers, and immutable path nodes are interned in each
+consumer's resolver state.
+
+For fixed finite sets of boundaries and sites, the scalar length bound gives a
+finite set of possible words. Every collective value denotes a subset of those
+words, and canonical trie nodes denote their suffix sets. There are finitely
+many of each; monotone joins cannot construct an infinite sequence of distinct
+aggregates. No unevaluated union or composition expressions accumulate around
+a recursive reference. This argument is conditional on the same finite core
+and site identities required by scalar inference; it does not establish those
+other obligations by itself.
+
+Sharing is not a polynomial bound for arbitrary relations. Independent binary
+choices at 32 nested scopes need 33 reachable nodes for their 2^32 paths, but
+arbitrarily correlated paths may share little. Scalar consumers, including
+member operations and genuine multi-component intersections, still enumerate
+the alternatives they need. Incremental arrivals can also require many distinct
+deltas even when the final set has a compact DAG. The current change compresses
+stored and replayed type views and transports groups without enumeration; it
+does not replace the resolver's synchronous propagation with a batch scheduler.
+`MarkPathsTest` checks scalar equivalence, correlations, compact growth, replay,
+and consumer isolation; `TypeRelationTest` checks filtering at the cached
+type-reference boundary and forwarding an open nullable record with late bounds.
+
 ## Finite paths and finite inference graphs
 
 Bounded path length does not by itself prove that inference reaches a fixed

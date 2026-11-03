@@ -248,6 +248,34 @@ class TypeRelationTest extends AnyFunSuite:
       assert(fields.toList == List(late))
       assert(h.state.allocatedTypeInstanceCount == 0)
 
+  test("transported cached views filter compact alternatives before materializing values"):
+    // Seed a completed type-view cache as an importer can encounter it. Expanding
+    // this group before the return path filters it would enumerate 2^32 values.
+    val h = new Harness
+    import h.given
+    val (_, at) = h.parameter("Argument")
+    val (_, et) = h.parameter("Element")
+    val field = RcdField.signature(Term.Lit(Tree.StrLit("value")), Term.UnitVal())
+    val record = RecordTypeShape(Map("value" -> et), Map.empty)(Term.Rcd(false, List(field)), Map("value" -> field))
+    val scopes = (1 to 32).map(i => ResolutionBoundary(TermSymbol(Fun, N, Tree.Ident(s"scope$i")))).toList
+    val first = S(FlowSymbol.app())
+    val second = S(FlowSymbol.app())
+    val pool = h.state.state.markPaths
+    val paths = scopes.foldLeft(pool.identity): (paths, scope) =>
+      pool.union(pool.enter(paths, scope, first), pool.enter(paths, scope, second))
+    val cached = new TypeViewHost
+    h.state.state.typeViews((at, true)) = cached
+    cached.publish(TypeView(record, paths))
+    val exits = scopes.foldRight[ExitMarks](NoMarks)((scope, rest) => ExitMark(scope, first, rest))
+    val observed = h.observe(ContextualType(at, exits :: Nil))
+    assert(observed.toList == List(record))
+    assert(cached.currentShapes.size == 1)
+    assert(cached.currentShapes.head.paths.nodeCount == scopes.size + 1)
+    val allocations = pool.allocatedNodeCount
+    (1 to 100).foreach: _ =>
+      assert(h.observe(ContextualType(at, exits :: Nil)).toList == List(record))
+    assert(pool.allocatedNodeCount == allocations)
+
   test("recursive structural projections preserve bounds and reuse their listeners"):
     val h = new Harness
     import h.given
