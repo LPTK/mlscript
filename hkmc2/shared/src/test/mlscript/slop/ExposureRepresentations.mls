@@ -9,7 +9,7 @@ import "./ExposedUnboxedInput.mls"
 //│ ╔══[COMPILATION ERROR] Types 'Int32' and 'Unknown' have no common representation
 //│ ║  l.XX: 	  fun identity(value) = value
 //│ ║        	               ^^^^^
-//│ ╟── The exposed interface admits values of unknown representation.
+//│ ╟── The exposed interface admits values of unknown representation unless a type annotation restricts them.
 //│ ╟── Parameter 'value' admits values of unknown shape.
 //│ ║  l.XX: 	  fun identity(value) = value
 //│ ║        	               ^^^^^
@@ -32,7 +32,7 @@ val callbacks = [callback]
 //│ ╔══[COMPILATION ERROR] Types 'Int32' and 'Unknown' have no common representation
 //│ ║  l.+1: 	private fun callback(value) = value
 //│ ║        	                     ^^^^^
-//│ ╟── The exposed interface admits values of unknown representation.
+//│ ╟── The exposed interface admits values of unknown representation unless a type annotation restricts them.
 //│ ╟── Parameter 'value' admits values of unknown shape.
 //│ ║  l.+1: 	private fun callback(value) = value
 //│ ║        	                     ^^^^^
@@ -52,7 +52,7 @@ helper(input)
 //│ ╔══[COMPILATION ERROR] Types 'Int32' and 'Unknown' have no common representation
 //│ ║  l.+1: 	private fun helper(value) = value
 //│ ║        	                   ^^^^^
-//│ ╟── The exposed interface admits values of unknown representation.
+//│ ╟── The exposed interface admits values of unknown representation unless a type annotation restricts them.
 //│ ╟── Parameter 'value' admits values of unknown shape.
 //│ ║  l.+2: 	fun forward(value) = helper(value)
 //│ ║        	            ^^^^^
@@ -84,7 +84,7 @@ rejected(input, input)
 //│ ╔══[COMPILATION ERROR] Types 'Int32' and 'Unknown' have no common representation
 //│ ║  l.+1: 	fun rejected(left, right): Int32 | Any =
 //│ ║        	             ^^^^
-//│ ╟── The exposed interface admits values of unknown representation.
+//│ ╟── The exposed interface admits values of unknown representation unless a type annotation restricts them.
 //│ ╟── Parameter 'left' admits values of unknown shape.
 //│ ║  l.+1: 	fun rejected(left, right): Int32 | Any =
 //│ ║        	             ^^^^
@@ -94,7 +94,7 @@ rejected(input, input)
 //│ ╔══[COMPILATION ERROR] Types 'Int32' and 'Unknown' have no common representation
 //│ ║  l.+1: 	fun rejected(left, right): Int32 | Any =
 //│ ║        	                   ^^^^^
-//│ ╟── The exposed interface admits values of unknown representation.
+//│ ╟── The exposed interface admits values of unknown representation unless a type annotation restricts them.
 //│ ╟── Parameter 'right' admits values of unknown shape.
 //│ ║  l.+1: 	fun rejected(left, right): Int32 | Any =
 //│ ║        	                   ^^^^^

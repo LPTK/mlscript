@@ -123,21 +123,24 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
           case _ => ()
         member(d.bsym, marks, path.via(msg"Member '${d.bsym.nme}' is accessible here." -> d.headerLoc))
         d match
-          // Diagnostics about the field are located at the field itself.
           case td: TermDefinition if td.k is syntax.MutVal => assignable(td.tsym, td.bsym, path)
           case _ => ()
       case _ => ()
     cls.ext.foreach: parent =>
       term(parent, marks, path.via(msg"This parent contributes inherited members." -> parent.toLoc))
 
-  /** Other compilation units can assign values of unknown shape to an exposed assignable field. The unknown value
-    * refers to the field itself, which distinguishes it from the unknown values that this compilation unit assigns
-    * to the field (see `Erasure.checkExposedMutableField`). Being self-contained, it reaches the field through no
-    * particular member lookup.
+  /** Other compilation units can assign values of unknown shape to an exposed assignable field, which admits them
+    * like an exposed parameter admits unknown arguments: the field's unannotated representation then includes the
+    * unknown one, and reading the field can return such a value. Being self-contained, the unknown value reaches
+    * the field through no particular member lookup. `path` explains how the field's owner is exposed.
     */
   private def assignable(field: TermSymbol, symbol: BlockMemberSymbol, path: Path)(using ResolutionContext): Unit =
     if field.getState is rctx.owner then
-      resolver.writeField(field, UnknownValueShape(source(symbol), fromPublicInterface = true)(path), Nil)
+      val unknown = UnknownValueShape(source(symbol), fromPublicInterface = true)(path.via(
+        // The message does not call the field mutable: a mutable copy of an immutable record literal
+        // makes that literal's fields assignable too, and the message is located at such a field.
+        msg"Field '${field.nme}' admits assigned values of unknown shape." -> field.toLoc))
+      resolver.writeField(field, unknown, Nil)
 
   private def result(body: Term, sign: Opt[Term], marks: Ls[Marks], path: Path)(using ResolutionContext): Unit = sign match
     case N =>

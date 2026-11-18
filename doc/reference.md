@@ -1750,17 +1750,17 @@ with their established representations; new uses cannot widen them.
 
 A mutable field holds its initializer and then the values assigned to it, through any receiver that
 can be an instance of its class, so an unannotated mutable field takes the representation of all of
-them. Since other compilation units can assign values to the mutable fields that a compilation unit
-exposes, those must declare their types, as their representations must not depend on the values that
-the compilation unit happens to assign to them:
+them. Other compilation units can assign values to the mutable fields that a compilation unit
+exposes, so an unannotated exposed mutable field also admits unknown inputs, like the unannotated
+parameter of an exposed function. Declaring its type restricts them:
 
 ```mlscript
 private class Cell(mut val value)  // `value` is represented as `Int32`
 private fun reset(cell) = set cell.value = wasm.i32.const(0)
 reset(Cell(wasm.i32.const(1)))
 
-class Counter(mut val count)       // error: `count` is exposed, so its type must be declared
-class Counter(mut val count: Int)  // ok
+class Counter(mut val count)       // `count` is exposed, so it has an unknown representation
+class Tally(mut val count: Int)    // `count` is represented as `Int`
 ```
 
 Mutable record fields (see Record Literals) can be assigned too, but cannot declare their types:
