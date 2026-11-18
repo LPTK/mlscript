@@ -81,10 +81,9 @@ final class NewResolverState(val owner: Elaborator.State):
     * exposes its definitions before it is erased, and later blocks can only re-expose them.
     */
   private[semantics] val exposedOpenMembers = mutable.Map.empty[TermSymbol, ShapeProvenance]
-  // Upcasts and external inputs can arrive in either order. Each host replays the values
-  // admitted by one virtual input to implementations discovered in this compilation unit.
+  // A later worksheet block or an importing unit can declare an override after exposure.
+  // The host replays the inherited input when the declaration edge is registered.
   private[semantics] val interfaceInputs = mutable.Map.empty[VarSymbol | TermSymbol, TermShapeHost]
-  private[semantics] val nominalUpcasts: Seen[(ShapeIdentity.Key, ShapeIdentity.Key)] = new Seen(_.nominalUpcasts)
   
   /** How [[InterfaceExposure]] first reached `member`, if `member` is an exposed overridable member
     * of an extensible class or object of this compilation unit.

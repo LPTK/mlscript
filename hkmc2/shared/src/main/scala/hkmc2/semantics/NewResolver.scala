@@ -458,6 +458,28 @@ class NewResolver:
         dependencies.foreach((res, binders) => store(res, binders))
         R(dependencies(resolution))
 
+  /** Visit the immediate components of a resolved type as written, including alias bodies,
+    * explicit arguments and both bounds of wildcards. A formal parameter is a leaf.
+    */
+  private[semantics] def foreachTypeComponent(shape: TypeShape)(visit: TypeResolution => Unit)(using ResolutionContext): Unit = shape match
+    case TypeShape.Alias(_, rhs) => rhs.foreach(visit)
+    case TypeShape.Reference(base, _, _, _) => visit(base)
+    case TypeShape.Applied(base, args) => visit(base); args.foreach(_.foreachType(visit))
+    case TypeShape.Tuple(fields) => fields.foreach(field => visit(field.tpe))
+    case TypeShape.Record(_, fields) => fields.foreach((_, field) => field.foreachType(visit))
+    case TypeShape.Function(params, result) => visit(typeResolution(params)); visit(result)
+    case TypeShape.Polymorphic(params, _, body) =>
+      params.foreach: param =>
+        param.lower.foreach(visit)
+        param.upper.foreach(visit)
+      visit(body)
+    case TypeShape.Union(left, right) => visit(left); visit(right)
+    case TypeShape.Intersection(left, right) => visit(left); visit(right)
+    case TypeShape.Negation(base) => visit(base)
+    case TypeShape.Combined(formula) => formula.orderedAtoms.foreach(atom => visit(atom.resolution))
+    case TypeShape.Contextual(reference) => visit(reference.tpe.resolution)
+    case _ => ()
+
   /** Check guarded recursion and substitutions on the finite source graph, before observing
     * structural children can generate an unbounded sequence of environments.
     * Edges connect original formal parameters, and record whether their argument
@@ -479,28 +501,12 @@ class NewResolver:
           case S(TypeShape.Alias(symbol, S(rhs))) => S(symbol -> rhs)
           case _ => N
       def visit(res: TypeResolution): Unit = if visited.add(res) then
-        res.currentShapes.foreachGrowing:
-          case TypeShape.Alias(_, rhs) => rhs.foreach(visit)
-          case TypeShape.Reference(base, _, _, _) => visit(base)
-          case TypeShape.Applied(base, args) =>
-            alias(base).foreach: (symbol, rhs) =>
+        res.currentShapes.foreachGrowing: shape =>
+          shape match
+            case TypeShape.Applied(base, args) => alias(base).foreach: (symbol, rhs) =>
               applications += ((res, symbol, rhs, args))
-            visit(base)
-            args.foreach(_.foreachType(visit))
-          case TypeShape.Tuple(fields) => fields.foreach(field => visit(field.tpe))
-          case TypeShape.Record(_, fields) => fields.foreach((_, field) => field.foreachType(visit))
-          case TypeShape.Function(params, result) => visit(typeResolution(params)); visit(result)
-          case TypeShape.Polymorphic(params, _, body) =>
-            params.foreach: param =>
-              param.lower.foreach(visit)
-              param.upper.foreach(visit)
-            visit(body)
-          case TypeShape.Union(left, right) => visit(left); visit(right)
-          case TypeShape.Intersection(left, right) => visit(left); visit(right)
-          case TypeShape.Negation(base) => visit(base)
-          case TypeShape.Combined(formula) => formula.orderedAtoms.foreach(atom => visit(atom.resolution))
-          case TypeShape.Contextual(reference) => visit(reference.tpe.resolution)
-          case _ => ()
+            case _ => ()
+          foreachTypeComponent(shape)(visit)
       visit(root)
       // Check source cycles before substitution or Boolean normalization can
       // hide an unguarded occurrence. Alias applications are transparent, but
@@ -1680,8 +1686,7 @@ class NewResolver:
       signatureParameters(param.sym) = tpe
       listenTypeInstances(tpe): shape =>
         if param.sym.currentShapes.add(shape) then param.sym.notifyShapeListeners(shape)
-    val declared = declaredType(typeResolution(sign), Map.empty)
-    matchParameterTypes(instanceShape(declared), paramLists, S(sign)): (param, component) =>
+    matchParameterTypes(sign, paramLists): (param, component) =>
       if param.sign.isEmpty then
         signatureParameters.get(param.sym).get.resolution.publish(TypeShape.Combined(TypeFormula.atom(component)))
       else
@@ -2078,7 +2083,6 @@ class NewResolver:
   private def inferTypeArguments(tpe: DeclaredType, value: TermShape, marks: Ls[Marks],
       site: Opt[Term])(using ResolutionContext): Unit =
     if !rctx.addTypeConstraint(tpe, value, marks) then return
-    val expected = tpe
     def observeValue(listener: ValueListener)(using ResolutionContext): Unit =
       listenInstanceFlow(value, mergeIntersections = false)(ShapeObserver(listener, requireTypeNamespaces(_, tpe)))
     // Structural constraints already observe the lower endpoint. Bare parameters
@@ -2153,18 +2157,6 @@ class NewResolver:
                 case NoShape => ()
             case _ => ()
           val arguments = variantArguments(tpe, args, cls.tparams, tpe.positive).map(_.map(transportType(_, captures)))
-          val ShapeParts(receiver, _, _) = shapeParts(value)
-          val concrete = receiver.applicationHead._1 match
-            case ds: DefnShape => ds.clsDef
-            case base: BaseShape => S(base.defn)
-            case nominal: NominalInstanceView => S(nominal.defn)
-            case _ => N
-          if concrete.exists(d => (d isnt cls) && rctx.state.isOwnedSym(d.sym)) && receiver.isInstanceOfClass(cls) then
-            listenTypeViews(expected, mergeIntersections = false):
-              case upper @ Marked(interface: NominalInstanceView, path) if interface.defn is cls =>
-                if rctx.state.nominalUpcasts.add((ShapeIdentity.key(upper), ShapeIdentity.key(value))) then
-                  connectOverrideInputs(interface, path, value, annotation)
-              case _ => ()
           def constrainNominal(value: TermShape)(using ResolutionContext): Unit =
             val ShapeParts(actual, instances, _) = shapeParts(value)
             val (head, context) = actual.applicationHead
@@ -2213,69 +2205,54 @@ class NewResolver:
     // nominal argument, or arrow installs another edge with its own cycle guard.
     withCanonicalType(tpe)(follow(_, noTypeArguments, Nil, Set.empty))
 
-  /** Supply the inputs a client may pass through an exposed parameter or mutable field to any
-    * overriding implementations reached through nominal upcasts in this unit.
-    */
+  private def interfaceInputs(symbol: VarSymbol | TermSymbol)(using ResolutionContext): TermShapeHost =
+    rctx.state.interfaceInputs.getOrElseUpdate(symbol,
+      symbol.getState.newResolverState.interfaceInputs.getOrElse(symbol, new TermShapeHost))
+
+  /** Make an external argument or field write available to every override of the declaration. */
   private[semantics] def publishInterfaceInput(symbol: VarSymbol | TermSymbol, value: TermShape)
       (using ResolutionContext): Unit =
-    rctx.state.interfaceInputs.getOrElseUpdate(symbol, new TermShapeHost).publish(value)(using rctx.state.context)
+    interfaceInputs(symbol).publish(value)(using rctx.state.context)
 
-  /** Link a nominal upcast's public virtual inputs to the implementations that receive them.
-    * A typed input retains the interface at this upcast, including its receiver's type arguments;
-    * an unannotated input receives the external value and provenance from the inherited declaration.
-    * Following only names available on the upper type keeps extra subclass members private to its users.
+  /** Forward the inputs admitted by one inherited operation to its overriding implementation.
+    * An unannotated input carries the external value along the override chain. A written input
+    * uses the inherited signature in the scope of the subclass's parent clause.
     */
-  private def connectOverrideInputs(interface: NominalInstanceView, path: Marks, receiver: TermShape, source: Term)
-      (using ResolutionContext): Unit =
-    def forward(symbol: VarSymbol | TermSymbol, sign: Opt[DeclaredType])(receive: Listener)(using ResolutionContext): Unit =
-      val context = rctx
-      rctx.state.interfaceInputs.getOrElseUpdate(symbol, new TermShapeHost).listen(value =>
-        receive(sign.fold(value)(instanceShape(_)(using context)))(using context))(using rctx.state.context)
-
-    def connect(base: TermDefinition, overriding: TermDefinition, lookup: MemberLookup, targetMarks: Ls[Marks])
-        (using ResolutionContext): Unit =
-      if (overriding.tsym isnt base.tsym) && rctx.state.isOwnedSym(overriding.tsym) &&
-          !Inheritance.changesMemberKind(overriding, base) then
-        if base.k is syntax.MutVal then
-          def field(sign: Opt[DeclaredType]): Unit = forward(base.tsym, sign): input =>
-            writeField(overriding.tsym, input, targetMarks)
-            publishInterfaceInput(overriding.tsym, input)
-          if resultSignature(base).isEmpty then field(N) else listenFieldInput(lookup, source)(sign => field(S(sign)))
-        else if base.params.nonEmpty then
-          codegen.OverrideLayout.correspondingParameters(overriding.params, base.params).foreach: pairs =>
-            val targets = pairs.iterator.map((target, inherited) => inherited.sym -> target).toMap
-            val marks = ExitMark(ResolutionBoundary(overriding.tsym), N, NoMarks) :: targetMarks
-            def parameter(param: Param, sign: Opt[DeclaredType])(using ResolutionContext): Unit =
-              targets.get(param.sym).foreach: target =>
-                forward(param.sym, sign): input =>
-                  input.enter(marks) match
-                    case value: TermShape => parameterSignature(target) match
-                      case N => publishParameter(target.sym, value)
-                      case S(tpe) =>
-                        val expected = tpe.instantiate(rctx.instances)
-                        visitInputHoles(expected, value, marks, S(expected -> ShapeIdentity.key(value)))(
-                          (_, _) => inferTypeArguments(expected, value, marks, N))
-                    case NoShape => ()
-                  if Inheritance.isOpen(overriding) then publishInterfaceInput(target.sym, input)
-            pairs.foreach: (_, inherited) =>
-              if parameterSignature(inherited).isEmpty then parameter(inherited, N)
-            listenMemberValue(lookup, rctx.fieldProjectionSite(base.bsym), source, rctx.instances, () => ()): value =>
-              matchParameterTypes(value, base.params, N)((param, tpe) => parameter(param, S(tpe)))
-
-    def members(view: NominalInstanceView, marks: Marks): Unit =
-      view.defn.body.blk.stats.foreach:
-        case base: TermDefinition if InterfaceExposure.isPublic(base) && Inheritance.isOpen(base) =>
-          val name = base.bsym.nme
-          val lookup = view.getMemberThrough(name, marks)
-          receiver.getMember(name).visibleFrom(_ => false, reportInaccessible = false)
-            .foreachClassMember(rctx.instances): (member, path, instances) =>
-              member.asTrm.flatMap(_.defn).foreach(connect(base, _, lookup, path)(using rctx.withInstances(instances)))
-        case _ => ()
-      nominalParent(view).foreach: parent =>
-        parent.exit(marks) match
-          case Marked(parent: NominalInstanceView, inner) => members(parent, inner)
-          case _ => ()
-    members(interface, path)
+  private def connectOverrideInputs(base: TermDefinition, overriding: TermDefinition, inheritedMarks: Ls[Marks],
+      instances: TypeSubstitution)(using ResolutionContext): Unit =
+    def onInput(symbol: VarSymbol | TermSymbol)(receive: Listener): Unit =
+      interfaceInputs(symbol).listen(receive)(using rctx.state.context)
+    def forward(symbol: VarSymbol | TermSymbol, value: TermShape)(using ResolutionContext): Unit =
+      if Inheritance.isOpen(overriding) then publishInterfaceInput(symbol, value)
+    val site = rctx.fieldProjectionSite(base.bsym)
+    if base.k is syntax.MutVal then
+      def assign(input: TermShape)(using ResolutionContext): Unit =
+        writeField(overriding.tsym, input, Nil)
+        forward(overriding.tsym, input)
+      onInput(base.tsym): input =>
+        if resultSignature(base).isEmpty then assign(input)
+        else
+          val lookup = MemberLookup.Declared(base.bsym, Map.empty, inheritedMarks, N, positive = true).instantiate(instances)
+          listenFieldInput(lookup, MemberRef(base.bsym)(N, site))(tpe => assign(instanceShape(tpe)))
+    else if base.params.nonEmpty then
+      codegen.OverrideLayout.correspondingParameters(overriding.params, base.params).foreach: pairs =>
+        val inside = ExitMark(ResolutionBoundary(overriding.tsym), N, NoMarks) :: Nil
+        def admit(target: Param, input: TermShape)(using ResolutionContext): Unit =
+          input.enter(inside) match
+            case value: TermShape => parameterSignature(target) match
+              case N => publishParameter(target.sym, value)
+              case S(tpe) =>
+                val expected = tpe.instantiate(rctx.instances)
+                visitInputHoles(expected, value, inside, S(expected -> ShapeIdentity.key(value)))(
+                  (_, _) => inferTypeArguments(expected, value, inside, N))
+            case NoShape => ()
+          forward(target.sym, input)
+        val baseMarks = ExitMark(ResolutionBoundary(base.tsym), S(site), NoMarks) :: inheritedMarks
+        pairs.foreach: (target, inherited) =>
+          onInput(inherited.sym): input =>
+            val admitted = parameterSignature(inherited).fold(input): sign =>
+              instanceShape(transportType(sign.withPolarity(false).instantiate(instances), baseMarks))
+            admit(target, admitted)
 
   /** Expand fixed tuple spreads before matching positions. Unknown-length
     * segments share the remaining middle elements, as with declared parameter
@@ -2457,7 +2434,7 @@ class NewResolver:
     * A separate signature also diagnoses an incompatible layout when it specifies a single arrow.
     * Compound signatures contribute all their input types without selecting a calling convention.
     */
-  private def matchParameterTypes(value: TermShape, lists: Ls[ParamList], signature: Opt[Term])(
+  private def matchParameterTypes(signature: Term, lists: Ls[ParamList])(
       receive: (Param, DeclaredType) => ResolutionContext ?=> Unit)(using ResolutionContext): Unit =
     def singleArrow(res: TypeResolution, seen: Set[TypeResolution])(using ResolutionContext): Bool =
       if seen(res) then false else
@@ -2481,7 +2458,7 @@ class NewResolver:
           if check && Arity(params) != Arity(declared) then
             rctx.report(ErrorReport(
               msg"Implementation parameter list does not match its separate signature." -> params.toLoc ::
-              msg"The signature has different required, optional, variadic, or trailing parameter positions." -> signature.flatMap(_.toLoc) :: Nil))
+              msg"The signature has different required, optional, variadic, or trailing parameter positions." -> signature.toLoc :: Nil))
           val all = params.allParams
           zipDeclaredParameters(Arity(params), declared): (index, tpe) =>
             receive(all(index), transportType(tpe, marks :: Nil))
@@ -2490,7 +2467,7 @@ class NewResolver:
               case shape: TermShape => loop(shape, tail, check)
               case NoShape => ()
         case _ => ()
-    loop(value, lists, signature.nonEmpty)
+    loop(instanceShape(declaredType(typeResolution(signature), Map.empty)), lists, checkLayout = true)
 
   /** Check obvious arity and droppability mismatches. Different variadic layouts
     * need not agree: a callback may collect trailing arguments in its rest parameter
@@ -4747,7 +4724,7 @@ class NewResolver:
                 msg"The inherited member is declared here." -> base.toLoc :: Nil))
             lookup.visibleFrom(_ => false, reportInaccessible = false).foreachClassMember(rctx.instances)((base, _, _) => collision(base))
         listenInheritedMember(defn, member.nme): lookup =>
-          def link(base: BlockMemberSymbol): Unit = base.onComplete: () =>
+          def link(base: BlockMemberSymbol, marks: Ls[Marks], instances: TypeSubstitution): Unit = base.onComplete: () =>
             base.asTrm.filterNot(_.isPrivate).foreach: target =>
               if target isnt own then
                 if MemberKey.symbol(member) != MemberKey.symbol(base) then
@@ -4758,9 +4735,15 @@ class NewResolver:
                   rctx.report(ErrorReport(
                     msg"Overriding member '${member.nme}' must use the same @jsSymbol annotation as its parent." -> own.toLoc ::
                     msg"The inherited member is declared here." -> target.toLoc :: Nil))
-                own.overrideLinks.inferenceHost.publish(target)
+                if own.overrideLinks.currentShapes.add(target) then
+                  own.overrideLinks.notifyShapeListeners(target)
+                  for
+                    inherited <- target.defn if newResolution && Inheritance.isOpen(inherited)
+                    overriding <- own.defn if !Inheritance.changesMemberKind(overriding, inherited)
+                  do
+                    connectOverrideInputs(inherited, overriding, marks, instances)
           // Private members are not overridden, so they do not hide the inherited members they shadow.
-          lookup.visibleFrom(_ => false, reportInaccessible = false).foreachClassMember(rctx.instances)((base, _, _) => link(base))
+          lookup.visibleFrom(_ => false, reportInaccessible = false).foreachClassMember(rctx.instances)(link)
 
   private def listenInheritedMember(defn: ClassLikeDef, name: MemberKey)
       (listener: ShapeListener[MemberLookup])(using ResolutionContext): Unit =

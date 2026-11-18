@@ -1687,12 +1687,20 @@ inference, but returning it or storing it in an exposed record or tuple makes it
 interface subject to the same check. Callable result annotations provide the
 declared parameter interface when checking returned functions.
 
-An exported `fun make(): Cell` exposes the public operations of a `Cell` instance.
-Clients can call its inherited methods and write its public mutable fields. A generic
-result such as `Box[Cell]` also exposes those operations if a public member returns
-the stored `Cell`. When `Cell` is private, its constructor can still use local
-inference. The factory can return a subclass whose additional members stay hidden
-behind the declared result type.
+Every type named in an exposed annotation exposes its public instance operations,
+including inherited methods and writes to mutable fields. For example,
+`fun make(): Cell` exposes those operations on `Cell`. Both `Box[Cell]` and
+`Phantom[Cell]` expose `Cell`, even if `Phantom` never uses its type parameter.
+The same rule follows type aliases and the parameter and result types of functions.
+An omitted type argument can expose an inferred value. For example, if the body of
+`fun callbacks(): Box` supplies a function as the box's contents, that function
+must also accept external calls.
+
+An exposed operation admits calls or writes to every implementation that overrides
+it. Each override must handle the inputs its base declaration admits, with the type
+arguments from its own parent clause. The factory can keep the constructor and
+additional subclass members private. Exporting the class value also exposes its
+constructor parameters.
 
 Generic parameters remain opaque regardless of strict mode, visibility, or local
 callers. For example, `private fun read[A](x: A) = x.a` is invalid because `A`
