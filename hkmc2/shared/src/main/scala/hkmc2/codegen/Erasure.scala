@@ -20,7 +20,6 @@ import hkmc2.Message.MessageContext
 final class Erasure(root: Statement, report: Raise)(using Config, Ctx, State):
   private given Erasure = this
   private given reporter: Diagnostic.Reporter = new Diagnostic.Reporter(report)
-  private val valueTypes = mutable.Map.empty[TermShape, Opt[ErasedValueType]]
 
   /** Whether erasure encountered errors, including ones diagnosed in inherited signatures.
     * Signatures are initialized even on failure for later diagnostics, but the program must not
@@ -32,7 +31,10 @@ final class Erasure(root: Statement, report: Raise)(using Config, Ctx, State):
   def requireCompleted(statement: Statement): Unit =
     assert(root is statement, "Lowering requires completed erasure of this program")
 
-  private def valueType(shape: TermShape): Opt[ErasedValueType] = valueTypes.getOrElseUpdate(shape, shape match
+  /** The representation of the values that `shape` describes, or `N` for a shape that does not
+    * constrain the representation of the slots holding its values.
+    */
+  private def valueType(shape: TermShape): Opt[ErasedValueType] = shape match
     case MarkedShape(value, _) => valueType(value)
     case ContextualShape(value, _) => valueType(value)
     case SpecializedShape(value, _, _) => valueType(value)
@@ -74,7 +76,6 @@ final class Erasure(root: Statement, report: Raise)(using Config, Ctx, State):
       S(ErasedType.Unknown)
     case _: NamespaceProbe =>
       lastWords("Erasure inputs must filter namespace probes before completion")
-  )
 
   private def nominalType(definition: ClassLikeDef): ErasedValueType = definition.sym match
     case symbol: (ClassSymbol | ModuleOrObjectSymbol) => ErasedType.ValueLike(S(false), symbol)
