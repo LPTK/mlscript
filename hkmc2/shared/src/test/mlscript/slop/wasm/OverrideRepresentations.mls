@@ -15,6 +15,26 @@ wasm.i32.add(dispatch(Child(), wasm.i32.const(40)), Child().take(wasm.i32.const(
 //│ = 42
 
 
+// A write through the base type can put any boxed value in an exposed unannotated field.
+:ge
+class Cell with
+  open mut val item = "initial"
+class StringCell extends Cell with
+  override mut val item: Str = "child"
+fun writeInt(cell: Cell) = set cell.item = 42
+let cell = new mut StringCell
+writeInt(cell)
+cell.item
+//│ ╔══[COMPILATION ERROR] Overriding mutable field 'item' with representation 'Str' must accept writes through the inherited field with representation 'Unknown'
+//│ ║  l.+4: 	  override mut val item: Str = "child"
+//│ ║        	                   ^^^^
+//│ ╟── The overridden member 'item' is defined here
+//│ ║  l.+2: 	  open mut val item = "initial"
+//│ ╙──      	               ^^^^
+//│ Wasm result:
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
 // Wasm's shared slot cannot accept a broader input through a direct call on the override.
 :ge
 class Consumer() with

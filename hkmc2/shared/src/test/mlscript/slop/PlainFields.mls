@@ -195,6 +195,25 @@ set plainOverride.value += 1
 //│ = [true, false, 3]
 //│ plainOverride = PlainOverride { value: 3 }
 
+// A write to a plain field through the base type reaches the same property on the subclass.
+:ge
+class PlainSlot with
+  @plainField open mut val item: Any = "initial"
+class PlainStringSlot extends PlainSlot with
+  @plainField override mut val item: Str = "child"
+fun writeInt(slot: PlainSlot) = set slot.item = 42
+let slot = new mut PlainStringSlot
+writeInt(slot)
+slot.item
+//│ ╔══[COMPILATION ERROR] Overriding mutable field 'item' with representation 'Str' must accept writes through the inherited field with representation 'Unknown'
+//│ ║  l.+4: 	  @plainField override mut val item: Str = "child"
+//│ ║        	                               ^^^^
+//│ ╟── The overridden member 'item' is defined here
+//│ ║  l.+2: 	  @plainField open mut val item: Any = "initial"
+//│ ╙──      	                           ^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ slot = undefined
+
 // Abstract declarations retain the annotation without an initializer in the IR.
 :expect [true, false, 5]
 abstract class PlainAbstract with

@@ -144,10 +144,11 @@ final class OverrideChecks(definitions: Ls[TermDefinition])(using Config, Ctx, S
   
   /** Reports source and target incompatibilities for declaration pairs that passed binding checks.
     * An overriding parameter must hold every value its inherited counterpart accepts; an overriding
-    * result must fit the inherited result representation. Both comparisons canonicalize the types
-    * and require the value to fit without a cast, treating an absent representation as `Unknown`.
-    * They skip types without a representation, including wrapped result payloads, which erasure
-    * reports where it assigns them.
+    * result must fit the inherited result representation. A mutable field also receives writes
+    * through the inherited declaration, so its representation must fit in both directions.
+    * The comparisons canonicalize the types and require values to fit without a cast, treating an
+    * absent representation as `Unknown`. They skip types without a representation, including wrapped
+    * result payloads, which erasure reports where it assigns them.
     *
     * For example, overriding `fun f(x: Int): Any` with `fun f(x: Any): Int` accepts every inherited
     * input and returns a permitted result on JavaScript. Wasm uses the inherited method's fixed parameter slots
@@ -166,10 +167,15 @@ final class OverrideChecks(definitions: Ls[TermDefinition])(using Config, Ctx, S
         val baseResult = base.sourceErasedResult
         val actualType = actualResult.callType
         val baseType = baseResult.callType
-        if representable(actualResult.bodyType, baseResult.bodyType) && !within(actualType, baseType) then report(base,
-          msg"Overriding member '${td.tsym.nme}' produces values represented as '${describe(actualType)
-            }', which the member it overrides cannot produce: its results are represented as '${describe(baseType)}'",
-          td.tsym.toLoc)
+        if representable(actualResult.bodyType, baseResult.bodyType) then
+          if !within(actualType, baseType) then report(base,
+            msg"Overriding member '${td.tsym.nme}' produces values represented as '${describe(actualType)
+              }', which the member it overrides cannot produce: its results are represented as '${describe(baseType)}'",
+            td.tsym.toLoc)
+          else if (td.k is syntax.MutVal) && !within(baseType, actualType) then report(base,
+            msg"Overriding mutable field '${td.tsym.nme}' with representation '${describe(actualType)
+              }' must accept writes through the inherited field with representation '${describe(baseType)}'",
+            td.tsym.toLoc)
         val isWasm = config.target is CompilationTarget.Wasm
         val targetFailure = if isWasm then wasmLayoutFailure(edge) else N
         targetFailure.foreach: failure =>
