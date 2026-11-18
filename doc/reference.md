@@ -1687,6 +1687,13 @@ inference, but returning it or storing it in an exposed record or tuple makes it
 interface subject to the same check. Callable result annotations provide the
 declared parameter interface when checking returned functions.
 
+An exported `fun make(): Cell` exposes the public operations of a `Cell` instance.
+Clients can call its inherited methods and write its public mutable fields. A generic
+result such as `Box[Cell]` also exposes those operations if a public member returns
+the stored `Cell`. When `Cell` is private, its constructor can still use local
+inference. The factory can return a subclass whose additional members stay hidden
+behind the declared result type.
+
 Generic parameters remain opaque regardless of strict mode, visibility, or local
 callers. For example, `private fun read[A](x: A) = x.a` is invalid because `A`
 does not supply member `a`, even when every call supplies a record with that field.

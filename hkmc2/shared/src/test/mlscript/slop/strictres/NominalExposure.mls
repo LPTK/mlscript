@@ -1,0 +1,189 @@
+:.
+
+// A client can write the public field through the annotated result in a later block.
+// Only the factory supplies the constructor argument.
+private class Cell(seed) with
+  mut val item = seed.initial
+fun makeCell(): Cell = new mut Cell({initial: 0})
+
+:expect "changed"
+let cell = makeCell()
+set cell.item = "changed"
+cell.item
+//│ = "changed"
+//│ cell = Cell(_)
+
+
+// Public methods on a private superclass receive external arguments through the returned instance.
+private class Echo with
+  fun echo(value) = value
+private class Runner extends Echo
+fun makeRunner(): Runner = new Runner
+makeRunner().echo(0)
+//│ = 0
+
+:expect "hello"
+makeRunner().echo("hello")
+//│ = "hello"
+
+
+// The declared result of a generic member selects its receiver's type argument.
+private class Payload with
+  mut val value = 0
+private class Box[T](val contents: T)
+private class Envelope[T](x: T) extends Box[T](x)
+fun envelope(): Envelope[Payload] = Envelope(new mut Payload)
+
+:expect "boxed"
+let payload = envelope().contents
+set payload.value = "boxed"
+payload.value
+//│ = "boxed"
+//│ payload = Payload
+
+
+// Two exported boxes share their member projection. Only one exposes Sensitive.
+:e
+private class Sensitive with
+  fun read(x) = x.key
+fun numbers(): Box[Int] = Box(1)
+fun sensitive(): Box[Sensitive] = Box(new Sensitive)
+new Sensitive().read({key: 0})
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+2: 	  fun read(x) = x.key
+//│ ║        	                ^^^^^
+//│ ╟── Cannot resolve member 'key' of a value with unknown shape.
+//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ║  l.+2: 	  fun read(x) = x.key
+//│ ║        	           ^
+//│ ╟── Member 'read' is accessible here.
+//│ ║  l.+2: 	  fun read(x) = x.key
+//│ ║        	  ^^^^^^^^^^^
+//│ ╟── Type argument 'T' of 'Box' is accessible through its public members.
+//│ ║  l.+4: 	fun sensitive(): Box[Sensitive] = Box(new Sensitive)
+//│ ║        	                 ^^^^^^^^^^^^^^
+//│ ╟── 'sensitive' is exposed by this compilation unit.
+//│ ║  l.+4: 	fun sensitive(): Box[Sensitive] = Box(new Sensitive)
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
+// A record result can expose this unit's type argument through an imported class's inherited member.
+import "../../../mlscript-compile/GenericLibrary.mls"
+private class ImportedPayload with
+  mut val value = 0
+fun importedBox(): {box: GenericLibrary.Child[ImportedPayload]} = {box: GenericLibrary.Child(new mut ImportedPayload)}
+
+:expect "imported"
+let importedPayload = importedBox().box.item
+set importedPayload.value = "imported"
+importedPayload.value
+//│ = "imported"
+//│ importedPayload = ImportedPayload
+
+
+// Repeated calls can grow the type argument indefinitely. Only the accessible payload escapes.
+private class Nest[T](val value: T) with
+  fun next(): Nest[Nest[T]] = Nest(this)
+private class NestedPayload with
+  mut val value = 0
+fun nested(): Nest[NestedPayload] = Nest(new mut NestedPayload)
+
+:expect "nested"
+let nestedPayload = nested().next().value.value
+set nestedPayload.value = "nested"
+nestedPayload.value
+//│ = "nested"
+//│ nestedPayload = NestedPayload
+
+
+// A recursive result that never returns its parameter cannot expose that parameter's methods.
+private class Phantom[T] with
+  fun next(): Phantom[Phantom[T]] = new Phantom[Phantom[T]]
+private class HiddenPayload with
+  fun read(x) = x.a
+fun phantom(): Phantom[HiddenPayload] = new Phantom[HiddenPayload]
+new HiddenPayload().read({a: 3})
+//│ = 3
+
+
+// Extra subclass members and values hidden by a declared field type remain internal.
+private class PublicView(val visible: Any)
+private class Extra extends PublicView(42) with
+  fun local(x) = x.a
+private class Internal with
+  fun read(x) = x.b
+fun outward(): PublicView = new Extra
+fun erased(): PublicView = PublicView(new Internal)
+[new Extra().local({a: 1}), new Internal().read({b: 2})]
+//│ = [1, 2]
+
+
+// A typed domain reaches the unannotated override with the base's type argument.
+private class Argument(val word: Str)
+private class TypedService[T] with
+  open fun inspect(x: T): Str = ""
+private class TypedImplementation extends TypedService[Argument] with
+  override fun inspect(x) = x.word
+fun typedService(): TypedService[Argument] = new TypedImplementation
+
+:expect "typed"
+typedService().inspect(Argument("typed"))
+//│ = "typed"
+
+// An omitted argument in the override receives the corresponding part of the inherited input.
+private class BoxService with
+  open fun inspect(x: Box[Argument]): Str = ""
+private class BoxImplementation extends BoxService with
+  override fun inspect(x: Box) = x.contents.word
+fun boxService(): BoxService = new BoxImplementation
+
+:expect "inside"
+boxService().inspect(Box(Argument("inside")))
+//│ = "inside"
+
+
+// A mutable override can receive a write even when its own declaration is hidden.
+:e
+private class FieldBase with
+  open mut val field = {value: 0}
+private class FieldImplementation extends FieldBase with
+  override mut val field = {value: 1}
+  fun read() = field.value
+fun fieldBase(): FieldBase = new mut FieldImplementation
+new FieldImplementation().read()
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+5: 	  fun read() = field.value
+//│ ║        	               ^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'value' of a value with unknown shape.
+//│ ╟── Field 'field' admits assigned values of unknown shape.
+//│ ║  l.+2: 	  open mut val field = {value: 0}
+//│ ║        	               ^^^^^
+//│ ╟── 'fieldBase' is exposed by this compilation unit.
+//│ ║  l.+6: 	fun fieldBase(): FieldBase = new mut FieldImplementation
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
+// An override can receive calls through the returned base interface.
+:e
+private class Service with
+  open fun inspect(x) = 0
+private class Implementation extends Service with
+  override fun inspect(x) = x.value
+fun service(): Service = new Implementation
+new Implementation().inspect({value: 1})
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+4: 	  override fun inspect(x) = x.value
+//│ ║        	                            ^^^^^^^
+//│ ╟── Cannot resolve member 'value' of a value with unknown shape.
+//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ║  l.+2: 	  open fun inspect(x) = 0
+//│ ║        	                   ^
+//│ ╟── Member 'inspect' is accessible here.
+//│ ║  l.+2: 	  open fun inspect(x) = 0
+//│ ║        	  ^^^^^^^^^^^^^^^^^^^
+//│ ╟── 'service' is exposed by this compilation unit.
+//│ ║  l.+5: 	fun service(): Service = new Implementation
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.

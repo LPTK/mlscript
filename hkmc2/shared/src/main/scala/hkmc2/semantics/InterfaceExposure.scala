@@ -28,7 +28,8 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
   private val watched = mutable.Set.empty[Any]
   // Keyed by ShapeIdentity.key, like inference hosts' candidates.
   private val exposed = mutable.Set.empty[ShapeIdentity.Key]
-  private val flows = mutable.Map.empty[BlockMemberSymbol, FlowSymbol]
+  private val sources = mutable.Map.empty[BlockMemberSymbol, MemberRef]
+  private val projectionContext = rctx
 
   /** Forwarding edges belong to the inference graph. Only the final observer
     * captures this pass's queue and visited sets, and it is detached on exit.
@@ -54,8 +55,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
     case _ => ()
 
   private def source(symbol: BlockMemberSymbol): MemberRef =
-    val flow = flows.getOrElseUpdate(symbol, FlowSymbol("exposed"))
-    val ref: MemberRef = MemberRef(symbol)(N, flow)
+    val ref = sources.getOrElseUpdate(symbol, MemberRef(symbol)(N, FlowSymbol("exposed")))
     // An exported definition is invoked from outside the unit, where no binder is in scope.
     rctx.recordLexicalBinders(ref, Set.empty)
     ref
@@ -82,26 +82,25 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
               case shape: TermShape => listener(shape)
               case NoShape => ()))(emit(_, path))
 
-  private def parameter(param: Param, marks: Ls[Marks], path: Path)(using ResolutionContext): Unit =
+  private def parameter(param: Param, rest: Bool, marks: Ls[Marks], path: Path, virtual: Bool)(using ResolutionContext): Unit =
     val ref = SimpleRef(param.sym)(N)
-    val unknown = UnknownValueShape(ref, fromPublicInterface = true)(path.via(
-      msg"Parameter '${param.sym.nme}' admits values of unknown shape." -> param.toLoc))
-    resolver.parameterSignature(param) match
-      case N => resolver.constrainParameter(param, unknown.enter(marks), marks)
+    val message = if rest then msg"Rest parameter '${param.sym.nme}' admits elements of unknown shape."
+      else msg"Parameter '${param.sym.nme}' admits values of unknown shape."
+    val unknown = UnknownValueShape(ref, fromPublicInterface = true)(path.via(message -> param.toLoc))
+    val input = if rest then TupleShape(ref, TupleShape.Unknown(ref, TupleShape.ValueField(unknown, Nil)) :: Nil)(resolver)
+      else unknown
+    if rctx.state.isOwnedSym(param.sym) then resolver.parameterSignature(param) match
+      case N => resolver.constrainParameter(param, input.enter(marks), marks)
       case S(tpe) => unknown.enter(marks) match
         case value: TermShape => resolver.exposeTypeHoles(tpe.instantiate(rctx.instances), value, marks)
         case NoShape => ()
+    if virtual then resolver.publishInterfaceInput(param.sym, input)
 
-  private def parameters(lists: Ls[(ParamList, Ls[Marks])], path: Path)(using ResolutionContext): Unit =
+  private def parameters(lists: Ls[(ParamList, Ls[Marks])], path: Path, virtual: Bool)(using ResolutionContext): Unit =
     lists.foreach: (params, marks) =>
-      params.params.foreach(parameter(_, marks, path))
-      params.trailingParams.foreach(parameter(_, marks, path))
-      params.variadic.map(_.param).foreach: rest =>
-        val ref = SimpleRef(rest.sym)(N)
-        val unknown = UnknownValueShape(ref, fromPublicInterface = true)(path.via(
-          msg"Rest parameter '${rest.sym.nme}' admits elements of unknown shape." -> rest.toLoc))
-        val tuple = TupleShape(ref, TupleShape.Unknown(ref, TupleShape.ValueField(unknown, Nil)) :: Nil)(resolver)
-        resolver.constrainParameter(rest, tuple.enter(marks), marks)
+      params.params.foreach(parameter(_, false, marks, path, virtual))
+      params.trailingParams.foreach(parameter(_, false, marks, path, virtual))
+      params.variadic.foreach(v => parameter(v.param, true, marks, path, virtual))
 
   /** Records an exposed overridable member of a class or object that other compilation units may
     * extend. An override in such a unit inherits the member's parameter and result representations,
@@ -129,18 +128,94 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
     cls.ext.foreach: parent =>
       term(parent, marks, path.via(msg"This parent contributes inherited members." -> parent.toLoc))
 
+  /** The arguments supplied at a single formal parameter and polarity of an exposed class.
+    * Projecting members through a symbolic argument lets a recursive declaration such as
+    * `Nest[T].next(): Nest[Nest[T]]` share one finite graph. Only a public result that reaches
+    * the symbol exposes its supplied arguments. Phantom parameters consequently expose nothing.
+    */
+  private final class ArgumentSlot(parameter: VarSymbol)(using ResolutionContext):
+    val marker = RigidTypeShape(parameter, SimpleRef(parameter)(N))
+    private val resolution = new TypeResolution(marker.source, messages => resolver.resolError(marker.source, messages))
+    rctx.recordTemplateBinders(resolution, S(Set.empty))
+    resolution.publish(TypeShape.Inferred(marker))
+    val tpe = resolver.declaredType(resolution, Map.empty)
+    private val inputs = mutable.LinkedHashMap.empty[(ShapeIdentity.Key, ResolutionContext), (TermShape, Path)]
+    private var demanded = false
+
+    def supply(shape: TermShape, path: Path)(using ResolutionContext): Unit =
+      inputs.getOrElseUpdate((ShapeIdentity.key(shape), rctx), {
+        if demanded then emit(shape, path)
+        shape -> path
+      })
+
+    def expose(): Unit = if !demanded then
+      demanded = true
+      // The public member makes every supplied argument reachable. Each argument keeps the
+      // factory that supplied it, even when a different factory first exposed that member.
+      inputs.foreach:
+        case ((_, context), (shape, path)) => emit(shape, path)(using context)
+
+  private val slots = mutable.Map.empty[(InnerSymbol, VarSymbol, Bool), ArgumentSlot]
+  private val markers = mutable.Map.empty[RigidTypeShape, ArgumentSlot]
+
+  private def nominalMembers(view: NominalInstanceView, marks: Ls[Marks], path: Path)
+      (using ResolutionContext): Unit =
+    val cls = view.defn
+    def bind(parameter: VarSymbol, tpe: DeclaredType, positive: Bool): DeclaredType =
+      val slot = slots.getOrElseUpdate((cls.sym, parameter, positive), {
+        val slot = new ArgumentSlot(parameter)(using projectionContext)
+        markers(slot.marker) = slot
+        slot
+      })
+      resolver.instanceShape(tpe.instantiate(rctx.instances)).exit(marks) match
+        case shape: TermShape => slot.supply(shape, path.via(
+          msg"Type argument '${parameter.nme}' of '${cls.sym.nme}' is accessible through its public members." ->
+            view.annotation.flatMap(_.toLoc).orElse(parameter.toLoc)))
+        case NoShape => ()
+      slot.tpe
+    val bindings = view.bindings.map: (parameter, argument) =>
+      parameter -> TypeArgument(bind(parameter, argument.input, false), bind(parameter, argument.output, true))
+    // Own declarations use these bindings. Each inherited declaration gets its parent's
+    // substitution below, including parameters the parent fixes independently of the child.
+    val interface = NominalInstanceView(cls, bindings, N)(view.annotation, view.provenance)(resolver)
+    nominalDeclarations(interface, path)(using projectionContext)
+    resolver.nominalParent(view).foreach: parent =>
+      emit(parent.exit(marks), path.via(msg"This parent contributes inherited members." -> cls.ext.flatMap(_.toLoc)))
+
+  private val projected = mutable.Set.empty[ShapeIdentity.Key]
+
+  private def nominalDeclarations(interface: NominalInstanceView, path: Path)(using ResolutionContext): Unit =
+    if projected.add(ShapeIdentity.key(interface)) then
+      val cls = interface.defn
+      cls.body.blk.stats.foreach:
+        case d: Definition if InterfaceExposure.isPublic(d) =>
+          val memberPath = path.via(msg"Member '${d.bsym.nme}' is accessible here." -> d.headerLoc)
+          val ref = source(d.bsym)
+          val lookup = interface.getMember(d.bsym.nme)
+          watch((ShapeIdentity.key(interface), d.bsym, "declared member"))(
+            resolver.listenMemberValue(lookup, ref.resSym, ref, rctx.instances, () => ())): value =>
+            d match
+              case td: TermDefinition if Inheritance.isOpen(td) || rctx.state.isOwnedSym(td.tsym) && !Inheritance.isExternal(td) =>
+                parameters(td.params.map(_ -> value.applicationHead._2), memberPath, Inheritance.isOpen(td))
+                if td.k is syntax.MutVal then assignable(td.tsym, td.bsym, path)
+              case _ => ()
+            emit(value, memberPath)
+        case _ => ()
+
   /** Other compilation units can assign values of unknown shape to an exposed assignable field, which admits them
     * like an exposed parameter admits unknown arguments: the field's unannotated representation then includes the
     * unknown one, and reading the field can return such a value. Being self-contained, the unknown value reaches
     * the field through no particular member lookup. `path` explains how the field's owner is exposed.
     */
   private def assignable(field: TermSymbol, symbol: BlockMemberSymbol, path: Path)(using ResolutionContext): Unit =
-    if field.getState is rctx.owner then
+    val virtual = field.defn.exists(Inheritance.isOpen)
+    if (field.getState is rctx.owner) || virtual then
       val unknown = UnknownValueShape(source(symbol), fromPublicInterface = true)(path.via(
         // The message does not call the field mutable: a mutable copy of an immutable record literal
         // makes that literal's fields assignable too, and the message is located at such a field.
         msg"Field '${field.nme}' admits assigned values of unknown shape." -> field.toLoc))
-      resolver.writeField(field, unknown, Nil)
+      if field.getState is rctx.owner then resolver.writeField(field, unknown, Nil)
+      if virtual then resolver.publishInterfaceInput(field, unknown)
 
   private def result(body: Term, sign: Opt[Term], marks: Ls[Marks], path: Path)(using ResolutionContext): Unit = sign match
     case N =>
@@ -175,13 +250,16 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
       case _: InstanceShape =>
         watch((ShapeIdentity.key(shape), "instance view"))(resolver.listenInstanceViews(shape))(emit(_, path))
       case ds: DefnShape if ds.defn.sym.getState is rctx.owner =>
-        parameters(shape.unappliedParams, path)
+        val virtual = ds.defn match
+          case td: TermDefinition => Inheritance.isOpen(td)
+          case _ => false
+        parameters(shape.unappliedParams, path, virtual)
         ds.clsDef match
           case S(cls) =>
             // Exposing a constructor also exposes instances clients can create.
             shape match
               case Marked(_: DefnShape, _) if cls.paramsOpt.isEmpty =>
-                parameters(cls.auxParams.map(_ -> marks), path)
+                parameters(cls.auxParams.map(_ -> marks), path, virtual = false)
               case _ => ()
             members(cls, marks, path)
           case N => ds.defn match
@@ -190,7 +268,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
       case _: DefnShape => () // Imported definitions were checked before publication.
       case intro: IntroShape => intro.trm match
         case Lam(_, body) =>
-          parameters(shape.unappliedParams, path)
+          parameters(shape.unappliedParams, path, virtual = false)
           watch((body, marks, instances, "result"))(
             listener => resolver.listenResult(body)(listener)(using rctx.withInstances(instances))): shape =>
               emit(resolver.instantiateShape(shape, instances).exit(marks),
@@ -248,6 +326,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
         watch((ShapeIdentity.key(callable), marks, "call result"))(resolver.listenCallableResult(callable)): shape =>
           emit(shape.exit(marks), path)
       case nominal: NominalInstanceView =>
+        nominalMembers(nominal, marks, path)
         // Watch keys follow candidate identity, as `emit` does: hashing a nominal
         // view structurally would hash its class declaration's syntax.
         watch((ShapeIdentity.key(shape), "promise payload"))(listener => { resolver.listenPromisePayload(shape)(listener); () }): payload =>
@@ -257,10 +336,14 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
         resolver.arrayElementType(nominal).foreach: binding =>
           watch((ShapeIdentity.key(shape), "array elements"))(listener => { resolver.listenArrayElements(shape)(listener); () }): element =>
             emit(element, path.via(msg"This value is stored in this array." -> binding.output.resolution.source.toLoc))
+      case record: RecordTypeShape => record.fields.foreach: (name, field) =>
+        val declaration = record.declarations(name)
+        val output = resolver.transportType(field.output.instantiate(instances), marks)
+        emit(resolver.instanceShape(output), path.via(msg"Field '${declaration.sym.nme}' is accessible here." -> declaration.toLoc))
       case view: IntersectionView => view.values.foreach(value => emit(value.exit(marks), path))
-      // Structural annotations hide initializer implementations. Unknown and
-      // dynamic values have no static graph; namespace probes denote no value.
-      case _: (RecordTypeShape | OpaqueTypeShape | UnknownValueShape | RigidTypeShape | DynShape | ErrShape | NamespaceProbe) => ()
+      case marker: RigidTypeShape => markers.get(marker).foreach(_.expose())
+      // Unknown and dynamic values have no static graph; namespace probes denote no value.
+      case _: (OpaqueTypeShape | UnknownValueShape | DynShape | ErrShape | NamespaceProbe) => ()
 
   /** An exposed value can be a synthesized local reference. Keep the exposure
     * site's location in its diagnostic provenance, not on that reference. */
