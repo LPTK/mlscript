@@ -1680,47 +1680,14 @@ class NewResolver:
       signatureParameters(param.sym) = tpe
       listenTypeInstances(tpe): shape =>
         if param.sym.currentShapes.add(shape) then param.sym.notifyShapeListeners(shape)
-    // Check only signatures that explicitly specify one calling convention,
-    // following aliases and quantifiers. Compound signatures still contribute
-    // every component's flows, but rejecting one possible layout would turn this
-    // best-effort check into a false incompatibility.
-    def singleArrow(res: TypeResolution, seen: Set[TypeResolution])(using ResolutionContext): Bool =
-      if seen(res) then false else
-        def next(inner: TypeResolution): Bool = singleArrow(inner, seen + res)
-        res.currentShapes.toList match
-          case TypeShape.Function(_, _) :: Nil => true
-          case TypeShape.Reference(base, _, _, _) :: Nil => next(base)
-          case TypeShape.Contextual(ref) :: Nil => next(ref.tpe.resolution)
-          case TypeShape.Applied(base, _) :: Nil => next(base)
-          case TypeShape.Alias(_, S(rhs)) :: Nil => next(rhs)
-          case TypeShape.Polymorphic(_, _, body) :: Nil => next(body)
-          case _ => false
-    def bind(paramLists: Ls[ParamList], tpe: DeclaredType, checkLayout: Bool)(using ResolutionContext): Unit = paramLists match
-      case Nil => ()
-      case ps :: tail => listenTypeViews(tpe, mergeIntersections = false):
-        case Marked(callable: CallableTypeShape, marks) =>
-          val declared = callable.paramLists.head
-          // Once alternatives have been approximated, a later curried list is
-          // still part of those alternatives, even if this component is one arrow.
-          val check = checkLayout && singleArrow(tpe.resolution, Set.empty)
-          if Arity(ps) != Arity(declared) then
-            if check then
-              rctx.report(ErrorReport(
-                msg"Implementation parameter list does not match its separate signature." -> ps.toLoc ::
-                msg"The signature has different required, optional, variadic, or trailing parameter positions." -> sign.toLoc :: Nil))
-          val params = ps.allParams
-          zipDeclaredParameters(Arity(ps), declared): (index, tpe) =>
-            val param = params(index)
-            val component = transportType(tpe, marks :: Nil)
-            if param.sign.isEmpty then
-              signatureParameters.get(param.sym).get.resolution.publish(TypeShape.Combined(TypeFormula.atom(component)))
-            else
-              // An inline annotation keeps its interface, but its inferred type
-              // arguments still receive constraints from the separate signature.
-              constrainParameter(param, instanceShape(component), Nil)
-          callable.result.foreach(tpe => bind(tail, transportType(tpe, marks :: Nil), check))
-        case _ => ()
-    bind(paramLists, declaredType(typeResolution(sign), Map.empty), true)
+    val declared = declaredType(typeResolution(sign), Map.empty)
+    matchParameterTypes(instanceShape(declared), paramLists, S(sign)): (param, component) =>
+      if param.sign.isEmpty then
+        signatureParameters.get(param.sym).get.resolution.publish(TypeShape.Combined(TypeFormula.atom(component)))
+      else
+        // An inline annotation keeps its interface, but its inferred type arguments still
+        // receive constraints from the separate signature.
+        constrainParameter(param, instanceShape(component), Nil)
 
   /** Synthesized constructor fields retain their source declaration on the symbol. */
   private[semantics] def resultSignature(td: TermDefinition)(using ResolutionContext): Opt[Term] = td.tsym.decl match
@@ -2292,34 +2259,17 @@ class NewResolver:
                   if Inheritance.isOpen(overriding) then publishInterfaceInput(target.sym, input)
             pairs.foreach: (_, inherited) =>
               if parameterSignature(inherited).isEmpty then parameter(inherited, N)
-            def lists(value: TermShape, remaining: Ls[ParamList])(using ResolutionContext): Unit =
-              listenInstanceViews(value):
-                case Marked(callable: CallableTypeShape, path) => remaining match
-                  case params :: tail =>
-                    val all = params.allParams
-                    zipDeclaredParameters(Arity(params), callable.paramLists.head): (index, tpe) =>
-                      parameter(all(index), S(transportType(tpe, path :: Nil)))
-                    if tail.nonEmpty then listenCallableResult(callable): result =>
-                      transportShape(result, path :: Nil) match
-                        case next: TermShape => lists(next, tail)
-                        case NoShape => ()
-                  case Nil => ()
-                case _ => ()
-            listenMemberValue(lookup, rctx.fieldProjectionSite(base.bsym), source, rctx.instances, () => ()):
-              value => lists(value, base.params)
+            listenMemberValue(lookup, rctx.fieldProjectionSite(base.bsym), source, rctx.instances, () => ()): value =>
+              matchParameterTypes(value, base.params, N)((param, tpe) => parameter(param, S(tpe)))
 
     def members(view: NominalInstanceView, marks: Marks): Unit =
       view.defn.body.blk.stats.foreach:
         case base: TermDefinition if InterfaceExposure.isPublic(base) && Inheritance.isOpen(base) =>
           val name = base.bsym.nme
           val lookup = view.getMemberThrough(name, marks)
-          def implementation(info: MemberLookup)(using ResolutionContext): Unit = info match
-            case MemberLookup.All(options) => options.foreach(implementation)
-            case MemberLookup.Contextual(inner, instances) => implementation(inner)(using rctx.withInstances(instances))
-            case MemberLookup.Found(member: BlockMemberSymbol, path) => member.asTrm.flatMap(_.defn).foreach(connect(base, _, lookup, path))
-            case MemberLookup.Declared(member = member, marks = path) => member.asTrm.flatMap(_.defn).foreach(connect(base, _, lookup, path))
-            case _ => ()
-          implementation(receiver.getMember(name).visibleFrom(_ => false, reportInaccessible = false))
+          receiver.getMember(name).visibleFrom(_ => false, reportInaccessible = false)
+            .foreachClassMember(rctx.instances): (member, path, instances) =>
+              member.asTrm.flatMap(_.defn).foreach(connect(base, _, lookup, path)(using rctx.withInstances(instances)))
         case _ => ()
       nominalParent(view).foreach: parent =>
         parent.exit(marks) match
@@ -2501,6 +2451,46 @@ class NewResolver:
               listenCallableResult(givenType)(receive)
           case _ => ()
       case _ => matchLists(expected, actual.unappliedParams)
+
+  /** Match a callable's written domains to implementation parameters, across curried lists
+    * and separate signatures. Types arrive at the use site with the receiver's bindings.
+    * A separate signature also diagnoses an incompatible layout when it specifies a single arrow.
+    * Compound signatures contribute all their input types without selecting a calling convention.
+    */
+  private def matchParameterTypes(value: TermShape, lists: Ls[ParamList], signature: Opt[Term])(
+      receive: (Param, DeclaredType) => ResolutionContext ?=> Unit)(using ResolutionContext): Unit =
+    def singleArrow(res: TypeResolution, seen: Set[TypeResolution])(using ResolutionContext): Bool =
+      if seen(res) then false else
+        def next(inner: TypeResolution): Bool = singleArrow(inner, seen + res)
+        res.currentShapes.toList match
+          case TypeShape.Function(_, _) :: Nil => true
+          case TypeShape.Reference(base, _, _, _) :: Nil => next(base)
+          case TypeShape.Contextual(ref) :: Nil => next(ref.tpe.resolution)
+          case TypeShape.Applied(base, _) :: Nil => next(base)
+          case TypeShape.Alias(_, S(rhs)) :: Nil => next(rhs)
+          case TypeShape.Polymorphic(_, _, body) :: Nil => next(body)
+          case _ => false
+    def loop(value: TermShape, remaining: Ls[ParamList], checkLayout: Bool)(using ResolutionContext): Unit = remaining match
+      case Nil => ()
+      case params :: tail => listenConstraintViews(value):
+        case Marked(callable: CallableTypeShape, marks) =>
+          val declared = callable.paramLists.head
+          val check = checkLayout && (value match
+            case Marked(instance: InstanceShape, _) => singleArrow(instance.tpe.resolution, Set.empty)
+            case _ => false)
+          if check && Arity(params) != Arity(declared) then
+            rctx.report(ErrorReport(
+              msg"Implementation parameter list does not match its separate signature." -> params.toLoc ::
+              msg"The signature has different required, optional, variadic, or trailing parameter positions." -> signature.flatMap(_.toLoc) :: Nil))
+          val all = params.allParams
+          zipDeclaredParameters(Arity(params), declared): (index, tpe) =>
+            receive(all(index), transportType(tpe, marks :: Nil))
+          if tail.nonEmpty then listenCallableResult(callable): result =>
+            transportShape(result, marks :: Nil) match
+              case shape: TermShape => loop(shape, tail, check)
+              case NoShape => ()
+        case _ => ()
+    loop(value, lists, signature.nonEmpty)
 
   /** Check obvious arity and droppability mismatches. Different variadic layouts
     * need not agree: a callback may collect trailing arguments in its rest parameter
@@ -4749,26 +4739,14 @@ class NewResolver:
         own.overrideLinks.inferenceHost
         MemberKey.symbol(member).foreach: key =>
           listenInheritedMember(defn, key): lookup =>
-            def check(info: MemberLookup): Unit = info match
-              case MemberLookup.All(members) => members.foreach(check)
-              case MemberLookup.Contextual(source, _) => check(source)
-              case MemberLookup.Found(base: BlockMemberSymbol, _) => collision(base)
-              case MemberLookup.Declared(base, _, _, _, _) => collision(base)
-              case _ => ()
             def collision(base: BlockMemberSymbol): Unit = if base.nme != member.nme then
               defn.isErroneous = true
               own.defn.foreach(_.isErroneous = true)
               rctx.report(ErrorReport(
                 msg"Member '${member.nme}' uses the same @jsSymbol key as inherited member '${base.nme}'; overrides must keep the inherited name." -> own.toLoc ::
                 msg"The inherited member is declared here." -> base.toLoc :: Nil))
-            check(lookup.visibleFrom(_ => false, reportInaccessible = false))
+            lookup.visibleFrom(_ => false, reportInaccessible = false).foreachClassMember(rctx.instances)((base, _, _) => collision(base))
         listenInheritedMember(defn, member.nme): lookup =>
-          def record(info: MemberLookup): Unit = info match
-            case MemberLookup.All(members) => members.foreach(record)
-            case MemberLookup.Contextual(source, _) => record(source)
-            case MemberLookup.Found(base: BlockMemberSymbol, _) => link(base)
-            case MemberLookup.Declared(base, _, _, _, _) => link(base)
-            case _ => ()
           def link(base: BlockMemberSymbol): Unit = base.onComplete: () =>
             base.asTrm.filterNot(_.isPrivate).foreach: target =>
               if target isnt own then
@@ -4782,7 +4760,7 @@ class NewResolver:
                     msg"The inherited member is declared here." -> target.toLoc :: Nil))
                 own.overrideLinks.inferenceHost.publish(target)
           // Private members are not overridden, so they do not hide the inherited members they shadow.
-          record(lookup.visibleFrom(_ => false, reportInaccessible = false))
+          lookup.visibleFrom(_ => false, reportInaccessible = false).foreachClassMember(rctx.instances)((base, _, _) => link(base))
 
   private def listenInheritedMember(defn: ClassLikeDef, name: MemberKey)
       (listener: ShapeListener[MemberLookup])(using ResolutionContext): Unit =

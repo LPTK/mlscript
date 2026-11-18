@@ -499,6 +499,16 @@ enum MemberLookup:
       case Missing | Unknown(_, _, _) | Dynamic(_) => this
       case _ => Contextual(this, instances)
 
+  /** Visit the class member declarations selected by a visible lookup. Preserve each receiver's
+    * substitution and scope path so the caller can interpret values at that declaration.
+    */
+  def foreachClassMember(instances: TypeSubstitution)(visit: (BlockMemberSymbol, Ls[Marks], TypeSubstitution) => Unit): Unit = this match
+    case All(options) => options.foreach(_.foreachClassMember(instances)(visit))
+    case Contextual(source, substitution) => source.foreachClassMember(instances.withOverrides(substitution))(visit)
+    case Found(member: BlockMemberSymbol, marks) => visit(member, marks, instances)
+    case Declared(member = member, marks = marks) => visit(member, marks, instances)
+    case _ => ()
+
   /** The members found by this lookup when it is performed by code that can access the private members of the
     * class-like definitions satisfying `canAccess` (see SrcScope.canAccessPrivatesOf). Inaccessible private members
     * do not hide inherited members, just like JavaScript's private class elements do not hide inherited properties.
