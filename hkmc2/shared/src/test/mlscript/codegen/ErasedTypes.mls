@@ -272,6 +272,7 @@ fun counter(x: Int) =
 //│ let bump, Capture$scope0;
 //│ define Capture$scope0 as class Capture$scope0¹ {
 //│   constructor Capture$scope0⁰(n$0: Int⁰) {
+//│     @js.plainField
 //│     define n$0⁰ as val n$0¹: Int⁰ = n$0;
 //│     end
 //│   }
@@ -305,6 +306,7 @@ resetCounter(41)
 //│ let reset, Capture$scope0;
 //│ define Capture$scope0 as class Capture$scope0³ {
 //│   constructor Capture$scope0²(x$0: Int⁰) {
+//│     @js.plainField
 //│     define x$0⁰ as val x$0¹: Int⁰ = x$0;
 //│     end
 //│   }

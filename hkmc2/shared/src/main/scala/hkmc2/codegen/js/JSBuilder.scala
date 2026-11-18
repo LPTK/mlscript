@@ -89,29 +89,24 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
       case S(privates) => doc".#${privates.allocateOrGetName(stored)}"
       case N => doc"[${scope.lookup_!(getPrivateAccessorSymbol(stored), loc)}]"
 
-  private var backingFieldScopes = Map.empty[TermSymbol, Scope]
-
-  /** Render a definition in its JavaScript receiver scope. A class and its static companion
-    * share private names. Nested definitions can still initialize fields of an enclosing class.
+  /** Whether a member field is stored in a private JavaScript field of its class and read and written
+    * through a generated getter and setter: each public mutable field is, unless its definition is
+    * marked `@js.plainField`, which makes it an ordinary property. A field's initializer and its
+    * class's accessor declarations both consult this property of the field, so they agree.
     */
-  private def inDefinition[A](defn: FunDefn | ClsLikeDefn)(emit: Scope ?=> A)(using Raise, Scope): (Opt[Str], A) =
-    defn match
-      case _: FunDefn => scope.nestRebindThis(N)(emit)
-      case cls: ClsLikeDefn =>
-        val enclosing = backingFieldScopes
-        // Lifted capture properties also have mutable initializers. Only the public fields
-        // declared by this class can have an accessor and its corresponding backing field.
-        val fields = cls.publicFields.iterator ++ cls.companion.iterator.flatMap(_.publicFields)
-        backingFieldScopes = enclosing ++ fields.collect:
-          case (_, sym) if (sym.k is MutVal) && !sym.annotations.getOrElse(
-              lastWords(s"Missing definition for mutable field '${sym.nme}'")).exists(_.isInstanceOf[Annot.PlainField]) =>
-            sym -> cls.isym.privatesScope
-        try scope.nestRebindThis(S(cls.isym))(emit)
-        finally backingFieldScopes = enclosing
+  private def hasBackingField(field: TermSymbol): Bool =
+    (field.k is MutVal) && field.owner.isDefined && !field.isPrivate && !field.annotations.getOrElse(
+      lastWords(s"Missing definition for mutable field '${field.nme}'")).exists(_.isInstanceOf[Annot.PlainField])
 
-  /** The storage used by a public field's initializer and accessors inside its declaring class. */
+  /** The private JavaScript field that stores `field` (see `hasBackingField`), selected from the
+    * receiver `owner`. JavaScript resolves private names lexically, so the selection is valid only
+    * in code emitted inside the class that declares the field, which is where the field's
+    * initializer and accessors are emitted.
+    */
   private def backingField(owner: InnerSymbol, field: TermSymbol)(using Raise, Scope): Document =
-    doc"${result(owner.asThis)}.#${backingFieldScopes(field).allocateOrGetName(field)}"
+    val names = privateScopeIn(owner, scope.inScopeClasses).getOrElse:
+      lastWords(s"Backing field '${field.nme}' accessed outside its declaring class")
+    doc"${result(owner.asThis)}.#${names.allocateOrGetName(field)}"
 
   private def withPrivateAccessorDecls(doc: Document)(using Raise, Scope): Document =
     val accessors = (
@@ -557,7 +552,7 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
         tsym.owner match
         case N =>
           doc"${scope.lookup_!(sym, sym.toLoc)} = ${result(p)};${returningTerm(rst, endSemi)}"
-        case S(owner) if backingFieldScopes.contains(tsym) =>
+        case S(owner) if hasBackingField(tsym) =>
           // A virtual setter could reach a subclass whose private fields JavaScript installs only after super().
           doc"${backingField(owner, tsym)} = ${result(p)};${returningTerm(rst, endSemi)}"
         case S(owner) =>
@@ -574,7 +569,10 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
       case defn: (FunDefn | ClsLikeDefn) =>
         
         val outerScope = scope
-        val (thisProxy, res) = inDefinition(defn):
+        val (thisProxy, res) = scope.nestRebindThis(
+            // * Either this is an InnerSymbol or this is a Fun,
+            // * and we need to rebind `this` to None to shadow it.
+            defn.defnSym.collectFirst{ case s: InnerSymbol => s }):
           defn match
             
           case FunDefn(params = Nil) =>
@@ -652,7 +650,8 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
             def mkPrivs(pubFlds: Ls[BlockMemberSymbol -> TermSymbol], privFlds: Ls[TermSymbol],
                   methods: Ls[FunDefn], ctor: Block,
                   mtdPrefix: Str, owner: InnerSymbol)(using Scope): Document =
-              val accessorFields = pubFlds.collect { case (_, sym) if backingFieldScopes.contains(sym) => sym }
+              // * Note: the other parts of `pubFlds` are not used because in JS, fields are not declared
+              val accessorFields = pubFlds.collect { case (_, sym) if hasBackingField(sym) => sym }
               // Explicit function companions already declare their private method slots.
               // Other nested class bindings need fields declared in this receiver's class.
               val classFields = collection.mutable.ListBuffer.empty[DefinitionSymbol[?]]
