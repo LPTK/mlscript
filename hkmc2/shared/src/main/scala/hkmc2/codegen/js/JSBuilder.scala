@@ -89,6 +89,21 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
       case S(privates) => doc".#${privates.allocateOrGetName(stored)}"
       case N => doc"[${scope.lookup_!(getPrivateAccessorSymbol(stored), loc)}]"
 
+  /** Whether this field has a JavaScript accessor declaration in its owner's emitted class. */
+  private def usesFieldAccessors(owner: InnerSymbol, sym: TermSymbol)(using Raise): Bool =
+    if (sym.k isnt MutVal) || !owner.irClassContainer.asDefnSym.irClsLikeDefn.exists(_.publicFieldSymbols(sym)) then false
+    else
+      // Refreshed symbols carry annotations on their IR definition. Abstract fields retain their source definition.
+      val annotations = sym.annotations
+      softAssert(annotations.nonEmpty, s"Missing definition for mutable field '${sym.nme}'")
+      !annotations.exists(_.exists(_.isInstanceOf[Annot.PlainField]))
+
+  /** The storage used by a public field's initializer and accessors inside its declaring class. */
+  private def backingField(owner: InnerSymbol, field: TermSymbol)(using Raise, Scope): Document =
+    val names = privateScopeIn(owner, scope.inScopeClasses).getOrElse:
+      lastWords(s"Backing field '${field.nme}' accessed outside its declaring class")
+    doc"${result(owner.asThis)}.#${names.allocateOrGetName(field)}"
+
   private def withPrivateAccessorDecls(doc: Document)(using Raise, Scope): Document =
     val accessors = (
       privateAccessorSymbols.iterator.toList.sortBy(_._1.uid).map: (ts, sym) =>
@@ -533,6 +548,9 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
         tsym.owner match
         case N =>
           doc"${scope.lookup_!(sym, sym.toLoc)} = ${result(p)};${returningTerm(rst, endSemi)}"
+        case S(owner) if usesFieldAccessors(owner, tsym) =>
+          // A virtual setter could reach a subclass whose private fields JavaScript installs only after super().
+          doc"${backingField(owner, tsym)} = ${result(p)};${returningTerm(rst, endSemi)}"
         case S(owner) =>
           val thisDoc = mkThis(owner)
           val nme = sym.nme
@@ -628,18 +646,7 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
             def mkPrivs(pubFlds: Ls[BlockMemberSymbol -> TermSymbol], privFlds: Ls[TermSymbol],
                   methods: Ls[FunDefn], ctor: Block,
                   mtdPrefix: Str, owner: InnerSymbol)(using Scope): Document =
-              def isPlainField(sym: TermSymbol): Bool =
-                // Refreshed symbols carry annotations on their current IR definition.
-                // Declared fields without initializers retain their source definition.
-                val annotations = sym.annotations
-                softAssert(annotations.nonEmpty, s"Missing definition for mutable field '${sym.nme}'")
-                annotations.exists(_.exists(_.isInstanceOf[Annot.PlainField]))
-              // * Note: the non-mut-val parts of `pubFlds` are not used because in JS, fields are not declared
-              val mutPubFields =
-                pubFlds.collect:
-                  case (_, sym) if (sym.k is MutVal) && !isPlainField(sym) =>
-                    sym -> TermSymbol(
-                      syntax.LetBind, S(owner), Tree.Ident(sym.nme), erasure = sym.erasedType)
+              val accessorFields = pubFlds.collect { case (_, sym) if usesFieldAccessors(owner, sym) => sym }
               // Explicit function companions already declare their private method slots.
               // Other nested class bindings need fields declared in this receiver's class.
               val classFields = collection.mutable.ListBuffer.empty[DefinitionSymbol[?]]
@@ -652,17 +659,17 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
                       // softAssert(!classFields.contains(stored), s"Duplicate private class field '${stored.nme}'")
                       classFields += stored
                   case _ => super.applyDefn(defn)
-              val allPrivFlds = privFlds ++ mutPubFields.map(_._2) ++ classFields.toList
+              val allPrivFlds = privFlds ::: accessorFields ::: classFields.toList
               val privDecls = allPrivFlds.map: fld =>
                 doc" # $mtdPrefix#${isym.privatesScope.allocateOrGetName(fld)};"
               def privateOwnerQual(sym: DefinitionSymbol[?]) =
                 val owner = MemberStorage.privateOwner(sym).getOrElse(lastWords(s"Expected private member $sym"))
                 result(owner.asThis)
-              val accessors = mutPubFields.flatMap: (valSym, letSym) =>
-                doc" # ${mtdPrefix}get ${escapeField(valSym.name, "")
-                  }() { return ${privateOwnerQual(letSym) }${selectPrivateField(letSym, letSym.toLoc).get}; }"
-                :: doc" # ${mtdPrefix}set ${escapeField(valSym.name, "")
-                  }(value) { ${privateOwnerQual(letSym)}${selectPrivateField(letSym, letSym.toLoc).get} = value; }"
+              val accessors = accessorFields.flatMap: field =>
+                val name = escapeField(field.name, "")
+                val storage = backingField(owner, field)
+                doc" # ${mtdPrefix}get $name() { return $storage; }"
+                :: doc" # ${mtdPrefix}set $name(value) { $storage = value; }"
                 :: Nil
               val privateAccessors = allPrivFlds.filter(privateAccessorSymbols.contains).flatMap: fld =>
                 doc" # ${mtdPrefix}get [${scope.lookup_!(getPrivateAccessorSymbol(fld), fld.toLoc)}]() { return ${

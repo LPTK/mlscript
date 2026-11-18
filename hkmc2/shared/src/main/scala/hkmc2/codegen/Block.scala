@@ -1039,6 +1039,11 @@ final case class ClsLikeDefn(
     val annotations: Ls[Annot],
 ) extends Defn:
   require(k isnt syntax.Mod)
+  /** Public fields declared by this class and its companion. A constructor may also initialize
+    * ordinary properties without field declarations, such as a lifted closure's captured locals.
+    */
+  lazy val publicFieldSymbols: Set[TermSymbol] =
+    (publicFields.iterator ++ companion.iterator.flatMap(_.publicFields)).map(_._2).toSet
   isym match
     case sym: ClassLikeSymbol =>
       val parent = parentPath match

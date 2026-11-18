@@ -96,6 +96,23 @@ module Direct with
 //│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
+// The base initializes its own field before the subclass has installed its backing field.
+// Once construction completes, reads and writes through the base dispatch to the override.
+:expect ["child", 42, 42]
+class BaseState with
+  open mut val state = "base"
+  fun read() = state
+class ChildState extends BaseState with
+  override mut val state = "child"
+fun writeBase(base: BaseState) = set base.state = 42
+let childState = new mut ChildState
+let initial = childState.read()
+writeBase(childState)
+[initial, childState.read(), childState.state]
+//│ = ["child", 42, 42]
+//│ childState = ChildState
+//│ initial = "child"
+
 // Other compilation units cannot assign to a private field.
 :expect 1
 class Counter with
