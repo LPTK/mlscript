@@ -281,9 +281,7 @@ externalCallback({only: 2})
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
-// FIXME: The written result of the base bounds what clients read from it, and nothing checks the
-// unannotated override against it: the override should be rejected, or its result exposed.
-:breakme
+// Calling get through Declared lets a client pass null to the returned callback.
 :e
 private fun unchecked(x) = x.only
 private class Declared with
@@ -292,9 +290,74 @@ private class Undeclared extends Declared with
   override fun get() = unchecked
 fun declared(): Declared = new Undeclared
 unchecked({only: 5})
-//│ = 5
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+1: 	private fun unchecked(x) = x.only
+//│ ║        	                           ^^^^^^
+//│ ╟── Value with an empty interface does not contain member 'only'
+//│ ║  l.+3: 	  open fun get(): Any -> Int = (x => 0)
+//│ ║        	                  ^^^
+//│ ╟── Type 'Any' is declared without a member interface.
+//│ ║  in ../../decls/Prelude.mls
+//│ ║  l.XX: 	declare type Any
+//│ ╙──      	             ^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
-:fixme
-fun invoke(f: Any -> Int) = f(null)
-invoke(declared().get())
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of null (reading 'only')
+// An inherited field type checks later writes as well as the initializer.
+:e
+private fun assigned(x) = x.only
+private class CallbackStore with
+  open mut val callback: Any -> Int = x => 0
+private class LocalStore extends CallbackStore with
+  override mut val callback = x => 1
+private val localStore = new mut LocalStore
+set localStore.callback = assigned
+fun callbacks(): CallbackStore = localStore
+assigned({only: 7})
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+1: 	private fun assigned(x) = x.only
+//│ ║        	                          ^^^^^^
+//│ ╟── Value with an empty interface does not contain member 'only'
+//│ ║  l.+3: 	  open mut val callback: Any -> Int = x => 0
+//│ ║        	                         ^^^
+//│ ╟── Type 'Any' is declared without a member interface.
+//│ ║  in ../../decls/Prelude.mls
+//│ ║  l.XX: 	declare type Any
+//│ ╙──      	             ^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ localStore = LocalStore
+
+// The parent clause determines the callback domain even across an unannotated override.
+private class Keyed(val key: Int)
+private class Source[T] with
+  open fun get(): T -> Int = x => 0
+private class Forward[U] extends Source[U] with
+  open override fun get() = x => 1
+private class KeySource extends Forward[Keyed] with
+  override fun get() = x => x.key
+fun source(): Source[Keyed] = new KeySource
+
+:expect 42
+source().get()(Keyed(42))
+//│ = 42
+
+// Callers of an async override receive the inherited callback inside a promise.
+:e
+open annotations.{ * }
+private fun fulfilled(x) = x.only
+private class AsyncSource with
+  @async open fun get(): Any -> Int = x => 0
+private class AsyncImpl extends AsyncSource with
+  @async override fun get() = fulfilled
+fun asyncSource(): AsyncSource = new AsyncImpl
+fulfilled({only: 2})
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+2: 	private fun fulfilled(x) = x.only
+//│ ║        	                           ^^^^^^
+//│ ╟── Value with an empty interface does not contain member 'only'
+//│ ║  l.+4: 	  @async open fun get(): Any -> Int = x => 0
+//│ ║        	                         ^^^
+//│ ╟── Type 'Any' is declared without a member interface.
+//│ ║  in ../../decls/Prelude.mls
+//│ ║  l.XX: 	declare type Any
+//│ ╙──      	             ^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.

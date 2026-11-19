@@ -2082,9 +2082,10 @@ class NewResolver:
   def checkDeclaredResult(definition: TermDefinition)(using ResolutionContext): Unit =
     definition.body.foreach: body =>
       resultSignature(definition).foreach: sign =>
-        val expected = declaredType(typeResolution(sign), Map.empty)
-        listenResult(body): shape =>
-          inferTypeArguments(expected.instantiate(rctx.instances), shape, Nil, S(body))
+        checkResult(declaredType(typeResolution(sign), Map.empty), S(body))(listenResult(body))
+
+  private def checkResult(expected: DeclaredType, site: Opt[Term])(values: Listener => Unit)(using ResolutionContext): Unit =
+    values(shape => inferTypeArguments(expected.instantiate(rctx.instances), shape, Nil, site))
 
   def checkAscription(body: Term, sign: Term)(using ResolutionContext): Unit =
     val expected = declaredType(typeResolution(sign), Map.empty)
@@ -2293,9 +2294,9 @@ class NewResolver:
     * A slot with no written type anywhere along an override path yields `N` for that path.
     */
   private def operationType(td: TermDefinition, param: Opt[Param], positive: Bool, marks: Ls[Marks],
-      instances: TypeSubstitution)(receive: ShapeListener[Opt[DeclaredType]])(using ResolutionContext): Unit =
+      instances: TypeSubstitution)(receive: (TermDefinition, Opt[DeclaredType]) => ResolutionContext ?=> Unit)(using ResolutionContext): Unit =
     def visit(td: TermDefinition, param: Opt[Param], marks: Ls[Marks], instances: TypeSubstitution,
-        seen: Set[TermSymbol])(emit: ShapeListener[Opt[DeclaredType]])(using ResolutionContext): Unit =
+        seen: Set[TermSymbol])(emit: (TermDefinition, Opt[DeclaredType]) => ResolutionContext ?=> Unit)(using ResolutionContext): Unit =
       projectedSlot(td, param, positive, marks, instances) match
         case N if !seen(td.tsym) && td.tsym.overrideLinks.currentShapes.nonEmpty =>
           val owner = td.owner.flatMap(_.asDefnSym.defn).get // Only a class member can have override links.
@@ -2303,15 +2304,15 @@ class NewResolver:
             lookup.visibleFrom(_ => false, reportInaccessible = false).foreachClassMember(rctx.instances): (name, path, bindings) =>
               name.asTrm.flatMap(_.defn).filter(p => Inheritance.isOpen(p) && !Inheritance.changesMemberKind(td, p)).foreach: parent =>
                 def inherit(slot: Opt[Param]): Unit =
-                  visit(parent, slot, path, bindings, seen + td.tsym): tpe =>
-                    emit(tpe.map(t => transportType(t.instantiate(instances), marks)))
+                  visit(parent, slot, path, bindings, seen + td.tsym): (origin, tpe) =>
+                    emit(origin, tpe.map(t => transportType(t.instantiate(instances), marks)))
                 param match
                   case N => inherit(N)
                   case S(p) =>
                     val source = codegen.OverrideLayout.correspondingParameters(td.params, parent.params).toOption
                       .flatMap(_.collectFirst { case (target, inherited) if target.sym is p.sym => inherited })
-                    source.fold(emit(N))(p => inherit(S(p)))
-        case tpe => emit(tpe)
+                    source.fold(emit(td, N))(p => inherit(S(p)))
+        case tpe => emit(td, tpe)
     visit(td, param, marks, instances, Set.empty)(receive)
 
   /** An exposed overriding declaration can omit the type that already bounds incoming calls or
@@ -2320,7 +2321,7 @@ class NewResolver:
   private[semantics] def externalInput(td: Opt[TermDefinition], param: Opt[Param], fallback: TermShape)
       (receive: Listener)(using ResolutionContext): Unit = td match
     case S(d) if d.tsym.overrideLinks.currentShapes.nonEmpty && slotSignature(d, param).isEmpty =>
-      operationType(d, param, false, Nil, TypeSubstitution.empty)(tpe => receive(tpe.fold(fallback)(instanceShape)))
+      operationType(d, param, false, Nil, TypeSubstitution.empty)((_, tpe) => receive(tpe.fold(fallback)(instanceShape)))
     case _ => receive(fallback)
 
   /** Forward the inputs admitted by one inherited operation to its overriding implementation.
@@ -2339,7 +2340,7 @@ class NewResolver:
         // annotation needs projection through this new parent clause.
         val declared = projectedSlot(base, param, false, inheritedMarks, instances).map(instanceShape)
         interfaceInputs(symbol).listen(value => receive(declared.getOrElse(inheritedInput(value))))(using rctx.state.context)
-      else operationType(base, param, false, inheritedMarks, instances): tpe =>
+      else operationType(base, param, false, inheritedMarks, instances): (_, tpe) =>
         receive(tpe.map(instanceShape).getOrElse(param match
           case S(p) =>
             val rest = base.params.exists(_.variadic.exists(_.param.sym is p.sym))
@@ -2376,6 +2377,25 @@ class NewResolver:
           forward(target.sym, input)
         pairs.foreach: (target, inherited) =>
           onInput(S(inherited))(admit(target, _))
+
+  /** A caller of an inherited operation can use its written result, including any callback
+    * domains. Check the overriding implementation and subsequent field writes against that result.
+    */
+  private def checkOverrideResult(base: TermDefinition, overriding: TermDefinition, marks: Ls[Marks],
+      instances: TypeSubstitution)(using ResolutionContext): Unit =
+    if resultSignature(overriding).isEmpty then
+      operationType(base, N, true, marks, instances): (origin, declared) =>
+        declared.filter(_ => origin.generatorAnnotation.isEmpty).foreach: result =>
+          val expected = captureType(result, overriding.tsym)
+          checkResult(expected, overriding.body): receive =>
+            overriding.body.foreach: body =>
+              // Async annotations describe the body. A synchronous implementation of an async
+              // operation supplies that payload through the promise it returns.
+              if origin.asyncAnnotation.nonEmpty && overriding.asyncAnnotation.nonEmpty then listenResult(body)(receive)
+              else if origin.asyncAnnotation.nonEmpty then listenDefinitionResult(overriding, TypeSubstitution.empty): value =>
+                listenInstanceViews(value)(view => listenPromisePayload(view)(receive))
+              else listenDefinitionResult(overriding, TypeSubstitution.empty)(receive)
+            if isAssignableField(overriding) then listenMemberVariable(overriding.tsym)(receive)
 
   /** Expand fixed tuple spreads before matching positions. Unknown-length
     * segments share the remaining middle elements, as with declared parameter
@@ -4872,6 +4892,7 @@ class NewResolver:
                     overriding <- own.defn if !Inheritance.changesMemberKind(overriding, inherited)
                   do
                     connectOverrideInputs(inherited, overriding, marks, instances)
+                    checkOverrideResult(inherited, overriding, marks, instances)
                     if resultSignature(inherited).isEmpty then
                       if !rctx.state.isOwnedSym(target) then
                         exposeOverrideResult(overriding, inheritedExposure(inherited))
