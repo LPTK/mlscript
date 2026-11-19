@@ -2253,15 +2253,16 @@ class NewResolver:
           // An override can give an unannotated base result a written interface of its own.
           rctx.exposeValue(instanceShape(declaredType(typeResolution(sign), Map.empty)), path)
         case N =>
+          val exits = InterfaceExposure.declarationExits(td, N)
+          def expose(shape: TermShape, at: ShapeProvenance)(using ResolutionContext): Unit =
+            instantiateShape(shape, rctx.instances).exit(exits) match
+              case value: TermShape => rctx.exposeValue(value, at)
+              case NoShape => ()
           td.body.filter(_ => !Inheritance.isExternal(td)).foreach: body =>
-            val exits = InterfaceExposure.declarationExits(td, N)
             val at = if td.k is Fun then path.via(msg"This value is returned here." -> body.toLoc) else path
-            def expose(shape: TermShape)(using ResolutionContext): Unit =
-              instantiateShape(shape, rctx.instances).exit(exits) match
-                case value: TermShape => rctx.exposeValue(value, at)
-                case NoShape => ()
-            listenDefinitionResult(td, TypeSubstitution.empty)(expose)
-            if isAssignableField(td) then listenMemberVariable(td.tsym)(expose)
+            listenDefinitionResult(td, TypeSubstitution.empty)(expose(_, at))
+          // Clients can read writes through an abstract or declared field even when it has no initializer.
+          if isAssignableField(td) then listenMemberVariable(td.tsym)(expose(_, path))
           state.pendingResultOverrides.remove(td.tsym).foreach(_.foreach(exposeOverrideResult(_, path)))
 
   private def exposeOverrideResult(td: TermDefinition, base: ShapeProvenance)(using ResolutionContext): Unit =

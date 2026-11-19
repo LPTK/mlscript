@@ -229,6 +229,58 @@ new Inner().local({only: 4})
 //│ = 4
 
 
+// A write through an abstract field exposes the callback stored in the concrete object.
+:e
+private fun abstractCallback(x) = x.only
+private abstract class AbstractStore with
+  mut val stored
+private class RealStore extends AbstractStore with
+  override mut val stored = (x => 0)
+private val instance = new mut RealStore
+fun getStore(): AbstractStore = instance
+set getStore().stored = abstractCallback
+abstractCallback({only: 1})
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+1: 	private fun abstractCallback(x) = x.only
+//│ ║        	                                  ^^^^^^
+//│ ╟── Cannot resolve member 'only' of a value with unknown shape.
+//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ║  l.+1: 	private fun abstractCallback(x) = x.only
+//│ ║        	                             ^
+//│ ╟── Member 'stored' is accessible here.
+//│ ║  l.+3: 	  mut val stored
+//│ ║        	      ^^^^^^^^^^
+//│ ╟── 'getStore' is exposed by this compilation unit.
+//│ ║  l.+7: 	fun getStore(): AbstractStore = instance
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ instance = RealStore
+
+// External storage has no MLscript initializer either.
+:e
+private fun externalCallback(x) = x.only
+declare class ExternalStore with
+  mut val stored
+declare val externalStore: ExternalStore
+fun getExternal(): ExternalStore = externalStore
+private fun storeCallback() = { set externalStore.stored = externalCallback }
+externalCallback({only: 2})
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+1: 	private fun externalCallback(x) = x.only
+//│ ║        	                                  ^^^^^^
+//│ ╟── Cannot resolve member 'only' of a value with unknown shape.
+//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ║  l.+1: 	private fun externalCallback(x) = x.only
+//│ ║        	                             ^
+//│ ╟── Member 'stored' is accessible here.
+//│ ║  l.+3: 	  mut val stored
+//│ ║        	      ^^^^^^^^^^
+//│ ╟── 'ExternalStore' is exposed by this compilation unit.
+//│ ║  l.+2: 	declare class ExternalStore with
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
 // FIXME: The written result of the base bounds what clients read from it, and nothing checks the
 // unannotated override against it: the override should be rejected, or its result exposed.
 :breakme
