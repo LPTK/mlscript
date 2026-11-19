@@ -133,6 +133,19 @@ read(new Child)
 //│ ╙──      	                            ^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
+// The direct call supplies a record, but the call through LocalBase also reaches LocalChild.read.
+// TODO: Include that call's input when resolving x.only in the private override.
+:breakme
+:e
+private class LocalBase with
+  open fun read(x: Any): Int = 0
+private class LocalChild extends LocalBase with
+  override fun read(x) = x.only
+private fun throughBase(p: LocalBase) = p.read(null)
+new LocalChild().read({only: 7})
+throughBase(new LocalChild)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of null (reading 'only')
+
 // A separate polymorphic signature retains binders for explicit type application.
 :expect [11, 12]
 class First(val first: Int)
