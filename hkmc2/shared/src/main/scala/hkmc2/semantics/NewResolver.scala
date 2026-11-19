@@ -268,7 +268,7 @@ class NewResolver:
 
   // Guard and dependency analysis inspect the declaration behind a capture;
   // its value-scope marks do not change whether it supplies a type constructor.
-  private[semantics] def typeApplicationTarget(base: TypeResolution)(using ResolutionContext): Opt[TypeShape] =
+  private def typeApplicationTarget(base: TypeResolution)(using ResolutionContext): Opt[TypeShape] =
     @tailrec
     def loop(base: TypeResolution, seen: Set[TypeResolution]): Opt[TypeShape] =
       if seen(base) then N else base.currentShapes.toList match
@@ -305,9 +305,10 @@ class NewResolver:
   private def instanceDependencies(resolution: TypeResolution)(using ResolutionContext)
       : Either[Set[TypeResolution], Opt[Set[VarSymbol]]] = dependencies(resolution, DependencyMode.Instances)
 
-  // The queries share the finite source graph and choose which edges carry dependencies.
+  // All three queries solve the same source-graph equations, but only instance
+  // support follows retained references and only guardedness stops at constructors.
   private enum DependencyMode:
-    case Bindings, UnguardedBindings, ReadableBindings, Instances
+    case Bindings, UnguardedBindings, Instances
 
   // N is the unbounded set: binding dependencies never produce it.
   private type Binders = Opt[Set[VarSymbol]]
@@ -319,11 +320,7 @@ class NewResolver:
       : Either[Set[TypeResolution], Binders] =
     val throughReferences = mode == DependencyMode.Instances
     val unguardedOnly = mode == DependencyMode.UnguardedBindings
-    val readsOnly = mode == DependencyMode.ReadableBindings
-    val bindingCache = mode match
-      case DependencyMode.UnguardedBindings => rctx.state.unguardedTypeDependencies
-      case DependencyMode.ReadableBindings => rctx.state.readableTypeDependencies
-      case _ => rctx.state.typeDependencies
+    val bindingCache = if unguardedOnly then rctx.state.unguardedTypeDependencies else rctx.state.typeDependencies
     def cached(res: TypeResolution)(using ResolutionContext): Opt[Binders] =
       if throughReferences then rctx.state.typeInstanceDependencies.get(res)
       else bindingCache.get(res).map(S(_))
@@ -361,18 +358,20 @@ class NewResolver:
               edges ::= child -> hidden
               visit(child)
             def child(res: TypeResolution): Unit = edge(res, Set.empty)
-            // Guardedness checks the children but stops their dependencies at a constructor.
+            // All modes discover the whole source graph. Guardedness alone
+            // stops propagating dependencies across a structural constructor.
             def guardedChild(res: TypeResolution): Unit = if unguardedOnly then visit(res) else child(res)
             // Binding endpoints can share whole subgraphs. Source-node visitation
             // alone does not stop the recursive walk through their binding maps.
             // Keep this set per source node: each node needs its own dependency edges.
             val references = mutable.Set.empty[DeclaredType]
             def reference(tpe: DeclaredType): Unit = if references.add(tpe) then
-              if throughReferences || readsOnly then child(tpe.resolution) else visit(tpe.resolution)
               if throughReferences then
+                child(tpe.resolution)
                 // Reading through the instances the reference already retains
                 // reads the templates written at their sites (see closure).
                 direct = tpe.instances.values.foldLeft(direct)((acc, instance) => union(acc, instance.siteBinders))
+              else visit(tpe.resolution)
               tpe.bindings.values.foreach(argument => { reference(argument.input); reference(argument.output) })
             shapes.foreach:
               case TypeShape.Parameter(symbol = symbol) => symbol match
@@ -386,7 +385,7 @@ class NewResolver:
                 // An unrecorded declaration (reported by lexicalBinders) has an
                 // unknown scope. Binding dependencies must stay finite: they then
                 // omit the enclosing binders, which may drop a needed binding.
-                if !unguardedOnly && !readsOnly then
+                if !unguardedOnly then
                   direct = union(direct, lexicalBinders(defn.sym).orElse(if throughReferences then N else S(Set.empty)))
                 if throughReferences && omitsArguments(res, defn.tparams.length) then direct = union(direct, useScope(res))
               case TypeShape.Alias(symbol, rhs) =>
@@ -410,31 +409,26 @@ class NewResolver:
                     args.zipWithIndex.foreach: (arg, index) =>
                       formals.lift(index) match
                         case S(formal) =>
-                          def use(part: TypeResolution): Unit =
+                          arg.foreachType: part =>
                             visit(part)
                             argumentUses(res) = (rhs, formal.sym, part) :: argumentUses.getOrElse(res, Nil)
-                          if readsOnly then readableAliasArgument(formal, arg).foreach(use) else arg.foreachType(use)
                         case N => arg.foreachType(child)
-                  case _ if readsOnly => args.foreach(_.readType.foreach(child))
                   case S(TypeShape.Nominal(_)) => args.foreach(_.foreachType(guardedChild))
                   // An abstract constructor could forward an argument unchanged.
                   case _ => args.foreach(_.foreachType(child))
               case TypeShape.Tuple(fields) => fields.foreach: field =>
                 if field.spread then child(field.tpe) else guardedChild(field.tpe)
-              case TypeShape.Record(_, fields) => fields.foreach: (_, field) =>
-                if readsOnly then field.readType.foreach(child) else field.foreachType(guardedChild)
-              case TypeShape.Function(params, result) =>
-                if !readsOnly then guardedChild(typeResolution(params))
-                guardedChild(result)
+              case TypeShape.Record(_, fields) => fields.foreach((_, field) => field.foreachType(guardedChild))
+              case TypeShape.Function(params, result) => guardedChild(typeResolution(params)); guardedChild(result)
               case TypeShape.Polymorphic(params, _, body) =>
                 val bound = params.map(_.parameter.symbol).toSet
-                if !readsOnly then params.foreach: param =>
+                params.foreach: param =>
                   param.lower.foreach(edge(_, bound))
                   param.upper.foreach(edge(_, bound))
                 edge(body, bound)
               case TypeShape.Union(left, right) => child(left); child(right)
               case TypeShape.Intersection(left, right) => child(left); child(right)
-              case TypeShape.Negation(base) => if !readsOnly then child(base)
+              case TypeShape.Negation(base) => child(base)
               // These synthesized nodes retain their own interpreted references
               // or inference hosts; none reads the surrounding binding map.
               case TypeShape.Combined(formula) => formula.orderedAtoms.foreach(reference)
@@ -938,10 +932,15 @@ class NewResolver:
     case _ => N
 
   /** Visit the inference holes introduced by missing arguments at this written type use. */
-  private[semantics] def foreachOmittedArgument(use: TypeResolution, params: Ls[TyParam])
-      (visit: (TyParam, DeclaredType) => Unit)(using ResolutionContext): Unit = if params.nonEmpty then
-    val supplied = rctx.appliedTypeArgumentsOf(use.source.withoutCaptures).getOrElse(0)
-    params.drop(supplied).foreach(param => visit(param, omittedType(use, param.sym)))
+  private[semantics] def foreachOmittedArgument(use: TypeResolution, shape: TypeShape)
+      (visit: (TyParam, DeclaredType) => Unit)(using ResolutionContext): Unit =
+    val params = shape match
+      case TypeShape.Nominal(cls) => cls.tparams
+      case TypeShape.Alias(symbol, _) => symbol.defn.map(_.tparams).getOrElse(Nil)
+      case _ => Nil
+    if params.nonEmpty then
+      val supplied = rctx.appliedTypeArgumentsOf(use.source.withoutCaptures).getOrElse(0)
+      params.drop(supplied).foreach(param => visit(param, omittedType(use, param.sym)))
 
   private def omittedArgument(source: DeclaredType, parameter: TyParam)(using ResolutionContext): TypeArgument =
     TypeArgument.invariant(omittedType(source.resolution, parameter.sym).instantiate(source.instances))
@@ -979,33 +978,16 @@ class NewResolver:
     effectiveBindings(source) ++ parameters.lazyZip(variantArguments(source, arguments, parameters, positive)).map: (parameter, bound) =>
       parameter.sym -> (if positive then bound else bound.swap)
 
-  private def readableAliasArgument(param: TyParam, arg: TypeArgumentResolution): Opt[TypeResolution] = arg match
-    case TypeArgumentResolution.Type(_) if param.vce.contains(false) => N
-    case _ => arg.readType
-
-  /** The formals observable by reading a value of an alias type. An external callback can
-    * supply values through its result. Its caller already provides the arguments. */
-  private def withReadableBindings(body: TypeResolution)(use: ShapeListener[Set[VarSymbol]])(using ResolutionContext): Unit =
-    // The ordinary dependency query waits for every forward reference in the written graph.
-    withTypeDependencies(body): _ =>
-      dependencies(body, DependencyMode.ReadableBindings) match
-        case R(S(binders)) => use(binders)
-        case _ => lastWords("Readable bindings are finite once all type dependencies have resolved")
-
-  /** Visit the components whose values a declared interface can carry, with the scope path
-    * from each component to its enclosing use. Existing bindings can supply an actual type.
-    * An alias application contributes the written arguments and the declaration separately,
-    * so recursive fields never construct new substitutions while discovering exposure.
-    * Include input positions to discover every type named by a result. Checking what an
-    * incoming value can supply only needs the components observable on reads.
+  /** Visit the immediate components of a declared type in their scopes. These include
+    * explicit arguments, inferred arguments, and any actual type already bound to a formal.
+    * Visiting an alias's arguments and body separately keeps recursive types finite.
     */
-  private[semantics] def foreachInterfaceComponent(tpe: DeclaredType, shape: TypeShape, includeInputs: Bool)
+  private[semantics] def foreachInterfaceComponent(tpe: DeclaredType, shape: TypeShape)
       (visit: (DeclaredType, Ls[Marks]) => Unit)(using ResolutionContext): Unit =
+    foreachOmittedArgument(tpe.resolution, shape)((_, hole) => visit(hole.instantiate(tpe.instances), Nil))
     // declaredType normalizes alias applications. Keep a reference to the written occurrence.
-    def child(res: TypeResolution): Unit =
-      visit(DeclaredType(res, tpe.bindings, tpe.instances, tpe.positive)(tpe.origin), Nil)
-    def argument(arg: TypeArgumentResolution): Unit =
-      if includeInputs then arg.foreachType(child) else arg.readType.foreach(child)
+    def children(outer: DeclaredType): Unit = foreachTypeComponent(shape): res =>
+      visit(DeclaredType(res, outer.bindings, outer.instances, outer.positive)(outer.origin), Nil)
     shape match
       case ref: TypeShape.Reference =>
         visit(DeclaredType(ref.base, tpe.bindings ++ ref.bindings,
@@ -1014,30 +996,9 @@ class NewResolver:
       case TypeShape.Combined(formula) => formula.orderedAtoms.foreach(atom => visit(atom.instantiate(tpe.instances), Nil))
       case TypeShape.Parameter(symbol = sym) =>
         tpe.bindings.get(sym).foreach(arg => visit(arg.instantiate(tpe.instances).at(tpe.positive), Nil))
-      case TypeShape.Alias(symbol, rhs) =>
-        rhs.foreach: body =>
-          val outer = tpe.withoutBinders(symbol.defn.toList.flatMap(_.tparams.map(_.sym)))
-          visit(DeclaredType(body, outer.bindings, outer.instances, outer.positive)(outer.origin), Nil)
-      case TypeShape.Applied(base, args) =>
-        child(base)
-        if includeInputs then args.foreach(argument) else typeApplicationTarget(base) match
-          case S(TypeShape.Alias(symbol, S(rhs))) =>
-            withReadableBindings(rhs): binders =>
-              // Partially applied aliases have a written argument only for the leading formals.
-              symbol.defn.get.tparams.iterator.zip(args.iterator).foreach: (param, arg) =>
-                if binders(param.sym) then readableAliasArgument(param, arg).foreach(child)
-          case _ => args.foreach(argument)
-      case TypeShape.Function(domain, result) =>
-        if includeInputs then child(typeResolution(domain))
-        child(result)
-      case TypeShape.Record(_, fields) => fields.foreach((_, field) => argument(field))
-      case TypeShape.Tuple(fields) => fields.foreach(field => child(field.tpe))
-      case TypeShape.Polymorphic(params, _, body) =>
-        val outer = tpe.withoutBinders(params.map(_.parameter.symbol))
-        visit(DeclaredType(body, outer.bindings, outer.instances, outer.positive)(outer.origin), Nil)
-      case TypeShape.Union(left, right) => child(left); child(right)
-      case TypeShape.Intersection(left, right) => child(left); child(right)
-      case _ => ()
+      case TypeShape.Alias(symbol, _) => children(tpe.withoutBinders(symbol.defn.toList.flatMap(_.tparams.map(_.sym))))
+      case TypeShape.Polymorphic(params = params) => children(tpe.withoutBinders(params.map(_.parameter.symbol)))
+      case _ => children(tpe)
 
   /** External inputs contribute unknowns only to missing annotation parts.
     * A written binder still denotes its declared type, including after a partial
@@ -1059,19 +1020,10 @@ class NewResolver:
     def visit(child: DeclaredType, context: Ls[Marks])(using ResolutionContext): Unit = input.enter(context) match
       case value: TermShape => visitInputHoles(child, value, marks, comparison)(receive)
       case NoShape => ()
-    def omitted(params: Ls[TyParam])(using ResolutionContext): Unit =
-      foreachOmittedArgument(tpe.resolution, params)((_, hole) => visit(hole, Nil))
     tpe.listen: shape =>
       shape match
         case TypeShape.Hole(host) => receive(host, input)
-        case TypeShape.Nominal(cls) => omitted(cls.tparams)
-        case TypeShape.Alias(symbol, S(rhs)) => symbol.defn.foreach: alias =>
-          foreachOmittedArgument(tpe.resolution, alias.tparams): (param, hole) =>
-            if !param.vce.contains(false) then withReadableBindings(rhs): binders =>
-              if binders(param.sym) then visit(hole, Nil)
-        case TypeShape.Alias(symbol, N) => symbol.defn.foreach(d => omitted(d.tparams))
-        case _ => ()
-      foreachInterfaceComponent(tpe, shape, includeInputs = false)(visit)
+        case _ => foreachInterfaceComponent(tpe, shape)(visit)
 
   private def abstractTypes(using rs: ResolutionContext) = rs.state.abstractTypes
   // Narrowing a nominal receiver by projection does not infer the narrower
@@ -2302,7 +2254,7 @@ class NewResolver:
     state.resultExposure(td.tsym) = Right(path)
     memberSignature(td) match
       case S(sign) =>
-        // An override can give an unannotated base result a written interface of its own.
+        // An override may declare a result type even when its base leaves the result unannotated.
         listenSignatureResult(td, declaredType(typeResolution(sign), Map.empty)): result =>
           rctx.exposeValue(instanceShape(result), path)
       case N =>

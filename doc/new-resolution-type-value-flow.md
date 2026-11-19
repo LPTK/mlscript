@@ -564,10 +564,11 @@ expanding its alias reuses it. Declaration variance applies to omitted arguments
 and excess arguments are rejected, including in unused annotations. An empty hole
 waits for evidence instead of immediately publishing an unknown candidate.
 
-Written fragments continue to restrict the interface. Abstract types remain
-`TypeShape.Abstract`; variance extremes are not holes. Interface exposure adds
-unknown values to genuinely missing external inputs, including callback results.
-Those unknown candidates remain alongside any local evidence.
+Written fragments continue to restrict the interface. Abstract types keep their
+`TypeShape.Abstract` representation, and the extreme bounds supplied by variance stay fixed. Every
+omitted generic argument in an exposed signature admits an unknown value alongside
+any local evidence. This rule applies in callback parameters and results and in
+arguments to type aliases, including arguments the alias body never uses.
 
 Current limitations are [omitted-argument context precision](new-resolution-future-work.md#omitted-argument-contexts)
 and [missing selected member types](new-resolution-future-work.md#inferred-member-signatures).

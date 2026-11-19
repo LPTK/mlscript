@@ -223,8 +223,6 @@ final class NewResolverState(val owner: Elaborator.State):
     new Cache(_.lexicalBoundaries, identity)
   val typeDependencies: Cache[TypeResolution, Set[VarSymbol]] =
     new Cache(_.typeDependencies, identity)
-  val readableTypeDependencies: Cache[TypeResolution, Set[VarSymbol]] =
-    new Cache(_.readableTypeDependencies, identity)
   // Like typeDependencies, but following the references of synthesized nodes;
   // N when not fixed by the source graph (see NewResolver.instanceDependencies).
   val typeInstanceDependencies: Cache[TypeResolution, Opt[Set[VarSymbol]]] =

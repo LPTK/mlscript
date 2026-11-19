@@ -53,19 +53,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
   // Keyed by ShapeIdentity.key, like inference hosts' candidates.
   private val exposed = mutable.Set.empty[ShapeIdentity.Key]
   private val sources = mutable.Map.empty[BlockMemberSymbol, MemberRef]
-  private enum Position:
-    case Read, Write, Named
-    def reverse: Position = this match
-      case Read => Write
-      case Write => Read
-      case Named => Named
-  import Position.*
-  private val annotations = mutable.Set.empty[(TypeResolution, Position, Position)]
-  // A formal's position in an alias body determines which caller-supplied bound it uses.
-  // Input and result uses of the same alias must apply this information to their own arguments.
-  private case class AliasPosition(parameter: VarSymbol, entry: Position, occurrence: Position)
-  private val aliasArguments = mutable.Map.empty[AliasPosition, mutable.Set[(TypeResolution, Position)]]
-  private val reachedFormals = mutable.Map.empty[AliasPosition, Path]
+  private val exposedTypes = mutable.Set.empty[TypeResolution]
   // A class contributes its declarations once. A method that escapes separately can still expose
   // just its remaining parameter lists until the whole declaration is reached.
   private val admitted = mutable.Set.empty[ClassLikeDefSymbol | TermSymbol]
@@ -103,89 +91,36 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
     rctx.recordLexicalBinders(ref, Set.empty)
     ref
 
-  /** Expose the operations of every type named by a written interface. An omitted type
-    * argument also admits external values wherever a client can supply it. Follow alias
-    * formals on the finite source graph so nested applications and recursive interfaces
-    * can discover those positions without constructing new substitutions.
-    */
-  private def writtenType(res: TypeResolution, path: Path, position: Position, aliasEntry: Position)(using ResolutionContext): Unit =
-    if !annotations.add((res, position, aliasEntry)) then return
-    def visit(child: TypeResolution, at: Path, next: Position): Unit = writtenType(child, at, next, aliasEntry)
-    def bind(param: TyParam, argument: TypeArgumentResolution): Unit = if position != Named then
-      def connect(bound: TypeResolution, occurrence: Position): Unit =
-        val key = AliasPosition(param.sym, position, occurrence)
-        if aliasArguments.getOrElseUpdate(key, mutable.Set.empty).add(bound -> aliasEntry) then
-          reachedFormals.get(key).foreach(visit(bound, _, occurrence))
-      argument match
-        case TypeArgumentResolution.Type(tpe) =>
-          if !param.vce.contains(false) then connect(tpe, position)
-          if !param.vce.contains(true) then connect(tpe, position.reverse)
-        case TypeArgumentResolution.Wildcard(_, input, output) =>
-          input.foreach(connect(_, position.reverse))
-          output.foreach(connect(_, position))
-    def omitted(parameters: Ls[TyParam], alias: Bool): Unit =
-      resolver.foreachOmittedArgument(res, parameters): (param, hole) =>
-        if alias then bind(param, TypeArgumentResolution.Type(hole.resolution))
-        else if position == Write then
-          val unknown = UnknownValueShape(res.source, fromPublicInterface = true)(path)
-          resolver.exposeTypeHoles(hole, unknown, Nil)
-        // A bare or partially applied type can carry an inferred value such as a stored closure.
-        emit(resolver.instanceShape(hole), path.via(
-          msg"Type argument '${param.sym.nme}' is inferred here." -> res.source.toLoc))
+  /** Expose the public operations of every class named in an exported signature or a type
+    * reachable from it. An omitted type argument admits unknown external values at any position. */
+  private def exposeType(res: TypeResolution, path: Path)(using ResolutionContext): Unit = if exposedTypes.add(res) then
     detach += res.inferenceHost.observe: shape =>
-      work.enqueue(() => shape match
-        case TypeShape.Nominal(cls) =>
-          members(cls, N, path)
-          omitted(cls.tparams, alias = false)
-        case TypeShape.Alias(symbol, rhs) =>
-          symbol.defn.foreach(d => omitted(d.tparams, alias = rhs.nonEmpty))
-          rhs.foreach(writtenType(_, path, position, aliasEntry = position))
-        case TypeShape.Applied(base, args) =>
-          visit(base, path, position)
-          val argumentPosition = resolver.typeApplicationTarget(base) match
-            case S(TypeShape.Alias(symbol, S(_))) =>
-              // Partial applications have no written argument for the remaining parameters.
-              symbol.defn.foreach(_.tparams.iterator.zip(args.iterator).foreach(bind))
-              // Every written argument names an interface, even when the alias never uses it.
-              // The alias body determines which of those arguments can receive external values.
-              Named
-            case _ => position
-          args.foreach(_.foreachType(arg => visit(arg, path.via(
-            msg"This type argument appears in an exposed annotation." -> arg.source.toLoc), argumentPosition)))
-        case TypeShape.Parameter(symbol = sym) if position != Named =>
-          val key = AliasPosition(sym, aliasEntry, position)
-          if !reachedFormals.contains(key) then
-            reachedFormals(key) = path
-            aliasArguments.get(key).foreach(_.foreach((arg, outer) => writtenType(arg, path, position, outer)))
-        case TypeShape.Hole(host) if position == Write =>
-          host.publish(UnknownValueShape(res.source, fromPublicInterface = true)(path))
-        case TypeShape.Function(params, result) =>
-          val domain = resolver.typeResolution(params)
-          visit(domain, path, position.reverse)
-          visit(result, path, position)
-        case TypeShape.Record(record, fields) => fields.foreach: (field, argument) =>
-          val at = path.via(msg"Field '${field.sym.nme}' is accessible here." -> field.toLoc)
-          argument match
-            case TypeArgumentResolution.Type(tpe) =>
-              visit(tpe, at, position)
-              if record.mut then visit(tpe, at, position.reverse)
-            case TypeArgumentResolution.Wildcard(_, input, output) =>
-              input.foreach(visit(_, at, position.reverse))
-              output.foreach(visit(_, at, position))
-        case _ => resolver.foreachTypeComponent(shape)(visit(_, path, position)))
+      work.enqueue: () =>
+        resolver.foreachOmittedArgument(res, shape): (param, hole) =>
+          resolver.exposeTypeHoles(hole, UnknownValueShape(res.source, fromPublicInterface = true)(path), Nil)
+          // The omitted argument may also carry an inferred value, such as a stored callback.
+          emit(resolver.instanceShape(hole), path.via(
+            msg"Type argument '${param.sym.nme}' is inferred here." -> res.source.toLoc))
+        shape match
+          case TypeShape.Nominal(cls) => members(cls, N, path)
+          case TypeShape.Applied(base, args) =>
+            exposeType(base, path)
+            args.foreach(_.foreachType(arg => exposeType(arg, path.via(
+              msg"This type argument appears in an exposed annotation." -> arg.source.toLoc))))
+          case TypeShape.Record(_, fields) => fields.foreach: (field, arg) =>
+            val at = path.via(msg"Field '${field.sym.nme}' is accessible here." -> field.toLoc)
+            arg.foreachType(exposeType(_, at))
+          case _ => resolver.foreachTypeComponent(shape)(exposeType(_, path))
 
-  private def annotation(sign: Term, path: Path, position: Position)(using ResolutionContext): Unit =
-    writtenType(resolver.typeResolution(sign), path, position, aliasEntry = position)
+  private def annotation(sign: Term, path: Path)(using ResolutionContext): Unit =
+    exposeType(resolver.typeResolution(sign), path)
 
   private def signature(td: TermDefinition, path: Path)(using ResolutionContext): Unit =
-    resolver.writtenSignature(td).foreach: sign =>
-      annotation(sign, path, Read)
-      // Clients can replace the contents of a mutable field, including any omitted type arguments.
-      if td.k is syntax.MutVal then annotation(sign, path, Write)
-    td.params.foreach(_.allParams.foreach(_.sign.foreach(annotation(_, path, Write))))
+    resolver.writtenSignature(td).foreach(annotation(_, path))
+    td.params.foreach(_.allParams.foreach(_.sign.foreach(annotation(_, path))))
 
   private def alias(symbol: BlockMemberSymbol, path: Path)(using ResolutionContext): Unit =
-    symbol.asAls.flatMap(_.defn).filter(InterfaceExposure.isPublic).foreach(_.rhs.foreach(annotation(_, path, Read)))
+    symbol.asAls.flatMap(_.defn).filter(InterfaceExposure.isPublic).foreach(_.rhs.foreach(annotation(_, path)))
 
   private def member(symbol: BlockMemberSymbol, marks: Ls[Marks], path: Path)(using ResolutionContext): Unit =
     alias(symbol, path)
@@ -215,7 +150,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
 
   private def parameter(param: Param, rest: Bool, marks: Ls[Marks], path: Path, method: Opt[TermDefinition])(using ResolutionContext): Unit =
     if !rctx.state.isOwnedSym(param.sym) then return
-    param.sign.foreach(annotation(_, path, Write))
+    param.sign.foreach(annotation(_, path))
     // An inherited signature can arrive after this walk. Its listener only needs the resolver.
     val resolver = this.resolver
     val (unknown, input) = externalArguments.getOrElseUpdate(param.sym,
@@ -289,7 +224,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
       val inherited = path.via(msg"This parent contributes inherited members." -> parent.toLoc)
       receiver match
         case S(marks) => term(parent, marks, inherited)
-        case N => annotation(parent.cls, inherited, Read)(using declarationContext)
+        case N => annotation(parent.cls, inherited)(using declarationContext)
 
   /** Other compilation units can assign values of unknown shape to an exposed assignable field, which admits them
     * like an exposed parameter admits unknown arguments: the field's unannotated representation then includes the
@@ -317,31 +252,32 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
 
   private def value(shape: TermShape, path: Path)(using ResolutionContext): Unit = valueIn(shape, path, rctx.instances)
 
-  /** Follow the arguments and inferred values already carried by an escaping type. A generic
-    * call can return `Box[T]` with a concrete value for T even though its source only names T.
-    * Read that value in the call's scope. Visiting written children never instantiates a class
-    * or an alias body with the arguments of the caller.
+  /** Expose the types and values carried by an escaping value. A local ascription such as
+    * `Box(item) as Box` contributes the contents inferred for that box. A generic call that
+    * returns `Box[T]` contributes the type supplied for T at that call.
     */
   private def declaredValue(tpe: DeclaredType, marks: Ls[Marks], path: Path)(using ResolutionContext): Unit =
-    writtenType(tpe.resolution, path, Read, aliasEntry = Read)
     def bound(part: DeclaredType, context: Ls[Marks])(using ResolutionContext): Unit =
       emit(resolver.instanceShape(part).exit(context), path)
     def candidate(value: TermShape)(using ResolutionContext): Unit =
       emit(resolver.instantiateShape(value, tpe.instances).exit(marks), path)
     detach += tpe.resolution.inferenceHost.observe: shape =>
-      work.enqueue(() => shape match
-        case parameter: TypeShape.Parameter if !tpe.bindings.contains(parameter.symbol) =>
-          // Written formals stay abstract until a call supplies an instance. Synthesized
-          // element hosts can also read the original binder with an allocation-specific
-          // scope path, as a mutable array literal does for the values stored in it.
-          val target = tpe.instances.get(parameter.symbol).map(rctx.typeParameter).orElse:
-            Option.when(parameter.symbol.isInstanceOf[TypeParameterInstance] ||
-              rctx.templateBindersOf(tpe.resolution).nonEmpty)(parameter)
-          target.foreach: actual =>
-            watch((tpe, marks, "type argument"))(resolver.listenTypeParameterValues(actual))(candidate)
-        case TypeShape.Hole(host) => watch((tpe, marks, "inferred argument"))(host.subscribe(_))(candidate)
-        case TypeShape.Inferred(value) => candidate(value)
-        case _ => resolver.foreachInterfaceComponent(tpe, shape, includeInputs = true)((part, inner) => bound(part, inner ::: marks)))
+      work.enqueue: () =>
+        shape match
+          case TypeShape.Nominal(cls) => members(cls, N, path)
+          case parameter: TypeShape.Parameter if !tpe.bindings.contains(parameter.symbol) =>
+            // Written formals stay abstract until a call supplies an instance. Synthesized
+            // element hosts can also read the original binder with an allocation-specific
+            // scope path, as a mutable array literal does for the values stored in it.
+            val target = tpe.instances.get(parameter.symbol).map(rctx.typeParameter).orElse:
+              Option.when(parameter.symbol.isInstanceOf[TypeParameterInstance] ||
+                rctx.templateBindersOf(tpe.resolution).nonEmpty)(parameter)
+            target.foreach: actual =>
+              watch((tpe, marks, "type argument"))(resolver.listenTypeParameterValues(actual))(candidate)
+          case TypeShape.Hole(host) => watch((tpe, marks, "inferred argument"))(host.subscribe(_))(candidate)
+          case TypeShape.Inferred(value) => candidate(value)
+          case _ => ()
+        resolver.foreachInterfaceComponent(tpe, shape)((part, inner) => bound(part, inner ::: marks))
 
   private def valueIn(shape: TermShape, path: Path, instances: TypeSubstitution)(using ResolutionContext): Unit =
     val (head, marks) = shape.applicationHead
@@ -439,8 +375,8 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
           signature(td, path)
           if Inheritance.isOpen(td) && !admitted(td.tsym) then
             parameters(origin.remaining.map(_ -> marks), path, S(td))
-        // Written structure constrains external values; missing output parts
-        // still admit unknown shapes even when local callers supplied evidence.
+        // A callable can carry type arguments fixed by an earlier application.
+        // Its remaining parameters can receive external values for any omitted arguments.
         val unknown = UnknownValueShape(callable.source, fromPublicInterface = true)(path)
         callable.paramLists.foreach: params =>
           params.allParams.flatMap(_.tpe).foreach: input =>

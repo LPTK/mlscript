@@ -404,9 +404,6 @@ new InferredPayload().read({key: 2})
 //│ ╟── Member 'read' is accessible here.
 //│ ║  l.+2: 	  fun read(x) = x.key
 //│ ║        	  ^^^^^^^^^^^
-//│ ╟── This type argument appears in an exposed annotation.
-//│ ║  l.+3: 	private fun hiddenFactory(): Phantom[InferredPayload] = new Phantom[InferredPayload]
-//│ ║        	                                     ^^^^^^^^^^^^^^^
 //│ ╟── This value is returned here.
 //│ ║  l.+4: 	fun inferredFactory() = hiddenFactory()
 //│ ║        	                        ^^^^^^^^^^^^^^^
@@ -505,9 +502,9 @@ readAliasBox(Box(Argument("local")))
 //│ ║  l.+2: 	private fun readAliasBox(box: Box) = box.contents.word
 //│ ║        	                                     ^^^^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'word' of a value with unknown shape.
-//│ ╟── Field 'read' is accessible here.
-//│ ║  l.+1: 	private type ReaderOf[A] = {read: A -> Str}
-//│ ║        	                            ^^^^^^^^^^^^^^
+//│ ╟── This type argument appears in an exposed annotation.
+//│ ║  l.+3: 	fun aliasReader(dummy): ReaderOf[Box] = {read: readAliasBox}
+//│ ║        	                                 ^^^
 //│ ╟── 'aliasReader' is exposed by this compilation unit.
 //│ ║  l.+3: 	fun aliasReader(dummy): ReaderOf[Box] = {read: readAliasBox}
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -651,37 +648,97 @@ fun boxHolder(): BoxHolder = new mut BoxHolder
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
-// An argument of the input use of Id cannot reach the omitted type in the result use.
+// The public and private uses of Id[Box] have separate omitted arguments.
 :expect "local"
 private type Id[T] = T
-fun takeId(value: Id[Int]) = 0
-fun produceBox(): Id[Box] = Box(Argument("local"))
+fun takeId(value: Id[Box]) = 0
+private fun produceBox(): Id[Box] = Box(Argument("local"))
 produceBox().contents.word
 //│ = "local"
 
 
+// A public result admits unknown contents even when its body always constructs the same box.
+:e
+fun publicWordBox(): Id[Box] = Box(Argument("local"))
+publicWordBox().contents.word
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+2: 	publicWordBox().contents.word
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'word' of a value with unknown shape.
+//│ ╟── This type argument appears in an exposed annotation.
+//│ ║  l.+1: 	fun publicWordBox(): Id[Box] = Box(Argument("local"))
+//│ ║        	                        ^^^
+//│ ╟── 'publicWordBox' is exposed by this compilation unit.
+//│ ║  l.+1: 	fun publicWordBox(): Id[Box] = Box(Argument("local"))
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
+private type Reader[T] = T -> Str
+
 // An external caller supplies the omitted argument of the alias through the callback's domain.
 :e
-private type Reader[T] = T -> Str
 private fun readWord(x) = x.word
 fun readerWithInferredDomain(): Reader = readWord
 readerWithInferredDomain()(Argument("local"))
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.+2: 	private fun readWord(x) = x.word
+//│ ║  l.+1: 	private fun readWord(x) = x.word
 //│ ║        	                          ^^^^^^
 //│ ╟── Cannot resolve member 'word' of a value with unknown shape.
 //│ ╟── 'readerWithInferredDomain' is exposed by this compilation unit.
-//│ ║  l.+3: 	fun readerWithInferredDomain(): Reader = readWord
+//│ ║  l.+2: 	fun readerWithInferredDomain(): Reader = readWord
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
-// The implementation supplies the callback argument whether the callback arrives directly or in a box.
-:expect ["direct", "aliased", "stored"]
-private type Consumer[T] = T -> Str
-fun invokeDirect(read: Box -> Str) = read(Box(Argument("direct")))
-fun invokeAlias(read: Consumer[Box]) = read(Box(Argument("aliased")))
-fun invokeStored(holder: Box[Consumer[Box]]) = holder.contents(Box(Argument("stored")))
-private fun readArgument(box) = box.contents.word
-[invokeDirect(readArgument), invokeAlias(readArgument), invokeStored(Box(readArgument))]
-//│ = ["direct", "aliased", "stored"]
+// Reader[Box] in a parameter exposes Box even when this function supplies the callback argument.
+:e
+fun invoke(read: Reader[Box]) = read(Box(Argument("local")))
+invoke(box => box.contents.word)
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+2: 	invoke(box => box.contents.word)
+//│ ║        	              ^^^^^^^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'word' of a value with unknown shape.
+//│ ╟── Parameter 'read' admits values of unknown shape.
+//│ ║  l.+1: 	fun invoke(read: Reader[Box]) = read(Box(Argument("local")))
+//│ ║        	           ^^^^^^^^^^^^^^^^^
+//│ ╟── 'invoke' is exposed by this compilation unit.
+//│ ║  l.+1: 	fun invoke(read: Reader[Box]) = read(Box(Argument("local")))
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── This type argument appears in an exposed annotation.
+//│ ║  l.+1: 	fun invoke(read: Reader[Box]) = read(Box(Argument("local")))
+//│ ╙──      	                        ^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
+// Specifying the contents gives the callback access to Argument.word.
+:expect "typed"
+fun invokeTyped(read: Reader[Box[Argument]]) = read(Box(Argument("typed")))
+invokeTyped(box => box.contents.word)
+//│ = "typed"
+
+
+// The argument still exposes its class when expanding the alias would erase its name.
+:e
+private type Ignore[T] = Int
+private class IgnoredArgument with
+  fun read(x) = x.key
+fun count(x: Ignore[IgnoredArgument]) = x
+new IgnoredArgument().read({key: 1})
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+3: 	  fun read(x) = x.key
+//│ ║        	                ^^^^^
+//│ ╟── Cannot resolve member 'key' of a value with unknown shape.
+//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ║  l.+3: 	  fun read(x) = x.key
+//│ ║        	           ^
+//│ ╟── Member 'read' is accessible here.
+//│ ║  l.+3: 	  fun read(x) = x.key
+//│ ║        	  ^^^^^^^^^^^
+//│ ╟── This type argument appears in an exposed annotation.
+//│ ║  l.+4: 	fun count(x: Ignore[IgnoredArgument]) = x
+//│ ║        	                    ^^^^^^^^^^^^^^^
+//│ ╟── 'count' is exposed by this compilation unit.
+//│ ║  l.+4: 	fun count(x: Ignore[IgnoredArgument]) = x
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.

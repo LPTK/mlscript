@@ -181,7 +181,7 @@ fun t(kind, props) =
   else
     (...children) => (args) =>
       output of args.'i, kind + " " + showProps(args.'x, args.'y, props) + " with"
-      children Iter.each of child => child of
+      children Iter.each of (child: {x: Num, y: Num, i: Int} -> ()) => child of
         x: args.'x + props.'x
         y: args.'y + props.'y
         i: args.'i + 1

@@ -1692,7 +1692,11 @@ including inherited methods and writes to mutable fields. For example,
 `fun make(): Cell` exposes those operations on `Cell`. Both `Box[Cell]` and
 `Phantom[Cell]` expose `Cell`, even if `Phantom` never uses its type parameter.
 The same rule follows type aliases and the parameter and result types of functions.
-An omitted type argument can expose an inferred value. For example, if the body of
+For example, when `Reader[T] = T -> Str` and `Box[T]` is generic, `Reader[Box]`
+exposes `Box` and admits unknown values for its contents wherever it occurs in
+an exposed signature. Writing `Reader[Box[Item]]` specifies the contents.
+In a local expression such as `Box(item) as Box`, the contents are inferred from `item`.
+An omitted type argument can also expose an inferred value. For example, if the body of
 `fun callbacks(): Box` supplies a function as the box's contents, that function
 must also accept external calls.
 

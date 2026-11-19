@@ -97,7 +97,7 @@ box.item.value
 class First(val first: Int)
 class Second(val second: Int)
 class Box[T](val item: T)
-type SomeBox = Box
+private type SomeBox = Box
 private fun both(left: SomeBox, right: SomeBox) = [left.item.first, right.item.second]
 both(Box(First(11)), Box(Second(12)))
 //│ ╔══[COMPILATION ERROR] Resolution error in selection

@@ -715,12 +715,9 @@ fun omittedAlias(x: HalfPair) = x.value.1.oops
 //│ ║  l.+2: 	fun omittedAlias(x: HalfPair) = x.value.1.oops
 //│ ║        	                                ^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'oops' of a value with unknown shape.
-//│ ╟── Parameter 'x' admits values of unknown shape.
-//│ ║  l.+2: 	fun omittedAlias(x: HalfPair) = x.value.1.oops
-//│ ║        	                 ^^^^^^^^^^^
 //│ ╟── 'omittedAlias' is exposed by this compilation unit.
 //│ ║  l.+2: 	fun omittedAlias(x: HalfPair) = x.value.1.oops
 //│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── This type argument appears in an exposed annotation.
-//│ ║  l.+1: 	type HalfPair[T] = Pair[Int, T]
-//│ ╙──      	                             ^
+//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ║  l.+2: 	fun omittedAlias(x: HalfPair) = x.value.1.oops
+//│ ╙──      	                 ^^^^^^^^^^^

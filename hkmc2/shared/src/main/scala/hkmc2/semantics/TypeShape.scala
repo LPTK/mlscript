@@ -471,11 +471,6 @@ enum TypeArgumentResolution:
     case Type(resolution) => resolution.source
     case Wildcard(tree, _, _) => tree
 
-  /** The written type observed on reads. An input-only bound supplies no output type to traverse. */
-  def readType: Opt[TypeResolution] = this match
-    case Type(resolution) => S(resolution)
-    case Wildcard(_, _, output) => output
-
   def foreachType(f: TypeResolution => Unit): Unit = this match
     case Type(resolution) => f(resolution)
     case Wildcard(_, input, output) => input.foreach(f); output.foreach(f)
