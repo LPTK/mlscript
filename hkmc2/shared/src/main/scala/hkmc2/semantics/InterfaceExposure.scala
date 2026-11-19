@@ -209,8 +209,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
   private def members(cls: ClassLikeDef, receiver: Opt[Ls[Marks]], path: Path)(using ResolutionContext): Unit =
     if !rctx.state.isOwnedSym(cls.sym) then return
     val first = admitted.add(cls.sym)
-    if !first && receiver.isEmpty then return
-    cls.body.blk.stats.foreach:
+    if first || receiver.nonEmpty then cls.body.blk.stats.foreach:
       case d: Definition if InterfaceExposure.isPublic(d) =>
         val memberPath = path.via(msg"Member '${d.bsym.nme}' is accessible here." -> d.headerLoc)
         d match
@@ -229,6 +228,10 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
       val inherited = path.via(msg"This parent contributes inherited members." -> parent.toLoc)
       receiver match
         case S(marks) => term(parent, marks, inherited)
+        // A class named in an annotation exposes its parent clause even if one of its instances
+        // escaped first: `exposeType` visits the clause once. A class that only escapes by value
+        // does not expose the clause as a type, because its parent can be a class value, as in
+        // `class Derived extends storedClass(1)`, which no type denotes.
         case N => annotation(parent.cls, inherited)(using declarationContext)
 
   /** Record the writes other units may make through this field. An unannotated field uses them

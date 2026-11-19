@@ -353,6 +353,59 @@ sharedSink.accept(Box(Argument("local")))
 //│ sharedSink = Sink(_)
 
 
+// The parent clause of a class named in an exposed annotation supplies the type of the parameter
+// of the inherited method. An instance of the class can escape by value before the annotation is reached.
+:e
+private class NamedBoxSink extends Sink[Box](box => box.contents.word)
+fun namedBoxSink(): NamedBoxSink = new NamedBoxSink
+new NamedBoxSink().accept(Box(Argument("local")))
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+1: 	private class NamedBoxSink extends Sink[Box](box => box.contents.word)
+//│ ║        	                                                    ^^^^^^^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'word' of a value with unknown shape.
+//│ ╟── Type argument 'T' is omitted here and admits values of unknown shape.
+//│ ║  l.+1: 	private class NamedBoxSink extends Sink[Box](box => box.contents.word)
+//│ ║        	                                        ^^^
+//│ ╟── This type argument appears in an exposed annotation.
+//│ ║  l.+1: 	private class NamedBoxSink extends Sink[Box](box => box.contents.word)
+//│ ║        	                                        ^^^
+//│ ╟── This parent contributes inherited members.
+//│ ║  l.+1: 	private class NamedBoxSink extends Sink[Box](box => box.contents.word)
+//│ ║        	                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── 'namedBoxSink' is exposed by this compilation unit.
+//│ ║  l.+2: 	fun namedBoxSink(): NamedBoxSink = new NamedBoxSink
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+:e
+private class SharedBoxSink extends Sink[Box](box => box.contents.word)
+fun sharedBoxSink() = [new SharedBoxSink, (x: SharedBoxSink) => 0]
+new SharedBoxSink().accept(Box(Argument("local")))
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+1: 	private class SharedBoxSink extends Sink[Box](box => box.contents.word)
+//│ ║        	                                                     ^^^^^^^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'word' of a value with unknown shape.
+//│ ╟── Type argument 'T' is omitted here and admits values of unknown shape.
+//│ ║  l.+1: 	private class SharedBoxSink extends Sink[Box](box => box.contents.word)
+//│ ║        	                                         ^^^
+//│ ╟── This type argument appears in an exposed annotation.
+//│ ║  l.+1: 	private class SharedBoxSink extends Sink[Box](box => box.contents.word)
+//│ ║        	                                         ^^^
+//│ ╟── This parent contributes inherited members.
+//│ ║  l.+1: 	private class SharedBoxSink extends Sink[Box](box => box.contents.word)
+//│ ║        	                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── This value is stored in this tuple.
+//│ ║  l.+2: 	fun sharedBoxSink() = [new SharedBoxSink, (x: SharedBoxSink) => 0]
+//│ ║        	                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── This value is returned here.
+//│ ║  l.+2: 	fun sharedBoxSink() = [new SharedBoxSink, (x: SharedBoxSink) => 0]
+//│ ║        	                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── 'sharedBoxSink' is exposed by this compilation unit.
+//│ ║  l.+2: 	fun sharedBoxSink() = [new SharedBoxSink, (x: SharedBoxSink) => 0]
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
 // An instance that escapes by value exposes the type arguments of its parent clause through the
 // inherited members whose written types mention them, such as the field of Cell.
 :e
