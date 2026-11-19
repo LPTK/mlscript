@@ -7,3 +7,6 @@ module InheritedOperationBase with
   open class Middle[U](seed: U) extends Root[U](seed) with
     open override fun inspect(x) = 0
     open override mut val item = seed
+  open class Producer with
+    open fun get(): Any -> Int = x => 0
+    open val held: Any -> Int = x => 0

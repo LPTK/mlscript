@@ -361,3 +361,22 @@ fulfilled({only: 2})
 //│ ║  l.XX: 	declare type Any
 //│ ╙──      	             ^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
+// FIXME: The written result of a generator bounds the value that its iterator returns last, and nothing
+// checks an unannotated generator override against it: the override should be rejected.
+:breakme
+:e
+private fun generated(x) = x.only
+private class GeneratorSource with
+  @generator open fun items(): Any -> Int = x => 0
+private class GeneratorImpl extends GeneratorSource with
+  @generator override fun items() = generated
+fun generatorSource(): GeneratorSource = new GeneratorImpl
+generated({only: 3})
+//│ = 3
+
+:fixme
+fun invoke(f: Any -> Int) = f(null)
+invoke(generatorSource().items().next().value)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of null (reading 'only')

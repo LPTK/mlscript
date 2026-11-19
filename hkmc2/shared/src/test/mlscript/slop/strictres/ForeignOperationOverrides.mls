@@ -78,6 +78,41 @@ private class PublicLeaf extends Inherited.Middle[Payload](Payload(1)) with
   fun read() = item.key
 fun publicLeaf(): PublicLeaf = new PublicLeaf
 
+// A result written in another unit bounds the callback that an unannotated override returns or holds.
+:e
+private fun returnedCallback(x) = x.only
+private class Returning extends Inherited.Producer with
+  override fun get() = returnedCallback
+returnedCallback({only: 1})
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+1: 	private fun returnedCallback(x) = x.only
+//│ ║        	                                  ^^^^^^
+//│ ╟── Value with an empty interface does not contain member 'only'
+//│ ║  in InheritedOperationBase.mls
+//│ ║  l.XX: 	    open fun get(): Any -> Int = x => 0
+//│ ║        	                    ^^^
+//│ ╟── Type 'Any' is declared without a member interface.
+//│ ║  in ../../decls/Prelude.mls
+//│ ║  l.XX: 	declare type Any
+//│ ╙──      	             ^^^
+
+:e
+private fun heldCallback(x) = x.only
+private class Holding extends Inherited.Producer with
+  override val held = heldCallback
+heldCallback({only: 1})
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+1: 	private fun heldCallback(x) = x.only
+//│ ║        	                              ^^^^^^
+//│ ╟── Value with an empty interface does not contain member 'only'
+//│ ║  in InheritedOperationBase.mls
+//│ ║  l.XX: 	    open val held: Any -> Int = x => 0
+//│ ║        	                   ^^^
+//│ ╟── Type 'Any' is declared without a member interface.
+//│ ║  in ../../decls/Prelude.mls
+//│ ║  l.XX: 	declare type Any
+//│ ╙──      	             ^^^
+
 // The inherited domain also applies when it is too broad for an overriding implementation.
 :e
 private class Wide extends Inherited.Middle[Any](0) with
