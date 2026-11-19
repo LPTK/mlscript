@@ -227,3 +227,22 @@ private class Narrow extends Broad with
 fun broad(): Broad = new Narrow
 new Inner().local({only: 4})
 //│ = 4
+
+
+// FIXME: The written result of the base bounds what clients read from it, and nothing checks the
+// unannotated override against it: the override should be rejected, or its result exposed.
+:breakme
+:e
+private fun unchecked(x) = x.only
+private class Declared with
+  open fun get(): Any -> Int = (x => 0)
+private class Undeclared extends Declared with
+  override fun get() = unchecked
+fun declared(): Declared = new Undeclared
+unchecked({only: 5})
+//│ = 5
+
+:fixme
+fun invoke(f: Any -> Int) = f(null)
+invoke(declared().get())
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of null (reading 'only')
