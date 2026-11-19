@@ -1,10 +1,10 @@
 :.
 
-// An override that writes its own signature is compiled against that signature, while the clients that
-// reach it through the overridden declaration rely on the inherited one. The representations of the two
-// signatures are compared (see slop/OverrideRepresentations.mls).
-// FIXME: Nothing compares the callback domains that the two signatures write. Each override below should
-// be rejected.
+// The new resolver trusts written signatures. An override that writes its own signature is compiled against
+// that signature, while the clients that reach it through the overridden declaration rely on the inherited one.
+// Comparing the two signatures is the responsibility of the type checker, which is not reimplemented yet.
+// Until then, only their representations are compared (see slop/OverrideRepresentations.mls).
+// TODO: The type checker should reject each override below.
 
 private class Narrow(val only: Int)
 
