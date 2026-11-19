@@ -1,7 +1,8 @@
 :.
 
-// Worksheet blocks are checked one after the other. A value that reaches an exposed slot in a later
-// block escapes like the values that the slot held when its own block exposed it.
+// Worksheet blocks are checked one after the other, while a compilation unit is checked as a whole.
+// The cases below concern only worksheets: a value reaches a slot in a block that follows the one
+// that exposed the slot.
 
 fun invoke(f: Any -> Int) = f(null)
 
@@ -36,8 +37,9 @@ lateResult({only: 1})
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
-// FIXME: The remaining slots are observed only while their own block is checked. Each block marked
-// `:breakme` should reject its helper, which the call that follows it reaches with a null argument.
+// Known limitation of worksheets, WON'T FIX: the remaining slots are observed only while their own
+// block is checked. Each block marked `:breakme` accepts a helper that the call following it reaches
+// with a null argument. The same code in one compilation unit is rejected.
 
 // The omitted argument of a written result type.
 class Cell[T](val item: T)
@@ -92,3 +94,74 @@ lateField({only: 1})
 :fixme
 invoke(current())
 //│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of null (reading 'only')
+
+
+// Written in one block, each of these cases is rejected.
+:e
+let wholeCell = Cell(x => 0)
+fun readWholeCell(): Cell = wholeCell
+private fun wholeArgument(x) = x.only
+set wholeCell = Cell(wholeArgument)
+wholeArgument({only: 1})
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+3: 	private fun wholeArgument(x) = x.only
+//│ ║        	                               ^^^^^^
+//│ ╟── Cannot resolve member 'only' of a value with unknown shape.
+//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ║  l.+3: 	private fun wholeArgument(x) = x.only
+//│ ║        	                          ^
+//│ ╟── Type argument 'T' is inferred here.
+//│ ║  l.+2: 	fun readWholeCell(): Cell = wholeCell
+//│ ║        	                     ^^^^
+//│ ╟── 'readWholeCell' is exposed by this compilation unit.
+//│ ║  l.+2: 	fun readWholeCell(): Cell = wholeCell
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ wholeCell = Cell(fun wholeArgument)
+
+:e
+let wholeMemberCell = Cell(x => 0)
+private class WholeCellReader with
+  fun get(): Cell = wholeMemberCell
+fun wholeCellReader(): WholeCellReader = new WholeCellReader
+private fun wholeMemberArgument(x) = x.only
+set wholeMemberCell = Cell(wholeMemberArgument)
+wholeMemberArgument({only: 1})
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+5: 	private fun wholeMemberArgument(x) = x.only
+//│ ║        	                                     ^^^^^^
+//│ ╟── Cannot resolve member 'only' of a value with unknown shape.
+//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ║  l.+5: 	private fun wholeMemberArgument(x) = x.only
+//│ ║        	                                ^
+//│ ╟── Member 'item' is accessible here.
+//│ ║  l.XX: 	class Cell[T](val item: T)
+//│ ║        	              ^^^^^^^^^^^
+//│ ╟── This value is exposed by this compilation unit.
+//│ ║  l.+1: 	let wholeMemberCell = Cell(x => 0)
+//│ ╙──      	                      ^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ wholeMemberCell = Cell(fun wholeMemberArgument)
+
+:e
+private class WholeStore(mut val f)
+private val wholeStore = WholeStore(x => 0)
+fun wholeCurrent() = wholeStore.f
+private fun wholeField(x) = x.only
+set wholeStore.f = wholeField
+wholeField({only: 1})
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+4: 	private fun wholeField(x) = x.only
+//│ ║        	                            ^^^^^^
+//│ ╟── Cannot resolve member 'only' of a value with unknown shape.
+//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ║  l.+4: 	private fun wholeField(x) = x.only
+//│ ║        	                       ^
+//│ ╟── This value is returned here.
+//│ ║  l.+3: 	fun wholeCurrent() = wholeStore.f
+//│ ║        	                     ^^^^^^^^^^^^
+//│ ╟── 'wholeCurrent' is exposed by this compilation unit.
+//│ ║  l.+3: 	fun wholeCurrent() = wholeStore.f
+//│ ╙──      	^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ wholeStore = WholeStore(fun wholeField)
