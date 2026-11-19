@@ -161,10 +161,7 @@ hole([{value: 9}])
 //│ ╟── Cannot resolve member 'value' of a value with unknown shape.
 //│ ╟── 'hole' is exposed by this compilation unit.
 //│ ║  l.+1: 	fun hole(xs: Array) = xs.0.value
-//│ ║        	^^^^^^^^^^^^^^^^^^^
-//│ ╟── Parameter 'xs' admits values of unknown shape.
-//│ ║  l.+1: 	fun hole(xs: Array) = xs.0.value
-//│ ╙──      	         ^^^^^^^^^
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 // Constructor refinement must preserve the input's origin on unknown fields.

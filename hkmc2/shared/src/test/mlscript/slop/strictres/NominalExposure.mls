@@ -699,15 +699,12 @@ invoke(box => box.contents.word)
 //│ ║  l.+2: 	invoke(box => box.contents.word)
 //│ ║        	              ^^^^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'word' of a value with unknown shape.
-//│ ╟── Parameter 'read' admits values of unknown shape.
-//│ ║  l.+1: 	fun invoke(read: Reader[Box]) = read(Box(Argument("local")))
-//│ ║        	           ^^^^^^^^^^^^^^^^^
-//│ ╟── 'invoke' is exposed by this compilation unit.
-//│ ║  l.+1: 	fun invoke(read: Reader[Box]) = read(Box(Argument("local")))
-//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── This type argument appears in an exposed annotation.
 //│ ║  l.+1: 	fun invoke(read: Reader[Box]) = read(Box(Argument("local")))
-//│ ╙──      	                        ^^^
+//│ ║        	                        ^^^
+//│ ╟── 'invoke' is exposed by this compilation unit.
+//│ ║  l.+1: 	fun invoke(read: Reader[Box]) = read(Box(Argument("local")))
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 

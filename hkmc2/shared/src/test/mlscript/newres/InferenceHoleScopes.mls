@@ -76,9 +76,6 @@ call(Item(2))
 //│ ╟── 'read' is exposed by this compilation unit.
 //│ ║  l.+4: 	fun read(box: Box) = box.item.value
 //│ ║        	^^^^^^^^^^^^^^^^^^
-//│ ╟── Parameter 'box' admits values of unknown shape.
-//│ ║  l.+4: 	fun read(box: Box) = box.item.value
-//│ ║        	         ^^^^^^^^
 //│ ╟── Parameter 'x' admits values of unknown shape.
 //│ ║  l.+5: 	fun call(x) = read(make(x))
 //│ ║        	         ^
