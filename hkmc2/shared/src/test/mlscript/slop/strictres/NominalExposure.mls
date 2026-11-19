@@ -182,6 +182,31 @@ new FieldImplementation().read()
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
+// A base write also constrains the omitted argument in the overriding field's annotation.
+:e
+private class BoxFieldBase with
+  open mut val slot: Box[Any] = Box(7)
+private class BoxFieldChild extends BoxFieldBase with
+  override mut val slot: Box = Box(Argument("initial"))
+  fun read() = slot.contents.word
+private val boxedChild = new mut BoxFieldChild
+fun boxFieldView(): BoxFieldBase = boxedChild
+set boxFieldView().slot = Box(4)
+boxedChild.read()
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+5: 	  fun read() = slot.contents.word
+//│ ║        	               ^^^^^^^^^^^^^^^^^^
+//│ ╟── Value with an empty interface does not contain member 'word'
+//│ ║  l.+2: 	  open mut val slot: Box[Any] = Box(7)
+//│ ║        	                         ^^^
+//│ ╟── Type 'Any' is declared without a member interface.
+//│ ║  in ../../decls/Prelude.mls
+//│ ║  l.XX: 	declare type Any
+//│ ╙──      	             ^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ boxedChild = BoxFieldChild
+
+
 // An override can receive calls through the returned base interface.
 :e
 private class Service with

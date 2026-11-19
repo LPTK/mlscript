@@ -2228,6 +2228,9 @@ class NewResolver:
     if base.k is syntax.MutVal then
       def assign(input: TermShape)(using ResolutionContext): Unit =
         writeField(overriding.tsym, input, Nil)
+        if resultSignature(overriding).nonEmpty then
+          val ref = MemberRef(overriding.bsym)(N, rctx.fieldProjectionSite(overriding.bsym))
+          constrainFieldWrites(MemberLookup.Found(overriding.bsym, Nil), ref, N)(receive => receive(input))
         forward(overriding.tsym, input)
       onInput(base.tsym): input =>
         if resultSignature(base).isEmpty then assign(input)
@@ -4519,14 +4522,11 @@ class NewResolver:
               case NoShape => ()
       def lookup(info: MemberLookup)(using ResolutionContext): Unit =
         assignableTargets(info)(assign)
-        // The interface's input constrains assigned callbacks and generic arguments even when its
-        // implementation is hidden. Checking only the field's reads would select the opposite bound.
-        listenFieldInput(info, lhs): input =>
-          if rctx.state.fieldAssignmentTypes.add((new Identity(lhs), new Identity(rhs), input)) then
-            listenTerm(rhs): value =>
-              transport(value) match
-                case value: TermShape => inferTypeArguments(input, value, Nil, S(rhs))
-                case NoShape => ()
+        constrainFieldWrites(info, lhs, S(rhs)): receive =>
+          listenTerm(rhs): value =>
+            transport(value) match
+              case value: TermShape => receive(value)
+              case NoShape => ()
       def visible(info: MemberLookup, reportInaccessible: Bool): MemberLookup =
         info.visibleFrom(scope.canAccessPrivatesOf, reportInaccessible)
       lhs match
@@ -4582,6 +4582,16 @@ class NewResolver:
           case NoShape => ()
         case NoShape => ()
   
+  /** Check the values written through a field against its declared input, including the inferred
+    * parts of that input. A source assignment and a write admitted by a base member impose the
+    * same constraint even when reading the field would reveal a different type.
+    */
+  private def constrainFieldWrites(info: MemberLookup, source: Term, rhs: Opt[Term])
+      (writes: Listener => ResolutionContext ?=> Unit)(using ResolutionContext): Unit =
+    listenFieldInput(info, source): input =>
+      if rhs.forall(term => rctx.state.fieldAssignmentTypes.add((new Identity(source), new Identity(term), input))) then
+        writes(value => inferTypeArguments(input, value, Nil, rhs))
+
   /** A mutable member's write interface, interpreted at the lookup site. A nominal signature must be
     * interpreted negatively before its receiver bindings select an endpoint; a structural field already
     * retains both endpoints. Use the ordinary declared-member transport so captures and constructor fields
