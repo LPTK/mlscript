@@ -1,0 +1,78 @@
+:.
+
+// A block is discarded as a whole when erasure reports an error for it, or when lowering fails to coerce
+// a value in it: none of its bindings is installed at runtime, including those that have no error.
+// FIXME: Later blocks still compile the uses of these bindings, which then fail at runtime or silently
+// read `undefined`. They should stop like a reference to an erroneous definition does, as the call of
+// `rejectedSignature` below already does.
+
+val input32: Int32 = unsafe.undefined
+//│ input32 = undefined
+
+
+// Erasure rejects the last two definitions of this block.
+:ge
+let counter = 5
+fun healthy() = 1
+class Kept(val n: Int)
+private class Rejected(val value: Int32 | Int64)
+private fun rejectedSignature(x: Int32 | Int64) = 1
+//│ ╔══[COMPILATION ERROR] Types 'Int32' and 'Int64' have no common representation
+//│ ║  l.+4: 	private class Rejected(val value: Int32 | Int64)
+//│ ╙──      	                                  ^^^^^^^^^^^^^
+//│ ╔══[COMPILATION ERROR] Types 'Int32' and 'Int64' have no common representation
+//│ ║  l.+5: 	private fun rejectedSignature(x: Int32 | Int64) = 1
+//│ ╙──      	                                 ^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ counter = undefined
+
+// The variable reads as `undefined`, without any error.
+:breakme
+:re
+counter + 1
+//│ = NaN
+
+:fixme
+healthy()
+//│ ═══[RUNTIME ERROR] TypeError: healthy is not a function
+
+:fixme
+new Kept(1).n
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'class')
+
+:fixme
+class Derived(n: Int) extends Kept(n)
+new Derived(2).n
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'class')
+
+:fixme
+private fun classify(x) = if x is Kept then 1 else 0
+classify(0)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'class')
+
+:fixme
+Rejected(input32)
+//│ ═══[RUNTIME ERROR] TypeError: Rejected is not a function
+
+// The signature of this function carries the reported error, which stops the reference at compilation.
+:re
+rejectedSignature(input32)
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
+// Lowering fails to coerce the result of the last function of this block.
+:ge
+fun sibling() = 2
+private fun badReturn(): Int32 = "wrong"
+//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Str' at an unrelated type 'Int32'
+//│ ║  l.+2: 	private fun badReturn(): Int32 = "wrong"
+//│ ╙──      	                                 ^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+:fixme
+sibling()
+//│ ═══[RUNTIME ERROR] TypeError: sibling is not a function
+
+:fixme
+badReturn()
+//│ ═══[RUNTIME ERROR] TypeError: badReturn is not a function
