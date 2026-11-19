@@ -1000,30 +1000,18 @@ class NewResolver:
       case TypeShape.Polymorphic(params = params) => children(tpe.withoutBinders(params.map(_.parameter.symbol)))
       case _ => children(tpe)
 
-  /** External inputs contribute unknowns only to missing annotation parts.
-    * A written binder still denotes its declared type, including after a partial
-    * application fixes it; exposure must not add arbitrary values to that binder.
+  /** Admit an external value at every omitted type argument in an input type.
+    * A written binder still denotes its declared type, including after partial application.
     */
-  private[semantics] def exposeTypeHoles(tpe: DeclaredType, unknown: TermShape, marks: Ls[Marks])
+  private[semantics] def exposeTypeHoles(tpe: DeclaredType, unknown: TermShape)
       (using ResolutionContext): Unit =
-    visitInputHoles(tpe, unknown, marks, N)((host, value) => host.publish(value))
-
-  /** Visit the omitted parts of an external input, carrying the evidence into each hole's scope.
-    * A declared override with a known inherited input only needs a constraint if it has a hole.
-    * Its comparison keeps the whole source and target so a nested hole receives the corresponding
-    * component of the inherited input. Independent comparisons can visit the same nested type.
-    */
-  private def visitInputHoles(tpe: DeclaredType, input: TermShape, marks: Ls[Marks],
-      comparison: Opt[(DeclaredType, ShapeIdentity.Key)])
-      (receive: (Publisher.Data[TermShape], TermShape) => ResolutionContext ?=> Unit)(using ResolutionContext): Unit =
-    if !rctx.state.exposedTypeHoles.add((tpe, ShapeIdentity.key(input), marks, comparison)) then return
-    def visit(child: DeclaredType, context: Ls[Marks])(using ResolutionContext): Unit = input.enter(context) match
-      case value: TermShape => visitInputHoles(child, value, marks, comparison)(receive)
-      case NoShape => ()
-    tpe.listen: shape =>
-      shape match
-        case TypeShape.Hole(host) => receive(host, input)
-        case _ => foreachInterfaceComponent(tpe, shape)(visit)
+    if rctx.state.exposedTypeHoles.add(tpe -> ShapeIdentity.key(unknown)) then
+      tpe.listen:
+        case TypeShape.Hole(host) => host.publish(unknown)
+        case shape => foreachInterfaceComponent(tpe, shape): (part, path) =>
+          unknown.enter(path) match
+            case value: TermShape => exposeTypeHoles(part, value)
+            case NoShape => ()
 
   private def abstractTypes(using rs: ResolutionContext) = rs.state.abstractTypes
   // Narrowing a nominal receiver by projection does not infer the narrower
@@ -2337,9 +2325,8 @@ class NewResolver:
       operationType(d, param, false, Nil, TypeSubstitution.empty)((_, tpe) => receive(tpe.fold(fallback)(instanceShape)))
     case _ => receive(fallback)
 
-  /** Forward the inputs admitted by one inherited operation to its overriding implementation.
-    * An unannotated input carries the external value along the override chain. A written input
-    * uses the inherited signature in the scope of the subclass's parent clause.
+  /** An override reachable through an exposed base member inherits the input wherever it omits
+    * the entire annotation. Omitted type arguments in the override's own annotation admit unknowns.
     */
   private def connectOverrideInputs(base: TermDefinition, overriding: TermDefinition, inheritedMarks: Ls[Marks],
       instances: TypeSubstitution)(using ResolutionContext): Unit =
@@ -2361,6 +2348,12 @@ class NewResolver:
           case N => InterfaceExposure.fieldInput(base.tsym, MemberRef(base.bsym)(N, site), inheritedExposure(base))))
     def forward(symbol: VarSymbol | TermSymbol, value: TermShape)(using ResolutionContext): Unit =
       if Inheritance.isOpen(overriding) then publishInterfaceInput(symbol, value)
+    def exposeOmissions(tpe: DeclaredType)(using ResolutionContext): Unit =
+      val source = tpe.resolution.source
+      val path = ShapeProvenance.empty
+        .via(msg"Member '${base.tsym.nme}' is accessible here." -> base.headerLoc)
+        .via(msg"This overriding annotation leaves a type argument unspecified." -> source.toLoc)
+      exposeTypeHoles(tpe.instantiate(rctx.instances), UnknownValueShape(source, fromPublicInterface = true)(path))
     // A previous override may already have supplied the declared input. It has left that
     // member's scope, but still refers to the enclosing class's type parameters.
     def inheritedInput(input: TermShape)(using ResolutionContext): TermShape = input match
@@ -2370,23 +2363,18 @@ class NewResolver:
     if base.k is syntax.MutVal then
       def assign(input: TermShape)(using ResolutionContext): Unit =
         writeField(overriding.tsym, input, Nil)
-        if writtenSignature(overriding).nonEmpty then
-          val ref = MemberRef(overriding.bsym)(N, rctx.fieldProjectionSite(overriding.bsym))
-          constrainFieldWrites(MemberLookup.Found(overriding.bsym, Nil), ref, N)(receive => receive(input))
+        slotSignature(overriding, N).foreach(exposeOmissions)
         forward(overriding.tsym, input)
       onInput(N)(assign)
     else if base.params.nonEmpty then
       codegen.OverrideLayout.correspondingParameters(overriding.params, base.params).foreach: pairs =>
         val inside = ExitMark(ResolutionBoundary(overriding.tsym), N, NoMarks) :: Nil
         def admit(target: Param, input: TermShape)(using ResolutionContext): Unit =
-          input.enter(inside) match
-            case value: TermShape => parameterSignature(target) match
-              case N => publishParameter(target.sym, value)
-              case S(tpe) =>
-                val expected = tpe.instantiate(rctx.instances)
-                visitInputHoles(expected, value, inside, S(expected -> ShapeIdentity.key(value)))(
-                  (_, _) => inferTypeArguments(expected, value, inside, N))
-            case NoShape => ()
+          parameterSignature(target) match
+            case S(tpe) => exposeOmissions(tpe)
+            case N => input.enter(inside) match
+              case value: TermShape => publishParameter(target.sym, value)
+              case NoShape => ()
           forward(target.sym, input)
         pairs.foreach: (target, inherited) =>
           onInput(S(inherited))(admit(target, _))
@@ -4677,11 +4665,14 @@ class NewResolver:
               case NoShape => ()
       def lookup(info: MemberLookup)(using ResolutionContext): Unit =
         assignableTargets(info)(assign)
-        constrainFieldWrites(info, lhs, S(rhs)): receive =>
-          listenTerm(rhs): value =>
-            transport(value) match
-              case value: TermShape => receive(value)
-              case NoShape => ()
+        // The interface's input constrains assigned callbacks and generic arguments even when its
+        // implementation is hidden. Checking only the field's reads would select the opposite bound.
+        listenFieldInput(info, lhs): input =>
+          if rctx.state.fieldAssignmentTypes.add((new Identity(lhs), new Identity(rhs), input)) then
+            listenTerm(rhs): value =>
+              transport(value) match
+                case value: TermShape => inferTypeArguments(input, value, Nil, S(rhs))
+                case NoShape => ()
       def visible(info: MemberLookup, reportInaccessible: Bool): MemberLookup =
         info.visibleFrom(scope.canAccessPrivatesOf, reportInaccessible)
       lhs match
@@ -4737,16 +4728,6 @@ class NewResolver:
           case NoShape => ()
         case NoShape => ()
   
-  /** Check the values written through a field against its declared input, including the inferred
-    * parts of that input. A source assignment and a write admitted by a base member impose the
-    * same constraint even when reading the field would reveal a different type.
-    */
-  private def constrainFieldWrites(info: MemberLookup, source: Term, rhs: Opt[Term])
-      (writes: Listener => ResolutionContext ?=> Unit)(using ResolutionContext): Unit =
-    listenFieldInput(info, source): input =>
-      if rhs.forall(term => rctx.state.fieldAssignmentTypes.add((new Identity(source), new Identity(term), input))) then
-        writes(value => inferTypeArguments(input, value, Nil, rhs))
-
   /** A mutable member's write interface, interpreted at the lookup site. A nominal signature must be
     * interpreted negatively before its receiver bindings select an endpoint; a structural field already
     * retains both endpoints. Use the ordinary declared-member transport so captures and constructor fields

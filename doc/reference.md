@@ -1704,6 +1704,10 @@ An exposed operation admits calls or writes to every implementation that overrid
 it. An unannotated member also exposes the values its implementations return or
 store, including values supplied to a field through a constructor argument or a later write.
 Each override must handle the inputs its base declaration admits.
+An override that omits a parameter or mutable field annotation inherits the base
+member's type for that input. If the base declares `Box[Item]` and the override
+writes `Box`, the override must handle unknown contents. Writing `Box[Item]`
+also makes `Item` available in the override.
 
 Generic parameters remain opaque regardless of strict mode, visibility, or local
 callers. For example, `private fun read[A](x: A) = x.a` is invalid because `A`

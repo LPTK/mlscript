@@ -97,7 +97,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
     detach += res.inferenceHost.observe: shape =>
       work.enqueue: () =>
         resolver.foreachOmittedArgument(res, shape): (param, hole) =>
-          resolver.exposeTypeHoles(hole, UnknownValueShape(res.source, fromPublicInterface = true)(path), Nil)
+          resolver.exposeTypeHoles(hole, UnknownValueShape(res.source, fromPublicInterface = true)(path))
           // The omitted argument may also carry an inferred value, such as a stored callback.
           emit(resolver.instanceShape(hole), path.via(
             msg"Type argument '${param.sym.nme}' is inferred here." -> res.source.toLoc))
@@ -166,7 +166,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
           // An inherited signature has already crossed its parent clause into this class.
           val tpe = resolver.captureType(typed.tpe, td.tsym)
           resolver.constrainParameter(param, resolver.instanceShape(tpe), Nil)
-          resolver.exposeTypeHoles(tpe, unknown, Nil)
+          resolver.exposeTypeHoles(tpe, unknown)
         case _ => resolver.constrainParameter(param, admitted.enter(marks), marks)
       if open then resolver.publishInterfaceInput(param.sym, admitted)
 
@@ -382,7 +382,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
         callable.paramLists.foreach: params =>
           params.allParams.flatMap(_.tpe).foreach: input =>
             unknown.enter(marks) match
-              case value: TermShape => resolver.exposeTypeHoles(input, value, marks)
+              case value: TermShape => resolver.exposeTypeHoles(input, value)
               case NoShape => ()
         watch((ShapeIdentity.key(callable), marks, "call result"))(resolver.listenCallableResult(callable)): shape =>
           emit(shape.exit(marks), path)

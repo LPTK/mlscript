@@ -295,7 +295,7 @@ final class NewResolverState(val owner: Elaborator.State):
     new Cache(_.abstractTypes, identity)
   val omittedTypes: Cache[(TypeResolution, VarSymbol), DeclaredType] =
     new Cache(_.omittedTypes, identity)
-  val exposedTypeHoles: Seen[(DeclaredType, ShapeIdentity.Key, Ls[Marks], Opt[(DeclaredType, ShapeIdentity.Key)])] =
+  val exposedTypeHoles: Seen[(DeclaredType, ShapeIdentity.Key)] =
     new Seen(_.exposedTypeHoles)
   val signatureParameters: Cache[VarSymbol, DeclaredType] =
     new Cache(_.signatureParameters, identity)

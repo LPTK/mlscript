@@ -139,13 +139,13 @@ fun erased(): PublicView = PublicView(new Internal)
 // A typed domain reaches the unannotated override with the base's type argument.
 private class Argument(val word: Str)
 private class TypedService[T] with
-  open fun inspect(x: T): Str = ""
+  open fun inspect(x: Box[T]): Str = ""
 private class TypedImplementation extends TypedService[Argument] with
-  override fun inspect(x) = x.word
+  override fun inspect(x) = x.contents.word
 fun typedService(): TypedService[Argument] = new TypedImplementation
 
 :expect "typed"
-typedService().inspect(Argument("typed"))
+typedService().inspect(Box(Argument("typed")))
 //│ = "typed"
 
 // Both operations inherit T through an unannotated override, then specialize U at the leaf.
@@ -168,16 +168,25 @@ set chainView().item = Argument("written")
 [chainView().inspect(Argument("called")), chainLeaf.read()]
 //│ = ["called", "written"]
 
-// An omitted argument in the override receives the corresponding part of the inherited input.
+// Writing Box in an exposed override leaves its contents unknown even when the base specifies them.
+:e
 private class BoxService with
   open fun inspect(x: Box[Argument]): Str = ""
 private class BoxImplementation extends BoxService with
   override fun inspect(x: Box) = x.contents.word
 fun boxService(): BoxService = new BoxImplementation
-
-:expect "inside"
-boxService().inspect(Box(Argument("inside")))
-//│ = "inside"
+new BoxImplementation().inspect(Box(Argument("inside")))
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+4: 	  override fun inspect(x: Box) = x.contents.word
+//│ ║        	                                 ^^^^^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'word' of a value with unknown shape.
+//│ ╟── This overriding annotation leaves a type argument unspecified.
+//│ ║  l.+4: 	  override fun inspect(x: Box) = x.contents.word
+//│ ║        	                          ^^^
+//│ ╟── Member 'inspect' is accessible here.
+//│ ║  l.+2: 	  open fun inspect(x: Box[Argument]): Str = ""
+//│ ╙──      	  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
 // A mutable override can receive a write even when its own declaration is hidden.
@@ -202,27 +211,27 @@ new FieldImplementation().read()
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
-// A base write also constrains the omitted argument in the overriding field's annotation.
+// The written Box on an overriding field also admits unknown contents.
 :e
 private class BoxFieldBase with
-  open mut val slot: Box[Any] = Box(7)
+  open mut val slot: Box[Argument] = Box(Argument("base"))
 private class BoxFieldChild extends BoxFieldBase with
   override mut val slot: Box = Box(Argument("initial"))
   fun read() = slot.contents.word
 private val boxedChild = new mut BoxFieldChild
 fun boxFieldView(): BoxFieldBase = boxedChild
-set boxFieldView().slot = Box(4)
+set boxFieldView().slot = Box(Argument("later"))
 boxedChild.read()
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
 //│ ║  l.+5: 	  fun read() = slot.contents.word
 //│ ║        	               ^^^^^^^^^^^^^^^^^^
-//│ ╟── Value with an empty interface does not contain member 'word'
-//│ ║  l.+2: 	  open mut val slot: Box[Any] = Box(7)
+//│ ╟── Cannot resolve member 'word' of a value with unknown shape.
+//│ ╟── This overriding annotation leaves a type argument unspecified.
+//│ ║  l.+4: 	  override mut val slot: Box = Box(Argument("initial"))
 //│ ║        	                         ^^^
-//│ ╟── Type 'Any' is declared without a member interface.
-//│ ║  in ../../decls/Prelude.mls
-//│ ║  l.XX: 	declare type Any
-//│ ╙──      	             ^^^
+//│ ╟── Member 'slot' is accessible here.
+//│ ║  l.+2: 	  open mut val slot: Box[Argument] = Box(Argument("base"))
+//│ ╙──      	  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 //│ boxedChild = BoxFieldChild
 
