@@ -1,0 +1,115 @@
+:.
+
+// A written result type exposes the public operations of the class that it names. The values that these
+// operations produce without an annotation of their own escape with them: a later block, or another
+// compilation unit, can obtain such a value and pass it inputs that its defining block never observed.
+// FIXME: Each block marked `:breakme` should reject its private helper, whose parameter admits unknown
+// values, as the last block does for a factory with an inferred result. The call that follows each of them
+// resolves in a later block, and fails at runtime.
+
+fun invoke(f: Any -> Int) = f(null)
+
+
+// The result of a method.
+:breakme
+:e
+private fun stored(x) = x.only
+private class Carrier with
+  fun get() = stored
+fun carrier(): Carrier = new Carrier
+stored({only: 17})
+//│ = 17
+
+:fixme
+invoke(carrier().get())
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of null (reading 'only')
+
+
+// The named class declares the method, and a private subclass returns the helper from its override.
+:breakme
+:e
+private fun overridden(x) = x.only
+private class Base with
+  open fun get() = (x => 0)
+private class Sub extends Base with
+  override fun get() = overridden
+fun make(): Base = new Sub
+overridden({only: 1})
+//│ = 1
+
+:fixme
+invoke(make().get())
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of null (reading 'only')
+
+
+// The value of a field.
+:breakme
+:e
+private fun fieldValue(x) = x.only
+private class FieldCarrier with
+  val f = fieldValue
+fun fieldCarrier(): FieldCarrier = new FieldCarrier
+fieldValue({only: 1})
+//│ = 1
+
+:fixme
+invoke(fieldCarrier().f)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of null (reading 'only')
+
+
+// The result of a getter.
+:breakme
+:e
+private fun getterResult(x) = x.only
+private class GetterCarrier with
+  fun g = getterResult
+fun getterCarrier(): GetterCarrier = new GetterCarrier
+getterResult({only: 1})
+//│ = 1
+
+:fixme
+invoke(getterCarrier().g)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of null (reading 'only')
+
+
+// A constructor argument, which the unannotated field of its parameter stores.
+:breakme
+:e
+private fun argument(x) = x.only
+private class ArgumentCarrier(val f)
+fun argumentCarrier(): ArgumentCarrier = ArgumentCarrier(argument)
+argument({only: 1})
+//│ = 1
+
+:fixme
+invoke(argumentCarrier().f)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of null (reading 'only')
+
+
+// An inferred result exposes the returned instance itself, and with it the helper that its method returns.
+:e
+private fun storedInferred(x) = x.only
+private class CarrierInferred with
+  fun get() = storedInferred
+fun carrierInferred() = new CarrierInferred
+storedInferred({only: 8})
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+1: 	private fun storedInferred(x) = x.only
+//│ ║        	                                ^^^^^^
+//│ ╟── Cannot resolve member 'only' of a value with unknown shape.
+//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ║  l.+1: 	private fun storedInferred(x) = x.only
+//│ ║        	                           ^
+//│ ╟── This value is returned here.
+//│ ║  l.+3: 	  fun get() = storedInferred
+//│ ║        	              ^^^^^^^^^^^^^^
+//│ ╟── Member 'get' is accessible here.
+//│ ║  l.+3: 	  fun get() = storedInferred
+//│ ║        	  ^^^^^^^^^
+//│ ╟── This value is returned here.
+//│ ║  l.+4: 	fun carrierInferred() = new CarrierInferred
+//│ ║        	                        ^^^^^^^^^^^^^^^^^^^
+//│ ╟── 'carrierInferred' is exposed by this compilation unit.
+//│ ║  l.+4: 	fun carrierInferred() = new CarrierInferred
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
