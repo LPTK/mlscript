@@ -227,3 +227,16 @@ laterCaller()
 :expect 42
 (value => value)(42)
 //│ = 42
+
+// A failed return coercion in one method leaves a sibling method usable in the same module.
+:ge
+:js
+:expect 42
+module MixedResults with
+  fun healthy() = 42
+  fun invalid(): Int32 = "wrong"
+MixedResults.healthy()
+//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Str' at an unrelated type 'Int32'
+//│ ║  l.+3: 	  fun invalid(): Int32 = "wrong"
+//│ ╙──      	                         ^^^^^^^
+//│ = 42
