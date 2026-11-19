@@ -631,3 +631,57 @@ private class PartialChild extends PartialBase with
 fun remainingArgument() = new PartialBase().inspect(0)
 new PartialChild().inspect({only: 7})(0)
 //│ = 7
+
+
+// An external write can replace the inferred contents of the box stored in this field.
+:e
+private class BoxHolder with
+  mut val box: Box = Box(Argument("initial"))
+  fun read() = box.contents.word
+fun boxHolder(): BoxHolder = new mut BoxHolder
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+3: 	  fun read() = box.contents.word
+//│ ║        	               ^^^^^^^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'word' of a value with unknown shape.
+//│ ╟── Member 'box' is accessible here.
+//│ ║  l.+2: 	  mut val box: Box = Box(Argument("initial"))
+//│ ║        	      ^^^^^^^^^^^^
+//│ ╟── 'boxHolder' is exposed by this compilation unit.
+//│ ║  l.+4: 	fun boxHolder(): BoxHolder = new mut BoxHolder
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+// An argument of the input use of Id cannot reach the omitted type in the result use.
+:expect "local"
+private type Id[T] = T
+fun takeId(value: Id[Int]) = 0
+fun produceBox(): Id[Box] = Box(Argument("local"))
+produceBox().contents.word
+//│ = "local"
+
+
+// An external caller supplies the omitted argument of the alias through the callback's domain.
+:e
+private type Reader[T] = T -> Str
+private fun readWord(x) = x.word
+fun readerWithInferredDomain(): Reader = readWord
+readerWithInferredDomain()(Argument("local"))
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+2: 	private fun readWord(x) = x.word
+//│ ║        	                          ^^^^^^
+//│ ╟── Cannot resolve member 'word' of a value with unknown shape.
+//│ ╟── 'readerWithInferredDomain' is exposed by this compilation unit.
+//│ ║  l.+3: 	fun readerWithInferredDomain(): Reader = readWord
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
+// The implementation supplies the callback argument whether the callback arrives directly or in a box.
+:expect ["direct", "aliased", "stored"]
+private type Consumer[T] = T -> Str
+fun invokeDirect(read: Box -> Str) = read(Box(Argument("direct")))
+fun invokeAlias(read: Consumer[Box]) = read(Box(Argument("aliased")))
+fun invokeStored(holder: Box[Consumer[Box]]) = holder.contents(Box(Argument("stored")))
+private fun readArgument(box) = box.contents.word
+[invokeDirect(readArgument), invokeAlias(readArgument), invokeStored(Box(readArgument))]
+//│ = ["direct", "aliased", "stored"]

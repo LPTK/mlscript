@@ -223,6 +223,8 @@ final class NewResolverState(val owner: Elaborator.State):
     new Cache(_.lexicalBoundaries, identity)
   val typeDependencies: Cache[TypeResolution, Set[VarSymbol]] =
     new Cache(_.typeDependencies, identity)
+  val readableTypeDependencies: Cache[TypeResolution, Set[VarSymbol]] =
+    new Cache(_.readableTypeDependencies, identity)
   // Like typeDependencies, but following the references of synthesized nodes;
   // N when not fixed by the source graph (see NewResolver.instanceDependencies).
   val typeInstanceDependencies: Cache[TypeResolution, Opt[Set[VarSymbol]]] =
@@ -328,7 +330,7 @@ final class NewResolverState(val owner: Elaborator.State):
   // A method projection or nested constraint can change the observation scope
   // without changing this property. Missing supplied positions remain inferred.
   private[semantics] val explicitTypeArguments = mutable.Set.empty[VarSymbol]
-  private[semantics] val typeConstraints: Seen[(DeclaredType, ShapeIdentity.Key, Ls[Marks])] =
+  private[semantics] val typeConstraints: Seen[(DeclaredType, ShapeIdentity.Key, Ls[Marks], Bool)] =
     new Seen(_.typeConstraints)
   val typeArgumentArityErrors: Seen[(TyApp, Int)] =
     new Seen(_.typeArgumentArityErrors)
@@ -845,10 +847,10 @@ final class ResolutionContext private[semantics] (
     * Install each constraint edge before subscribing: callback parameter/result
     * flow can revisit it immediately. Distinct instantiations retain their marks.
     */
-  def addTypeConstraint(tpe: DeclaredType, value: TermShape, marks: Ls[Marks]): Bool =
-    typeConstraints.add((tpe, ShapeIdentity.key(value), marks))
+  def addTypeConstraint(tpe: DeclaredType, value: TermShape, marks: Ls[Marks], fulfilled: Bool): Bool =
+    typeConstraints.add((tpe, ShapeIdentity.key(value), marks, fulfilled))
   def hasTypeConstraint(tpe: DeclaredType, value: TermShape, marks: Ls[Marks]): Bool =
-    typeConstraints((tpe, ShapeIdentity.key(value), marks))
+    typeConstraints((tpe, ShapeIdentity.key(value), marks, false))
 
 /** One pair of call sites per spread source. Incoming alternatives share these
   * observations and the element host, so their Cartesian product is never built.
