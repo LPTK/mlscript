@@ -261,6 +261,32 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
 
   private def value(shape: TermShape, path: Path)(using ResolutionContext): Unit = valueIn(shape, path, rctx.instances)
 
+  /** Follow the arguments and inferred values already carried by an escaping type. A generic
+    * call can return `Box[T]` with a concrete value for T even though its source only names T.
+    * Read that value in the call's scope. Visiting written children never instantiates a class
+    * or an alias body with the arguments of the caller.
+    */
+  private def declaredValue(tpe: DeclaredType, marks: Ls[Marks], path: Path)(using ResolutionContext): Unit =
+    writtenType(tpe.resolution, path, readable = true)
+    def bound(part: DeclaredType, context: Ls[Marks])(using ResolutionContext): Unit =
+      emit(resolver.instanceShape(part).exit(context), path)
+    def candidate(value: TermShape)(using ResolutionContext): Unit =
+      emit(resolver.instantiateShape(value, tpe.instances).exit(marks), path)
+    detach += tpe.resolution.inferenceHost.observe: shape =>
+      work.enqueue(() => shape match
+        case parameter: TypeShape.Parameter if !tpe.bindings.contains(parameter.symbol) =>
+          // Written formals stay abstract until a call supplies an instance. Synthesized
+          // element hosts can also read the original binder with an allocation-specific
+          // scope path, as a mutable array literal does for the values stored in it.
+          val target = tpe.instances.get(parameter.symbol).map(rctx.typeParameter).orElse:
+            Option.when(parameter.symbol.isInstanceOf[TypeParameterInstance] ||
+              rctx.templateBindersOf(tpe.resolution).nonEmpty)(parameter)
+          target.foreach: actual =>
+            watch((tpe, marks, "type argument"))(resolver.listenTypeParameterValues(actual))(candidate)
+        case TypeShape.Hole(host) => watch((tpe, marks, "inferred argument"))(host.subscribe(_))(candidate)
+        case TypeShape.Inferred(value) => candidate(value)
+        case _ => resolver.foreachInterfaceComponent(tpe, shape, includeInputs = true)((part, inner) => bound(part, inner ::: marks)))
+
   private def valueIn(shape: TermShape, path: Path, instances: TypeSubstitution)(using ResolutionContext): Unit =
     val (head, marks) = shape.applicationHead
     def contextualTerm(value: Term, context: Ls[Marks], path: Path,
@@ -279,8 +305,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
           case value: TermShape => valueIn(value, path, instances)
           case NoShape => ()
       case instance: InstanceShape =>
-        writtenType(instance.tpe.resolution, path, readable = true)
-        watch((ShapeIdentity.key(shape), "instance view"))(resolver.listenInstanceViews(shape))(emit(_, path))
+        declaredValue(instance.tpe, marks, path)
       case ds: DefnShape if ds.defn.sym.getState is rctx.owner =>
         ds.defn match
           case td: TermDefinition =>

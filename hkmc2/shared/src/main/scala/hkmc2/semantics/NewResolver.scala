@@ -975,6 +975,45 @@ class NewResolver:
     effectiveBindings(source) ++ parameters.lazyZip(variantArguments(source, arguments, parameters, positive)).map: (parameter, bound) =>
       parameter.sym -> (if positive then bound else bound.swap)
 
+  /** Visit the components whose values a declared interface can carry, with the scope path
+    * from each component to its enclosing use. Existing bindings can supply an actual type.
+    * An alias application contributes the written arguments and the declaration separately,
+    * so recursive fields never construct new substitutions while discovering exposure.
+    * Include input positions to discover every type named by a result. Checking what an
+    * incoming value can supply only needs the components observable on reads.
+    */
+  private[semantics] def foreachInterfaceComponent(tpe: DeclaredType, shape: TypeShape, includeInputs: Bool)
+      (visit: (DeclaredType, Ls[Marks]) => Unit)(using ResolutionContext): Unit =
+    // declaredType normalizes alias applications. Keep a reference to the written occurrence.
+    def child(res: TypeResolution): Unit =
+      visit(DeclaredType(res, tpe.bindings, tpe.instances, tpe.positive)(tpe.origin), Nil)
+    def argument(arg: TypeArgumentResolution): Unit =
+      if includeInputs then arg.foreachType(child) else arg.readType.foreach(child)
+    shape match
+      case ref: TypeShape.Reference =>
+        visit(DeclaredType(ref.base, tpe.bindings ++ ref.bindings,
+          tpe.instances.withOverrides(ref.instances), tpe.positive)(tpe.origin), ref.marks)
+      case TypeShape.Contextual(ref) => visit(ref.tpe.instantiate(tpe.instances), ref.marks)
+      case TypeShape.Combined(formula) => formula.orderedAtoms.foreach(atom => visit(atom.instantiate(tpe.instances), Nil))
+      case TypeShape.Parameter(symbol = sym) =>
+        tpe.bindings.get(sym).foreach(arg => visit(arg.instantiate(tpe.instances).at(tpe.positive), Nil))
+      case TypeShape.Alias(symbol, rhs) =>
+        rhs.foreach: body =>
+          val outer = tpe.withoutBinders(symbol.defn.toList.flatMap(_.tparams.map(_.sym)))
+          visit(DeclaredType(body, outer.bindings, outer.instances, outer.positive)(outer.origin), Nil)
+      case TypeShape.Applied(base, args) => child(base); args.foreach(argument)
+      case TypeShape.Function(domain, result) =>
+        if includeInputs then child(typeResolution(domain))
+        child(result)
+      case TypeShape.Record(_, fields) => fields.foreach((_, field) => argument(field))
+      case TypeShape.Tuple(fields) => fields.foreach(field => child(field.tpe))
+      case TypeShape.Polymorphic(params, _, body) =>
+        val outer = tpe.withoutBinders(params.map(_.parameter.symbol))
+        visit(DeclaredType(body, outer.bindings, outer.instances, outer.positive)(outer.origin), Nil)
+      case TypeShape.Union(left, right) => child(left); child(right)
+      case TypeShape.Intersection(left, right) => child(left); child(right)
+      case _ => ()
+
   /** External inputs contribute unknowns only to missing annotation parts.
     * A written binder still denotes its declared type, including after a partial
     * application fixes it; exposure must not add arbitrary values to that binder.
@@ -992,45 +1031,18 @@ class NewResolver:
       comparison: Opt[(DeclaredType, ShapeIdentity.Key)])
       (receive: (Publisher.Data[TermShape], TermShape) => ResolutionContext ?=> Unit)(using ResolutionContext): Unit =
     if !rctx.state.exposedTypeHoles.add((tpe, ShapeIdentity.key(input), marks, comparison)) then return
-    def visit(child: DeclaredType, value: TermShape)(using ResolutionContext): Unit =
-      visitInputHoles(child, value, marks, comparison)(receive)
-    def follow(current: DeclaredType)(using ResolutionContext): Unit =
-      def child(res: TypeResolution)(using ResolutionContext): Unit =
-        visit(DeclaredType(res, current.bindings, current.instances, current.positive)(current.origin), input)
-      def omitted(params: Ls[TyParam])(using ResolutionContext): Unit =
-        foreachOmittedArgument(current.resolution, params)((_, hole) => visit(hole, input))
-      // Holes belong to written type occurrences. Visit the arguments at an application and
-      // the alias body at its declaration. Substituting those arguments into recursive fields
-      // would revisit the same holes under every permutation of the alias parameters.
-      current.listen:
+    def visit(child: DeclaredType, context: Ls[Marks])(using ResolutionContext): Unit = input.enter(context) match
+      case value: TermShape => visitInputHoles(child, value, marks, comparison)(receive)
+      case NoShape => ()
+    def omitted(params: Ls[TyParam])(using ResolutionContext): Unit =
+      foreachOmittedArgument(tpe.resolution, params)((_, hole) => visit(hole, Nil))
+    tpe.listen: shape =>
+      shape match
         case TypeShape.Hole(host) => receive(host, input)
         case TypeShape.Nominal(cls) => omitted(cls.tparams)
-        case TypeShape.Alias(symbol, rhs) =>
-          symbol.defn.foreach(d => omitted(d.tparams))
-          rhs.foreach(child)
-        case TypeShape.Applied(base, args) =>
-          child(base)
-          args.foreach(_.readType.foreach(child))
-        case TypeShape.Parameter(symbol = symbol) =>
-          current.bindings.get(symbol).foreach(bound => visit(bound.instantiate(current.instances).at(current.positive), input))
-        case ref: TypeShape.Reference => input.enter(ref.marks) match
-          case value: TermShape => visit(DeclaredType(ref.base, current.bindings ++ ref.bindings,
-            current.instances.withOverrides(ref.instances), current.positive)(current.origin), value)
-          case NoShape => ()
-        case TypeShape.Contextual(ref) => input.enter(ref.marks) match
-          case value: TermShape => visit(ref.tpe.instantiate(current.instances), value)
-          case NoShape => ()
-        case TypeShape.Tuple(fields) => fields.foreach(field => child(field.tpe))
-        case TypeShape.Record(_, fields) => fields.foreach((_, field) => field.readType.foreach(child))
-        case TypeShape.Function(_, result) => child(result)
-        case TypeShape.Polymorphic(params, _, body) =>
-          val outer = current.withoutBinders(params.map(_.parameter.symbol))
-          visit(DeclaredType(body, outer.bindings, outer.instances, outer.positive)(outer.origin), input)
-        case TypeShape.Union(left, right) => child(left); child(right)
-        case TypeShape.Intersection(left, right) => child(left); child(right)
-        case TypeShape.Combined(formula) => formula.orderedAtoms.foreach(atom => visit(atom.instantiate(current.instances), input))
+        case TypeShape.Alias(symbol, _) => symbol.defn.foreach(d => omitted(d.tparams))
         case _ => ()
-    follow(tpe)
+      foreachInterfaceComponent(tpe, shape, includeInputs = false)(visit)
 
   private def abstractTypes(using rs: ResolutionContext) = rs.state.abstractTypes
   // Narrowing a nominal receiver by projection does not infer the narrower

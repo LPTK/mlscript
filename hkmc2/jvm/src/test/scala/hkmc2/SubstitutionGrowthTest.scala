@@ -79,24 +79,25 @@ class SubstitutionGrowthTest extends AnyFunSuite:
   // Rotation and transposition generate every permutation. Merely exporting the recursive
   // record must not build those instantiated interfaces when no field was ever selected.
   test("exposing a recursive record does not instantiate permutations of its parameters"):
-    def references(width: Int, input: Bool): Int =
+    def references(width: Int, input: Bool, callback: Bool): Int =
       val name = s"RingExposure$width"
       val parameters = (1 to width).map(i => s"T$i").toVector
       val payloads = (1 to width).map(i => s"Payload$i").toVector
       def ring(args: Vector[Str]): Str = args.mkString("Ring[", ", ", "]")
       val rotate = ring(parameters.tail :+ parameters.head)
       val swap = ring(parameters.updated(0, parameters(1)).updated(1, parameters(0)))
+      val body = if callback then s"() -> [T1, $rotate, $swap]" else s"{value: T1, rotate: $rotate, swap: $swap}"
       val use = if input then s"fun take(value: ${ring(payloads)}): Int = 0" else s"declare fun root(): ${ring(payloads)}"
       val source = s"""#lang(0.3.x, strictResolution: true)
          |module $name with
          |  ${payloads.map(p => s"private class $p").mkString("\n  ")}
-         |  private type ${ring(parameters)} = {value: T1, rotate: $rotate, swap: $swap}
+         |  private type ${ring(parameters)} = $body
          |  $use
          |""".stripMargin
       measure(name, source).typeReferences
-    for input <- List(false, true) do
-      val counts = (3 to 5).map(references(_, input))
-      withClue(s"input=$input, retained type references for widths 3, 4, 5: $counts "):
+    for (input, callback) <- List((false, false), (true, false), (false, true)) do
+      val counts = (3 to 5).map(references(_, input, callback))
+      withClue(s"input=$input, callback=$callback, retained type references for widths 3, 4, 5: $counts "):
         counts.indices.foreach(i => assert(counts(i) <= counts.head + 16 * i))
 
   // The value passed along each chain is produced outside every generic scope,

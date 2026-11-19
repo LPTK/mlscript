@@ -512,3 +512,67 @@ readAliasBox(Box(Argument("local")))
 //│ ║  l.+3: 	fun aliasReader(dummy): ReaderOf[Box] = {read: readAliasBox}
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
+// The payload's interface can escape as the actual type argument of a private generic call.
+:e
+private class ActualPayload with
+  fun read(x) = x.key
+private fun boxed[T](x: T): Box[T] = Box(x)
+fun actualBox() = boxed(new ActualPayload)
+new ActualPayload().read({key: 3})
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+2: 	  fun read(x) = x.key
+//│ ║        	                ^^^^^
+//│ ╟── Cannot resolve member 'key' of a value with unknown shape.
+//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ║  l.+2: 	  fun read(x) = x.key
+//│ ║        	           ^
+//│ ╟── Member 'read' is accessible here.
+//│ ║  l.+2: 	  fun read(x) = x.key
+//│ ║        	  ^^^^^^^^^^^
+//│ ╟── This value is returned here.
+//│ ║  l.+4: 	fun actualBox() = boxed(new ActualPayload)
+//│ ║        	                  ^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── 'actualBox' is exposed by this compilation unit.
+//│ ║  l.+4: 	fun actualBox() = boxed(new ActualPayload)
+//│ ╙──      	^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
+// Only the escaping call supplies an interface. A private use of the same helper keeps local inference.
+:expect 6
+private class LocalPayload with
+  fun read(x) = x.local
+private fun packValue[T](x: T): Box[T] = Box(x)
+private val localBox = packValue(new LocalPayload)
+fun publicBox() = packValue(Argument("public"))
+localBox.contents.read({local: 6})
+//│ = 6
+//│ localBox = Box(LocalPayload)
+
+
+// An input-only type argument also names its actual type in the escaping interface.
+:e
+private class InputPayload with
+  fun read(x) = x.key
+private fun inputBox[T](x: T): Box[in T out Any] = Box(x)
+fun publicInputBox() = inputBox(new InputPayload)
+new InputPayload().read({key: 3})
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+2: 	  fun read(x) = x.key
+//│ ║        	                ^^^^^
+//│ ╟── Cannot resolve member 'key' of a value with unknown shape.
+//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ║  l.+2: 	  fun read(x) = x.key
+//│ ║        	           ^
+//│ ╟── Member 'read' is accessible here.
+//│ ║  l.+2: 	  fun read(x) = x.key
+//│ ║        	  ^^^^^^^^^^^
+//│ ╟── This value is returned here.
+//│ ║  l.+4: 	fun publicInputBox() = inputBox(new InputPayload)
+//│ ║        	                       ^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── 'publicInputBox' is exposed by this compilation unit.
+//│ ║  l.+4: 	fun publicInputBox() = inputBox(new InputPayload)
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
