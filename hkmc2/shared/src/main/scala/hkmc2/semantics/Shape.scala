@@ -114,7 +114,7 @@ object ShapeIdentity:
       case view: NominalInstanceView => ValueKey.hash(System.identityHashCode(view.defn), ValueKey.mapHash(view.bindings)(System.identityHashCode, _.hashCode), parentHash(view.parent))
       case view: CallableTypeShape => ValueKey.hash(System.identityHashCode(view.source), view.paramLists.hashCode,
         view.result.hashCode, view.scheme.hashCode, view.supplied.hashCode,
-        view.declaration.fold(0)(System.identityHashCode), view.wrappedResult.hashCode)
+        view.declaration.hashCode, view.wrappedResult.hashCode)
       case view: RecordTypeShape => ValueKey.hash(
         ValueKey.mapHash(view.fields)(_.hashCode, _.hashCode), view.mutable.hashCode, view.aliases.hashCode)
       case view: IntersectionView => view.values.map(_.comparison).hashCode
@@ -142,7 +142,7 @@ object ShapeIdentity:
         case a: CallableTypeShape => that.shape match
           case b: CallableTypeShape => (a.source eq b.source) && a.paramLists == b.paramLists && a.result == b.result &&
             a.scheme == b.scheme && a.supplied == b.supplied &&
-            a.declaration.fold(b.declaration.isEmpty)(x => b.declaration.exists(_ eq x)) && a.wrappedResult == b.wrappedResult
+            a.declaration == b.declaration && a.wrappedResult == b.wrappedResult
           case _ => false
         case a: RecordTypeShape => that.shape match
           case b: RecordTypeShape => a.fields == b.fields && a.mutable == b.mutable && a.aliases == b.aliases
@@ -850,6 +850,18 @@ final case class WrappedResult(annotation: Annot.Async | Annot.Generator, remain
     case _ => false
   require(remainingLists > 0)
 
+/** The source operation behind a declared callable and the parameter lists a caller can
+  * still supply. A partial application retains a suffix of the original declaration's lists.
+  */
+final case class CallableDeclaration(definition: TermDefinition, remaining: Ls[ParamList]) extends ValueKey:
+  protected val valueHash: Int = ValueKey.hash(System.identityHashCode(definition), System.identityHashCode(remaining))
+  protected def sameValue(other: ValueKey): Bool = other match
+    case that: CallableDeclaration => (definition is that.definition) && (remaining is that.remaining)
+    case _ => false
+  def afterApplication: Opt[CallableDeclaration] = remaining match
+    case _ :: (tail: NELs[ParamList]) => S(CallableDeclaration(definition, tail))
+    case _ => N
+
 /** Calls through annotations expose only the declared result. Argument shapes
   * constrain type parameters in the interface; they do not recover its implementation.
   * `scheme` retains binders that are still available for instantiation; capture
@@ -860,10 +872,10 @@ final case class WrappedResult(annotation: Annot.Async | Annot.Generator, remain
   */
 final case class CallableTypeShape(source: Term, paramLists: NELs[DeclaredParams],
     result: Opt[DeclaredType], scheme: Opt[TypeScheme], supplied: Opt[Ls[TypeArgument]],
-    declaration: Opt[TermDefinition], wrappedResult: Opt[WrappedResult]) extends CoreHeadShape:
+    declaration: Opt[CallableDeclaration], wrappedResult: Opt[WrappedResult]) extends CoreHeadShape:
   def tparams: Ls[DeclaredTypeParameter] = scheme.toList.flatMap(_.parameters)
-  def describe: Str = declaration.fold("function with a declared signature")(d => s"function '${d.bsym.nme}'")
-  def toLoc: Opt[Loc] = declaration.fold(source.toLoc)(_.headerLoc)
+  def describe: Str = declaration.fold("function with a declared signature")(d => s"function '${d.definition.bsym.nme}'")
+  def toLoc: Opt[Loc] = declaration.fold(source.toLoc)(_.definition.headerLoc)
   protected def getMemberImpl(name: MemberKey)(using ResolutionContext): MemberLookup = MemberLookup.Missing
 
 /** Why observing a type did not expose a member interface. Keep this evidence

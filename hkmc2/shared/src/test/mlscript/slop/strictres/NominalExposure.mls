@@ -576,3 +576,58 @@ new InputPayload().read({key: 3})
 //│ ║  l.+4: 	fun publicInputBox() = inputBox(new InputPayload)
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
+// Returning a method exposes its virtual operation even when the receiver stays private.
+:e
+private class DetachedBase with
+  open fun inspect(x: Any): Int = 0
+private class DetachedChild extends DetachedBase with
+  override fun inspect(x) = x.only
+fun inspectDetached() = new DetachedBase().inspect
+new DetachedChild().inspect({only: 7})
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+4: 	  override fun inspect(x) = x.only
+//│ ║        	                            ^^^^^^
+//│ ╟── Value with an empty interface does not contain member 'only'
+//│ ║  l.+2: 	  open fun inspect(x: Any): Int = 0
+//│ ║        	                      ^^^
+//│ ╟── Type 'Any' is declared without a member interface.
+//│ ║  in ../../decls/Prelude.mls
+//│ ║  l.XX: 	declare type Any
+//│ ╙──      	             ^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
+// The first application retains the second parameter list of a separately declared signature.
+:e
+private class CurriedBase with
+  fun inspect: Any -> Any -> Int
+  open fun inspect(first)(second) = 0
+private class CurriedChild extends CurriedBase with
+  override fun inspect(first)(second) = second.only
+fun detachedTail() = new CurriedBase().inspect(0)
+new CurriedChild().inspect(0)({only: 7})
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+5: 	  override fun inspect(first)(second) = second.only
+//│ ║        	                                        ^^^^^^^^^^^
+//│ ╟── Value with an empty interface does not contain member 'only'
+//│ ║  l.+2: 	  fun inspect: Any -> Any -> Int
+//│ ║        	                      ^^^
+//│ ╟── Type 'Any' is declared without a member interface.
+//│ ║  in ../../decls/Prelude.mls
+//│ ║  l.XX: 	declare type Any
+//│ ╙──      	             ^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
+// Callers of the returned function cannot supply the first argument again.
+:expect 7
+private class PartialBase with
+  fun inspect: Any -> Any -> Int
+  open fun inspect(first)(second) = 0
+private class PartialChild extends PartialBase with
+  override fun inspect(first)(second) = first.only
+fun remainingArgument() = new PartialBase().inspect(0)
+new PartialChild().inspect({only: 7})(0)
+//│ = 7

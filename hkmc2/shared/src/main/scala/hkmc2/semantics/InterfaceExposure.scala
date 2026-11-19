@@ -376,7 +376,11 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
         fields(record, false, marks, instances.withOverrides(record.instances), Set.empty)
       case base: BaseShape => members(base.defn, S(marks), path)
       case callable: CallableTypeShape =>
-        callable.declaration.foreach(signature(_, path))
+        callable.declaration.foreach: origin =>
+          val td = origin.definition
+          signature(td, path)
+          if Inheritance.isOpen(td) && !admittedMethods(td.tsym) then
+            parameters(origin.remaining.map(_ -> marks), path, virtual = true)
         // Written structure constrains external values; missing output parts
         // still admit unknown shapes even when local callers supplied evidence.
         val unknown = UnknownValueShape(callable.source, fromPublicInterface = true)(path)

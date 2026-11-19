@@ -1844,11 +1844,13 @@ class NewResolver:
         listener(wrapperShape(annotation, callable.result.getOrElse(extremeType(true))))
       case pending =>
         val remaining = pending.map(info => WrappedResult(info.annotation, info.remainingLists - 1))
+        val declaration = callable.declaration.flatMap(_.afterApplication)
         callable.paramLists.tail match
-          case tail: NELs[DeclaredParams] => listener(callable.copy(paramLists = tail, wrappedResult = remaining))
+          case tail: NELs[DeclaredParams] => listener(callable.copy(paramLists = tail, declaration = declaration, wrappedResult = remaining))
           case Nil => callable.result match
-            case S(tpe) if remaining.nonEmpty => listenTypeViews(tpe):
-              case Marked(next: CallableTypeShape, marks) => listener(Marked(next.copy(wrappedResult = remaining), marks))
+            case S(tpe) if remaining.nonEmpty || declaration.nonEmpty => listenTypeViews(tpe):
+              case Marked(next: CallableTypeShape, marks) => listener(Marked(next.copy(
+                declaration = declaration.orElse(next.declaration), wrappedResult = remaining.orElse(next.wrappedResult)), marks))
               case other => listener(other)
             case S(tpe) => listenTypeInstances(tpe)(listener)
             case N => listener(UnknownValueShape.at(callable.source))
@@ -1934,7 +1936,7 @@ class NewResolver:
               case callable: CallableTypeShape if !isByName(td) =>
                 val parameters = td.tparams.toList.flatten.map(p => declaredParameter(p.sym)) ::: callable.tparams
                 CallableTypeShape(callable.source, callable.paramLists, callable.result,
-                  if parameters.isEmpty then N else S(TypeScheme(td.tsym, parameters)), callable.supplied, S(td),
+                  if parameters.isEmpty then N else S(TypeScheme(td.tsym, parameters)), callable.supplied, S(CallableDeclaration(td, td.params)),
                   td.resultWrapperAnnotation.map(WrappedResult(_, td.params.length)))
               case instance: InstanceShape if !isByName(td) =>
                 instanceShape(quantifiedType(instance.tpe, td.tparams.toList.flatten.map(_.sym)))
@@ -1960,7 +1962,7 @@ class NewResolver:
                 def parameter(p: Param) = DeclaredParam(p.sign.map(signature(_, !positive)), p.flags)
                 DeclaredParams(ps.params.map(parameter), ps.variadic.map(_.map(parameter)))
               ,
-              result, N, N, S(td), N))
+              result, N, N, N, N))
             case Nil if td.asyncAnnotation.nonEmpty =>
               publish(promiseShape(td.asyncAnnotation.get, result.getOrElse(extremeType(true))))
             case Nil => result match
