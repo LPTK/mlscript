@@ -1696,6 +1696,9 @@ For example, when `Reader[T] = T -> Str` and `Box[T]` is generic, `Reader[Box]`
 exposes `Box` and admits unknown values for its contents wherever it occurs in
 an exposed signature. Writing `Reader[Box[Item]]` specifies the contents.
 In a local expression such as `Box(item) as Box`, the contents are inferred from `item`.
+The annotation of a value that escapes is exposed too, even when it is written on a private
+definition: if `private fun reader(): Box -> Str` is returned by an exported function with
+no result annotation, clients can call the result with boxes of unknown contents.
 An omitted type argument can also expose an inferred value. For example, if the body of
 `fun callbacks(): Box` supplies a function as the box's contents, that function
 must also accept external calls.

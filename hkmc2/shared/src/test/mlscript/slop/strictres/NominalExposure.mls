@@ -430,6 +430,9 @@ new InferredPayload().read({key: 2})
 //│ ╟── Member 'read' is accessible here.
 //│ ║  l.+2: 	  fun read(x) = x.key
 //│ ║        	  ^^^^^^^^^^^
+//│ ╟── This type argument appears in an exposed annotation.
+//│ ║  l.+3: 	private fun hiddenFactory(): Phantom[InferredPayload] = new Phantom[InferredPayload]
+//│ ║        	                                     ^^^^^^^^^^^^^^^
 //│ ╟── This value is returned here.
 //│ ║  l.+4: 	fun inferredFactory() = hiddenFactory()
 //│ ║        	                        ^^^^^^^^^^^^^^^

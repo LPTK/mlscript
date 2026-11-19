@@ -91,14 +91,15 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
     rctx.recordLexicalBinders(ref, Set.empty)
     ref
 
-  /** Expose the public operations of every class named in an exported signature or a type
-    * reachable from it. An omitted type argument admits unknown external values at any position. */
+  /** Expose the public operations of every class named in an exported signature, in the written
+    * type of an escaping value, or in a type reachable from either. An omitted type argument
+    * admits unknown external values at any position. */
   private def exposeType(res: TypeResolution, path: Path)(using ResolutionContext): Unit = if exposedTypes.add(res) then
     detach += res.inferenceHost.observe: shape =>
       work.enqueue: () =>
         resolver.foreachOmittedArgument(res, shape): (param, hole) =>
-          // The annotation can be far from the definition that exposes it, such as a type alias
-          // named in the signature of an exported function.
+          // The annotation can be far from the definition that exposes it, such as the result
+          // type of a private function whose result an exported function returns.
           resolver.exposeTypeHoles(hole, UnknownValueShape(res.source, fromPublicInterface = true)(path.via(
             msg"Type argument '${param.sym.nme}' is omitted here and admits values of unknown shape." -> res.source.toLoc)))
           // The omitted argument may also carry an inferred value, such as a stored callback.
@@ -258,11 +259,20 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
 
   private def value(shape: TermShape, path: Path)(using ResolutionContext): Unit = valueIn(shape, path, rctx.instances)
 
-  /** Expose the types and values carried by an escaping value. A local ascription such as
-    * `Box(item) as Box` contributes the contents inferred for that box. A generic call that
-    * returns `Box[T]` contributes the type supplied for T at that call.
+  /** Expose the interface of an escaping value whose type is written, such as the result of
+    * a private function with a result annotation. Clients use the value at that type, so the
+    * annotation is exposed like the signature of an exported definition (see `exposeType`).
+    * The value also carries types and values that its annotation does not name. A local
+    * ascription such as `Box(item) as Box` contributes the contents inferred for that box.
+    * A generic call that returns `Box[T]` contributes the type supplied for T at that call.
     */
   private def declaredValue(tpe: DeclaredType, marks: Ls[Marks], path: Path)(using ResolutionContext): Unit =
+    // Clients supply the arguments of an escaping function and the values written to an escaping
+    // mutable record or instance. The written type restricts these inputs, except at its omitted
+    // type arguments. Reading only the values inferred for such an argument would let
+    // `private fun reader(): Box -> Str`, returned by an exported function without a result
+    // annotation, receive boxes with contents that no local caller supplies.
+    exposeType(tpe.resolution, path)
     def bound(part: DeclaredType, context: Ls[Marks])(using ResolutionContext): Unit =
       emit(resolver.instanceShape(part).exit(context), path)
     def candidate(value: TermShape)(using ResolutionContext): Unit =
@@ -270,7 +280,6 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
     detach += tpe.resolution.inferenceHost.observe: shape =>
       work.enqueue: () =>
         shape match
-          case TypeShape.Nominal(cls) => members(cls, N, path)
           case parameter: TypeShape.Parameter if !tpe.bindings.contains(parameter.symbol) =>
             // Written formals stay abstract until a call supplies an instance. Synthesized
             // element hosts can also read the original binder with an allocation-specific

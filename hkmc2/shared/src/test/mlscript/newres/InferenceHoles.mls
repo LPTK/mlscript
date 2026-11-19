@@ -83,13 +83,15 @@ make().item.value
 //│ = 9
 
 // An ascription preserves its written structure and infers its missing argument.
+// The ascribed value stays in the function: an escaping one would admit unknown contents.
 :expect 10
 class Item(val value: Int)
 class Box[T](val item: T)
-let box = Box(Item(10)) as Box
-box.item.value
+private fun unbox() =
+  let box = Box(Item(10)) as Box
+  box.item.value
+unbox()
 //│ = 10
-//│ box = Box(Item(10))
 
 // TODO: omissions in an alias body need the alias use's contextual graph view.
 :fixme

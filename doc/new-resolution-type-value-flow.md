@@ -569,6 +569,8 @@ Written fragments continue to restrict the interface. Abstract types keep their
 omitted generic argument in an exposed signature admits an unknown value alongside
 any local evidence. This rule applies in callback parameters and results and in
 arguments to type aliases, including arguments the alias body never uses.
+The written type of a value that escapes without an exposed signature, such as the
+result of a private function returned by an exported one, is exposed in the same way.
 
 Current limitations are [omitted-argument context precision](new-resolution-future-work.md#omitted-argument-contexts)
 and [missing selected member types](new-resolution-future-work.md#inferred-member-signatures).
