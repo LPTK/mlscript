@@ -226,3 +226,70 @@ let counter = 8
 counter + 1
 //│ = 9
 //│ counter = 8
+
+
+// The bindings of earlier blocks that a discarded block uses stay available.
+fun early() = 1
+class Early(val n: Int)
+
+:ge
+fun usesEarly() = early() + new Early(1).n
+private fun failedAfterUse(): Int32 = "wrong"
+//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Str' at an unrelated type 'Int32'
+//│ ║  l.+2: 	private fun failedAfterUse(): Int32 = "wrong"
+//│ ╙──      	                                      ^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+:expect 2
+early() + new Early(1).n
+//│ = 2
+
+// A later block can define a discarded function again.
+:ge
+fun again() = 1
+private fun failedBeforeAgain(): Int32 = "wrong"
+//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Str' at an unrelated type 'Int32'
+//│ ║  l.+2: 	private fun failedBeforeAgain(): Int32 = "wrong"
+//│ ╙──      	                                         ^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+:expect 5
+fun again() = 5
+again()
+//│ = 5
+
+// A discarded block that defines the name of an earlier binding still hides that binding.
+fun shadowed() = 1
+
+:ge
+fun shadowed() = 2
+private fun failedShadowing(): Int32 = "wrong"
+//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Str' at an unrelated type 'Int32'
+//│ ║  l.+2: 	private fun failedShadowing(): Int32 = "wrong"
+//│ ╙──      	                                       ^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+:ge
+shadowed()
+//│ ╔══[COMPILATION ERROR] Binding 'shadowed' is unavailable because its defining block failed to compile.
+//│ ║  l.+1: 	shadowed()
+//│ ║        	^^^^^^^^
+//│ ╟── The binding was declared here.
+//│ ║  l.XX: 	fun shadowed() = 2
+//│ ╙──      	^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// A member of another class that has the name of a discarded class's member is unaffected.
+:ge
+class Gone(val weight: Int)
+private fun failedGone(): Int32 = "wrong"
+//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Str' at an unrelated type 'Int32'
+//│ ║  l.+2: 	private fun failedGone(): Int32 = "wrong"
+//│ ╙──      	                                  ^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+:expect 3
+class Present(val weight: Int)
+fun weigh(o) = o.weight
+weigh(Present(3))
+//│ = 3
