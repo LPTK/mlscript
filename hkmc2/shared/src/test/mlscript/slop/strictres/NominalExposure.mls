@@ -148,6 +148,26 @@ fun typedService(): TypedService[Argument] = new TypedImplementation
 typedService().inspect(Argument("typed"))
 //│ = "typed"
 
+// Both operations inherit T through an unannotated override, then specialize U at the leaf.
+private class ChainBase[T](seed: T) with
+  open fun inspect(x: T): Str = ""
+  open mut val item: T = seed
+private class ChainMiddle[U](seed: U) extends ChainBase[U](seed) with
+  open override fun inspect(x) = ""
+  open override mut val item = seed
+private class ChainLeaf extends ChainMiddle[Argument](Argument("initial")) with
+  override fun inspect(x) = x.word
+  override mut val item = Argument("leaf")
+  fun read() = item.word
+private val chainLeaf = new mut ChainLeaf
+fun chainView(): ChainBase[Argument] = chainLeaf
+//│ chainLeaf = ChainLeaf
+
+:expect ["called", "written"]
+set chainView().item = Argument("written")
+[chainView().inspect(Argument("called")), chainLeaf.read()]
+//│ = ["called", "written"]
+
 // An omitted argument in the override receives the corresponding part of the inherited input.
 private class BoxService with
   open fun inspect(x: Box[Argument]): Str = ""

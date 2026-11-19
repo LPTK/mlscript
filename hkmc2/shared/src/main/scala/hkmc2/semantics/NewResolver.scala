@@ -2224,6 +2224,12 @@ class NewResolver:
       interfaceInputs(symbol).listen(receive)(using rctx.state.context)
     def forward(symbol: VarSymbol | TermSymbol, value: TermShape)(using ResolutionContext): Unit =
       if Inheritance.isOpen(overriding) then publishInterfaceInput(symbol, value)
+    // A previous override may already have supplied the declared input. It has left that
+    // member's scope, but still refers to the enclosing class's type parameters.
+    def inheritedInput(input: TermShape)(using ResolutionContext): TermShape = input match
+      case Marked(instance: InstanceShape, inner) =>
+        instanceShape(transportType(instance.tpe.instantiate(instances), inner :: inheritedMarks))
+      case _ => input
     val site = rctx.fieldProjectionSite(base.bsym)
     if base.k is syntax.MutVal then
       def assign(input: TermShape)(using ResolutionContext): Unit =
@@ -2233,7 +2239,7 @@ class NewResolver:
           constrainFieldWrites(MemberLookup.Found(overriding.bsym, Nil), ref, N)(receive => receive(input))
         forward(overriding.tsym, input)
       onInput(base.tsym): input =>
-        if resultSignature(base).isEmpty then assign(input)
+        if resultSignature(base).isEmpty then assign(inheritedInput(input))
         else
           val lookup = MemberLookup.Declared(base.bsym, Map.empty, inheritedMarks, N, positive = true).instantiate(instances)
           listenFieldInput(lookup, MemberRef(base.bsym)(N, site))(tpe => assign(instanceShape(tpe)))
@@ -2253,7 +2259,7 @@ class NewResolver:
         val baseMarks = ExitMark(ResolutionBoundary(base.tsym), S(site), NoMarks) :: inheritedMarks
         pairs.foreach: (target, inherited) =>
           onInput(inherited.sym): input =>
-            val admitted = parameterSignature(inherited).fold(input): sign =>
+            val admitted = parameterSignature(inherited).fold(inheritedInput(input)): sign =>
               instanceShape(transportType(sign.withPolarity(false).instantiate(instances), baseMarks))
             admit(target, admitted)
 
