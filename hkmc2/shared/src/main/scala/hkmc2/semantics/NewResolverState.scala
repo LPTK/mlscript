@@ -77,22 +77,14 @@ final class NewResolverState(val owner: Elaborator.State):
   private[semantics] val exposureInputs = mutable.LinkedHashMap.empty[(ShapeIdentity.Key, ResolutionContext), InterfaceExposure.Input]
   /** The overridable members of extensible classes and objects that [[InterfaceExposure]] reached,
     * each with the first exposure path that reached it. Erasure, which knows the parameters an
-    * override inherits, requires these members to have fully specified signatures. A worksheet block
-    * exposes its definitions before it is erased, and later blocks can only re-expose them.
+    * override inherits, requires these members to have fully specified signatures.
     */
   private[semantics] val exposedOpenMembers = mutable.Map.empty[TermSymbol, ShapeProvenance]
-  // Worksheet blocks share a unit. A fresh written mention of a class cannot admit new external
-  // calls, but a later block can add an override that needs the original inputs replayed.
-  private[semantics] val exposedInterfaces = mutable.Set.empty[ClassLikeDefSymbol]
-  // The same formal can escape on different receivers or after partial application. It admits
-  // the same external argument in each case, even when its type holes need each caller's scope.
-  private[semantics] val externalArguments = mutable.Map.empty[VarSymbol, (UnknownValueShape, TermShape)]
   private[semantics] val interfaceInputs = mutable.Map.empty[VarSymbol | TermSymbol, TermShapeHost]
   
-  // Result exposure follows declaration edges in either order. Once a base becomes reachable, its
-  // waiting overrides are consumed and later overrides can use the exposure path immediately.
-  private[semantics] val exposedResults = mutable.Map.empty[TermSymbol, ShapeProvenance]
-  private[semantics] val pendingResultOverrides = mutable.Map.empty[TermSymbol, Ls[TermDefinition]]
+  // A declaration stores its waiting overrides until the exposure walk reaches its result.
+  // Recording the first path before visiting those overrides also breaks recursive exposure.
+  private[semantics] val resultExposure = mutable.Map.empty[TermSymbol, Either[Ls[TermDefinition], ShapeProvenance]]
 
   /** How [[InterfaceExposure]] first reached `member`, if `member` is an exposed overridable member
     * of an extensible class or object of this compilation unit.

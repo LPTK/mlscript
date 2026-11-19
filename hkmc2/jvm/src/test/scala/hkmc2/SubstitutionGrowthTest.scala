@@ -58,21 +58,26 @@ class SubstitutionGrowthTest extends AnyFunSuite:
     allocation.setThreadAllocatedMemoryEnabled(true)
     allocation
 
-  /** Resolves a generated unit through ordinary elaboration, in a fresh state. */
-  private def measure(name: Str, source: Str): Measurement =
+  private def sourceFile(name: Str, source: Str): os.Path =
     val dir = os.temp.dir(prefix = "substitution-growth-")
     val file = dir / s"$name.mls"
     os.write(file, source)
-    measure(file)
+    file
 
-  private def measure(file: os.Path): Measurement =
+  /** Resolves a unit through ordinary elaboration and checks the producer's diagnostics. */
+  private def compile(file: os.Path): CompilerCache.Artifact =
     val diagnostics = ArrayBuffer.empty[Diagnostic]
     given Raise = diagnostics += _
     val prelude = cctx.getPrelude(cctx.paths.preludeFile)(using tl, summon[Raise]).ctx
     val artifact = cctx.getElaboratedBlock(file, prelude)(using tl, summon[Raise])
     val errors = diagnostics.collect { case error: ErrorReport => error }
     assert(errors.isEmpty, s"Unexpected errors in ${file.baseName}:\n${errors.map(_.theMsg).mkString("\n")}")
-    val state = artifact.state.newResolverState.context
+    artifact
+
+  private def measure(name: Str, source: Str): Measurement = measure(sourceFile(name, source))
+
+  private def measure(file: os.Path): Measurement =
+    val state = compile(file).state.newResolverState.context
     Measurement(state.allocatedShapeViewCount, state.largestRetainedSubstitution,
       state.activationContextCount, state.allocatedTypeInstanceCount, state.state.typeReferences.size,
       state.state.interfaceInputs.size)
@@ -111,33 +116,28 @@ class SubstitutionGrowthTest extends AnyFunSuite:
        |""".stripMargin
     assert(measure("ImportedOperationInputs", source).overrideInputs == 0)
 
-  // Shape counts distinguish a one-time admission from publishing a fresh external argument at
-  // each mention of the same declaration. The worksheet keeps one symbol state across blocks.
-  test("worksheet blocks admit external inputs to a local operation once"):
-    given owner: Elaborator.State = new Elaborator.State
-    given CompilerCtx = cctx
-    given Raise = diagnostic => fail(diagnostic.theMsg)
-    val language = Config.Language.v0_3_x
-    given Config = cctx.rootConfig.copy(language = language.copy(strictResolution = true, eagerResolution = true)(language.version))
-    val prelude = cctx.getPrelude(cctx.paths.preludeFile)(using tl, summon[Raise]).ctx
-    val dir = os.temp.dir(prefix = "worksheet-exposure-")
-    val output = DebugOutputHandler(cctx.fs, _ => ())
-    val elab = Elaborator(tl, dir, prelude)
-    var scope = prelude
-    def block(name: Str, source: Str): Unit =
-      val file = dir / s"$name.mls"
-      os.write(file, source)
-      val parsed = ParserSetup(file, output).resultBlk
-      scope = elab.topLevel(parsed)(using scope.nestLocal(name, isTopLevel = true))._2
-    block("definitions", "private class Local with { open fun use(x) = x }\nfun local(): Local = new Local")
-    val state = owner.newResolverState
-    def candidates = state.interfaceInputs.valuesIterator.map(_.currentShapes(using state.context).size).sum
-    assert(state.interfaceInputs.size == 1 && candidates == 1)
-    block("method", "private class Other with { open fun call(x)(y) = y }\nfun partial() = new Other().call(1)")
-    assert(state.interfaceInputs.size == 2 && candidates == 2)
-    for i <- 1 to 12 do
-      block(s"again$i", s"fun again$i(): Local = new Local\nfun method$i() = new Other().call(1)\n1 + 1")
-      assert(state.interfaceInputs.size == 2 && candidates == 2)
+  // A diff test cannot distinguish repeated copies of the same external input. Count the
+  // actual candidates kept by the methods and record field of one compiled module.
+  test("repeated exports share the external inputs of declarations and mutable records"):
+    for count <- List(1, 12) do
+      val name = s"RepeatedExports$count"
+      val exports = (1 to count).map: i =>
+        s"fun local$i(): Local = new Local\n  fun partial$i() = new Other().call(1)\n  fun record$i() = shared"
+      val file = sourceFile(name, s"""#lang(0.3.x, strictResolution: true)
+         |module $name with
+         |  private class Local with { open fun use(x) = x }
+         |  private class Other with { open fun call(x)(...ys) = ys }
+         |  private val shared = mut {item: 1}
+         |  ${exports.mkString("\n  ")}
+         |""".stripMargin)
+      val artifact = compile(file)
+      given state: ResolutionContext = artifact.state.newResolverState.context
+      val inputs = state.state.interfaceInputs
+      assert(inputs.size == 2)
+      assert(inputs.valuesIterator.forall(_.currentShapes.size == 1))
+      val field = new ErasureDeclarations(artifact.term).statements.collectFirst:
+        case field: RcdField if field.sym.nme == "item" => field.tsym
+      assert(state.memberVariable(field.get).currentShapes.size == 1)
 
   // The value passed along each chain is produced outside every generic scope,
   // so no view of it should retain more than the one binding of the scope

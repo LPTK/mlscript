@@ -56,7 +56,12 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
   private val annotations = mutable.Set.empty[(TypeResolution, Bool)]
   private val aliasArguments = mutable.Map.empty[VarSymbol, mutable.Set[TypeResolution]]
   private val suppliedArguments = mutable.Map.empty[VarSymbol, Path]
-  private val admittedMethods = mutable.Set.empty[TermSymbol]
+  // A class contributes its declarations once. A method that escapes separately can still expose
+  // just its remaining parameter lists until the whole declaration is reached.
+  private val admitted = mutable.Set.empty[ClassLikeDefSymbol | TermSymbol]
+  // Each formal admits one external value, including the tuple allocated for a rest formal.
+  // Different receivers or partial applications can still require different scope crossings.
+  private val externalArguments = mutable.Map.empty[VarSymbol, (UnknownValueShape, TermShape)]
   private val declarationContext = rctx
 
   /** Forwarding edges belong to the inference graph. Only the final observer
@@ -187,14 +192,16 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
   private def parameter(param: Param, rest: Bool, marks: Ls[Marks], path: Path, method: Opt[TermDefinition])(using ResolutionContext): Unit =
     if !rctx.state.isOwnedSym(param.sym) then return
     param.sign.foreach(annotation(_, path, readable = false))
-    val (unknown, input) = rctx.state.externalArguments.getOrElseUpdate(param.sym,
+    // An inherited signature can arrive after this walk. Its listener only needs the resolver.
+    val resolver = this.resolver
+    val (unknown, input) = externalArguments.getOrElseUpdate(param.sym,
       InterfaceExposure.parameterInput(param, rest, path)(resolver))
     resolver.externalInput(method, S(param), input): admitted =>
       resolver.parameterSignature(param) match
-        case N => admitted match
-          case typed: InstanceShape =>
+        case N => (method, admitted) match
+          case (S(td), typed: InstanceShape) =>
             // An inherited signature has already crossed its parent clause into this class.
-            val tpe = resolver.captureType(typed.tpe, method.get.tsym)
+            val tpe = resolver.captureType(typed.tpe, td.tsym)
             resolver.constrainParameter(param, resolver.instanceShape(tpe), Nil)
             resolver.exposeTypeHoles(tpe, unknown, Nil)
           case _ => resolver.constrainParameter(param, admitted.enter(marks), marks)
@@ -227,7 +234,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
     signature(td, path)
     val virtual = Inheritance.isOpen(td)
     if td.params.nonEmpty && (virtual || !Inheritance.isExternal(td)) then
-      admittedMethods += td.tsym
+      admitted += td.tsym
       val site = S(source(td.bsym).resSym)
       val inside = InterfaceExposure.declarationExits(td, site)
       parameters(td.params.map(_ -> inside), path, S(td))
@@ -237,7 +244,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
     */
   private def members(cls: ClassLikeDef, receiver: Opt[Ls[Marks]], path: Path)(using ResolutionContext): Unit =
     if !rctx.state.isOwnedSym(cls.sym) then return
-    val first = rctx.state.exposedInterfaces.add(cls.sym)
+    val first = admitted.add(cls.sym)
     if !first && receiver.isEmpty then return
     cls.body.blk.stats.foreach:
       case d: Definition if InterfaceExposure.isPublic(d) =>
@@ -268,6 +275,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
   private def assignable(field: TermSymbol, symbol: BlockMemberSymbol, path: Path)(using ResolutionContext): Unit =
     if rctx.state.isOwnedSym(field) then
       val unknown = InterfaceExposure.fieldInput(field, source(symbol), path)
+      val resolver = this.resolver
       resolver.externalInput(field.defn, N, unknown): admitted =>
         resolver.writeField(field, admitted, Nil)
         if field.defn.exists(Inheritance.isOpen) then resolver.publishInterfaceInput(field, admitted)
@@ -336,7 +344,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
           case td: TermDefinition =>
             // A method may escape on its own, including after partial application.
             // A previously exposed class already admits calls to the whole method.
-            if !admittedMethods(td.tsym) then parameters(shape.unappliedParams, path, S(td))
+            if !admitted(td.tsym) then parameters(shape.unappliedParams, path, S(td))
             if Inheritance.isOpen(td) && resolver.resultSignature(td).isEmpty then
               resolver.exposeMemberResult(td, path)(using declarationContext)
           case _ => parameters(shape.unappliedParams, path, N)
@@ -406,7 +414,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
         callable.declaration.filter(origin => rctx.state.isOwnedSym(origin.definition.tsym)).foreach: origin =>
           val td = origin.definition
           signature(td, path)
-          if Inheritance.isOpen(td) && !admittedMethods(td.tsym) then
+          if Inheritance.isOpen(td) && !admitted(td.tsym) then
             parameters(origin.remaining.map(_ -> marks), path, S(td))
         // Written structure constrains external values; missing output parts
         // still admit unknown shapes even when local callers supplied evidence.

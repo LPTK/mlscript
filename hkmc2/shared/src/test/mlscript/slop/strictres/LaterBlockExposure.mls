@@ -59,23 +59,35 @@ invoke(readCell().item)
 //│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of null (reading 'only')
 
 
-// The omitted argument of a method's written result type, in a class that the later block names again.
+// Naming CellReader again checks the omitted argument of its method's written result.
 let memberCell = Cell(x => 0)
 private class CellReader with
   fun get(): Cell = memberCell
 fun cellReader(): CellReader = new CellReader
 //│ memberCell = Cell(fun)
 
-:breakme
 :e
 private fun lateMemberArgument(x) = x.only
 set memberCell = Cell(lateMemberArgument)
 lateMemberArgument({only: 1})
 fun cellReaderAgain(): CellReader = new CellReader
-
-:fixme
-invoke(cellReader().get().item)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of null (reading 'only')
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+1: 	private fun lateMemberArgument(x) = x.only
+//│ ║        	                                    ^^^^^^
+//│ ╟── Cannot resolve member 'only' of a value with unknown shape.
+//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ║  l.+1: 	private fun lateMemberArgument(x) = x.only
+//│ ║        	                               ^
+//│ ╟── Type argument 'T' is inferred here.
+//│ ║  l.XX: 	  fun get(): Cell = memberCell
+//│ ║        	             ^^^^
+//│ ╟── Member 'get' is accessible here.
+//│ ║  l.XX: 	  fun get(): Cell = memberCell
+//│ ║        	  ^^^^^^^^^^^^^^^
+//│ ╟── 'cellReaderAgain' is exposed by this compilation unit.
+//│ ║  l.+4: 	fun cellReaderAgain(): CellReader = new CellReader
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
 // The inferred result of an exported function, which reads a private field.

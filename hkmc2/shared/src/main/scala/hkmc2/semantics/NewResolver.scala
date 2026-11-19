@@ -2247,24 +2247,26 @@ class NewResolver:
   private[semantics] def exposeMemberResult(td: TermDefinition, path: ShapeProvenance)(using ResolutionContext): Unit =
     val state = rctx.state
     assert(state.isOwnedSym(td.tsym))
-    if !state.exposedResults.contains(td.tsym) then
-      state.exposedResults(td.tsym) = path
-      resultSignature(td) match
-        case S(sign) =>
-          // An override can give an unannotated base result a written interface of its own.
-          rctx.exposeValue(instanceShape(declaredType(typeResolution(sign), Map.empty)), path)
-        case N =>
-          val exits = InterfaceExposure.declarationExits(td, N)
-          def expose(shape: TermShape, at: ShapeProvenance)(using ResolutionContext): Unit =
-            instantiateShape(shape, rctx.instances).exit(exits) match
-              case value: TermShape => rctx.exposeValue(value, at)
-              case NoShape => ()
-          td.body.filter(_ => !Inheritance.isExternal(td)).foreach: body =>
-            val at = if td.k is Fun then path.via(msg"This value is returned here." -> body.toLoc) else path
-            listenDefinitionResult(td, TypeSubstitution.empty)(expose(_, at))
-          // Clients can read writes through an abstract or declared field even when it has no initializer.
-          if isAssignableField(td) then listenMemberVariable(td.tsym)(expose(_, path))
-          state.pendingResultOverrides.remove(td.tsym).foreach(_.foreach(exposeOverrideResult(_, path)))
+    val waiting = state.resultExposure.getOrElse(td.tsym, Left(Nil)) match
+      case Right(_) => return
+      case Left(overrides) => overrides
+    state.resultExposure(td.tsym) = Right(path)
+    resultSignature(td) match
+      case S(sign) =>
+        // An override can give an unannotated base result a written interface of its own.
+        rctx.exposeValue(instanceShape(declaredType(typeResolution(sign), Map.empty)), path)
+      case N =>
+        val exits = InterfaceExposure.declarationExits(td, N)
+        def expose(shape: TermShape, at: ShapeProvenance)(using ResolutionContext): Unit =
+          instantiateShape(shape, rctx.instances).exit(exits) match
+            case value: TermShape => rctx.exposeValue(value, at)
+            case NoShape => ()
+        td.body.filter(_ => !Inheritance.isExternal(td)).foreach: body =>
+          val at = if td.k is Fun then path.via(msg"This value is returned here." -> body.toLoc) else path
+          listenDefinitionResult(td, TypeSubstitution.empty)(expose(_, at))
+        // Clients can read writes through an abstract or declared field even when it has no initializer.
+        if isAssignableField(td) then listenMemberVariable(td.tsym)(expose(_, path))
+        waiting.foreach(exposeOverrideResult(_, path))
 
   private def exposeOverrideResult(td: TermDefinition, base: ShapeProvenance)(using ResolutionContext): Unit =
     exposeMemberResult(td, base.via(msg"Member '${td.tsym.nme}' overrides the exposed member here." -> td.headerLoc))
@@ -4896,11 +4898,9 @@ class NewResolver:
                     if resultSignature(inherited).isEmpty then
                       if !rctx.state.isOwnedSym(target) then
                         exposeOverrideResult(overriding, inheritedExposure(inherited))
-                      else rctx.state.exposedResults.get(target) match
-                        case S(path) => exposeOverrideResult(overriding, path)
-                        case N =>
-                          val waiting = rctx.state.pendingResultOverrides
-                          waiting(target) = overriding :: waiting.getOrElse(target, Nil)
+                      else rctx.state.resultExposure.getOrElse(target, Left(Nil)) match
+                        case Right(path) => exposeOverrideResult(overriding, path)
+                        case Left(waiting) => rctx.state.resultExposure(target) = Left(overriding :: waiting)
           // Private members are not overridden, so they do not hide the inherited members they shadow.
           lookup.visibleFrom(_ => false, reportInaccessible = false).foreachClassMember(rctx.instances)(link)
 
