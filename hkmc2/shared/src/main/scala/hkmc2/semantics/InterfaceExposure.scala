@@ -227,18 +227,20 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
         case S(marks) => term(parent, marks, inherited)
         case N => annotation(parent.cls, inherited)(using declarationContext)
 
-  /** Other compilation units can assign values of unknown shape to an exposed assignable field, which admits them
-    * like an exposed parameter admits unknown arguments: the field's unannotated representation then includes the
-    * unknown one, and reading the field can return such a value. Being self-contained, the unknown value reaches
-    * the field through no particular member lookup. `path` explains how the field's owner is exposed.
+  /** Record the writes other units may make through this field. An unannotated field uses them
+    * to infer its type. An annotated field gets its type and any unknown type arguments from
+    * its signature. An open field also admits those writes to its overrides.
     */
   private def assignable(field: TermSymbol, symbol: BlockMemberSymbol, path: Path)(using ResolutionContext): Unit =
     if rctx.state.isOwnedSym(field) then
-      val unknown = InterfaceExposure.fieldInput(field, source(symbol), path)
       val resolver = this.resolver
-      resolver.externalInput(field.defn, N, unknown): admitted =>
-        resolver.writeField(field, admitted, Nil)
-        if field.defn.exists(Inheritance.isOpen) then resolver.publishInterfaceInput(field, admitted)
+      val annotated = field.defn.flatMap(resolver.writtenSignature).isDefined
+      val open = field.defn.exists(Inheritance.isOpen)
+      if !annotated || open then
+        val unknown = InterfaceExposure.fieldInput(field, source(symbol), path)
+        resolver.externalInput(field.defn, N, unknown): admitted =>
+          if !annotated then resolver.writeField(field, admitted, Nil)
+          if open then resolver.publishInterfaceInput(field, admitted)
 
   private def result(td: TermDefinition, body: Term, marks: Ls[Marks], path: Path)(using ResolutionContext): Unit = resolver.memberSignature(td) match
     case N =>

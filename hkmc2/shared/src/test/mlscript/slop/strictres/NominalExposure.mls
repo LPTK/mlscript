@@ -236,6 +236,23 @@ boxedChild.read()
 //│ boxedChild = BoxFieldChild
 
 
+// A complete field annotation supplies the contents on both sides of a write through the base.
+:expect ["initial", "assigned"]
+private class TypedBoxField with
+  open mut val slot: Box[Argument] = Box(Argument("base"))
+private class TypedBoxChild extends TypedBoxField with
+  override mut val slot: Box[Argument] = Box(Argument("initial"))
+  fun read() = slot.contents.word
+private val typedBoxChild = new mut TypedBoxChild
+fun typedBoxView(): TypedBoxField = typedBoxChild
+let initialWord = typedBoxView().slot.contents.word
+set typedBoxView().slot = Box(Argument("assigned"))
+[initialWord, typedBoxChild.read()]
+//│ = ["initial", "assigned"]
+//│ initialWord = "initial"
+//│ typedBoxChild = TypedBoxChild
+
+
 // An override can receive calls through the returned base interface.
 :e
 private class Service with

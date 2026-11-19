@@ -2362,8 +2362,9 @@ class NewResolver:
       case _ => input
     if base.k is syntax.MutVal then
       def assign(input: TermShape)(using ResolutionContext): Unit =
-        writeField(overriding.tsym, input, Nil)
-        slotSignature(overriding, N).foreach(exposeOmissions)
+        slotSignature(overriding, N) match
+          case S(tpe) => exposeOmissions(tpe)
+          case N => writeField(overriding.tsym, input, Nil)
         forward(overriding.tsym, input)
       onInput(N)(assign)
     else if base.params.nonEmpty then
