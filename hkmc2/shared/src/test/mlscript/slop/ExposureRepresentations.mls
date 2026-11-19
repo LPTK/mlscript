@@ -205,22 +205,35 @@ private fun independentBadResult(): Int32 | Any = input
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ throw "This code cannot be run as its compilation yielded an error."
 
-// Already-diagnosed parameter errors inherited in a later worksheet block still stop lowering.
-// Their result signatures carry the same error without diagnosing the inferred result again.
+// A later subclass cannot use a base whose defining block was discarded.
+:ge
 :sir
 :siret
 private class LaterRejectedParameters() extends RejectedBase() with
   override fun take(value) = value
 LaterRejectedParameters().take(input)
+//│ ╔══[COMPILATION ERROR] Binding 'RejectedBase' is unavailable because its defining block failed to compile.
+//│ ║  l.+1: 	private class LaterRejectedParameters() extends RejectedBase() with
+//│ ║        	                                                ^^^^^^^^^^^^
+//│ ╟── The binding was declared here.
+//│ ║  l.XX: 	private class RejectedBase() with
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ throw "This code cannot be run as its compilation yielded an error."
 
-// A previously diagnosed result error also rejects a later unannotated override without a new error.
+// A base rejected for its result representation is unavailable to later overrides as well.
+:ge
 :sir
 :siret
 private class LaterRejectedResult() extends RejectedResultBase() with
   override fun value = input
 LaterRejectedResult().value
+//│ ╔══[COMPILATION ERROR] Binding 'RejectedResultBase' is unavailable because its defining block failed to compile.
+//│ ║  l.+1: 	private class LaterRejectedResult() extends RejectedResultBase() with
+//│ ║        	                                            ^^^^^^^^^^^^^^^^^^
+//│ ╟── The binding was declared here.
+//│ ║  l.XX: 	private class RejectedResultBase() with
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ throw "This code cannot be run as its compilation yielded an error."
 
@@ -246,22 +259,49 @@ private class WrappedResultError() extends WrappedErrorBase() with
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ throw "This code cannot be run as its compilation yielded an error."
 
-// References to earlier failed definitions use their erased errors without repeating diagnostics.
+// References to earlier failed definitions diagnose the unavailable binding at the new use.
+:ge
 :sir
 :siret
 badParameter(input)
+//│ ╔══[COMPILATION ERROR] Binding 'badParameter' is unavailable because its defining block failed to compile.
+//│ ║  l.+1: 	badParameter(input)
+//│ ║        	^^^^^^^^^^^^
+//│ ╟── The binding was declared here.
+//│ ║  l.XX: 	private fun badParameter(value: Int32 | Any): Int32 | Any = value
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ throw "This code cannot be run as its compilation yielded an error."
 
+:ge
 :sir
 :siret
 independentBadResult()
+//│ ╔══[COMPILATION ERROR] Binding 'independentBadResult' is unavailable because its defining block failed to compile.
+//│ ║  l.+1: 	independentBadResult()
+//│ ║        	^^^^^^^^^^^^^^^^^^^^
+//│ ╟── The binding was declared here.
+//│ ║  l.XX: 	private fun independentBadResult(): Int32 | Any = input
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ throw "This code cannot be run as its compilation yielded an error."
 
 // A wrapped result is still rejected when the erroneous function is used as a value.
+:ge
 :sir
 :siret
 [rejectedAsync, rejectedGenerator]
+//│ ╔══[COMPILATION ERROR] Binding 'rejectedAsync' is unavailable because its defining block failed to compile.
+//│ ║  l.+1: 	[rejectedAsync, rejectedGenerator]
+//│ ║        	 ^^^^^^^^^^^^^
+//│ ╟── The binding was declared here.
+//│ ║  l.XX: 	fun rejectedAsync(): Int32 | Any = input
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╔══[COMPILATION ERROR] Binding 'rejectedGenerator' is unavailable because its defining block failed to compile.
+//│ ║  l.+1: 	[rejectedAsync, rejectedGenerator]
+//│ ║        	                ^^^^^^^^^^^^^^^^^
+//│ ╟── The binding was declared here.
+//│ ║  l.XX: 	fun rejectedGenerator(): Int32 | Any = input
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ throw "This code cannot be run as its compilation yielded an error."

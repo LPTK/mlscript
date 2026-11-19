@@ -1763,7 +1763,9 @@ fails to compile, as `x` is inferred to have an unknown representation.
 
 Worksheet blocks are compiled one after the other, and the representations inferred for a block
 are final once it is compiled. Later blocks must use earlier definitions and `let` variables
-with their established representations; new uses cannot widen them.
+with their established representations; new uses cannot widen them. If a block fails representation
+checking or lowering cannot perform a required coercion, the compiler discards the whole block.
+A later block that uses one of its bindings reports where the unavailable binding was declared.
 
 A mutable field holds its initializer and then the values assigned to it, through any receiver that
 can be an instance of its class, so an unannotated mutable field takes the representation of all of

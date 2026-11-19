@@ -93,13 +93,9 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
   
   /** Whether a reference cannot be compiled: either an error was reported for it, or it targets a definition
     * marked as erroneous, such as one of the definitions of a name rejected by Elaborator.
-    * Erased result errors also reject references to definitions from earlier failed worksheet blocks.
     * Erroneous definitions are not lowered (see `blockImpl` and `gatherMembers`). */
   private def erroneousRef(ref: NewResolvable): Bool =
-    ref.isErroneous || ref.resolvedTargets.exists: target =>
-      target.defn.exists(_.isErroneous) || (target match
-        case symbol: TermSymbol => summon[Erasure].representationError(symbol.sourceErasedResult.bodyType).isDefined
-        case _ => false)
+    ref.isErroneous || ref.resolvedTargets.exists(_.defn.exists(_.isErroneous))
   
   /** Selections on a name already reported as missing (see NewResolver.settleUnboundReferences)
     * have no target either, which needs no other error. */
@@ -1958,7 +1954,11 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
     summon[Erasure].requireCompleted(main)
     
     val (imps, funs, rest) = splitBlock(main.stats, Nil, Nil, Nil)
-    if summon[Erasure].hasErrors then return Program(imps.map(imp => imp.sym -> imp.str), compError)
+    val imports = imps.map(imp => imp.sym -> imp.str)
+    def discard(): Program =
+      summon[Erasure].discardBindings()
+      Program(imports, compError)
+    if summon[Erasure].hasErrors then return discard()
     
     // * File-level values participate in the compilation unit's default export and private ABI.
     // * Only values inside local blocks can be replaced by fresh variables without breaking that linkage.
@@ -1969,22 +1969,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
       inScopedBlockExcept(symbolsToPreserve)(using LoweringCtx.empty(symbolsToPreserve ++ topLevelVals)):
         block(funs ::: rest, R(main.res))(ImplctRet)
     
-    // Recovery after an invalid coercion can leave ill-typed IR. Neither optimization nor a backend
-    // may consume it, including through symbols whose definitions an importer could otherwise inline.
-    if representationErrors.hasErrors then
-      val unlink = new BlockTraverser:
-        override def applyDefn(defn: Defn): Unit =
-          defn.defnSym.foreach(_.irDefn = N)
-          super.applyDefn(defn)
-        override def applyFunDefn(fun: FunDefn): Unit =
-          fun.dSym.irDefn = N
-          super.applyFunDefn(fun)
-      unlink.applyBlock(blk)
+    if representationErrors.hasErrors then discard() else Program(imports, blk)
 
-    Program(
-      imps.map(imp => imp.sym -> imp.str),
-      if representationErrors.hasErrors then compError else blk
-    )
   
   
   def setupSelection(prefix: Term, nme: Tree.Ident, disamb: Opt[DefinitionSymbol[?]], loc: Opt[Loc])(k: Result => Block)(using LoweringCtx): Block =

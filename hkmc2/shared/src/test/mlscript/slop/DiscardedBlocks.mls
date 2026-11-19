@@ -2,9 +2,6 @@
 
 // A block is discarded as a whole when erasure reports an error for it, or when lowering fails to coerce
 // a value in it: none of its bindings is installed at runtime, including those that have no error.
-// FIXME: Later blocks still compile the uses of these bindings, which then fail at runtime or silently
-// read `undefined`. They should stop like a reference to an erroneous definition does, as the call of
-// `rejectedSignature` below already does.
 
 val input32: Int32 = unsafe.undefined
 //│ input32 = undefined
@@ -15,48 +12,90 @@ val input32: Int32 = unsafe.undefined
 let counter = 5
 fun healthy() = 1
 class Kept(val n: Int)
+type Alias = Kept
+module Group { fun read() = 2 }
 private class Rejected(val value: Int32 | Int64)
 private fun rejectedSignature(x: Int32 | Int64) = 1
 //│ ╔══[COMPILATION ERROR] Types 'Int32' and 'Int64' have no common representation
-//│ ║  l.+4: 	private class Rejected(val value: Int32 | Int64)
+//│ ║  l.+6: 	private class Rejected(val value: Int32 | Int64)
 //│ ╙──      	                                  ^^^^^^^^^^^^^
 //│ ╔══[COMPILATION ERROR] Types 'Int32' and 'Int64' have no common representation
-//│ ║  l.+5: 	private fun rejectedSignature(x: Int32 | Int64) = 1
+//│ ║  l.+7: 	private fun rejectedSignature(x: Int32 | Int64) = 1
 //│ ╙──      	                                 ^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 //│ counter = undefined
 
-// The variable reads as `undefined`, without any error.
-:breakme
-:re
+// Reading the variable diagnoses the missing binding before executing the addition.
+:ge
 counter + 1
-//│ = NaN
+//│ ╔══[COMPILATION ERROR] Binding 'counter' is unavailable because its defining block failed to compile.
+//│ ║  l.+1: 	counter + 1
+//│ ║        	^^^^^^^
+//│ ╟── The binding was declared here.
+//│ ║  l.XX: 	let counter = 5
+//│ ╙──      	    ^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
-:fixme
+:ge
 healthy()
-//│ ═══[RUNTIME ERROR] TypeError: healthy is not a function
+//│ ╔══[COMPILATION ERROR] Binding 'healthy' is unavailable because its defining block failed to compile.
+//│ ║  l.+1: 	healthy()
+//│ ║        	^^^^^^^
+//│ ╟── The binding was declared here.
+//│ ║  l.XX: 	fun healthy() = 1
+//│ ╙──      	^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
-:fixme
+:ge
 new Kept(1).n
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'class')
+//│ ╔══[COMPILATION ERROR] Binding 'Kept' is unavailable because its defining block failed to compile.
+//│ ║  l.+1: 	new Kept(1).n
+//│ ║        	    ^^^^
+//│ ╟── The binding was declared here.
+//│ ║  l.XX: 	class Kept(val n: Int)
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
-:fixme
+:ge
 class Derived(n: Int) extends Kept(n)
 new Derived(2).n
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'class')
+//│ ╔══[COMPILATION ERROR] Binding 'Kept' is unavailable because its defining block failed to compile.
+//│ ║  l.+1: 	class Derived(n: Int) extends Kept(n)
+//│ ║        	                              ^^^^
+//│ ╟── The binding was declared here.
+//│ ║  l.XX: 	class Kept(val n: Int)
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
-:fixme
+:ge
 private fun classify(x) = if x is Kept then 1 else 0
 classify(0)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of undefined (reading 'class')
+//│ ╔══[COMPILATION ERROR] Binding 'Kept' is unavailable because its defining block failed to compile.
+//│ ║  l.+1: 	private fun classify(x) = if x is Kept then 1 else 0
+//│ ║        	                                  ^^^^
+//│ ╟── The binding was declared here.
+//│ ║  l.XX: 	class Kept(val n: Int)
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
-:fixme
+:ge
 Rejected(input32)
-//│ ═══[RUNTIME ERROR] TypeError: Rejected is not a function
+//│ ╔══[COMPILATION ERROR] Binding 'Rejected' is unavailable because its defining block failed to compile.
+//│ ║  l.+1: 	Rejected(input32)
+//│ ║        	^^^^^^^^
+//│ ╟── The binding was declared here.
+//│ ║  l.XX: 	private class Rejected(val value: Int32 | Int64)
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
-// The signature of this function carries the reported error, which stops the reference at compilation.
-:re
+:ge
 rejectedSignature(input32)
+//│ ╔══[COMPILATION ERROR] Binding 'rejectedSignature' is unavailable because its defining block failed to compile.
+//│ ║  l.+1: 	rejectedSignature(input32)
+//│ ║        	^^^^^^^^^^^^^^^^^
+//│ ╟── The binding was declared here.
+//│ ║  l.XX: 	private fun rejectedSignature(x: Int32 | Int64) = 1
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
@@ -69,10 +108,121 @@ private fun badReturn(): Int32 = "wrong"
 //│ ╙──      	                                 ^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
-:fixme
+:ge
 sibling()
-//│ ═══[RUNTIME ERROR] TypeError: sibling is not a function
+//│ ╔══[COMPILATION ERROR] Binding 'sibling' is unavailable because its defining block failed to compile.
+//│ ║  l.+1: 	sibling()
+//│ ║        	^^^^^^^
+//│ ╟── The binding was declared here.
+//│ ║  l.XX: 	fun sibling() = 2
+//│ ╙──      	^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
-:fixme
+:ge
 badReturn()
-//│ ═══[RUNTIME ERROR] TypeError: badReturn is not a function
+//│ ╔══[COMPILATION ERROR] Binding 'badReturn' is unavailable because its defining block failed to compile.
+//│ ║  l.+1: 	badReturn()
+//│ ║        	^^^^^^^^^
+//│ ╟── The binding was declared here.
+//│ ║  l.XX: 	private fun badReturn(): Int32 = "wrong"
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// Assignments, projections and references inside a later definition also depend on the discarded block.
+:ge
+set counter = 7
+//│ ╔══[COMPILATION ERROR] Binding 'counter' is unavailable because its defining block failed to compile.
+//│ ║  l.+1: 	set counter = 7
+//│ ║        	    ^^^^^^^
+//│ ╟── The binding was declared here.
+//│ ║  l.XX: 	let counter = 5
+//│ ╙──      	    ^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+:ge
+val ctor = Kept.class
+//│ ╔══[COMPILATION ERROR] Binding 'Kept' is unavailable because its defining block failed to compile.
+//│ ║  l.+1: 	val ctor = Kept.class
+//│ ║        	           ^^^^
+//│ ╟── The binding was declared here.
+//│ ║  l.XX: 	class Kept(val n: Int)
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ ctor = undefined
+
+:ge
+private fun indirect() = sibling()
+//│ ╔══[COMPILATION ERROR] Binding 'sibling' is unavailable because its defining block failed to compile.
+//│ ║  l.+1: 	private fun indirect() = sibling()
+//│ ║        	                         ^^^^^^^
+//│ ╟── The binding was declared here.
+//│ ║  l.XX: 	fun sibling() = 2
+//│ ╙──      	^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+:ge
+indirect()
+//│ ╔══[COMPILATION ERROR] Binding 'indirect' is unavailable because its defining block failed to compile.
+//│ ║  l.+1: 	indirect()
+//│ ║        	^^^^^^^^
+//│ ╟── The binding was declared here.
+//│ ║  l.XX: 	private fun indirect() = sibling()
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// A type alias and a qualified member cannot outlive their defining block.
+:ge
+private fun typed(x: Alias) = 0
+//│ ╔══[COMPILATION ERROR] Binding 'Alias' is unavailable because its defining block failed to compile.
+//│ ║  l.+1: 	private fun typed(x: Alias) = 0
+//│ ║        	                     ^^^^^
+//│ ╟── The binding was declared here.
+//│ ║  l.XX: 	type Alias = Kept
+//│ ╙──      	^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+:ge
+Group.read()
+//│ ╔══[COMPILATION ERROR] Binding 'Group' is unavailable because its defining block failed to compile.
+//│ ║  l.+1: 	Group.read()
+//│ ║        	^^^^^
+//│ ╟── The binding was declared here.
+//│ ║  l.XX: 	module Group { fun read() = 2 }
+//│ ╙──      	^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// Opening a member under another name still depends on the original binding.
+:ge
+private fun throughAlias() =
+  open Group.{ read as renamed }
+  renamed()
+//│ ╔══[COMPILATION ERROR] Binding 'Group' is unavailable because its defining block failed to compile.
+//│ ║  l.+2: 	  open Group.{ read as renamed }
+//│ ║        	       ^^^^^
+//│ ╟── The binding was declared here.
+//│ ║  l.XX: 	module Group { fun read() = 2 }
+//│ ╙──      	^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// A discarded assignment does not withdraw the variable introduced by an earlier program.
+let saved = 6
+//│ saved = 6
+
+:ge
+set saved = 99
+private fun failed(): Int32 = "wrong"
+//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Str' at an unrelated type 'Int32'
+//│ ║  l.+2: 	private fun failed(): Int32 = "wrong"
+//│ ╙──      	                              ^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+:expect 6
+saved
+//│ = 6
+
+// A fresh declaration with the same name has its own binding.
+:expect 9
+let counter = 8
+counter + 1
+//│ = 9
+//│ counter = 8
