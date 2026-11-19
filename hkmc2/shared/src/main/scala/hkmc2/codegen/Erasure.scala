@@ -31,26 +31,6 @@ final class Erasure(root: Statement, report: Raise)(using Config, Ctx, State):
   def requireCompleted(statement: Statement): Unit =
     assert(root is statement, "Lowering requires completed erasure of this program")
 
-  /** Withdraw every source binding introduced by a program that lowering discarded. Referenced
-    * variables and imported bindings retain the availability of their own defining program.
-    */
-  private[codegen] def discardBindings(): Unit =
-    val state = summon[State]
-    def withdraw(symbol: AnyDefinitionSymbol): Unit =
-      state.discardedBindings += symbol
-      // A coercion can fail after lowering attached a body. Its provisional IR must also
-      // become unavailable to tools that inspect a failed artifact and to the inliner.
-      symbol.irDefn = N
-    new ErasureDeclarations(root).statements.foreach:
-      case d: Definition if d.bsym.getState is state =>
-        state.discardedBindings += d.bsym
-        withdraw(d.definitionSymbol)
-        d match
-          case cls: ClassLikeDef => cls.ctorSym.foreach(withdraw)
-          case _ => ()
-      case LetDecl(symbol, _) if symbol.getState is state => state.discardedBindings += symbol
-      case _ => ()
-
   /** The representation of the values that `shape` describes, or `N` for a shape that does not
     * constrain the representation of the slots holding its values.
     */
@@ -356,33 +336,9 @@ final class Erasure(root: Statement, report: Raise)(using Config, Ctx, State):
     // No erased representation is read until every interpretation has been validated and every
     // nominal parent header has been published, including forward and external declarations.
     val validatedTypes = mutable.Set.empty[TypeResolution]
-    var unavailable = List.empty[(Term, Symbol)]
-    def checkBinding(symbol: Symbol, term: Term): Unit =
-      if symbol.getState.discardedBindings.contains(symbol) then unavailable ::= (term, symbol)
     statements.foreach:
-      case term: Term =>
-        term.typeInterpretation.foreach(_.validate(validatedTypes))
-        if config.language.useNewResolution then term match
-          case MemberRef(sym) => checkBinding(sym, term)
-          case SimpleRef(sym) => checkBinding(sym, term)
-          case ref: NewResolvable => ref.resolvedTargets.foreach(checkBinding(_, term))
-          case Ref(sym) => checkBinding(sym, term)
-          case _ => ()
+      case term: Term => term.typeInterpretation.foreach(_.validate(validatedTypes))
       case _ => ()
-    if unavailable.nonEmpty then
-      // A reference such as C.class or new C().field can also select a discarded member.
-      // Diagnose the written bindings first. An implicit lookup may supply only a selected target.
-      val (names, selections) = unavailable.reverse.partition((term, _) => term match
-        case _: (MemberRef | SimpleRef | Ref) => true
-        case _ => false)
-      val dependencies = if names.nonEmpty then names else selections
-      dependencies.distinctBy(_._2).foreach: (term, symbol) =>
-        val declaration = symbol match
-          case name: BlockMemberSymbol => name.headerLoc
-          case target: AnyDefinitionSymbol => target.defn.flatMap(_.headerLoc)
-          case _ => symbol.toLoc
-        raise(ErrorReport(msg"Binding '${symbol.nme}' is unavailable because its defining block failed to compile." -> term.toLoc ::
-          (msg"The binding was declared here." -> declaration) :: Nil, source = Diagnostic.Source.Compilation))
     statements.foreach:
       case cls: ClassLikeDef =>
         cls.ext.foreach: extension =>

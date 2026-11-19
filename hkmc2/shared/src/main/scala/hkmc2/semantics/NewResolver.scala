@@ -1295,7 +1295,7 @@ class NewResolver:
       case lam: Lam => lexicalBinders(lam)
       case _ => S(Set.empty)
     case definition: DefnShape =>
-      union(lexicalBinders(definition.defn.definitionSymbol), definition.ext.fold(S(Set.empty))(shapeSupport))
+      union(lexicalBinders(definitionSymbol(definition.defn)), definition.ext.fold(S(Set.empty))(shapeSupport))
     case base: BaseShape =>
       union(lexicalBinders(base.defn.sym).map(_ ++ ownBinders(base.defn)), base.ext.fold(S(Set.empty))(shapeSupport))
     case application: AppShape =>
@@ -1331,6 +1331,11 @@ class NewResolver:
   private def ownBinders(defn: Definition): Set[VarSymbol] = defn match
     case td: TermDefinition => definitionBinders(td).toSet
     case td: TypeLikeDef => td.tparams.iterator.map(_.sym).toSet
+
+  private def definitionSymbol(defn: Definition): AnyDefinitionSymbol = defn match
+    case td: TermDefinition => td.tsym
+    case cls: ClassLikeDef => cls.sym
+    case alias: TypeDef => alias.sym
 
   private def tupleDependencies(tuple: TupleShape)(using ResolutionContext): Binders =
     // Rest views and spreads retain their fields' original tuple sources.

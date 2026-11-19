@@ -565,17 +565,11 @@ fun mixedThree(x: Int32 | Str | Bool) = 0
 //│ throw "This code cannot be run as its compilation yielded an error."
 
 
-// A use of the discarded declaration identifies the missing binding.
-:ge
+// The declaration was rejected where its type is written, so passing a value into the slot does not report
+// the error again.
 fun intoMixed(n: Int32) = mixed(n)
-//│ ╔══[COMPILATION ERROR] Binding 'mixed' is unavailable because its defining block failed to compile.
-//│ ║  l.+1: 	fun intoMixed(n: Int32) = mixed(n)
-//│ ║        	                          ^^^^^
-//│ ╟── The binding was declared here.
-//│ ║  l.XX: 	fun mixed(x: Int32 | Str) = 0
-//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ throw "This code cannot be run as its compilation yielded an error."
+//│ define intoMixed⁰ as fun intoMixed¹(n: Int32): Int⁰ { return mixed⁰(n) }; end
 
 
 // Widening an unrepresentable value into a `Str` or `Object` result does not report the declaration again.

@@ -1954,11 +1954,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
     summon[Erasure].requireCompleted(main)
     
     val (imps, funs, rest) = splitBlock(main.stats, Nil, Nil, Nil)
-    val imports = imps.map(imp => imp.sym -> imp.str)
-    def discard(): Program =
-      summon[Erasure].discardBindings()
-      Program(imports, compError)
-    if summon[Erasure].hasErrors then return discard()
+    if summon[Erasure].hasErrors then return Program(imps.map(imp => imp.sym -> imp.str), compError)
     
     // * File-level values participate in the compilation unit's default export and private ABI.
     // * Only values inside local blocks can be replaced by fresh variables without breaking that linkage.
@@ -1969,8 +1965,22 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
       inScopedBlockExcept(symbolsToPreserve)(using LoweringCtx.empty(symbolsToPreserve ++ topLevelVals)):
         block(funs ::: rest, R(main.res))(ImplctRet)
     
-    if representationErrors.hasErrors then discard() else Program(imports, blk)
+    // Recovery after an invalid coercion can leave ill-typed IR. Neither optimization nor a backend
+    // may consume it, including through symbols whose definitions an importer could otherwise inline.
+    if representationErrors.hasErrors then
+      val unlink = new BlockTraverser:
+        override def applyDefn(defn: Defn): Unit =
+          defn.defnSym.foreach(_.irDefn = N)
+          super.applyDefn(defn)
+        override def applyFunDefn(fun: FunDefn): Unit =
+          fun.dSym.irDefn = N
+          super.applyFunDefn(fun)
+      unlink.applyBlock(blk)
 
+    Program(
+      imps.map(imp => imp.sym -> imp.str),
+      if representationErrors.hasErrors then compError else blk
+    )
   
   
   def setupSelection(prefix: Term, nme: Tree.Ident, disamb: Opt[DefinitionSymbol[?]], loc: Opt[Loc])(k: Result => Block)(using LoweringCtx): Block =

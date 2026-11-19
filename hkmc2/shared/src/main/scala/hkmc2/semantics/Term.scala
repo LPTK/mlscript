@@ -907,11 +907,6 @@ sealed abstract class Declaration extends Located:
 sealed abstract class Definition extends Declaration, Statement, PossiblyErroneous:
   val annotations: Ls[Annot]
   def bsym: BlockMemberSymbol
-  /** The symbol of this individual declaration. Companion declarations share a source name. */
-  def definitionSymbol: AnyDefinitionSymbol = this match
-    case td: TermDefinition => td.tsym
-    case cls: ClassLikeDef => cls.sym
-    case alias: TypeDef => alias.sym
   /** The span of this definition's header: its modifiers (such as `declare`), keyword, name,
     * type and value parameter lists, result annotation, and parent clause, but neither its
     * annotations (such as `@foo`) nor its body or right-hand side (see `syntax.TypeOrTermDef.headLoc`).

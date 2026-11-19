@@ -733,9 +733,6 @@ object Elaborator:
   
   class State:
     val newResolverState: NewResolverState = new NewResolverState(this)
-    // Only a discarded program adds entries. Bindings belong to their defining unit, so a
-    // later worksheet block or an importer can recognize them through any resolved reference.
-    private[hkmc2] val discardedBindings = mutable.Set.empty[Symbol]
     val suid = new Uid.Symbol.State
     given State = this
     // LitSymbol.apply interns literal constructors within this compilation. Their symbols

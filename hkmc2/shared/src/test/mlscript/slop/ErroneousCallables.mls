@@ -186,19 +186,14 @@ badReturn()
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ throw "This code cannot be run as its compilation yielded an error."
 
-:ge
 :soir
 :siret
 private fun laterCaller(): Int32 = badReturn()
 laterCaller()
-//│ ╔══[COMPILATION ERROR] Binding 'badReturn' is unavailable because its defining block failed to compile.
-//│ ║  l.+1: 	private fun laterCaller(): Int32 = badReturn()
-//│ ║        	                                   ^^^^^^^^^
-//│ ╟── The binding was declared here.
-//│ ║  l.XX: 	private fun badReturn(): Int32 = "wrong"
-//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ throw "This code cannot be run as its compilation yielded an error."
+//│ @private
+//│ define laterCaller⁰ as fun laterCaller¹(): Int32 { return badReturn⁰() };
+//│ return badReturn⁰()
 
 // Phase failure belongs to one block; the next independent block still compiles and runs.
 :js
