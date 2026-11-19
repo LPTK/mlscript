@@ -78,6 +78,22 @@ private open class LocalBase() with
 LocalBase().scale(2)
 //│ = 4
 
+// A factory's written result exposes the private class's open method.
+:e
+private open class Service() with
+  open fun run(value) = value
+fun service(): Service = Service()
+//│ ╔══[COMPILATION ERROR] Open member 'run' is exposed by this compilation unit, so its result type and the types of its parameters must be annotated or inherited from an overridden member
+//│ ║  l.+2: 	  open fun run(value) = value
+//│ ║        	  ^^^^^^^^^^^^^^^^^^^
+//│ ╟── 'service' is exposed by this compilation unit.
+//│ ║  l.+3: 	fun service(): Service = Service()
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Parameter 'value' has no type annotation
+//│ ║  l.+2: 	  open fun run(value) = value
+//│ ╙──      	               ^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
 fun localClasses() =
   open class Inner() with
     open fun get() = 1

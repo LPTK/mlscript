@@ -253,8 +253,14 @@ abstractCallback({only: 1})
 //│ ╟── 'getStore' is exposed by this compilation unit.
 //│ ║  l.+7: 	fun getStore(): AbstractStore = instance
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╔══[COMPILATION ERROR] Open member 'stored' is exposed by this compilation unit, so its type must be annotated or inherited from an overridden member
+//│ ║  l.+3: 	  mut val stored
+//│ ║        	      ^^^^^^^^^^
+//│ ╟── 'getStore' is exposed by this compilation unit.
+//│ ║  l.+7: 	fun getStore(): AbstractStore = instance
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
-//│ instance = RealStore
+//│ instance = undefined
 
 // External storage has no MLscript initializer either.
 :e

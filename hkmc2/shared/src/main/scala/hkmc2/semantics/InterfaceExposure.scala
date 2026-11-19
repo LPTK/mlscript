@@ -276,12 +276,12 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
         d match
           case td: TermDefinition =>
             if first then
+              recordOpenMember(cls, td, path)
               if td.k is syntax.MutVal then assignable(td.tsym, td.bsym, path)(using declarationContext)
               operation(td, memberPath)(using declarationContext)
               if resolver.writtenSignature(td).isEmpty then
                 resolver.exposeMemberResult(td, memberPath)(using declarationContext)
             receiver.foreach: marks =>
-              recordOpenMember(cls, td, path)
               if resolver.writtenSignature(td).nonEmpty then member(td.bsym, marks, memberPath)
           case _ => member(d.bsym, receiver.getOrElse(Nil), memberPath)
       case _ => ()
