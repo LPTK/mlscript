@@ -288,6 +288,27 @@ new InternalService().inspect({value: 1})
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
+// An inferred base instance exposes the same fully annotated operation as a written result.
+:e
+private class InferredBase with
+  open fun inspect(x: Any): Int = 0
+private class InferredChild extends InferredBase with
+  override fun inspect(x) = x.only
+fun inferredBase() = new InferredBase
+new InferredChild().inspect({only: 7})
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+4: 	  override fun inspect(x) = x.only
+//│ ║        	                            ^^^^^^
+//│ ╟── Value with an empty interface does not contain member 'only'
+//│ ║  l.+2: 	  open fun inspect(x: Any): Int = 0
+//│ ║        	                      ^^^
+//│ ╟── Type 'Any' is declared without a member interface.
+//│ ║  in ../../decls/Prelude.mls
+//│ ║  l.XX: 	declare type Any
+//│ ╙──      	             ^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
 // A hierarchy used only within this unit retains local inference.
 :expect 4
 private class LocalBase with

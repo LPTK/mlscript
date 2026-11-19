@@ -30,6 +30,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
   private val sources = mutable.Map.empty[BlockMemberSymbol, MemberRef]
   private val annotations = mutable.Set.empty[TypeResolution]
   private val interfaces = mutable.Set.empty[ClassLikeDefSymbol]
+  private val admittedMethods = mutable.Set.empty[TermSymbol]
   private val declarationContext = rctx
 
   /** Forwarding edges belong to the inference graph. Only the final observer
@@ -77,7 +78,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
     detach += res.inferenceHost.observe: shape =>
       work.enqueue(() => shape match
         case TypeShape.Nominal(cls) =>
-          nominal(cls, path)
+          members(cls, N, path)
           omitted(cls.tparams)
         case TypeShape.Alias(symbol, rhs) =>
           symbol.defn.foreach(d => omitted(d.tparams))
@@ -160,43 +161,45 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
         && !rctx.state.exposedOpenMembers.contains(td.tsym) then
       rctx.state.exposedOpenMembers(td.tsym) = path
   
-  private def nominal(cls: ClassLikeDef, path: Path): Unit = if interfaces.add(cls.sym) then
-    members(cls, N, path)(using declarationContext)
+  /** External calls cross the member's defining scopes even when only its class name escaped.
+    * Rest tuples and captured input types need the same scope crossings as ordinary calls.
+    */
+  private def operation(td: TermDefinition, path: Path)(using ResolutionContext): Unit =
+    signature(td, path)
+    val virtual = Inheritance.isOpen(td)
+    if td.params.nonEmpty && (virtual || rctx.state.isOwnedSym(td.tsym) && !Inheritance.isExternal(td)) then
+      admittedMethods += td.tsym
+      val site = S(source(td.bsym).resSym)
+      def exits(scope: SrcScope): Ls[Marks] =
+        val outer = scope.parent.fold[Ls[Marks]](Nil)(exits)
+        scope.outer.resolutionBoundary.fold(outer)(sym => ExitMark(ResolutionBoundary(sym), site, NoMarks) :: outer)
+      val inside = ExitMark(ResolutionBoundary(td.tsym), site, NoMarks) :: td.scope.toList.flatMap(exits)
+      parameters(td.params.map(_ -> inside), path, virtual)
 
-  /** Visit the public operations of an instance. A value carries scope marks for its inferred
-    * members. A type name reaches the declarations and their signatures in their defining scope.
+  /** Expose each class's public operations once, through either a named type or an escaping value.
+    * An escaping value also supplies the scope in which to read its inferred member values.
     */
   private def members(cls: ClassLikeDef, receiver: Opt[Ls[Marks]], path: Path)(using ResolutionContext): Unit =
+    val first = interfaces.add(cls.sym)
+    if !first && receiver.isEmpty then return
     cls.body.blk.stats.foreach:
       case d: Definition if InterfaceExposure.isPublic(d) =>
         val memberPath = path.via(msg"Member '${d.bsym.nme}' is accessible here." -> d.headerLoc)
         d match
           case td: TermDefinition =>
-            if td.k is syntax.MutVal then assignable(td.tsym, td.bsym, path)
-            receiver match
-              case S(marks) =>
-                recordOpenMember(cls, td, path)
-                member(td.bsym, marks, memberPath)
-              case N =>
-                signature(td, memberPath)
-                val virtual = Inheritance.isOpen(td)
-                if td.params.nonEmpty && (virtual || rctx.state.isOwnedSym(td.tsym) && !Inheritance.isExternal(td)) then
-                  // The call originates outside every enclosing activation. Include the class and
-                  // any enclosing functions so its rest tuple and captured types have the same
-                  // scope crossings as arguments to an ordinary call.
-                  val site = S(source(td.bsym).resSym)
-                  def exits(scope: SrcScope): Ls[Marks] =
-                    val outer = scope.parent.fold[Ls[Marks]](Nil)(exits)
-                    scope.outer.resolutionBoundary.fold(outer)(sym => ExitMark(ResolutionBoundary(sym), site, NoMarks) :: outer)
-                  val inside = ExitMark(ResolutionBoundary(td.tsym), site, NoMarks) :: td.scope.toList.flatMap(exits)
-                  parameters(td.params.map(_ -> inside), memberPath, virtual)
+            if first then
+              if td.k is syntax.MutVal then assignable(td.tsym, td.bsym, path)(using declarationContext)
+              operation(td, memberPath)(using declarationContext)
+            receiver.foreach: marks =>
+              recordOpenMember(cls, td, path)
+              member(td.bsym, marks, memberPath)
           case _ => member(d.bsym, receiver.getOrElse(Nil), memberPath)
       case _ => ()
     cls.ext.foreach: parent =>
       val inherited = path.via(msg"This parent contributes inherited members." -> parent.toLoc)
       receiver match
         case S(marks) => term(parent, marks, inherited)
-        case N => annotation(parent.cls, inherited)
+        case N => annotation(parent.cls, inherited)(using declarationContext)
 
   /** Other compilation units can assign values of unknown shape to an exposed assignable field, which admits them
     * like an exposed parameter admits unknown arguments: the field's unannotated representation then includes the
@@ -248,10 +251,12 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
         writtenType(instance.tpe.resolution, path)
         watch((ShapeIdentity.key(shape), "instance view"))(resolver.listenInstanceViews(shape))(emit(_, path))
       case ds: DefnShape if ds.defn.sym.getState is rctx.owner =>
-        val virtual = ds.defn match
-          case td: TermDefinition => Inheritance.isOpen(td)
-          case _ => false
-        parameters(shape.unappliedParams, path, virtual)
+        ds.defn match
+          case td: TermDefinition =>
+            // A method may escape on its own, including after partial application.
+            // A previously exposed class already admits calls to the whole method.
+            if !admittedMethods(td.tsym) then parameters(shape.unappliedParams, path, Inheritance.isOpen(td))
+          case _ => parameters(shape.unappliedParams, path, virtual = false)
         ds.clsDef match
           case S(cls) =>
             // Exposing a constructor also exposes instances clients can create.
@@ -327,7 +332,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
         watch((ShapeIdentity.key(callable), marks, "call result"))(resolver.listenCallableResult(callable)): shape =>
           emit(shape.exit(marks), path)
       case nominal: NominalInstanceView =>
-        this.nominal(nominal.defn, path)
+        members(nominal.defn, N, path)
         // Watch keys follow candidate identity, as `emit` does: hashing a nominal
         // view structurally would hash its class declaration's syntax.
         watch((ShapeIdentity.key(shape), "promise payload"))(listener => { resolver.listenPromisePayload(shape)(listener); () }): payload =>
