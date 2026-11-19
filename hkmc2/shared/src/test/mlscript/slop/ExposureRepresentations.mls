@@ -251,7 +251,7 @@ private class WrappedResultError() extends WrappedErrorBase() with
 :siret
 badParameter(input)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ return badParameter⁰(input⁰)
+//│ throw "This code cannot be run as its compilation yielded an error."
 
 :sir
 :siret
