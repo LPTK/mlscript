@@ -1,0 +1,94 @@
+:.
+
+// Worksheet blocks are checked one after the other. A value that reaches an exposed slot in a later
+// block escapes like the values that the slot held when its own block exposed it.
+
+fun invoke(f: Any -> Int) = f(null)
+
+
+// The result of an unannotated method of a named class.
+let returned = x => 0
+private class Returning with
+  fun get() = returned
+fun returning(): Returning = new Returning
+//│ returned = fun returned
+
+:e
+private fun lateResult(x) = x.only
+set returned = lateResult
+lateResult({only: 1})
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+1: 	private fun lateResult(x) = x.only
+//│ ║        	                            ^^^^^^
+//│ ╟── Cannot resolve member 'only' of a value with unknown shape.
+//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ║  l.+1: 	private fun lateResult(x) = x.only
+//│ ║        	                       ^
+//│ ╟── This value is returned here.
+//│ ║  l.XX: 	  fun get() = returned
+//│ ║        	              ^^^^^^^^
+//│ ╟── Member 'get' is accessible here.
+//│ ║  l.XX: 	  fun get() = returned
+//│ ║        	  ^^^^^^^^^
+//│ ╟── 'returning' is exposed by this compilation unit.
+//│ ║  l.XX: 	fun returning(): Returning = new Returning
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
+// FIXME: The remaining slots are observed only while their own block is checked. Each block marked
+// `:breakme` should reject its helper, which the call that follows it reaches with a null argument.
+
+// The omitted argument of a written result type.
+class Cell[T](val item: T)
+let cell = Cell(x => 0)
+fun readCell(): Cell = cell
+//│ cell = Cell(fun)
+
+:breakme
+:e
+private fun lateArgument(x) = x.only
+set cell = Cell(lateArgument)
+lateArgument({only: 1})
+//│ = 1
+
+:fixme
+invoke(readCell().item)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of null (reading 'only')
+
+
+// The omitted argument of a method's written result type, in a class that the later block names again.
+let memberCell = Cell(x => 0)
+private class CellReader with
+  fun get(): Cell = memberCell
+fun cellReader(): CellReader = new CellReader
+//│ memberCell = Cell(fun)
+
+:breakme
+:e
+private fun lateMemberArgument(x) = x.only
+set memberCell = Cell(lateMemberArgument)
+lateMemberArgument({only: 1})
+fun cellReaderAgain(): CellReader = new CellReader
+
+:fixme
+invoke(cellReader().get().item)
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of null (reading 'only')
+
+
+// The inferred result of an exported function, which reads a private field.
+private class Store(mut val f)
+private val store = Store(x => 0)
+fun current() = store.f
+//│ store = Store(fun)
+
+:breakme
+:e
+private fun lateField(x) = x.only
+set store.f = lateField
+lateField({only: 1})
+//│ = 1
+
+:fixme
+invoke(current())
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of null (reading 'only')
