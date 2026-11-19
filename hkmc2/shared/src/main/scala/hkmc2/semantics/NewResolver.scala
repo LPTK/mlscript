@@ -2271,17 +2271,80 @@ class NewResolver:
   private def inheritedExposure(base: TermDefinition): ShapeProvenance =
     ShapeProvenance.empty.via(msg"Member '${base.tsym.nme}' is inherited from another compilation unit." -> base.headerLoc)
 
+  private def slotSignature(td: TermDefinition, param: Opt[Param])(using ResolutionContext): Opt[DeclaredType] = param match
+    case N => resultSignature(td).map(t => declaredType(typeResolution(t), Map.empty))
+    case S(p) => parameterSignature(p).orElse:
+      // A legacy producer stores its full signature in the AST. Interpret its domains
+      // in the consumer using the same parameter correspondence as a local signature.
+      td.sign.filter(_ => !td.flags.hasResultAnnotation && !rctx.state.isOwnedSym(td.tsym)).flatMap: full =>
+        registerParameterSignature(td.params, full)(using rctx.state.context)
+        parameterSignature(p)
+
+  private def projectedSlot(td: TermDefinition, param: Opt[Param], positive: Bool, marks: Ls[Marks],
+      instances: TypeSubstitution)(using ResolutionContext): Opt[DeclaredType] = slotSignature(td, param).map: tpe =>
+    // A constructor field's annotation belongs to the constructor parameter's scope.
+    val path = if param.isEmpty && td.tsym.decl.exists(_.isInstanceOf[Param]) then marks
+      else ExitMark(ResolutionBoundary(td.tsym), S(rctx.fieldProjectionSite(td.bsym)), NoMarks) :: marks
+    transportType(tpe.withPolarity(positive).instantiate(instances), path)
+
+  /** The written type of a formal, or of the member's result when `param` is absent, as seen
+    * through the receiver's parent clause. An override can inherit that type through several
+    * declarations. Each edge interprets the type arguments of its own parent clause.
+    * A slot with no written type anywhere along an override path yields `N` for that path.
+    */
+  private def operationType(td: TermDefinition, param: Opt[Param], positive: Bool, marks: Ls[Marks],
+      instances: TypeSubstitution)(receive: ShapeListener[Opt[DeclaredType]])(using ResolutionContext): Unit =
+    def visit(td: TermDefinition, param: Opt[Param], marks: Ls[Marks], instances: TypeSubstitution,
+        seen: Set[TermSymbol])(emit: ShapeListener[Opt[DeclaredType]])(using ResolutionContext): Unit =
+      projectedSlot(td, param, positive, marks, instances) match
+        case N if !seen(td.tsym) && td.tsym.overrideLinks.currentShapes.nonEmpty =>
+          val owner = td.owner.flatMap(_.asDefnSym.defn).get // Only a class member can have override links.
+          listenInheritedMember(owner, td.bsym.nme): lookup =>
+            lookup.visibleFrom(_ => false, reportInaccessible = false).foreachClassMember(rctx.instances): (name, path, bindings) =>
+              name.asTrm.flatMap(_.defn).filter(p => Inheritance.isOpen(p) && !Inheritance.changesMemberKind(td, p)).foreach: parent =>
+                def inherit(slot: Opt[Param]): Unit =
+                  visit(parent, slot, path, bindings, seen + td.tsym): tpe =>
+                    emit(tpe.map(t => transportType(t.instantiate(instances), marks)))
+                param match
+                  case N => inherit(N)
+                  case S(p) =>
+                    val source = codegen.OverrideLayout.correspondingParameters(td.params, parent.params).toOption
+                      .flatMap(_.collectFirst { case (target, inherited) if target.sym is p.sym => inherited })
+                    source.fold(emit(N))(p => inherit(S(p)))
+        case tpe => emit(tpe)
+    visit(td, param, marks, instances, Set.empty)(receive)
+
+  /** An exposed overriding declaration can omit the type that already bounds incoming calls or
+    * writes. Supply that type in the enclosing class's scope, where descendant overrides can use it.
+    */
+  private[semantics] def externalInput(td: Opt[TermDefinition], param: Opt[Param], fallback: TermShape)
+      (receive: Listener)(using ResolutionContext): Unit = td match
+    case S(d) if d.tsym.overrideLinks.currentShapes.nonEmpty && slotSignature(d, param).isEmpty =>
+      operationType(d, param, false, Nil, TypeSubstitution.empty)(tpe => receive(tpe.fold(fallback)(instanceShape)))
+    case _ => receive(fallback)
+
   /** Forward the inputs admitted by one inherited operation to its overriding implementation.
     * An unannotated input carries the external value along the override chain. A written input
     * uses the inherited signature in the scope of the subclass's parent clause.
     */
   private def connectOverrideInputs(base: TermDefinition, overriding: TermDefinition, inheritedMarks: Ls[Marks],
       instances: TypeSubstitution)(using ResolutionContext): Unit =
+    val site = rctx.fieldProjectionSite(base.bsym)
     // A public operation inherited across a unit boundary is already externally accessible,
     // including when its defining unit used legacy resolution. Local overrides can precede exposure.
-    def onInput(symbol: VarSymbol | TermSymbol)(receive: ShapeListener[Opt[TermShape]]): Unit =
-      if rctx.state.isOwnedSym(symbol) then interfaceInputs(symbol).listen(value => receive(S(value)))(using rctx.state.context)
-      else receive(N)
+    def onInput(param: Opt[Param])(receive: Listener): Unit =
+      val symbol = param.fold[VarSymbol | TermSymbol](base.tsym)(_.sym)
+      if rctx.state.isOwnedSym(symbol) then
+        // A local predecessor already forwarded any inherited type. Only its own written
+        // annotation needs projection through this new parent clause.
+        val declared = projectedSlot(base, param, false, inheritedMarks, instances).map(instanceShape)
+        interfaceInputs(symbol).listen(value => receive(declared.getOrElse(inheritedInput(value))))(using rctx.state.context)
+      else operationType(base, param, false, inheritedMarks, instances): tpe =>
+        receive(tpe.map(instanceShape).getOrElse(param match
+          case S(p) =>
+            val rest = base.params.exists(_.variadic.exists(_.param.sym is p.sym))
+            InterfaceExposure.parameterInput(p, rest, inheritedExposure(base))(this)._2
+          case N => InterfaceExposure.fieldInput(base.tsym, MemberRef(base.bsym)(N, site), inheritedExposure(base))))
     def forward(symbol: VarSymbol | TermSymbol, value: TermShape)(using ResolutionContext): Unit =
       if Inheritance.isOpen(overriding) then publishInterfaceInput(symbol, value)
     // A previous override may already have supplied the declared input. It has left that
@@ -2290,7 +2353,6 @@ class NewResolver:
       case Marked(instance: InstanceShape, inner) =>
         instanceShape(transportType(instance.tpe.instantiate(instances), inner :: inheritedMarks))
       case _ => input
-    val site = rctx.fieldProjectionSite(base.bsym)
     if base.k is syntax.MutVal then
       def assign(input: TermShape)(using ResolutionContext): Unit =
         writeField(overriding.tsym, input, Nil)
@@ -2298,13 +2360,7 @@ class NewResolver:
           val ref = MemberRef(overriding.bsym)(N, rctx.fieldProjectionSite(overriding.bsym))
           constrainFieldWrites(MemberLookup.Found(overriding.bsym, Nil), ref, N)(receive => receive(input))
         forward(overriding.tsym, input)
-      onInput(base.tsym): input =>
-        if resultSignature(base).isEmpty then
-          assign(input.fold[TermShape](InterfaceExposure.fieldInput(base.tsym, MemberRef(base.bsym)(N, site),
-            inheritedExposure(base)))(inheritedInput))
-        else
-          val lookup = MemberLookup.Declared(base.bsym, Map.empty, inheritedMarks, N, positive = true).instantiate(instances)
-          listenFieldInput(lookup, MemberRef(base.bsym)(N, site))(tpe => assign(instanceShape(tpe)))
+      onInput(N)(assign)
     else if base.params.nonEmpty then
       codegen.OverrideLayout.correspondingParameters(overriding.params, base.params).foreach: pairs =>
         val inside = ExitMark(ResolutionBoundary(overriding.tsym), N, NoMarks) :: Nil
@@ -2318,16 +2374,8 @@ class NewResolver:
                   (_, _) => inferTypeArguments(expected, value, inside, N))
             case NoShape => ()
           forward(target.sym, input)
-        val baseMarks = ExitMark(ResolutionBoundary(base.tsym), S(site), NoMarks) :: inheritedMarks
         pairs.foreach: (target, inherited) =>
-          onInput(inherited.sym): input =>
-            val admitted = parameterSignature(inherited) match
-              case S(sign) => instanceShape(transportType(sign.withPolarity(false).instantiate(instances), baseMarks))
-              case N => input.fold[TermShape] {
-                val rest = base.params.exists(_.variadic.exists(_.param.sym is inherited.sym))
-                InterfaceExposure.parameterInput(inherited, rest, inheritedExposure(base))(this)._2
-              }(inheritedInput)
-            admit(target, admitted)
+          onInput(S(inherited))(admit(target, _))
 
   /** Expand fixed tuple spreads before matching positions. Unknown-length
     * segments share the remaining middle elements, as with declared parameter

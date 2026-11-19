@@ -184,23 +184,30 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
               case shape: TermShape => listener(shape)
               case NoShape => ()))(emit(_, path))
 
-  private def parameter(param: Param, rest: Bool, marks: Ls[Marks], path: Path, virtual: Bool)(using ResolutionContext): Unit =
+  private def parameter(param: Param, rest: Bool, marks: Ls[Marks], path: Path, method: Opt[TermDefinition])(using ResolutionContext): Unit =
     if !rctx.state.isOwnedSym(param.sym) then return
     param.sign.foreach(annotation(_, path, readable = false))
     val (unknown, input) = rctx.state.externalArguments.getOrElseUpdate(param.sym,
       InterfaceExposure.parameterInput(param, rest, path)(resolver))
-    resolver.parameterSignature(param) match
-      case N => resolver.constrainParameter(param, input.enter(marks), marks)
-      case S(tpe) => unknown.enter(marks) match
-        case value: TermShape => resolver.exposeTypeHoles(tpe.instantiate(rctx.instances), value, marks)
-        case NoShape => ()
-    if virtual then resolver.publishInterfaceInput(param.sym, input)
+    resolver.externalInput(method, S(param), input): admitted =>
+      resolver.parameterSignature(param) match
+        case N => admitted match
+          case typed: InstanceShape =>
+            // An inherited signature has already crossed its parent clause into this class.
+            val tpe = resolver.captureType(typed.tpe, method.get.tsym)
+            resolver.constrainParameter(param, resolver.instanceShape(tpe), Nil)
+            resolver.exposeTypeHoles(tpe, unknown, Nil)
+          case _ => resolver.constrainParameter(param, admitted.enter(marks), marks)
+        case S(tpe) => unknown.enter(marks) match
+          case value: TermShape => resolver.exposeTypeHoles(tpe.instantiate(rctx.instances), value, marks)
+          case NoShape => ()
+      if method.exists(Inheritance.isOpen) then resolver.publishInterfaceInput(param.sym, admitted)
 
-  private def parameters(lists: Ls[(ParamList, Ls[Marks])], path: Path, virtual: Bool)(using ResolutionContext): Unit =
+  private def parameters(lists: Ls[(ParamList, Ls[Marks])], path: Path, method: Opt[TermDefinition])(using ResolutionContext): Unit =
     lists.foreach: (params, marks) =>
-      params.params.foreach(parameter(_, false, marks, path, virtual))
-      params.trailingParams.foreach(parameter(_, false, marks, path, virtual))
-      params.variadic.foreach(v => parameter(v.param, true, marks, path, virtual))
+      params.params.foreach(parameter(_, false, marks, path, method))
+      params.trailingParams.foreach(parameter(_, false, marks, path, method))
+      params.variadic.foreach(v => parameter(v.param, true, marks, path, method))
 
   /** Records an exposed overridable member of a class or object that other compilation units may
     * extend. An override in such a unit inherits the member's parameter and result representations,
@@ -223,7 +230,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
       admittedMethods += td.tsym
       val site = S(source(td.bsym).resSym)
       val inside = InterfaceExposure.declarationExits(td, site)
-      parameters(td.params.map(_ -> inside), path, virtual)
+      parameters(td.params.map(_ -> inside), path, S(td))
 
   /** Expose each class's public operations once, through either a named type or an escaping value.
     * An escaping value also supplies the scope in which to read its inferred member values.
@@ -261,8 +268,9 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
   private def assignable(field: TermSymbol, symbol: BlockMemberSymbol, path: Path)(using ResolutionContext): Unit =
     if rctx.state.isOwnedSym(field) then
       val unknown = InterfaceExposure.fieldInput(field, source(symbol), path)
-      resolver.writeField(field, unknown, Nil)
-      if field.defn.exists(Inheritance.isOpen) then resolver.publishInterfaceInput(field, unknown)
+      resolver.externalInput(field.defn, N, unknown): admitted =>
+        resolver.writeField(field, admitted, Nil)
+        if field.defn.exists(Inheritance.isOpen) then resolver.publishInterfaceInput(field, admitted)
 
   private def result(body: Term, sign: Opt[Term], marks: Ls[Marks], path: Path)(using ResolutionContext): Unit = sign match
     case N =>
@@ -328,16 +336,16 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
           case td: TermDefinition =>
             // A method may escape on its own, including after partial application.
             // A previously exposed class already admits calls to the whole method.
-            if !admittedMethods(td.tsym) then parameters(shape.unappliedParams, path, Inheritance.isOpen(td))
+            if !admittedMethods(td.tsym) then parameters(shape.unappliedParams, path, S(td))
             if Inheritance.isOpen(td) && resolver.resultSignature(td).isEmpty then
               resolver.exposeMemberResult(td, path)(using declarationContext)
-          case _ => parameters(shape.unappliedParams, path, virtual = false)
+          case _ => parameters(shape.unappliedParams, path, N)
         ds.clsDef match
           case S(cls) =>
             // Exposing a constructor also exposes instances clients can create.
             shape match
               case Marked(_: DefnShape, _) if cls.paramsOpt.isEmpty =>
-                parameters(cls.auxParams.map(_ -> marks), path, virtual = false)
+                parameters(cls.auxParams.map(_ -> marks), path, N)
               case _ => ()
             members(cls, S(marks), path)
           case N => ds.defn match
@@ -348,7 +356,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
       case _: DefnShape => () // Imported definitions were checked before publication.
       case intro: IntroShape => intro.trm match
         case Lam(_, body) =>
-          parameters(shape.unappliedParams, path, virtual = false)
+          parameters(shape.unappliedParams, path, N)
           watch((body, marks, instances, "result"))(
             listener => resolver.listenResult(body)(listener)(using rctx.withInstances(instances))): shape =>
               emit(resolver.instantiateShape(shape, instances).exit(marks),
@@ -399,7 +407,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
           val td = origin.definition
           signature(td, path)
           if Inheritance.isOpen(td) && !admittedMethods(td.tsym) then
-            parameters(origin.remaining.map(_ -> marks), path, virtual = true)
+            parameters(origin.remaining.map(_ -> marks), path, S(td))
         // Written structure constrains external values; missing output parts
         // still admit unknown shapes even when local callers supplied evidence.
         val unknown = UnknownValueShape(callable.source, fromPublicInterface = true)(path)

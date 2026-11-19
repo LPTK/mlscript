@@ -58,6 +58,41 @@ private class Payload(val key: Int)
 private class Typed extends Library.Typed[Payload] with
   override fun use(x) = x.key
 
+// A separate signature from a legacy unit supplies the same domain as an inline annotation.
+private class Signed extends Library.Signed[Payload] with
+  override fun use(x) = x.key
+
+import "./InheritedOperationBase.mls" as Inherited
+
+// The exporter omitted both annotations in Middle. The caller's parent clause supplies Payload
+// for Root's type parameter through Middle, for incoming calls and field writes alike.
+private class Leaf extends Inherited.Middle[Payload](Payload(1)) with
+  override fun inspect(x) = x.key
+  override mut val item = Payload(2)
+  fun read() = item.key
+
+// A client can call and write through the overriding declaration itself.
+private class PublicLeaf extends Inherited.Middle[Payload](Payload(1)) with
+  override fun inspect(x) = x.key
+  override mut val item = Payload(2)
+  fun read() = item.key
+fun publicLeaf(): PublicLeaf = new PublicLeaf
+
+// The inherited domain also applies when it is too broad for an overriding implementation.
+:e
+private class Wide extends Inherited.Middle[Any](0) with
+  override fun inspect(x) = x.key
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+2: 	  override fun inspect(x) = x.key
+//│ ║        	                            ^^^^^
+//│ ╟── Value with an empty interface does not contain member 'key'
+//│ ║  l.+1: 	private class Wide extends Inherited.Middle[Any](0) with
+//│ ║        	                                            ^^^
+//│ ╟── Type 'Any' is declared without a member interface.
+//│ ║  in ../../decls/Prelude.mls
+//│ ║  l.XX: 	declare type Any
+//│ ╙──      	             ^^^
+
 // Written arguments belong to this unit even when the generic class belongs to another.
 :e
 private class LocalPayload with
