@@ -2239,6 +2239,34 @@ class NewResolver:
       (using ResolutionContext): Unit =
     interfaceInputs(symbol).publish(value)(using rctx.state.context)
 
+  /** Expose the values clients can read from a member, including through its overrides. Observe
+    * the declaration across all its invocations so later writes and constructor arguments can
+    * also expose values. A written result bounds what clients can read from that implementation.
+    */
+  private[semantics] def exposeMemberResult(td: TermDefinition, path: ShapeProvenance)(using ResolutionContext): Unit =
+    val state = rctx.state
+    assert(state.isOwnedSym(td.tsym))
+    if !state.exposedResults.contains(td.tsym) then
+      state.exposedResults(td.tsym) = path
+      resultSignature(td) match
+        case S(sign) =>
+          // An override can give an unannotated base result a written interface of its own.
+          rctx.exposeValue(instanceShape(declaredType(typeResolution(sign), Map.empty)), path)
+        case N =>
+          td.body.filter(_ => !Inheritance.isExternal(td)).foreach: body =>
+            val exits = InterfaceExposure.declarationExits(td, N)
+            val at = if td.k is Fun then path.via(msg"This value is returned here." -> body.toLoc) else path
+            def expose(shape: TermShape)(using ResolutionContext): Unit =
+              instantiateShape(shape, rctx.instances).exit(exits) match
+                case value: TermShape => rctx.exposeValue(value, at)
+                case NoShape => ()
+            listenDefinitionResult(td, TypeSubstitution.empty)(expose)
+            if isAssignableField(td) then listenMemberVariable(td.tsym)(expose)
+          state.pendingResultOverrides.remove(td.tsym).foreach(_.foreach(exposeOverrideResult(_, path)))
+
+  private def exposeOverrideResult(td: TermDefinition, base: ShapeProvenance)(using ResolutionContext): Unit =
+    exposeMemberResult(td, base.via(msg"Member '${td.tsym.nme}' overrides the exposed member here." -> td.headerLoc))
+
   /** Forward the inputs admitted by one inherited operation to its overriding implementation.
     * An unannotated input carries the external value along the override chain. A written input
     * uses the inherited signature in the scope of the subclass's parent clause.
@@ -4783,6 +4811,15 @@ class NewResolver:
                     overriding <- own.defn if !Inheritance.changesMemberKind(overriding, inherited)
                   do
                     connectOverrideInputs(inherited, overriding, marks, instances)
+                    if resultSignature(inherited).isEmpty then
+                      if !rctx.state.isOwnedSym(target) then
+                        exposeOverrideResult(overriding, ShapeProvenance.empty.via(
+                          msg"Member '${target.nme}' is inherited from another compilation unit." -> inherited.headerLoc))
+                      else rctx.state.exposedResults.get(target) match
+                        case S(path) => exposeOverrideResult(overriding, path)
+                        case N =>
+                          val waiting = rctx.state.pendingResultOverrides
+                          waiting(target) = overriding :: waiting.getOrElse(target, Nil)
           // Private members are not overridden, so they do not hide the inherited members they shadow.
           lookup.visibleFrom(_ => false, reportInaccessible = false).foreachClassMember(rctx.instances)(link)
 

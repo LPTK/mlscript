@@ -1697,7 +1697,9 @@ An omitted type argument can expose an inferred value. For example, if the body 
 must also accept external calls.
 
 An exposed operation admits calls or writes to every implementation that overrides
-it. Each override must handle the inputs its base declaration admits, with the type
+it. An unannotated member also exposes the values its implementations return or
+store, including values supplied to a field through a constructor argument or a later write.
+Each override must handle the inputs its base declaration admits, with the type
 arguments from its own parent clause. The factory can keep the constructor and
 additional subclass members private. Exporting the class value also exposes its
 constructor parameters.

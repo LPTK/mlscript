@@ -85,6 +85,11 @@ final class NewResolverState(val owner: Elaborator.State):
   // The host replays the inherited input when the declaration edge is registered.
   private[semantics] val interfaceInputs = mutable.Map.empty[VarSymbol | TermSymbol, TermShapeHost]
   
+  // Result exposure follows declaration edges in either order. Once a base becomes reachable, its
+  // waiting overrides are consumed and later overrides can use the exposure path immediately.
+  private[semantics] val exposedResults = mutable.Map.empty[TermSymbol, ShapeProvenance]
+  private[semantics] val pendingResultOverrides = mutable.Map.empty[TermSymbol, Ls[TermDefinition]]
+
   /** How [[InterfaceExposure]] first reached `member`, if `member` is an exposed overridable member
     * of an extensible class or object of this compilation unit.
     */

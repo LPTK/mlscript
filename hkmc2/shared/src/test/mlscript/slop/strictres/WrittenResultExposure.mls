@@ -3,30 +3,34 @@
 // A written result type exposes the public operations of the class that it names. The values that these
 // operations produce without an annotation of their own escape with them: a later block, or another
 // compilation unit, can obtain such a value and pass it inputs that its defining block never observed.
-// FIXME: Each block marked `:breakme` should reject its private helper, whose parameter admits unknown
-// values, as the last block does for a factory with an inferred result. The call that follows each of them
-// resolves in a later block, and fails at runtime.
-
-fun invoke(f: Any -> Int) = f(null)
-
 
 // The result of a method.
-:breakme
 :e
 private fun stored(x) = x.only
 private class Carrier with
   fun get() = stored
 fun carrier(): Carrier = new Carrier
 stored({only: 17})
-//│ = 17
-
-:fixme
-invoke(carrier().get())
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of null (reading 'only')
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+1: 	private fun stored(x) = x.only
+//│ ║        	                        ^^^^^^
+//│ ╟── Cannot resolve member 'only' of a value with unknown shape.
+//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ║  l.+1: 	private fun stored(x) = x.only
+//│ ║        	                   ^
+//│ ╟── This value is returned here.
+//│ ║  l.+3: 	  fun get() = stored
+//│ ║        	              ^^^^^^
+//│ ╟── Member 'get' is accessible here.
+//│ ║  l.+3: 	  fun get() = stored
+//│ ║        	  ^^^^^^^^^
+//│ ╟── 'carrier' is exposed by this compilation unit.
+//│ ║  l.+4: 	fun carrier(): Carrier = new Carrier
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
 // The named class declares the method, and a private subclass returns the helper from its override.
-:breakme
 :e
 private fun overridden(x) = x.only
 private class Base with
@@ -35,55 +39,97 @@ private class Sub extends Base with
   override fun get() = overridden
 fun make(): Base = new Sub
 overridden({only: 1})
-//│ = 1
-
-:fixme
-invoke(make().get())
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of null (reading 'only')
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+1: 	private fun overridden(x) = x.only
+//│ ║        	                            ^^^^^^
+//│ ╟── Cannot resolve member 'only' of a value with unknown shape.
+//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ║  l.+1: 	private fun overridden(x) = x.only
+//│ ║        	                       ^
+//│ ╟── This value is returned here.
+//│ ║  l.+5: 	  override fun get() = overridden
+//│ ║        	                       ^^^^^^^^^^
+//│ ╟── Member 'get' overrides the exposed member here.
+//│ ║  l.+5: 	  override fun get() = overridden
+//│ ║        	  ^^^^^^^^^^^^^^^^^^
+//│ ╟── Member 'get' is accessible here.
+//│ ║  l.+3: 	  open fun get() = (x => 0)
+//│ ║        	  ^^^^^^^^^^^^^^
+//│ ╟── 'make' is exposed by this compilation unit.
+//│ ║  l.+6: 	fun make(): Base = new Sub
+//│ ╙──      	^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
 // The value of a field.
-:breakme
 :e
 private fun fieldValue(x) = x.only
 private class FieldCarrier with
   val f = fieldValue
 fun fieldCarrier(): FieldCarrier = new FieldCarrier
 fieldValue({only: 1})
-//│ = 1
-
-:fixme
-invoke(fieldCarrier().f)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of null (reading 'only')
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+1: 	private fun fieldValue(x) = x.only
+//│ ║        	                            ^^^^^^
+//│ ╟── Cannot resolve member 'only' of a value with unknown shape.
+//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ║  l.+1: 	private fun fieldValue(x) = x.only
+//│ ║        	                       ^
+//│ ╟── Member 'f' is accessible here.
+//│ ║  l.+3: 	  val f = fieldValue
+//│ ║        	  ^^^^^
+//│ ╟── 'fieldCarrier' is exposed by this compilation unit.
+//│ ║  l.+4: 	fun fieldCarrier(): FieldCarrier = new FieldCarrier
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
 // The result of a getter.
-:breakme
 :e
 private fun getterResult(x) = x.only
 private class GetterCarrier with
   fun g = getterResult
 fun getterCarrier(): GetterCarrier = new GetterCarrier
 getterResult({only: 1})
-//│ = 1
-
-:fixme
-invoke(getterCarrier().g)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of null (reading 'only')
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+1: 	private fun getterResult(x) = x.only
+//│ ║        	                              ^^^^^^
+//│ ╟── Cannot resolve member 'only' of a value with unknown shape.
+//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ║  l.+1: 	private fun getterResult(x) = x.only
+//│ ║        	                         ^
+//│ ╟── This value is returned here.
+//│ ║  l.+3: 	  fun g = getterResult
+//│ ║        	          ^^^^^^^^^^^^
+//│ ╟── Member 'g' is accessible here.
+//│ ║  l.+3: 	  fun g = getterResult
+//│ ║        	  ^^^^^
+//│ ╟── 'getterCarrier' is exposed by this compilation unit.
+//│ ║  l.+4: 	fun getterCarrier(): GetterCarrier = new GetterCarrier
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
 // A constructor argument, which the unannotated field of its parameter stores.
-:breakme
 :e
 private fun argument(x) = x.only
 private class ArgumentCarrier(val f)
 fun argumentCarrier(): ArgumentCarrier = ArgumentCarrier(argument)
 argument({only: 1})
-//│ = 1
-
-:fixme
-invoke(argumentCarrier().f)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of null (reading 'only')
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+1: 	private fun argument(x) = x.only
+//│ ║        	                          ^^^^^^
+//│ ╟── Cannot resolve member 'only' of a value with unknown shape.
+//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ║  l.+1: 	private fun argument(x) = x.only
+//│ ║        	                     ^
+//│ ╟── Member 'f' is accessible here.
+//│ ║  l.+2: 	private class ArgumentCarrier(val f)
+//│ ║        	                              ^^^^^
+//│ ╟── 'argumentCarrier' is exposed by this compilation unit.
+//│ ║  l.+3: 	fun argumentCarrier(): ArgumentCarrier = ArgumentCarrier(argument)
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
 // An inferred result exposes the returned instance itself, and with it the helper that its method returns.
@@ -113,3 +159,71 @@ storedInferred({only: 8})
 //│ ║  l.+4: 	fun carrierInferred() = new CarrierInferred
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// A new implementation can arrive after the named base was exposed.
+private class Library with
+  open fun get() = (x => 0)
+fun library(): Library = new Library
+
+:e
+private fun lateResult(x) = x.only
+private class Late extends Library with
+  override fun get() = lateResult
+lateResult({only: 2})
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+1: 	private fun lateResult(x) = x.only
+//│ ║        	                            ^^^^^^
+//│ ╟── Cannot resolve member 'only' of a value with unknown shape.
+//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ║  l.+1: 	private fun lateResult(x) = x.only
+//│ ║        	                       ^
+//│ ╟── This value is returned here.
+//│ ║  l.+3: 	  override fun get() = lateResult
+//│ ║        	                       ^^^^^^^^^^
+//│ ╟── Member 'get' overrides the exposed member here.
+//│ ║  l.+3: 	  override fun get() = lateResult
+//│ ║        	  ^^^^^^^^^^^^^^^^^^
+//│ ╟── Member 'get' is accessible here.
+//│ ║  l.XX: 	  open fun get() = (x => 0)
+//│ ║        	  ^^^^^^^^^^^^^^
+//│ ╟── 'library' is exposed by this compilation unit.
+//│ ║  l.XX: 	fun library(): Library = new Library
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
+// Values stored after the field was first exposed are readable too.
+private class Slot(mut val item)
+fun slot(): Slot = new mut Slot(0)
+
+:e
+private fun assigned(x) = x.only
+set slot().item = assigned
+assigned({only: 3})
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+1: 	private fun assigned(x) = x.only
+//│ ║        	                          ^^^^^^
+//│ ╟── Cannot resolve member 'only' of a value with unknown shape.
+//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ║  l.+1: 	private fun assigned(x) = x.only
+//│ ║        	                     ^
+//│ ╟── Member 'item' is accessible here.
+//│ ║  l.XX: 	private class Slot(mut val item)
+//│ ║        	                       ^^^^^^^^
+//│ ╟── 'slot' is exposed by this compilation unit.
+//│ ║  l.XX: 	fun slot(): Slot = new mut Slot(0)
+//│ ╙──      	^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
+// A written field on an override bounds what clients can see of its contents.
+:expect 4
+private class Broad with
+  open val field = 0
+private class Inner with
+  fun local(x) = x.only
+private class Narrow extends Broad with
+  override val field: Any = new Inner
+fun broad(): Broad = new Narrow
+new Inner().local({only: 4})
+//│ = 4

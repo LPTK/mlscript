@@ -10,6 +10,14 @@ import ResolutionContext.Listener
 object InterfaceExposure:
   final case class Input(shape: TermShape, state: ResolutionContext)(val provenance: ShapeProvenance)
 
+  /** The path from a member's body out through its enclosing declarations. An absent site
+    * accepts values from every invocation of those declarations. */
+  def declarationExits(td: TermDefinition, site: Opt[FlowSymbol]): Ls[Marks] =
+    def exits(scope: SrcScope): Ls[Marks] =
+      val outer = scope.parent.fold[Ls[Marks]](Nil)(exits)
+      scope.outer.resolutionBoundary.fold(outer)(sym => ExitMark(ResolutionBoundary(sym), site, NoMarks) :: outer)
+    ExitMark(ResolutionBoundary(td.tsym), site, NoMarks) :: td.scope.toList.flatMap(exits)
+
   def isPublic(definition: Definition): Bool =
     (definition.visibility is Visibility.Public) && (definition match
       case td: TermDefinition => (td.k isnt syntax.LetBind) || td.annotations.contains(Annot.Modifier(syntax.Keyword.`public`)(N))
@@ -201,10 +209,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
     if td.params.nonEmpty && (virtual || rctx.state.isOwnedSym(td.tsym) && !Inheritance.isExternal(td)) then
       admittedMethods += td.tsym
       val site = S(source(td.bsym).resSym)
-      def exits(scope: SrcScope): Ls[Marks] =
-        val outer = scope.parent.fold[Ls[Marks]](Nil)(exits)
-        scope.outer.resolutionBoundary.fold(outer)(sym => ExitMark(ResolutionBoundary(sym), site, NoMarks) :: outer)
-      val inside = ExitMark(ResolutionBoundary(td.tsym), site, NoMarks) :: td.scope.toList.flatMap(exits)
+      val inside = InterfaceExposure.declarationExits(td, site)
       parameters(td.params.map(_ -> inside), path, virtual)
 
   /** Expose each class's public operations once, through either a named type or an escaping value.
@@ -221,9 +226,11 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
             if first then
               if td.k is syntax.MutVal then assignable(td.tsym, td.bsym, path)(using declarationContext)
               operation(td, memberPath)(using declarationContext)
+              if rctx.state.isOwnedSym(td.tsym) && resolver.resultSignature(td).isEmpty then
+                resolver.exposeMemberResult(td, memberPath)(using declarationContext)
             receiver.foreach: marks =>
               recordOpenMember(cls, td, path)
-              member(td.bsym, marks, memberPath)
+              if resolver.resultSignature(td).nonEmpty then member(td.bsym, marks, memberPath)
           case _ => member(d.bsym, receiver.getOrElse(Nil), memberPath)
       case _ => ()
     cls.ext.foreach: parent =>
@@ -312,6 +319,8 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
             // A method may escape on its own, including after partial application.
             // A previously exposed class already admits calls to the whole method.
             if !admittedMethods(td.tsym) then parameters(shape.unappliedParams, path, Inheritance.isOpen(td))
+            if Inheritance.isOpen(td) && resolver.resultSignature(td).isEmpty then
+              resolver.exposeMemberResult(td, path)(using declarationContext)
           case _ => parameters(shape.unappliedParams, path, virtual = false)
         ds.clsDef match
           case S(cls) =>
