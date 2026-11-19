@@ -113,6 +113,29 @@ writeBase(childState)
 //│ childState = ChildState
 //│ initial = "child"
 
+// The base constructor calls a method that reads the overriding field through its accessor,
+// before JavaScript has installed the private field that stores it in the subclass.
+// TODO: This read should not fail. The same read of an immutable field returns the base's value.
+:fixme
+class EarlyReader with
+  open mut val state = "base"
+  fun read() = state
+  val early = read()
+class LateState extends EarlyReader with
+  override mut val state = "child"
+new mut LateState().early
+//│ ═══[RUNTIME ERROR] TypeError: Cannot read private member #state from an object whose class did not declare it
+
+:expect "base"
+class EarlyValueReader with
+  open val state = "base"
+  fun read() = state
+  val early = read()
+class LateValue extends EarlyValueReader with
+  override val state = "child"
+new LateValue().early
+//│ = "base"
+
 // Other compilation units cannot assign to a private field.
 :expect 1
 class Counter with
