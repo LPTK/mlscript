@@ -475,3 +475,40 @@ readBox(Box(Argument("local")))
 //│ ║  l.+2: 	fun reader(dummy): Box -> Str = readBox
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
+// A callable reached through a record field admits the same external arguments.
+:e
+private fun readNestedBox(box: Box) = box.contents.word
+fun recordReader(dummy): {read: Box -> Str} = {read: readNestedBox}
+readNestedBox(Box(Argument("local")))
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+1: 	private fun readNestedBox(box: Box) = box.contents.word
+//│ ║        	                                      ^^^^^^^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'word' of a value with unknown shape.
+//│ ╟── Field 'read' is accessible here.
+//│ ║  l.+2: 	fun recordReader(dummy): {read: Box -> Str} = {read: readNestedBox}
+//│ ║        	                          ^^^^^^^^^^^^^^^^
+//│ ╟── 'recordReader' is exposed by this compilation unit.
+//│ ║  l.+2: 	fun recordReader(dummy): {read: Box -> Str} = {read: readNestedBox}
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
+// The callback's domain comes from a written argument of the record alias.
+:e
+private type ReaderOf[A] = {read: A -> Str}
+private fun readAliasBox(box: Box) = box.contents.word
+fun aliasReader(dummy): ReaderOf[Box] = {read: readAliasBox}
+readAliasBox(Box(Argument("local")))
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+2: 	private fun readAliasBox(box: Box) = box.contents.word
+//│ ║        	                                     ^^^^^^^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'word' of a value with unknown shape.
+//│ ╟── Field 'read' is accessible here.
+//│ ║  l.+1: 	private type ReaderOf[A] = {read: A -> Str}
+//│ ║        	                            ^^^^^^^^^^^^^^
+//│ ╟── 'aliasReader' is exposed by this compilation unit.
+//│ ║  l.+3: 	fun aliasReader(dummy): ReaderOf[Box] = {read: readAliasBox}
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
