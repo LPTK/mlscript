@@ -104,16 +104,40 @@ class SubstitutionGrowthTest extends AnyFunSuite:
   // Exposure records the inputs that external callers can pass to an overridable operation, so that the
   // members overriding it receive them. A unit that names the classes of other units in its exposed
   // annotations, and overrides none of their operations, has no use for such records.
-  // FIXME: Exposure visits the declarations of every class that an exposed annotation names. Naming `Int`
-  // makes this unit retain 83 records, one for each parameter of the operations that the Prelude classes
-  // reachable from `Int` declare. A worksheet retains as many again for each of its blocks.
   test("naming the classes of other units retains no inputs for their operations"):
-    pendingUntilFixed:
-      val source = """#lang(0.3.x, strictResolution: true)
-         |module ImportedOperationInputs with
-         |  fun increment(x: Int) = x + 1
-         |""".stripMargin
-      assert(measure("ImportedOperationInputs", source).overrideInputs == 0)
+    val source = """#lang(0.3.x, strictResolution: true)
+       |module ImportedOperationInputs with
+       |  fun increment(x: Int) = x + 1
+       |""".stripMargin
+    assert(measure("ImportedOperationInputs", source).overrideInputs == 0)
+
+  // Shape counts distinguish a one-time admission from publishing a fresh external argument at
+  // each mention of the same declaration. The worksheet keeps one symbol state across blocks.
+  test("worksheet blocks admit external inputs to a local operation once"):
+    given owner: Elaborator.State = new Elaborator.State
+    given CompilerCtx = cctx
+    given Raise = diagnostic => fail(diagnostic.theMsg)
+    val language = Config.Language.v0_3_x
+    given Config = cctx.rootConfig.copy(language = language.copy(strictResolution = true, eagerResolution = true)(language.version))
+    val prelude = cctx.getPrelude(cctx.paths.preludeFile)(using tl, summon[Raise]).ctx
+    val dir = os.temp.dir(prefix = "worksheet-exposure-")
+    val output = DebugOutputHandler(cctx.fs, _ => ())
+    val elab = Elaborator(tl, dir, prelude)
+    var scope = prelude
+    def block(name: Str, source: Str): Unit =
+      val file = dir / s"$name.mls"
+      os.write(file, source)
+      val parsed = ParserSetup(file, output).resultBlk
+      scope = elab.topLevel(parsed)(using scope.nestLocal(name, isTopLevel = true))._2
+    block("definitions", "private class Local with { open fun use(x) = x }\nfun local(): Local = new Local")
+    val state = owner.newResolverState
+    def candidates = state.interfaceInputs.valuesIterator.map(_.currentShapes(using state.context).size).sum
+    assert(state.interfaceInputs.size == 1 && candidates == 1)
+    block("method", "private class Other with { open fun call(x)(y) = y }\nfun partial() = new Other().call(1)")
+    assert(state.interfaceInputs.size == 2 && candidates == 2)
+    for i <- 1 to 12 do
+      block(s"again$i", s"fun again$i(): Local = new Local\nfun method$i() = new Other().call(1)\n1 + 1")
+      assert(state.interfaceInputs.size == 2 && candidates == 2)
 
   // The value passed along each chain is produced outside every generic scope,
   // so no view of it should retain more than the one binding of the scope

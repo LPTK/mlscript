@@ -18,6 +18,23 @@ object InterfaceExposure:
       scope.outer.resolutionBoundary.fold(outer)(sym => ExitMark(ResolutionBoundary(sym), site, NoMarks) :: outer)
     ExitMark(ResolutionBoundary(td.tsym), site, NoMarks) :: td.scope.toList.flatMap(exits)
 
+  /** The unknown argument admitted by an external call and the value bound to the formal.
+    * A rest formal receives a tuple of those unknown arguments. */
+  def parameterInput(param: Param, rest: Bool, path: ShapeProvenance)(resolver: NewResolver)(using ResolutionContext): (UnknownValueShape, TermShape) =
+    val ref = SimpleRef(param.sym)(N)
+    val message = if rest then msg"Rest parameter '${param.sym.nme}' admits elements of unknown shape."
+      else msg"Parameter '${param.sym.nme}' admits values of unknown shape."
+    val unknown = UnknownValueShape(ref, fromPublicInterface = true)(path.via(message -> param.toLoc))
+    val input = if rest then TupleShape(ref, TupleShape.Unknown(ref, TupleShape.ValueField(unknown, Nil)) :: Nil)(resolver)
+      else unknown
+    (unknown, input)
+
+  /** The write admitted by a mutable field before any annotation restricts its representation. */
+  def fieldInput(field: TermSymbol, source: Term, path: ShapeProvenance): UnknownValueShape =
+    UnknownValueShape(source, fromPublicInterface = true)(path.via(
+      // A mutable copy can also make an immutable record literal's field assignable.
+      msg"Field '${field.nme}' admits assigned values of unknown shape." -> field.toLoc))
+
   def isPublic(definition: Definition): Bool =
     (definition.visibility is Visibility.Public) && (definition match
       case td: TermDefinition => (td.k isnt syntax.LetBind) || td.annotations.contains(Annot.Modifier(syntax.Keyword.`public`)(N))
@@ -39,7 +56,6 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
   private val annotations = mutable.Set.empty[(TypeResolution, Bool)]
   private val aliasArguments = mutable.Map.empty[VarSymbol, mutable.Set[TypeResolution]]
   private val suppliedArguments = mutable.Map.empty[VarSymbol, Path]
-  private val interfaces = mutable.Set.empty[ClassLikeDefSymbol]
   private val admittedMethods = mutable.Set.empty[TermSymbol]
   private val declarationContext = rctx
 
@@ -169,14 +185,11 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
               case NoShape => ()))(emit(_, path))
 
   private def parameter(param: Param, rest: Bool, marks: Ls[Marks], path: Path, virtual: Bool)(using ResolutionContext): Unit =
+    if !rctx.state.isOwnedSym(param.sym) then return
     param.sign.foreach(annotation(_, path, readable = false))
-    val ref = SimpleRef(param.sym)(N)
-    val message = if rest then msg"Rest parameter '${param.sym.nme}' admits elements of unknown shape."
-      else msg"Parameter '${param.sym.nme}' admits values of unknown shape."
-    val unknown = UnknownValueShape(ref, fromPublicInterface = true)(path.via(message -> param.toLoc))
-    val input = if rest then TupleShape(ref, TupleShape.Unknown(ref, TupleShape.ValueField(unknown, Nil)) :: Nil)(resolver)
-      else unknown
-    if rctx.state.isOwnedSym(param.sym) then resolver.parameterSignature(param) match
+    val (unknown, input) = rctx.state.externalArguments.getOrElseUpdate(param.sym,
+      InterfaceExposure.parameterInput(param, rest, path)(resolver))
+    resolver.parameterSignature(param) match
       case N => resolver.constrainParameter(param, input.enter(marks), marks)
       case S(tpe) => unknown.enter(marks) match
         case value: TermShape => resolver.exposeTypeHoles(tpe.instantiate(rctx.instances), value, marks)
@@ -206,7 +219,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
   private def operation(td: TermDefinition, path: Path)(using ResolutionContext): Unit =
     signature(td, path)
     val virtual = Inheritance.isOpen(td)
-    if td.params.nonEmpty && (virtual || rctx.state.isOwnedSym(td.tsym) && !Inheritance.isExternal(td)) then
+    if td.params.nonEmpty && (virtual || !Inheritance.isExternal(td)) then
       admittedMethods += td.tsym
       val site = S(source(td.bsym).resSym)
       val inside = InterfaceExposure.declarationExits(td, site)
@@ -216,7 +229,8 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
     * An escaping value also supplies the scope in which to read its inferred member values.
     */
   private def members(cls: ClassLikeDef, receiver: Opt[Ls[Marks]], path: Path)(using ResolutionContext): Unit =
-    val first = interfaces.add(cls.sym)
+    if !rctx.state.isOwnedSym(cls.sym) then return
+    val first = rctx.state.exposedInterfaces.add(cls.sym)
     if !first && receiver.isEmpty then return
     cls.body.blk.stats.foreach:
       case d: Definition if InterfaceExposure.isPublic(d) =>
@@ -226,7 +240,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
             if first then
               if td.k is syntax.MutVal then assignable(td.tsym, td.bsym, path)(using declarationContext)
               operation(td, memberPath)(using declarationContext)
-              if rctx.state.isOwnedSym(td.tsym) && resolver.resultSignature(td).isEmpty then
+              if resolver.resultSignature(td).isEmpty then
                 resolver.exposeMemberResult(td, memberPath)(using declarationContext)
             receiver.foreach: marks =>
               recordOpenMember(cls, td, path)
@@ -245,14 +259,10 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
     * the field through no particular member lookup. `path` explains how the field's owner is exposed.
     */
   private def assignable(field: TermSymbol, symbol: BlockMemberSymbol, path: Path)(using ResolutionContext): Unit =
-    val virtual = field.defn.exists(Inheritance.isOpen)
-    if (field.getState is rctx.owner) || virtual then
-      val unknown = UnknownValueShape(source(symbol), fromPublicInterface = true)(path.via(
-        // The message does not call the field mutable: a mutable copy of an immutable record literal
-        // makes that literal's fields assignable too, and the message is located at such a field.
-        msg"Field '${field.nme}' admits assigned values of unknown shape." -> field.toLoc))
-      if field.getState is rctx.owner then resolver.writeField(field, unknown, Nil)
-      if virtual then resolver.publishInterfaceInput(field, unknown)
+    if rctx.state.isOwnedSym(field) then
+      val unknown = InterfaceExposure.fieldInput(field, source(symbol), path)
+      resolver.writeField(field, unknown, Nil)
+      if field.defn.exists(Inheritance.isOpen) then resolver.publishInterfaceInput(field, unknown)
 
   private def result(body: Term, sign: Opt[Term], marks: Ls[Marks], path: Path)(using ResolutionContext): Unit = sign match
     case N =>
@@ -385,7 +395,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
         fields(record, false, marks, instances.withOverrides(record.instances), Set.empty)
       case base: BaseShape => members(base.defn, S(marks), path)
       case callable: CallableTypeShape =>
-        callable.declaration.foreach: origin =>
+        callable.declaration.filter(origin => rctx.state.isOwnedSym(origin.definition.tsym)).foreach: origin =>
           val td = origin.definition
           signature(td, path)
           if Inheritance.isOpen(td) && !admittedMethods(td.tsym) then

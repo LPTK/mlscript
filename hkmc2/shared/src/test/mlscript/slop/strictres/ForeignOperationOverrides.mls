@@ -1,0 +1,82 @@
+:.
+:!js
+
+import "./ForeignOperationBase.mls" as Library
+
+// A private override must admit calls even when the base unit published no exposure inputs.
+:e
+private class Inspect extends Library.Base with
+  override fun inspect(x) = x.only
+new Inspect().inspect({only: 1})
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+2: 	  override fun inspect(x) = x.only
+//│ ║        	                            ^^^^^^
+//│ ╟── Cannot resolve member 'only' of a value with unknown shape.
+//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ║  in ForeignOperationBase.mls
+//│ ║  l.XX: 	    open fun inspect(x) = 0
+//│ ║        	                     ^
+//│ ╟── Member 'inspect' is inherited from another compilation unit.
+//│ ║  l.XX: 	    open fun inspect(x) = 0
+//│ ╙──      	    ^^^^^^^^^^^^^^^^^^^
+
+:e
+private class Rest extends Library.Base with
+  override fun rest(...xs) = xs.0.only
+new Rest().rest({only: 2})
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+2: 	  override fun rest(...xs) = xs.0.only
+//│ ║        	                             ^^^^^^^^^
+//│ ╟── Cannot resolve member 'only' of a value with unknown shape.
+//│ ╟── Rest parameter 'xs' admits elements of unknown shape.
+//│ ║  in ForeignOperationBase.mls
+//│ ║  l.XX: 	    open fun rest(...xs) = 0
+//│ ║        	                  ^^^^^
+//│ ╟── Member 'rest' is inherited from another compilation unit.
+//│ ║  l.XX: 	    open fun rest(...xs) = 0
+//│ ╙──      	    ^^^^^^^^^^^^^^^^^^^^
+
+// An unannotated inherited field admits external writes.
+:ge
+val i32: Int32 = unsafe.undefined
+private class Store extends Library.Base with
+  override mut val item = i32
+//│ ╔══[COMPILATION ERROR] Types 'Int32' and 'Unknown' have no common representation
+//│ ║  l.+3: 	  override mut val item = i32
+//│ ║        	                   ^^^^
+//│ ╟── The exposed interface admits values of unknown representation unless a type annotation restricts them.
+//│ ╟── Field 'item' admits assigned values of unknown shape.
+//│ ║  in ForeignOperationBase.mls
+//│ ║  l.XX: 	    open mut val item = 0
+//│ ║        	                 ^^^^
+//│ ╟── Member 'item' is inherited from another compilation unit.
+//│ ║  l.XX: 	    open mut val item = 0
+//│ ╙──      	    ^^^^^^^^^^^^^^^^^
+
+// The inherited domain supplies the receiver even without a local call to the override.
+private class Payload(val key: Int)
+private class Typed extends Library.Typed[Payload] with
+  override fun use(x) = x.key
+
+// Written arguments belong to this unit even when the generic class belongs to another.
+:e
+private class LocalPayload with
+  fun inspect(x) = x.only
+fun accept(x: Library.Typed[LocalPayload]) = 0
+new LocalPayload().inspect({only: 1})
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+2: 	  fun inspect(x) = x.only
+//│ ║        	                   ^^^^^^
+//│ ╟── Cannot resolve member 'only' of a value with unknown shape.
+//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ║  l.+2: 	  fun inspect(x) = x.only
+//│ ║        	              ^
+//│ ╟── Member 'inspect' is accessible here.
+//│ ║  l.+2: 	  fun inspect(x) = x.only
+//│ ║        	  ^^^^^^^^^^^^^^
+//│ ╟── This type argument appears in an exposed annotation.
+//│ ║  l.+3: 	fun accept(x: Library.Typed[LocalPayload]) = 0
+//│ ║        	                            ^^^^^^^^^^^^
+//│ ╟── 'accept' is exposed by this compilation unit.
+//│ ║  l.+3: 	fun accept(x: Library.Typed[LocalPayload]) = 0
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

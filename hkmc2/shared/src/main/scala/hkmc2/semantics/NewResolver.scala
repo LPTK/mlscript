@@ -2231,8 +2231,8 @@ class NewResolver:
     withCanonicalType(tpe)(follow(_, noTypeArguments, Nil, Set.empty))
 
   private def interfaceInputs(symbol: VarSymbol | TermSymbol)(using ResolutionContext): TermShapeHost =
-    rctx.state.interfaceInputs.getOrElseUpdate(symbol,
-      symbol.getState.newResolverState.interfaceInputs.getOrElse(symbol, new TermShapeHost))
+    assert(rctx.state.isOwnedSym(symbol))
+    rctx.state.interfaceInputs.getOrElseUpdate(symbol, new TermShapeHost)
 
   /** Make an external argument or field write available to every override of the declaration. */
   private[semantics] def publishInterfaceInput(symbol: VarSymbol | TermSymbol, value: TermShape)
@@ -2267,14 +2267,20 @@ class NewResolver:
   private def exposeOverrideResult(td: TermDefinition, base: ShapeProvenance)(using ResolutionContext): Unit =
     exposeMemberResult(td, base.via(msg"Member '${td.tsym.nme}' overrides the exposed member here." -> td.headerLoc))
 
+  private def inheritedExposure(base: TermDefinition): ShapeProvenance =
+    ShapeProvenance.empty.via(msg"Member '${base.tsym.nme}' is inherited from another compilation unit." -> base.headerLoc)
+
   /** Forward the inputs admitted by one inherited operation to its overriding implementation.
     * An unannotated input carries the external value along the override chain. A written input
     * uses the inherited signature in the scope of the subclass's parent clause.
     */
   private def connectOverrideInputs(base: TermDefinition, overriding: TermDefinition, inheritedMarks: Ls[Marks],
       instances: TypeSubstitution)(using ResolutionContext): Unit =
-    def onInput(symbol: VarSymbol | TermSymbol)(receive: Listener): Unit =
-      interfaceInputs(symbol).listen(receive)(using rctx.state.context)
+    // A public operation inherited across a unit boundary is already externally accessible,
+    // including when its defining unit used legacy resolution. Local overrides can precede exposure.
+    def onInput(symbol: VarSymbol | TermSymbol)(receive: ShapeListener[Opt[TermShape]]): Unit =
+      if rctx.state.isOwnedSym(symbol) then interfaceInputs(symbol).listen(value => receive(S(value)))(using rctx.state.context)
+      else receive(N)
     def forward(symbol: VarSymbol | TermSymbol, value: TermShape)(using ResolutionContext): Unit =
       if Inheritance.isOpen(overriding) then publishInterfaceInput(symbol, value)
     // A previous override may already have supplied the declared input. It has left that
@@ -2292,7 +2298,9 @@ class NewResolver:
           constrainFieldWrites(MemberLookup.Found(overriding.bsym, Nil), ref, N)(receive => receive(input))
         forward(overriding.tsym, input)
       onInput(base.tsym): input =>
-        if resultSignature(base).isEmpty then assign(inheritedInput(input))
+        if resultSignature(base).isEmpty then
+          assign(input.fold[TermShape](InterfaceExposure.fieldInput(base.tsym, MemberRef(base.bsym)(N, site),
+            inheritedExposure(base)))(inheritedInput))
         else
           val lookup = MemberLookup.Declared(base.bsym, Map.empty, inheritedMarks, N, positive = true).instantiate(instances)
           listenFieldInput(lookup, MemberRef(base.bsym)(N, site))(tpe => assign(instanceShape(tpe)))
@@ -2312,8 +2320,12 @@ class NewResolver:
         val baseMarks = ExitMark(ResolutionBoundary(base.tsym), S(site), NoMarks) :: inheritedMarks
         pairs.foreach: (target, inherited) =>
           onInput(inherited.sym): input =>
-            val admitted = parameterSignature(inherited).fold(inheritedInput(input)): sign =>
-              instanceShape(transportType(sign.withPolarity(false).instantiate(instances), baseMarks))
+            val admitted = parameterSignature(inherited) match
+              case S(sign) => instanceShape(transportType(sign.withPolarity(false).instantiate(instances), baseMarks))
+              case N => input.fold[TermShape] {
+                val rest = base.params.exists(_.variadic.exists(_.param.sym is inherited.sym))
+                InterfaceExposure.parameterInput(inherited, rest, inheritedExposure(base))(this)._2
+              }(inheritedInput)
             admit(target, admitted)
 
   /** Expand fixed tuple spreads before matching positions. Unknown-length
@@ -4813,8 +4825,7 @@ class NewResolver:
                     connectOverrideInputs(inherited, overriding, marks, instances)
                     if resultSignature(inherited).isEmpty then
                       if !rctx.state.isOwnedSym(target) then
-                        exposeOverrideResult(overriding, ShapeProvenance.empty.via(
-                          msg"Member '${target.nme}' is inherited from another compilation unit." -> inherited.headerLoc))
+                        exposeOverrideResult(overriding, inheritedExposure(inherited))
                       else rctx.state.exposedResults.get(target) match
                         case S(path) => exposeOverrideResult(overriding, path)
                         case N =>

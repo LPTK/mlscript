@@ -81,8 +81,12 @@ final class NewResolverState(val owner: Elaborator.State):
     * exposes its definitions before it is erased, and later blocks can only re-expose them.
     */
   private[semantics] val exposedOpenMembers = mutable.Map.empty[TermSymbol, ShapeProvenance]
-  // A later worksheet block or an importing unit can declare an override after exposure.
-  // The host replays the inherited input when the declaration edge is registered.
+  // Worksheet blocks share a unit. A fresh written mention of a class cannot admit new external
+  // calls, but a later block can add an override that needs the original inputs replayed.
+  private[semantics] val exposedInterfaces = mutable.Set.empty[ClassLikeDefSymbol]
+  // The same formal can escape on different receivers or after partial application. It admits
+  // the same external argument in each case, even when its type holes need each caller's scope.
+  private[semantics] val externalArguments = mutable.Map.empty[VarSymbol, (UnknownValueShape, TermShape)]
   private[semantics] val interfaceInputs = mutable.Map.empty[VarSymbol | TermSymbol, TermShapeHost]
   
   // Result exposure follows declaration edges in either order. Once a base becomes reachable, its
