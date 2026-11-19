@@ -664,19 +664,19 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
                       // softAssert(!classFields.contains(stored), s"Duplicate private class field '${stored.nme}'")
                       classFields += stored
                   case _ => super.applyDefn(defn)
-              val allPrivFlds = privFlds ::: accessorFields ::: classFields.toList
-              val privDecls = allPrivFlds.map: fld =>
+              val allPrivFlds = privFlds.iterator.++(accessorFields).++(classFields).toArray
+              val privDecls = allPrivFlds.iterator.map: fld =>
                 doc" # $mtdPrefix#${isym.privatesScope.allocateOrGetName(fld)};"
               def privateOwnerQual(sym: DefinitionSymbol[?]) =
                 val owner = MemberStorage.privateOwner(sym).getOrElse(lastWords(s"Expected private member $sym"))
                 result(owner.asThis)
-              val accessors = accessorFields.flatMap: field =>
+              val accessors = accessorFields.iterator.flatMap: field =>
                 val name = escapeField(field.name, "")
                 val storage = backingField(owner, field)
                 doc" # ${mtdPrefix}get $name() { return $storage; }"
                 :: doc" # ${mtdPrefix}set $name(value) { $storage = value; }"
                 :: Nil
-              val privateAccessors = allPrivFlds.filter(privateAccessorSymbols.contains).flatMap: fld =>
+              val privateAccessors = allPrivFlds.iterator.filter(privateAccessorSymbols.contains).flatMap: fld =>
                 doc" # ${mtdPrefix}get [${scope.lookup_!(getPrivateAccessorSymbol(fld), fld.toLoc)}]() { return ${
                     privateOwnerQual(fld)
                   }${
@@ -688,7 +688,7 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
                     selectPrivateField(fld, fld.toLoc).get
                   } = value; }"
                 :: Nil
-              val privateMethodAccessors = methods.filter(td =>
+              val privateMethodAccessors = methods.iterator.filter(td =>
                 td.dSym.isPrivate && privateAccessorSymbols.contains(td.dSym)
               ).flatMap: td =>
                 doc" # ${mtdPrefix}get [${scope.lookup_!(getPrivateAccessorSymbol(td.dSym), td.dSym.toLoc)}]() { return ${
@@ -696,7 +696,7 @@ class JSBuilder(using Config, TL, State, Ctx) extends CodeBuilder:
                   }${
                     selectPrivateField(td.dSym, td.dSym.toLoc).get
                   }; }" :: Nil
-              (privDecls ::: accessors ::: privateAccessors ::: privateMethodAccessors).mkDocument(doc"")
+              (privDecls ++ accessors ++ privateAccessors ++ privateMethodAccessors).mkDocument(doc"")
             
             val modDoc = modo match
               case N => doc""
