@@ -114,9 +114,7 @@ class NewResolver:
               // is complete. Interface observation uses the same gate below.
               withCanonicalType(DeclaredType(result, Map.empty, TypeSubstitution.empty, true)(N))(_ => ())
             case _ => publish(TypeShape.Abstract)
-          symbol.defn match
-            case S(defn) => definition(defn)
-            case N => symbol.defnListeners += definition
+          symbol.whenDefined(definition)
         def select(symbol: TypeSymbol)(using ResolutionContext): Unit = selectInto(symbol, result.publish)
         def selectReference(symbol: TypeSymbol, shape: SymShape)(using ResolutionContext): Unit =
           val (source, instances) = shape match
@@ -2299,22 +2297,30 @@ class NewResolver:
       instances: TypeSubstitution)(receive: (TermDefinition, Opt[DeclaredType]) => ResolutionContext ?=> Unit)(using ResolutionContext): Unit =
     def visit(td: TermDefinition, param: Opt[Param], marks: Ls[Marks], instances: TypeSubstitution,
         seen: Set[TermSymbol])(emit: (TermDefinition, Opt[DeclaredType]) => ResolutionContext ?=> Unit)(using ResolutionContext): Unit =
-      projectedSlot(td, param, positive, marks, instances) match
-        case N if !seen(td.tsym) && td.tsym.overrideLinks.currentShapes.nonEmpty =>
-          val owner = td.owner.flatMap(_.asDefnSym.defn).get // Only a class member can have override links.
-          listenInheritedMember(owner, td.bsym.nme): lookup =>
+      (projectedSlot(td, param, positive, marks, instances), td.owner) match
+        case (N, S(owner)) if !seen(td.tsym) =>
+          def inherit(parent: TermDefinition, path: Ls[Marks], bindings: TypeSubstitution)(using ResolutionContext): Unit =
+            def fromSlot(slot: Opt[Param]): Unit =
+              visit(parent, slot, path, bindings, seen + td.tsym): (origin, tpe) =>
+                emit(origin, tpe.map(t => transportType(t.instantiate(instances), marks)))
+            param match
+              case N => fromSlot(N)
+              case S(p) =>
+                val source = codegen.OverrideLayout.correspondingParameters(td.params, parent.params).toOption
+                  .flatMap(_.collectFirst { case (target, inherited) if target.sym is p.sym => inherited })
+                source.fold(emit(td, N))(p => fromSlot(S(p)))
+          // A forward parent can still be elaborating its own body when its subclass
+          // discovers this member. Its currently empty override links are inconclusive.
+          owner.asDefnSym.whenDefined(cls => listenInheritedMember(cls, td.bsym.nme): lookup =>
+            var found = false
             lookup.visibleFrom(_ => false, reportInaccessible = false).foreachClassMember(rctx.instances): (name, path, bindings) =>
-              name.asTrm.flatMap(_.defn).filter(p => Inheritance.isOpen(p) && !Inheritance.changesMemberKind(td, p)).foreach: parent =>
-                def inherit(slot: Opt[Param]): Unit =
-                  visit(parent, slot, path, bindings, seen + td.tsym): (origin, tpe) =>
-                    emit(origin, tpe.map(t => transportType(t.instantiate(instances), marks)))
-                param match
-                  case N => inherit(N)
-                  case S(p) =>
-                    val source = codegen.OverrideLayout.correspondingParameters(td.params, parent.params).toOption
-                      .flatMap(_.collectFirst { case (target, inherited) if target.sym is p.sym => inherited })
-                    source.fold(emit(td, N))(p => inherit(S(p)))
-        case tpe => emit(td, tpe)
+              found = true
+              name.onComplete: () =>
+                name.asTrm.flatMap(_.defn) match
+                  case S(parent) if Inheritance.isOpen(parent) && !Inheritance.changesMemberKind(td, parent) => inherit(parent, path, bindings)
+                  case _ => emit(td, N)
+            if !found then emit(td, N))
+        case (tpe, _) => emit(td, tpe)
     visit(td, param, marks, instances, Set.empty)(receive)
 
   /** An exposed overriding declaration can omit the type that already bounds incoming calls or
@@ -2322,7 +2328,7 @@ class NewResolver:
     */
   private[semantics] def externalInput(td: Opt[TermDefinition], param: Opt[Param], fallback: TermShape)
       (receive: Listener)(using ResolutionContext): Unit = td match
-    case S(d) if d.tsym.overrideLinks.currentShapes.nonEmpty && slotSignature(d, param).isEmpty =>
+    case S(d) if d.owner.nonEmpty && !d.tsym.isPrivate && slotSignature(d, param).isEmpty =>
       operationType(d, param, false, Nil, TypeSubstitution.empty)((_, tpe) => receive(tpe.fold(fallback)(instanceShape)))
     case _ => receive(fallback)
 
@@ -4213,9 +4219,7 @@ class NewResolver:
               case L(_) => consulted.status = Namespace.Status.Inaccessible
           case _ => consulted.status = Namespace.Status.Missing
       decided(consulted.status.provides)
-    module.defn match
-      case S(definition) => defined(definition)
-      case N => module.defnListeners += defined
+    module.whenDefined(defined)
 
   /** A namespace found after `ref` fell back to its wildcard opens, or after it was settled,
     * cannot change its candidates: other code already depends on them. If the namespace provides
@@ -4435,9 +4439,7 @@ class NewResolver:
         // `super` looks up the members inherited by the parent class (see also Lowering.superReference).
         receive(info.withMarks(captures(sup.receiver)).visibleFrom(_ => false, reportInaccessible = false),
           TypeSubstitution.empty)
-    sup.owner.asDefnSym.defn match
-      case S(defn) => completed(defn)
-      case N => sup.owner.asDefnSym.defnListeners += completed
+    sup.owner.asDefnSym.whenDefined(completed)
 
   /** `scope` is where `sel` is written, which determines the private members it can select. */
   def newSel(sel: NewSel, scope: SrcScope)(using ResolutionContext): Unit =
@@ -5630,10 +5632,7 @@ class NewResolver:
           softAssert(shape.defn is defn)
           softAssert(shape.ext.map(ShapeIdentity.key) == ext.map(ShapeIdentity.key))
           listener(shape))
-      val symbol = sym.asDefnSym
-      symbol.defn match
-        case S(defn) => completed(defn)
-        case N => symbol.defnListeners += completed
+      sym.asDefnSym.whenDefined(completed)
     case ref @ MemberRef(sym: TermSymbol) if sym.isLetOrParamBinding =>
       // Forward the binding's shapes without adding scope entry/exit marks
       // for this plain let or param binding.
