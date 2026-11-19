@@ -97,7 +97,10 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
     detach += res.inferenceHost.observe: shape =>
       work.enqueue: () =>
         resolver.foreachOmittedArgument(res, shape): (param, hole) =>
-          resolver.exposeTypeHoles(hole, UnknownValueShape(res.source, fromPublicInterface = true)(path))
+          // The annotation can be far from the definition that exposes it, such as a type alias
+          // named in the signature of an exported function.
+          resolver.exposeTypeHoles(hole, UnknownValueShape(res.source, fromPublicInterface = true)(path.via(
+            msg"Type argument '${param.sym.nme}' is omitted here and admits values of unknown shape." -> res.source.toLoc)))
           // The omitted argument may also carry an inferred value, such as a stored callback.
           emit(resolver.instanceShape(hole), path.via(
             msg"Type argument '${param.sym.nme}' is inferred here." -> res.source.toLoc))

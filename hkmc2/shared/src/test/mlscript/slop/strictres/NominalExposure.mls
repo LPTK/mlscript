@@ -494,6 +494,9 @@ readBox(Box(Argument("local")))
 //│ ║  l.+1: 	private fun readBox(box: Box) = box.contents.word
 //│ ║        	                                ^^^^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'word' of a value with unknown shape.
+//│ ╟── Type argument 'T' is omitted here and admits values of unknown shape.
+//│ ║  l.+2: 	fun reader(dummy): Box -> Str = readBox
+//│ ║        	                   ^^^
 //│ ╟── 'reader' is exposed by this compilation unit.
 //│ ║  l.+2: 	fun reader(dummy): Box -> Str = readBox
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -509,6 +512,9 @@ readNestedBox(Box(Argument("local")))
 //│ ║  l.+1: 	private fun readNestedBox(box: Box) = box.contents.word
 //│ ║        	                                      ^^^^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'word' of a value with unknown shape.
+//│ ╟── Type argument 'T' is omitted here and admits values of unknown shape.
+//│ ║  l.+2: 	fun recordReader(dummy): {read: Box -> Str} = {read: readNestedBox}
+//│ ║        	                                ^^^
 //│ ╟── Field 'read' is accessible here.
 //│ ║  l.+2: 	fun recordReader(dummy): {read: Box -> Str} = {read: readNestedBox}
 //│ ║        	                          ^^^^^^^^^^^^^^^^
@@ -528,6 +534,9 @@ readAliasBox(Box(Argument("local")))
 //│ ║  l.+2: 	private fun readAliasBox(box: Box) = box.contents.word
 //│ ║        	                                     ^^^^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'word' of a value with unknown shape.
+//│ ╟── Type argument 'T' is omitted here and admits values of unknown shape.
+//│ ║  l.+3: 	fun aliasReader(dummy): ReaderOf[Box] = {read: readAliasBox}
+//│ ║        	                                 ^^^
 //│ ╟── This type argument appears in an exposed annotation.
 //│ ║  l.+3: 	fun aliasReader(dummy): ReaderOf[Box] = {read: readAliasBox}
 //│ ║        	                                 ^^^
@@ -666,6 +675,9 @@ fun boxHolder(): BoxHolder = new mut BoxHolder
 //│ ║  l.+3: 	  fun read() = box.contents.word
 //│ ║        	               ^^^^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'word' of a value with unknown shape.
+//│ ╟── Type argument 'T' is omitted here and admits values of unknown shape.
+//│ ║  l.+2: 	  mut val box: Box = Box(Argument("initial"))
+//│ ║        	               ^^^
 //│ ╟── Member 'box' is accessible here.
 //│ ║  l.+2: 	  mut val box: Box = Box(Argument("initial"))
 //│ ║        	      ^^^^^^^^^^^^
@@ -691,6 +703,9 @@ publicWordBox().contents.word
 //│ ║  l.+2: 	publicWordBox().contents.word
 //│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'word' of a value with unknown shape.
+//│ ╟── Type argument 'T' is omitted here and admits values of unknown shape.
+//│ ║  l.+1: 	fun publicWordBox(): Id[Box] = Box(Argument("local"))
+//│ ║        	                        ^^^
 //│ ╟── This type argument appears in an exposed annotation.
 //│ ║  l.+1: 	fun publicWordBox(): Id[Box] = Box(Argument("local"))
 //│ ║        	                        ^^^
@@ -711,6 +726,9 @@ readerWithInferredDomain()(Argument("local"))
 //│ ║  l.+1: 	private fun readWord(x) = x.word
 //│ ║        	                          ^^^^^^
 //│ ╟── Cannot resolve member 'word' of a value with unknown shape.
+//│ ╟── Type argument 'T' is omitted here and admits values of unknown shape.
+//│ ║  l.+2: 	fun readerWithInferredDomain(): Reader = readWord
+//│ ║        	                                ^^^^^^
 //│ ╟── 'readerWithInferredDomain' is exposed by this compilation unit.
 //│ ║  l.+2: 	fun readerWithInferredDomain(): Reader = readWord
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -725,6 +743,9 @@ invoke(box => box.contents.word)
 //│ ║  l.+2: 	invoke(box => box.contents.word)
 //│ ║        	              ^^^^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'word' of a value with unknown shape.
+//│ ╟── Type argument 'T' is omitted here and admits values of unknown shape.
+//│ ║  l.+1: 	fun invoke(read: Reader[Box]) = read(Box(Argument("local")))
+//│ ║        	                        ^^^
 //│ ╟── This type argument appears in an exposed annotation.
 //│ ║  l.+1: 	fun invoke(read: Reader[Box]) = read(Box(Argument("local")))
 //│ ║        	                        ^^^
