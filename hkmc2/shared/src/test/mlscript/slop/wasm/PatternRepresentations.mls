@@ -85,3 +85,32 @@ else const(0)
 bump(Cell(const(41)))
 //│ Wasm result:
 //│ = 42
+
+
+// FIXME: The scrutinee of a conditional is still bound to a temporary without a representation, which
+// cannot hold an unboxed value. A comparison intrinsic returns an unboxed integer, so no conditional
+// or loop can test its result, with declared or inferred operand representations alike.
+:fixme
+:noInline
+private fun smaller(a: Int32, b: Int32) = if wasm.i32.lt_s(a, b) is 1 then a else b
+smaller(const(1), const(2))
+//│ ╔══[INTERNAL ERROR] A value of type 'Int32' was expected to have type 'Unknown'
+//│ ║  l.+1: 	private fun smaller(a: Int32, b: Int32) = if wasm.i32.lt_s(a, b) is 1 then a else b
+//│ ╙──      	                                             ^^^^^^^^^^^^^^^^^^^
+//│ ╔══[COMPILATION ERROR] Cannot cast a Wasm value of type `i32` to `(ref null any)` in a different type hierarchy
+//│ ║  l.+1: 	private fun smaller(a: Int32, b: Int32) = if wasm.i32.lt_s(a, b) is 1 then a else b
+//│ ╙──      	                                             ^^^^^^^^^^^^^^^^^^^
+
+:fixme
+:noInline
+private fun countdown(n) =
+  let i = n
+  while wasm.i32.eqz(i) is 0 do set i = wasm.i32.sub(i, const(1))
+  i
+countdown(const(3))
+//│ ╔══[INTERNAL ERROR] A value of type 'Int32' was expected to have type 'Unknown'
+//│ ║  l.+3: 	  while wasm.i32.eqz(i) is 0 do set i = wasm.i32.sub(i, const(1))
+//│ ╙──      	        ^^^^^^^^^^^^^^^
+//│ ╔══[COMPILATION ERROR] Cannot cast a Wasm value of type `i32` to `(ref null any)` in a different type hierarchy
+//│ ║  l.+3: 	  while wasm.i32.eqz(i) is 0 do set i = wasm.i32.sub(i, const(1))
+//│ ╙──      	        ^^^^^^^^^^^^^^^
