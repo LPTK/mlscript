@@ -1,0 +1,102 @@
+:.
+
+// A value escapes when it is passed to code that this compilation unit does not contain: an external
+// function with an unannotated parameter, a dynamic value such as `globalThis`, or a computed field of
+// a dynamic object. That code can call an escaping function with any argument and assign any value to
+// the mutable field of an escaping instance, as other compilation units can with exported values
+// (see NominalExposure.mls and MutableFields.mls).
+// TODO: Admit unknown values for these inputs. The blocks marked below are accepted, and their slots
+// keep the shapes and representations of the values that this unit supplies.
+
+private class Message(val text: Str)
+
+declare fun escape(x)
+
+
+// A function passed to an unannotated parameter of an external function.
+:breakme
+:e
+private fun readEscaped(m) = m.text
+escape(readEscaped)
+readEscaped(Message("local"))
+//│ = "local"
+
+// The parameter keeps the representation of the local argument.
+:sir
+:siret
+private fun describeEscaped(x) = if x is Str then "text" else "other"
+escape(describeEscaped)
+describeEscaped(1)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ @private
+//│ define describeEscaped⁰ as fun describeEscaped¹(x: Int⁰): Str⁰ {
+//│   match x
+//│     Str⁰ =>
+//│       return "text"
+//│     else
+//│       return "other"
+//│   end
+//│ };
+//│ do globalThis⁰.escape⁰(describeEscaped¹);
+//│ return describeEscaped¹(1)
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = "other"
+
+
+// A function passed to a method of a dynamic value.
+:breakme
+:e
+private fun readDynamic(m) = m.text
+globalThis.Object.freeze(readDynamic)
+readDynamic(Message("local"))
+//│ = "local"
+
+
+// A function stored in a computed field of a dynamic object.
+:breakme
+:e
+private fun readStored(m) = m.text
+let registry = globalThis.Object.create(null)
+set registry.("callback") = readStored
+readStored(Message("local"))
+//│ = "local"
+//│ registry = {callback: fun readStored}
+
+
+// An instance with a mutable field passed to an external function.
+:breakme
+:e
+private class Slot(mut val message)
+private val slot = new mut Slot(Message("local"))
+escape(slot)
+slot.message.text
+//│ = "local"
+//│ slot = Slot(Message("local"))
+
+
+// A parameter of type Function specifies no parameter types, so the function it receives is exposed.
+:e
+declare fun register(f: Function): Str
+private fun readRegistered(m) = m.text
+readRegistered(Message("local"))
+register(readRegistered)
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+2: 	private fun readRegistered(m) = m.text
+//│ ║        	                                ^^^^^^
+//│ ╟── Parameter 'm' admits values of unknown shape.
+//│ ║  l.+2: 	private fun readRegistered(m) = m.text
+//│ ║        	                           ^
+//│ ╟── Cannot resolve member 'text' of a value with unknown shape.
+//│ ║  l.+1: 	declare fun register(f: Function): Str
+//│ ║        	                        ^^^^^^^^
+//│ ╙── The 'Function' type does not specify parameter types.
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
+// A typed parameter restricts the arguments that the external function can supply.
+:expect "local"
+declare fun unescape(f: Message -> Str): Str
+private fun readTyped(m) = m.text
+unescape(readTyped)
+readTyped(Message("local"))
+//│ = "local"
