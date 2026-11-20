@@ -221,6 +221,14 @@ final class ResolutionBoundary private (val symbol: AnyDefinitionSymbol) extends
   protected def sameValue(other: ValueKey): Bool = other match
     case that: ResolutionBoundary => symbol == that.symbol
     case _ => false
+  /** Whether all the references to the definition reach the result of one evaluation of its body: a `val`, a field,
+    * or a binding is evaluated where it is defined, whereas each call of a function and each instantiation of a
+    * class evaluates its body. All the references to such a definition thus share the mutable state that its
+    * evaluation created (see `Marks.sharedByReferences`).
+    */
+  def isEvaluatedOnce: Bool = symbol match
+    case symbol: TermSymbol => symbol.k.isInstanceOf[ValLike]
+    case _ => false
   def showDbg(using DebugPrinter): Str = symbol.showDbg
   override def toString: Str = symbol.toString
 object ResolutionBoundary:
@@ -259,6 +267,13 @@ sealed abstract class Marks extends ValueKey:
   final def hasEntry(boundary: ResolutionBoundary): Bool = this match
     case EntryMark(b, _, rest) => b == boundary || rest.hasEntry(boundary)
     case _ => false
+  /** This path with no site for its exits from the definitions that are evaluated once (see
+    * `ResolutionBoundary.isEvaluatedOnce`). The site of such an exit is one of the references to the definition's
+    * value. It separates the calls that different references make to a function value, but all the references
+    * reach the mutable state that the definition created. A value that enters such state along the reverse of
+    * the resulting path (see `TermShape.enter`) leaves it through any of the references.
+    */
+  def sharedByReferences: Marks
 
 type SomeMarks = EntryMark | ExitMark
 final case class EntryMark(boundary: ResolutionBoundary, id: Opt[FlowSymbol], rest: Marks) extends Marks:
@@ -271,11 +286,21 @@ final case class EntryMark(boundary: ResolutionBoundary, id: Opt[FlowSymbol], re
   // another recursive activation to retain or silently truncate.
   if checkMarkPaths then
     assert(!rest.hasEntry(boundary), "Repeated entry into the same lexical resolution scope")
+  def sharedByReferences: EntryMark =
+    val shared = rest.sharedByReferences
+    if shared is rest then this else EntryMark(boundary, id, shared)
 sealed abstract class ExitMarks extends Marks:
   @scala.annotation.tailrec
   final def hasExit(boundary: ResolutionBoundary): Bool = this match
     case ExitMark(b, _, rest) => b == boundary || rest.hasExit(boundary)
     case NoMarks => false
+  def sharedByReferences: ExitMarks = this match
+    case mark @ ExitMark(boundary, id, rest) =>
+      val shared = rest.sharedByReferences
+      val forgotten = id.nonEmpty && boundary.isEvaluatedOnce
+      if !forgotten && (shared is rest) then mark
+      else ExitMark(boundary, if forgotten then N else id, shared)
+    case NoMarks => NoMarks
 final case class ExitMark(boundary: ResolutionBoundary, id: Opt[FlowSymbol], rest: ExitMarks) extends ExitMarks:
   protected val valueHash: Int = ValueKey.hash(ValueKey.tag(this), boundary.hashCode, id.hashCode, rest.hashCode)
   protected def sameValue(other: ValueKey): Bool = other match

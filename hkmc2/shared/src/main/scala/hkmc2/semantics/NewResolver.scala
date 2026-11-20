@@ -4709,10 +4709,17 @@ class NewResolver:
     * then follows the path of the member lookup to the reader (see `fromBMSAt`), so a value assigned through a lookup
     * with the path `marks` enters the field along the reverse path. A value enters the field's definition at no
     * particular site: the field is not evaluated anew by each read, as a by-name definition would be.
+    * The same holds for the other definitions on the path that are evaluated once: all the references to a `val`
+    * reach the same field of the record or of the instance of a local class that the `val` holds.
     */
   private[semantics] def writeField(field: TermSymbol, value: TermShape, marks: Ls[Marks])(using ResolutionContext): Unit =
     softAssert(field.defn.exists(isAssignableField), "Only assignable fields hold assigned values")
-    value.enter(marks) match
+    // The lookup path names the reference through which this assignment reached each such definition. Entering
+    // them at that site would only return the assigned value to the reads made through the same reference: in
+    // `val store = mut {last: a}`, `store.last` would not see the value that `set store.last = b` assigns.
+    // Fields created by a function value that a `val` holds are also reached through the references to the `val`,
+    // each at the site of its call: these fields then share their assigned values across the calls.
+    value.enter(marks.map(_.sharedByReferences)) match
       case value: TermShape =>
         publishActivated(rctx.memberVariable(field), MarkedShape.enter(value, ResolutionBoundary(field), N))
       case NoShape => ()

@@ -1,0 +1,231 @@
+:.
+
+// All the references to a `val` reach the value that its definition computed, and thus the mutable fields that
+// the value holds. A read through one reference returns the values assigned through the other references.
+// Each selection of `second` below only resolves if the read returns the assigned instance of `Second`.
+
+private class First with
+  fun first() = "first"
+
+private class Second with
+  fun second() = "second"
+
+
+// The assignment and the read use two references to `store`.
+:expect "second"
+private val store = mut {last: new First}
+set store.last = new Second
+store.last.second()
+//│ = "second"
+//│ store = {last: Second}
+
+// The read determines the representation of the result of `latestTyped`, which must admit both classes.
+:sir
+:siret
+private val typedStore = mut {last: new First}
+private fun replaceTyped() =
+  set typedStore.last = new Second
+  ()
+private fun latestTyped() = typedStore.last
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let last: First⁰, tmp: ?;
+//│ @private
+//│ define replaceTyped⁰ as fun replaceTyped¹(): Unit⁰ {
+//│   let tmp1: Second⁰;
+//│   set tmp1 = new Second⁰();
+//│   set typedStore⁰.last⁰ = tmp1;
+//│   return runtime⁰.Unit⁰
+//│ };
+//│ @private
+//│ define latestTyped⁰ as fun latestTyped¹(): Object⁰ {
+//│   return typedStore⁰.last⁰
+//│ };
+//│ set last = new First⁰();
+//│ set tmp = mut { "last": last };
+//│ @private
+//│ define typedStore¹ as val typedStore⁰: Unknown = tmp;
+//│ end
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ typedStore = {last: First}
+
+// The functions reach the record through their own references.
+:expect "second"
+private val sharedStore = mut {last: new First}
+private fun replace() =
+  set sharedStore.last = new Second
+  ()
+private fun latest() = sharedStore.last
+replace()
+latest().second()
+//│ = "second"
+//│ sharedStore = {last: Second}
+
+// The record is a member of a module or of a class.
+:expect "second"
+private module Registry with
+  val entries = mut {last: new First}
+  fun replace() =
+    set entries.last = new Second
+    ()
+  fun latest() = entries.last
+Registry.replace()
+Registry.latest().second()
+//│ = "second"
+
+:expect "second"
+private class Journal with
+  val entries = mut {last: new First}
+  fun replace() =
+    set entries.last = new Second
+    ()
+  fun latest() = entries.last
+private val journal = new Journal
+journal.replace()
+journal.latest().second()
+//│ = "second"
+//│ journal = Journal { entries: {last: Second} }
+
+// The record is the value of a field, which the assignment and the read select separately.
+:expect "second"
+private class Holder with
+  mut val entries = mut {last: new First}
+private fun replaceHeld() =
+  let holder = new mut Holder
+  set holder.entries.last = new Second
+  holder.entries.last.second()
+replaceHeld()
+//│ = "second"
+
+// A function assigns the field of the record that it receives.
+:expect "second"
+private val passedStore = mut {last: new First}
+private fun replaceIn(target) =
+  set target.last = new Second
+  ()
+replaceIn(passedStore)
+passedStore.last.second()
+//│ = "second"
+//│ passedStore = {last: Second}
+
+// The record is nested in another one.
+:expect "second"
+private val nestedStore = {inner: mut {last: new First}}
+set nestedStore.inner.last = new Second
+nestedStore.inner.last.second()
+//│ = "second"
+//│ nestedStore = {inner: {last: Second}}
+
+// The definition of the `val` declares the class of the instance that it holds.
+:expect "second"
+private val slot =
+  class Slot with
+    mut val item = new First
+  new Slot
+set slot.item = new Second
+slot.item.second()
+//│ = "second"
+//│ slot = Slot
+
+// Each call of a function value that a `val` holds creates a record. The reference to the `val` that makes a
+// call tells it apart from the other calls, but the values assigned to the fields of the records do not retain
+// it: the records of all the calls share them. The read below thus resolves `second`, which its record lacks.
+:re
+private val create = () => mut {last: new First}
+private fun useCreated() =
+  let created = create()
+  let other = create()
+  set created.last = new Second
+  other.last.second()
+useCreated()
+//│ ═══[RUNTIME ERROR] TypeError: other.last.second is not a function
+//│ create = fun
+
+// A function creates a record at each call too, and the calling references do tell these records apart.
+:e
+private fun createEach() = mut {last: new First}
+private fun useEach() =
+  let created = createEach()
+  let other = createEach()
+  set created.last = new Second
+  other.last.second()
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+6: 	  other.last.second()
+//│ ║        	  ^^^^^^^^^^^^^^^^^
+//│ ╟── Instance of class 'First' does not contain member 'second'
+//│ ║  l.+1: 	private fun createEach() = mut {last: new First}
+//│ ╙──      	                                      ^^^^^^^^^
+
+
+// FIXME: The calls of the function values that a `val` holds also share the mutable state that its definition
+// creates. The reference making a call identifies the values that the call receives, which are only returned
+// through the same reference: a value that one call stores is missing from what the calls made through other
+// references read. Variables and fields are affected alike.
+:fixme
+private val variableAccess =
+  let state = new First
+  let put = x =>
+    set state = x
+    ()
+  let get = () => state
+  [put, get]
+variableAccess.0(new Second)
+variableAccess.1().second()
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+9: 	variableAccess.1().second()
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Instance of class 'First' does not contain member 'second'
+//│ ║  l.+2: 	  let state = new First
+//│ ╙──      	              ^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ variableAccess = [fun put, fun get]
+
+:fixme
+private val fieldAccess =
+  let state = mut {last: new First}
+  let put = x =>
+    set state.last = x
+    ()
+  let get = () => state.last
+  [put, get]
+fieldAccess.0(new Second)
+fieldAccess.1().second()
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+9: 	fieldAccess.1().second()
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Instance of class 'First' does not contain member 'second'
+//│ ║  l.+2: 	  let state = mut {last: new First}
+//│ ╙──      	                         ^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ fieldAccess = [fun put, fun get]
+
+// FIXME: The element type of a mutable array is inferred where the array is created, and the values that
+// an assignment or a method stores in the array enter it at the reference they use, as above.
+:fixme
+private val items = mut [new First]
+set items.[0] = new Second
+items.[0].second()
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+3: 	items.[0].second()
+//│ ║        	     ^^^^^^^^^^^
+//│ ╟── Instance of class 'First' does not contain member 'second'
+//│ ║  l.+1: 	private val items = mut [new First]
+//│ ╙──      	                         ^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ items = [Second]
+
+:fixme
+private val pushedItems = mut [new First]
+pushedItems.push(new Second)
+pushedItems.at(1).second()
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+3: 	pushedItems.at(1).second()
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Instance of class 'First' does not contain member 'second'
+//│ ║  l.+1: 	private val pushedItems = mut [new First]
+//│ ║        	                               ^^^^^^^^^
+//│ ╟── Unit value does not contain member 'second'
+//│ ║  in ../decls/Prelude.mls
+//│ ║  l.XX: 	  fun at(index: Int): T | ()
+//│ ╙──      	                          ^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ pushedItems = [First, Second]

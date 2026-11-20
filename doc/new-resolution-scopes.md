@@ -98,6 +98,7 @@ The producer rules are compositional:
 | Lexical reference | Elaboration adds one `Capture` per represented boundary between the binding and the use. Explicit `this` follows the same rule. |
 | Call or constructor application | Enter argument paths in reverse fragment order; leave results in forward order. Curried lists retain the original callable path. Class and constructor symbols share `ResolutionBoundary`. |
 | Assignment | Undo the left-hand reference's captures before publishing to its binding host. |
+| Field assignment | Enter the reverse of the member lookup's path, then the field's own scope. Record no site for the scopes of `val`s, fields, and bindings on that path: all the references to such a definition reach the state that its single evaluation created. |
 | Inferred member | Observe its definition through the receiver's path; class fields keep their class parameter endpoint. |
 | Declared member | Interpret the signature at its declaration, bind supplied class arguments there, then traverse the member/class exits and the path to the use. |
 | Type reference | Retain the selected declaration, its receiver bindings, its substitution, and its path. Identity alone is sufficient for erasure, but not for interpreting free binders. |
