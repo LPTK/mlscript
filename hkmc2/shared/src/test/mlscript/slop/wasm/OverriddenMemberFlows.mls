@@ -1,0 +1,45 @@
+:.
+#lang(strictResolution: true)
+#lang(eagerResolution: true)
+open wasm.{ i32 }
+open i32.{ const }
+//│ Wasm result:
+//│ = {}
+
+
+// A reference to an overridable member through `this` is only resolved in the definition of that member
+// (see ../strictres/OverriddenMemberFlows.mls). Wasm selects a field by its position in the class that
+// resolution found. Reading the field from an instance of another class, which an overriding member returns,
+// yields the field of that instance at the same position, or fails if the layouts of the classes differ.
+// TODO: Reject these programs.
+
+:breakme
+:e
+:noInline
+private class Meters(val amount)
+private class Seconds(val duration)
+private class Source with
+  open fun make() = Meters(const(1))
+  fun read() = make().amount
+private class TimedSource extends Source with
+  override fun make() = Seconds(const(2))
+private fun readSource() = new TimedSource().read()
+readSource()
+//│ Wasm result:
+//│ = 2
+
+:breakme
+:e
+:re
+:noInline
+private class Distance(val amount)
+private class Labeled(val label, val duration)
+private class DistanceSource with
+  open fun make() = Distance(const(1))
+  fun read() = make().amount
+private class LabeledSource extends DistanceSource with
+  override fun make() = Labeled("label", const(2))
+private fun readLabeled() = new LabeledSource().read()
+readLabeled()
+//│ Wasm result:
+//│ ═══[RUNTIME ERROR] RuntimeError: illegal cast

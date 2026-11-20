@@ -1,0 +1,108 @@
+:.
+
+// A reference to an overridable member through `this` evaluates the members that override it in the classes of
+// the instances that reach it. Resolution only follows the definition of the referenced member itself.
+// TODO: Check the values that overriding members return and receive against the overridden member's (see
+// "Inferred member signatures" in doc/new-resolution-future-work.md). The blocks marked below are accepted.
+
+private class First with
+  fun first() = "first"
+
+private class Second with
+  fun second() = "second"
+
+
+// The selection of `first` is resolved in `First` alone, but the call returns an instance of `Second`.
+:breakme
+:e
+:re
+private class Maker with
+  open fun make() = new First
+  fun read() = make().first()
+private class SecondMaker extends Maker with
+  override fun make() = new Second
+new SecondMaker().read()
+//│ ═══[RUNTIME ERROR] TypeError: tmp1.first is not a function
+
+// An explicit `this` selects the same member.
+:breakme
+:e
+:re
+private class ThisMaker with
+  open fun make() = new First
+  fun read() = this.make().first()
+private class SecondThisMaker extends ThisMaker with
+  override fun make() = new Second
+new SecondThisMaker().read()
+//│ ═══[RUNTIME ERROR] TypeError: tmp2.first is not a function
+
+// An overridden field is read the same way.
+:breakme
+:e
+:re
+private class Holder with
+  open val item = new First
+  fun read() = item.first()
+private class SecondHolder extends Holder with
+  override val item = new Second
+new SecondHolder().read()
+//│ ═══[RUNTIME ERROR] TypeError: this.item.first is not a function
+
+// The parameter of the overriding member only holds the arguments of the calls that select it, not those of
+// the call in `run`, which selects the overridden member.
+:breakme
+:e
+:re
+private class Taker with
+  open fun take(x) = "base"
+  fun run() = take(new First)
+private class SecondTaker extends Taker with
+  override fun take(x) = x.second()
+new SecondTaker().take(new Second)
+new SecondTaker().run()
+//│ ═══[RUNTIME ERROR] TypeError: x.second is not a function
+
+// The result of `read` takes the representation of the instances that `Producer.make` creates, to which the
+// result of the call is converted, although the call returns an instance of `Second` here.
+:sir
+:siret
+private class Producer with
+  open fun make() = new First
+  fun read() = make()
+private class SecondProducer extends Producer with
+  override fun make() = new Second
+private fun produce() = new SecondProducer().read()
+produce()
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ @private
+//│ define produce⁰ as fun produce¹(): First⁰ {
+//│   let tmp: SecondProducer⁰;
+//│   set tmp = new SecondProducer⁰();
+//│   return tmp.read⁰()
+//│ };
+//│ @private
+//│ define Producer⁰ as class Producer¹ {
+//│   method make⁰ = fun make¹(): Object⁰ {
+//│     return new First⁰()
+//│   }
+//│   method read¹ = fun read⁰(): First⁰ {
+//│     return (Producer¹.this.make¹() as! First⁰)
+//│   }
+//│ };
+//│ @private
+//│ define SecondProducer¹ as class SecondProducer⁰ extends Producer¹ {
+//│   method make² = fun make³(): Object⁰ { return new Second⁰() }
+//│ };
+//│ return produce¹()
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = Second
+
+// A written result type restricts the overriding members, which type checking will verify.
+:expect "first"
+private class TypedMaker with
+  open fun make(): First = new First
+  fun read() = make().first()
+private class TypedSecondMaker extends TypedMaker with
+  override fun make() = new First
+new TypedSecondMaker().read()
+//│ = "first"
