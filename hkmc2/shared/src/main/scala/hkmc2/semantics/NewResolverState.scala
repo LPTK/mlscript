@@ -277,6 +277,11 @@ final class NewResolverState(val owner: Elaborator.State):
     new Cache(_.typeApplicationSites, identity)
   private[semantics] val fieldProjectionSites: Cache[BlockMemberSymbol, FlowSymbol] =
     new Cache(_.fieldProjectionSites, identity)
+  // One site per class and list of type arguments that the written types of receivers supply (see
+  // NewResolver.receiverInstances): the receivers with equal arguments share their instances, and
+  // thus the values that they read, wherever their references are written.
+  private[semantics] val receiverSites: Cache[(AnyDefinitionSymbol, Ls[TypeArgument]), FlowSymbol] =
+    new Cache(_.receiverSites, identity)
   // The flag selects merged member interfaces versus independent constraint inputs.
   val typeViews: Cache[(DeclaredType, Bool), TermShapeHost] =
     new Cache(_.typeViews, identity)
@@ -299,7 +304,9 @@ final class NewResolverState(val owner: Elaborator.State):
     new Cache(_.primitiveTypes, identity)
   val extremeTypes: Cache[Bool, DeclaredType] =
     new Cache(_.extremeTypes, identity)
-  val abstractTypes: Cache[TypeResolution, DeclaredType] =
+  // One type per projection, keyed by its site, for the type arguments that the projection leaves unknown
+  // (see NewResolver.projectionArgument).
+  val abstractTypes: Cache[FlowSymbol, DeclaredType] =
     new Cache(_.abstractTypes, identity)
   val omittedTypes: Cache[(TypeResolution, VarSymbol), DeclaredType] =
     new Cache(_.omittedTypes, identity)
@@ -336,6 +343,10 @@ final class NewResolverState(val owner: Elaborator.State):
   // A method projection or nested constraint can change the observation scope
   // without changing this property. Missing supplied positions remain inferred.
   private[semantics] val explicitTypeArguments = mutable.Set.empty[VarSymbol]
+  // The instances of class type parameters that stand for the type arguments of a receiver with a
+  // written type (see NewResolver.receiverInstances). Such a receiver can be any instance of its
+  // class, so these instances identify no activation of the class's members.
+  private[semantics] val receiverTypeArguments = mutable.Set.empty[VarSymbol]
   private[semantics] val typeConstraints: Seen[(DeclaredType, ShapeIdentity.Key, Ls[Marks], Bool)] =
     new Seen(_.typeConstraints)
   val typeArgumentArityErrors: Seen[(TyApp, Int)] =
@@ -818,6 +829,13 @@ final class ResolutionContext private[semantics] (
       field.tsym.flatMap(definitionBindersOf).foreach(recordSiteBinders(site, _))
       site
     )(using state.context)
+  /** The site at which the receivers whose written type supplies `arguments` to the type parameters
+    * of `cls` instantiate these parameters (see NewResolver.receiverInstances).
+    */
+  def receiverSite(cls: AnyDefinitionSymbol, arguments: Ls[TypeArgument]): FlowSymbol =
+    state.receiverSites.getOrElseUpdate((cls, arguments), receiverSites.get((cls, arguments)).getOrElse:
+      FlowSymbol("receiver type arguments")(using owner)
+    )(using state.context)
   private[hkmc2] def instantiateTypeParameters(scheme: AnyDefinitionSymbol | TypeResolution,
       site: FlowSymbol, parameters: Ls[VarSymbol], siteBinders: Opt[Set[VarSymbol]]): TypeSubstitution =
     require(parameters.distinct.length == parameters.length, "A scheme cannot bind a parameter twice")
@@ -856,6 +874,16 @@ final class ResolutionContext private[semantics] (
     state.explicitTypeArguments += symbol
   def hasExplicitTypeArgument(symbol: VarSymbol): Bool =
     state.explicitTypeArguments(symbol) || source.exists(_.hasExplicitTypeArgument(symbol))
+  def markReceiverTypeArgument(symbol: VarSymbol): Unit =
+    state.receiverTypeArguments += symbol
+  def isReceiverTypeArgument(symbol: VarSymbol): Bool =
+    state.receiverTypeArguments(symbol) || source.exists(_.isReceiverTypeArgument(symbol))
+  /** The activation that `substitution` identifies: its instances that are not receiver type arguments. */
+  def activationOf(substitution: TypeSubstitution): TypeSubstitution =
+    // Most substitutions contain no such instance, and are their own activation.
+    if substitution.forall((_, instance) => !isReceiverTypeArgument(instance)) then substitution
+    else substitution.without(substitution.iterator.collect:
+      case (parameter, instance) if isReceiverTypeArgument(instance) => parameter)
   /** Whether this constraint is new; values are keyed like inference candidates.
     * Install each constraint edge before subscribing: callback parameter/result
     * flow can revisit it immediately. Distinct instantiations retain their marks.

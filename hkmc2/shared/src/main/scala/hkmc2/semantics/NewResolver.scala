@@ -1014,13 +1014,20 @@ class NewResolver:
             case NoShape => ()
 
   private def abstractTypes(using rs: ResolutionContext) = rs.state.abstractTypes
-  // Narrowing a nominal receiver by projection does not infer the narrower
-  // class's arguments. This abstract interface is distinct from an inference hole.
-  private def abstractType(source: TypeResolution)(using ResolutionContext): DeclaredType = abstractTypes.getOrElseUpdate(source, {
-    val resolution = new TypeResolution(source.source, source.fail)
-    resolution.publish(TypeShape.Abstract)
-    declaredType(resolution, Map.empty)
-  })
+  /** The type that stands for each type argument of the class that the projection `sel` names. The projection
+    * supplies none, and narrowing a receiver does not infer them. This abstract interface is distinct from an
+    * inference hole: no evidence refines it.
+    */
+  private def projectionArgument(sel: NewSel)(using ResolutionContext): DeclaredType =
+    // All the receivers of `sel` share this type. With a type of its own, each receiver would read the values of
+    // the projected member as distinct candidates. A projection whose result reaches its own receiver, as in
+    // `fun unwrap(x) = unwrap(x.Box#get())`, would then produce a new candidate from each of its results, and
+    // resolution would not terminate.
+    abstractTypes.getOrElseUpdate(sel.resSym, {
+      val resolution = new TypeResolution(sel, msgs => resolError(sel, msgs))
+      resolution.publish(TypeShape.Abstract)
+      declaredType(resolution, Map.empty)
+    })
 
   /** An annotation is an abstraction boundary, even when its implementation is
     * available. Subscribe to the type graph, never to values flowing into it.
@@ -2477,11 +2484,17 @@ class NewResolver:
         case RecordMember(member, true) =>
           listenAssignedValues(member.tsym, flow, inner)(read)(using rctx.withInstances(instances))
         case _ => ()
-    case MemberLookup.Declared(member, bound, inner, annotation, positive) =>
-      listenDeclaredMember(member, bound, flow, source, annotation, _ => (), false, positive, inner, N): value =>
-        transportShape(instantiateShape(value, instances), inner) match
-          case value: TermShape => receive(value)
-          case NoShape => ()
+    case MemberLookup.Declared(member, bound, inner, annotation, positive) => member.onComplete: () =>
+      implementedMember(member, false) match
+        case S(td) =>
+          val arguments = receiverInstances(td, bound)
+          listenMemberValue(MemberLookup.Found(member, inner), flow, source, instances, unresolved): value =>
+            receive(instantiateShape(value, arguments))
+        case N =>
+          listenDeclaredMember(member, bound, flow, source, annotation, _ => (), false, positive, inner, N): value =>
+            transportShape(instantiateShape(value, instances), inner) match
+              case value: TermShape => receive(value)
+              case NoShape => ()
     case MemberLookup.Typed(_, tpe, inner) =>
       receive(instanceShape(transportType(instantiateType(tpe.output, instances), inner)))
     case MemberLookup.Dynamic(inner) => DynShape().exit(inner) match
@@ -3111,7 +3124,10 @@ class NewResolver:
     case sh: TermShape =>
       parameterSignature(p) match
         case S(tpe) => inferTypeArguments(tpe.instantiate(instances), sh, marks, site)
-        case N => publishParameter(p.sym, sh)(using rctx.withInstances(instances))
+        case N =>
+          // The type arguments of a receiver with a written type identify no instance of its class (see
+          // `receiverInstances`): the argument reaches the body for every instance that the receiver can be.
+          publishParameter(p.sym, sh)(using rctx.withInstances(rctx.activationOf(instances)))
 
   /** The type declared for a parameter by its inline annotation or the enclosing function's
     * separate signature, or `N` if neither supplies one.
@@ -3503,22 +3519,31 @@ class NewResolver:
                     case MemberLookup.Found(sym: BlockMemberSymbol, marks) =>
                       fromBMS(sym, resSym, marks,
                         field => matchShapePat(instantiateShape(field, instances), pat)(_ => ()), ctor.target, _ => (), false)
-                    case MemberLookup.Declared(member, bindings, marks, annotation, positive) =>
-                      listenDeclaredMember(member, bindings, resSym, ctor.target, annotation, _ => (), false, positive, marks, N): field =>
-                        // The views below no longer name the declarations of the field's type.
-                        scrutineeNamespaces(field, pat)
-                        listenInstanceViews(instantiateShape(field, instances)): field =>
-                          transportShape(field, marks) match
-                            case value: TermShape =>
-                              val field = (value.applicationHead._1, unknown) match
-                                case (_: UnknownValueShape, S(Marked(origin: UnknownValueShape, marks))) =>
-                                  UnknownValueShape(origin.source, origin.fromPublicInterface)(origin.provenance.via(
-                                    msg"This constructor field may contain a value of unknown shape." -> member.toLoc)).exit(marks)
-                                case _ => value
-                              field match
-                                case field: TermShape => matchObservedShapePat(field, pat)(_ => ())
-                                case NoShape => ()
-                            case NoShape => ()
+                    case MemberLookup.Declared(declared, bindings, marks, annotation, positive) => declared.onComplete: () =>
+                      // An input of unknown shape reaches this pattern along the path of one call, whereas the
+                      // interface that the test gives it lies at the pattern, which all the calls share. The
+                      // implementation of a field read through that interface would reach the bindings of the
+                      // pattern in every call, including the calls whose input is a known instance with its own
+                      // values. Such a field keeps its declared interface, and the provenance of the input.
+                      implementedMember(declared, false).filter(_ => unknown.isEmpty) match
+                      case S(td) =>
+                        member(MemberLookup.Found(declared, marks), instances.withOverrides(receiverInstances(td, bindings)))
+                      case N =>
+                        listenDeclaredMember(declared, bindings, resSym, ctor.target, annotation, _ => (), false, positive, marks, N): field =>
+                          // The views below no longer name the declarations of the field's type.
+                          scrutineeNamespaces(field, pat)
+                          listenInstanceViews(instantiateShape(field, instances)): field =>
+                            transportShape(field, marks) match
+                              case value: TermShape =>
+                                val field = (value.applicationHead._1, unknown) match
+                                  case (_: UnknownValueShape, S(Marked(origin: UnknownValueShape, marks))) =>
+                                    UnknownValueShape(origin.source, origin.fromPublicInterface)(origin.provenance.via(
+                                      msg"This constructor field may contain a value of unknown shape." -> declared.toLoc)).exit(marks)
+                                  case _ => value
+                                field match
+                                  case field: TermShape => matchObservedShapePat(field, pat)(_ => ())
+                                  case NoShape => ()
+                              case NoShape => ()
                     case _ =>
                       // classPattern only publishes fields present in cls.body.
                       // The nominal test above admits only that class's instances,
@@ -3838,10 +3863,10 @@ class NewResolver:
         val callable = instantiateCallable(viewed, res.resSym, lexicalBinders(res), context :: Nil)
         val ps = callable.paramLists.head
         if checked then zipArgumentShapes(context :: Nil, Arity(ps), args, res, lhs)((index, value) =>
-          // TODO: An argument for a parameter without a written type goes nowhere: it should reach the parameter
-          // of the member that this interface declares, and those of the members overriding it (see `Dispatch`).
-          // Until then, these parameters miss the arguments of the calls made through a receiver with a written
-          // type (see slop/strictres/DeclaredReceiverArguments.mls).
+          // An argument for a parameter without a written type has no parameter to reach here. References read
+          // a member with such a parameter through its declared interface only if it is a foreign declaration,
+          // which has no implementation, or an abstract member of a generic class, whose implementations
+          // receive the argument as separate callees (see `implementedMember` and `fromBMSAt`).
           ps.allParams(index).tpe.foreach: tpe =>
             value match
               case value: TermShape => inferTypeArguments(tpe, value, context :: Nil, S(res))
@@ -3972,7 +3997,10 @@ class NewResolver:
     // Keep one diagnostic witness per semantic candidate, as for unknown values.
     // A different annotation location must not create additional inference flow.
     val shape = declaredSymShapes.getOrElseUpdate((member, flow, marks, bindings, positive),
-      DeclaredSymShape(member, flow, marks, bindings, annotation, positive))
+      DeclaredSymShape(member, flow, marks, bindings, annotation, positive, host match
+        case _: Super => true
+        case _ => false
+      ))
     publishViewed(host, shape, instances)
 
   private def publishTyped(host: NewResolvable & ShapeHost, field: RcdField, tpe: DeclaredType,
@@ -4533,7 +4561,7 @@ class NewResolver:
                     rctx.recordResolution(sel, sel.resolvedTargets.contains(sym))(sel.resolvedTargets ::= sym)
                 // Projections pass on probes like other selections (see the case above).
                 listenTermViewsOrProbe(sel.prefix)(receiver =>
-                  member(projectedLookup(sel, cd, bms, declarationMarks, receiver, visible),
+                  member(projectedLookup(sel, ref, bms, declarationMarks, receiver, visible),
                     msg"Class '${cd.sym.nme}'", message => (message -> cd.headerLoc) :: Nil, TypeSubstitution.empty)
                 , probe => publishActivated(sel, probe))
               case _ => member(info, msg"Class '${cd.sym.nme}'", message => (message -> cd.headerLoc) :: Nil, TypeSubstitution.empty))
@@ -4543,28 +4571,54 @@ class NewResolver:
         )
   
   /** The member that a projection `sel` (`o.C#m`) selects in `receiver`, one of the receivers of `o`, where `C`
-    * resolves to `cd` and `m` to the member `bms` of `cd`, with the marks `declarationMarks`. `visible` applies the
-    * private-member visibility of the scope where `sel` is written.
+    * is the class reference `ref` and `m` resolves to the member `bms` of that class, with the marks
+    * `declarationMarks`. `visible` applies the private-member visibility of the scope where `sel` is written.
     */
-  private def projectedLookup(sel: NewSel, cd: ClassDef, bms: BlockMemberSymbol, declarationMarks: Ls[Marks],
-      receiver: TermShape, visible: MemberLookup => MemberLookup)(using ResolutionContext): MemberLookup = receiver match
-    case Marked(nominal: NominalInstanceView, context) =>
-      nominal.ancestor(cd) match
-        case S(view) => visible(view.getMember(sel.id.name)).withAnnotation(nominal.annotation).withMarks(context :: Nil)
-        case N =>
-          // An explicit projection can name a narrower class, but
-          // it cannot recover that class's implementation arguments.
-          val opaque = abstractType(new TypeResolution(sel, msgs => resolError(sel, msgs)))
-          MemberLookup.Declared(bms, cd.tparams.map(_.sym -> TypeArgument.invariant(opaque)).toMap, context :: Nil, nominal.annotation, true)
-    case _ =>
-      // C# selects a declaration, not an instance of C. Transport
-      // the member through the actual receiver, never the qualifier.
-      projectedMember(receiver, cd, sel.id.name).map(visible).getOrElse:
-        // Without a path into this class, only its declared
-        // interface is available; qualifier values add no evidence.
-        val opaque = abstractType(new TypeResolution(sel, msgs => resolError(sel, msgs)))
-        MemberLookup.Declared(bms, cd.tparams.map(_.sym -> TypeArgument.invariant(opaque)).toMap,
-          declarationMarks ::: ExitMark(ResolutionBoundary(cd.sym), N, NoMarks) :: Nil, N, true)
+  private def projectedLookup(sel: NewSel, ref: ClassReference, bms: BlockMemberSymbol, declarationMarks: Ls[Marks],
+      receiver: TermShape, visible: MemberLookup => MemberLookup)(using ResolutionContext): MemberLookup =
+    val cd = ref.definition
+    // A projection states that its receiver is an instance of `cd`, as a written type of the receiver would.
+    // When the receiver is not known to be one, the member is that of any instance of `cd`: its path leaves the
+    // class at no particular site and then follows the class reference to `sel`, like the path of a member
+    // found through a written type (see `nominalMember`). The projection supplies no type arguments.
+    def declared(annotation: Opt[Term]): MemberLookup =
+      val opaque = projectionArgument(sel)
+      MemberLookup.Declared(bms, cd.tparams.map(_.sym -> TypeArgument.invariant(opaque)).toMap,
+        declarationMarks ::: anyInstancePath(ref), annotation, true)
+    receiver match
+      case Marked(nominal: NominalInstanceView, context) =>
+        nominal.ancestor(cd) match
+          case S(view) => visible(view.getMember(sel.id.name)).withAnnotation(nominal.annotation).withMarks(context :: Nil)
+          // An explicit projection can name a narrower class.
+          case N => declared(nominal.annotation)
+      case _ =>
+        // `C#` selects a declaration, not an instance of `C`: a receiver that is a known instance of the class
+        // transports the member along its own path, and not along the path of the qualifier.
+        projectedMember(receiver, cd, sel.id.name).map(visible).getOrElse(declared(N))
+
+  /** The path from the instances of the class that `ref` names to `ref`, whichever reference creates them.
+    * The path `ref.marks` first leaves the class at the site of `ref`, which only lets through the values of
+    * the instances that `ref` itself creates.
+    */
+  private def anyInstancePath(ref: ClassReference)(using ResolutionContext): Ls[Marks] =
+    val cls = ResolutionBoundary(ref.definition.sym)
+    // The first crossing of a path is the last one of its first sequence of marks (see `Marks`).
+    def exits(marks: ExitMarks): ExitMarks = marks match
+      case ExitMark(boundary, _, NoMarks) =>
+        softAssert(boundary == cls, "The path of a class reference must first leave the class")
+        ExitMark(boundary, N, NoMarks)
+      case ExitMark(boundary, site, rest) => ExitMark(boundary, site, exits(rest))
+      case NoMarks =>
+        softAssert(false, "The path of a class reference must first leave the class")
+        NoMarks
+    def crossings(marks: Marks): Marks = marks match
+      case EntryMark(boundary, site, rest) => EntryMark(boundary, site, crossings(rest))
+      case marks: ExitMarks => exits(marks)
+    ref.marks match
+      case first :: rest => crossings(first) :: rest
+      case Nil =>
+        softAssert(false, "The path of a class reference must first leave the class")
+        Nil
   
   /** Both constructor references and explicit `new` use the same definition and
     * parameter lists, including auxiliary constructor(...) lists. A partial `new`
@@ -4710,7 +4764,7 @@ class NewResolver:
                 listenExt(cd, ext => visible(DefnShape(cd, ext).getInstanceMember(sel.id.name), reportInaccessible = true) match
                   case MemberLookup.Found(bms: BlockMemberSymbol, declarationMarks) =>
                     listenTermViews(sel.prefix): receiver =>
-                      lookup(projectedLookup(sel, cd, bms, declarationMarks, receiver, visible(_, reportInaccessible = true)))
+                      lookup(projectedLookup(sel, ref, bms, declarationMarks, receiver, visible(_, reportInaccessible = true)))
                   case info => selected(info))
               , _ => ())
         // Mirror the lookups of `unresolvedRef`.
@@ -4975,15 +5029,22 @@ class NewResolver:
     case contextual: ContextualSymShape =>
       fromSymbolAt(contextual.source, value => listener(instantiateShape(value, contextual.instances)),
         source, selected, receiver, specialization)(using rctx.withInstances(contextual.instances))
-    case declared: DeclaredSymShape =>
-      listenDeclaredMember(shape.sym, declared.bindings, shape.resSym, source, declared.annotation, selected, receiver, declared.positive, shape.markss, specialization): value =>
-        transportShape(value, shape.markss) match
-          case value: TermShape => listener(value)
-          case NoShape => ()
-    case _: SuperSymShape =>
-      fromBMSAt(shape.sym, shape.resSym, shape.markss, listener, source, selected, receiver, specialization, Dispatch.Static)
-    case _ =>
-      fromBMSAt(shape.sym, shape.resSym, shape.markss, listener, source, selected, receiver, specialization, Dispatch.Virtual(Nil))
+    case core: CoreSymShape =>
+      def implemented(listener: Listener)(using ResolutionContext): Unit =
+        fromBMSAt(shape.sym, shape.resSym, shape.markss, listener, source, selected, receiver, specialization,
+          if core.throughSuper then Dispatch.Static else Dispatch.Virtual(Nil))
+      core match
+        case declared: DeclaredSymShape => shape.sym.onComplete: () =>
+          implementedMember(shape.sym, receiver) match
+            case S(td) =>
+              val instances = receiverInstances(td, declared.bindings)
+              implemented(value => listener(instantiateShape(value, instances)))
+            case N =>
+              listenDeclaredMember(shape.sym, declared.bindings, shape.resSym, source, declared.annotation, selected, receiver, declared.positive, shape.markss, specialization): value =>
+                transportShape(value, shape.markss) match
+                  case value: TermShape => listener(value)
+                  case NoShape => ()
+        case _ => implemented(listener)
 
   def fromBMS(bms: BlockMemberSymbol, resSym: FlowSymbol, markss: Ls[Marks], listener: Listener,
       trm: Term, selected: ShapeListener[DefinitionSymbol[?]], receiver: Bool)(using ResolutionContext): Unit =
@@ -5008,11 +5069,57 @@ class NewResolver:
       */
     case Virtual(overridden: Ls[TermSymbol])
 
-  /** Whether `td` writes its whole interface: a separate signature, or a result type with the types of all
-    * its parameters. References read such a member through that interface alone (see `fromBMSAt`).
+  /** Whether `td` writes its whole interface: the type of a field or getter, or for a method, a separate
+    * signature or a result type with the types of all its parameters. References read such a member through
+    * that interface alone (see `fromBMSAt`).
     */
   private def hasWrittenInterface(td: TermDefinition): Bool =
-    td.sign.nonEmpty && (!td.flags.hasResultAnnotation || td.params.forall(ps => ps.allParams.forall(_.sign.nonEmpty)))
+    if td.params.isEmpty then memberSignature(td).nonEmpty
+    else td.sign.nonEmpty && (!td.flags.hasResultAnnotation || td.params.forall(ps => ps.allParams.forall(_.sign.nonEmpty)))
+
+  /** The definition of the complete member `member` if a reference whose receiver has a written type reads it
+    * through its implementation, like the references whose receiver is an instance (see `fromBMSAt`), and not
+    * through the interface that the member declares (see `listenDeclaredMember`).
+    *
+    * The written type of the receiver decides which members the reference can select. It says nothing about a
+    * member that leaves types unwritten: the values of such a member are those of its implementation, and of the
+    * members overriding it, for all the instances that the receiver can be. The lookup through a written type
+    * leaves the class at no particular site, which lets the values of all these instances through.
+    * A foreign declaration has no implementation to read, and keeps its declared interface.
+    */
+  private def implementedMember(member: BlockMemberSymbol, receiver: Bool): Opt[TermDefinition] =
+    valueTarget(member, receiver) match
+      case S(symbol: TermSymbol) if !symbol.isInstanceOf[ClassCtorSymbol] =>
+        symbol.defn.filter(td => !Inheritance.isExternal(td) && !hasWrittenInterface(td))
+      case _ => N
+
+  /** The instances of the type parameters of the class that defines `td`, for the references that read `td`
+    * through a receiver whose written type supplies the type arguments `bindings` (see `implementedMember`).
+    * Each instance is bound to its argument, like the instances of an instantiation with explicit type arguments,
+    * so the written types of the implementation that mention the class's parameters read as these arguments.
+    * All the receivers with equal arguments share these instances: the values they read do not depend on
+    * where their references are written, and instances of their own would only multiply these values.
+    *
+    * The values that a reference reads are instantiated with the result, which the reference does not use as
+    * the activation in which it reads them. An instance of a generic class publishes the arguments of its
+    * constructor and the values assigned to it under the activation of its own type arguments, and the receiver
+    * can be any of these instances: reading under the activation of this substitution would drop their values.
+    */
+  private def receiverInstances(td: TermDefinition, bindings: Map[VarSymbol, TypeArgument])
+      (using ResolutionContext): TypeSubstitution =
+    td.owner.flatMap(_.asDefnSym.defn).fold(TypeSubstitution.empty): cls =>
+      val parameters = cls.tparams.map(_.sym)
+      val arguments = parameters.flatMap(bindings.get)
+      // A written type binds all the parameters of its class; without them, the parameters stay abstract.
+      if parameters.isEmpty || arguments.sizeCompare(parameters) != 0 then TypeSubstitution.empty
+      else
+        // The instances only read the binders that their arguments mention.
+        val binders = arguments.foldLeft[Binders](S(Set.empty))((binders, argument) => union(binders, argumentSupport(argument)))
+        // The arguments are already interpreted inside the class (see `captureNominalBindings`).
+        val instances = instantiateParameters(cls.sym, parameters, rctx.receiverSite(cls.sym, arguments), binders, Nil,
+          TypeSubstitution.empty, S(arguments))
+        parameters.foreach(parameter => rctx.markReceiverTypeArgument(instances(parameter)))
+        instances
 
   /** Whether members can override `td`: an open or abstract member of a class. Modules and objects cannot be
     * extended, and definitions outside classes have no instance to dispatch on.

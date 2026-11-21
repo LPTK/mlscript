@@ -88,11 +88,10 @@ Receiver reconstruction and omitted-argument context precision are
 
 Type interpretations retain arrows, type arguments, and lexical captures.
 Generic aliases and inherited declared interfaces substitute their arguments;
-declared member selections carry those contexts without reading implementation
-value flow. An unannotated member read through a declared interface produces an
-unknown shape, rather than consulting its initializer or method body.
-Inferring these missing member types is a [deferred improvement](new-resolution-future-work.md#inferred-member-signatures)
-that also requires override compatibility checks.
+declared member selections carry those contexts. A member with a fully written
+interface is read through that interface, without reading implementation value flow.
+A member that leaves types unwritten has no such interface: a selection reads it
+[through its implementation](#members-read-through-a-written-type).
 Callback parameter types constrain implementation parameters, and callback results
 constrain inferred type arguments. `newres/DeclaredTypes.mls` covers these paths,
 separate signatures, tuple constraints, and distinct generic instantiations.
@@ -166,6 +165,63 @@ an instance belongs to only where a value leaves the class's scope, not which
 definition produced the value. `slop/strictres/OverriddenMemberFlows.mls` covers
 these flows and their precision; `slop/wasm/OverriddenMemberFlows.mls` checks the
 representations that depend on them.
+
+## Members read through a written type
+
+The written type of a receiver decides which members a selection can find: a `Base`
+annotation exposes no member that only a subclass declares. It says nothing about the
+values of a member that leaves types unwritten (a field or getter without a written
+type, or a method without a separate signature that leaves a parameter or its result
+unwritten). A selection reads such a member through its implementation, like a selection
+whose receiver is an instance (`implementedMember`):
+
+```mlscript
+class Item(val value: Int)
+class Box with
+  fun item() = Item(1)
+private fun read(x: Box) = x.item().value
+```
+
+The receiver can be any instance of its class, or of a subclass. The lookup through a
+nominal type (`nominalMember`) leaves the class at no particular site, so the read
+observes the member for all the instances of the class, with the arguments of every
+constructor call and the values of every assignment. It also observes the
+[overriding members](#overriding-members), as a reference through `this` does.
+A call through the receiver supplies its arguments to the unwritten parameters of the
+selected method and of the methods that override it, where they join the arguments of
+the calls made on known instances. The written parts of a partially written signature
+keep their written types, as for any other reference to the member.
+
+A written type supplies the type arguments of a generic class, as in `x: Box[Int]`.
+The read instantiates the class's type parameters with instances bound to these
+arguments (`receiverInstances`), so that the written types of the implementation that
+mention the parameters read as the arguments. All the receivers that supply equal
+arguments to a class share these instances: one group of instances per selection
+delivered the same values once per selection, and made `slop/OverrideCollections.mls`
+exceed its time limit. These instances identify no instance of the class. The read
+observes the member under the ambient activation and instantiates the values that it
+receives, and an argument for an unwritten parameter reaches the method for every
+activation of the class's parameters (`ResolutionContext.activationOf`).
+
+A projection `x.C#m` states that `x` is an instance of `C` in the same way. When the
+value of `x` is not known to be one, the projection reads `m` for all the instances of
+`C`, along the path of its class reference (`anyInstancePath`), with unknown type
+arguments.
+
+Three kinds of read keep the declared interface. A member with a fully written
+interface is read through it alone. A foreign declaration (`declare`) has no
+implementation to read, so its unwritten parts have an unknown shape. A constructor
+pattern that tests an input of unknown shape gives the input the interface of the
+tested class at the pattern, which all the calls of the enclosing function share:
+the fields read through that interface keep their declared types and the provenance
+of the input, since their implementation would deliver the values of every instance
+to every call.
+
+[Interface exposure](#declared-interfaces-and-exposure-checking) applies as for any
+other read: the unwritten parameters of the public members of an exposed class admit
+unknown values, which a read through a written type observes too.
+`slop/strictres/DeclaredReceiverMembers.mls` covers these reads and their precision;
+`slop/wasm/DeclaredReceiverMembers.mls` checks the representations that depend on them.
 
 ## Structural and dynamic shapes
 

@@ -1,0 +1,474 @@
+:.
+
+// A receiver with a written class type selects the members that the class declares. A member with a fully
+// written interface is read through that interface alone (see ../../newres/DeclaredTypes.mls). A member that
+// leaves types unwritten is read through its implementation, as for a receiver without a written type.
+// Such a receiver can be any instance of its class or of a subclass: a reference reads the values of the member
+// for all these instances, including those of the members that override it (see OverriddenMemberFlows.mls), and
+// passes its arguments to all of them (see also ../wasm/DeclaredReceiverMembers.mls).
+
+private class First with
+  fun first() = "first"
+
+private class Second with
+  fun second() = "second"
+
+
+// The result of a method, the value of a field, and the argument of a constructor.
+:expect "first"
+private class Maker with
+  fun make() = new First
+private fun readMaker(m: Maker) = m.make().first()
+readMaker(new Maker)
+//│ = "first"
+
+:expect "first"
+private class Holder with
+  val item = new First
+private fun readHolder(h: Holder) = h.item.first()
+readHolder(new Holder)
+//│ = "first"
+
+:expect "first"
+private class Box(val item)
+private fun readBox(b: Box) = b.item.first()
+readBox(Box(new First))
+//│ = "first"
+
+:expect "first"
+private class Lazy with
+  fun item = new First
+private fun readLazy(l: Lazy) = l.item.first()
+readLazy(new Lazy)
+//│ = "first"
+
+// The parameter of a lambda and an ascription select members the same way.
+:expect "first"
+private val reader = (m: Maker) => m.make()
+reader(new Maker).first()
+//│ = "first"
+//│ reader = fun
+
+:expect "first"
+(Box(new First) as Box).item.first()
+//│ = "first"
+
+// The result takes the representation of the values that the member returns.
+:sir
+:siret
+private fun made(m: Maker) = m.make()
+made(new Maker)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let tmp: Maker⁰;
+//│ @private
+//│ define made⁰ as fun made¹(m: Maker⁰): First⁰ {
+//│   return m.make⁰()
+//│ };
+//│ set tmp = new Maker⁰();
+//│ return made¹(tmp)
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ = First
+
+// The receiver can be any instance of its class: a reference reads the arguments of all the constructor calls.
+:e
+private class Slot(val item)
+private fun readSlot(s: Slot) = s.item.first()
+readSlot(Slot(new First))
+Slot(new Second)
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+2: 	private fun readSlot(s: Slot) = s.item.first()
+//│ ║        	                                ^^^^^^^^^^^^
+//│ ╟── Instance of class 'Second' does not contain member 'first'
+//│ ║  l.+4: 	Slot(new Second)
+//│ ╙──      	     ^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// The receiver can also be an instance of a subclass, where another member overrides the selected one.
+:e
+private class OpenMaker with
+  open fun make() = new First
+private class SecondMaker extends OpenMaker with
+  override fun make() = new Second
+private fun readOpen(m: OpenMaker) = m.make().first()
+readOpen(new SecondMaker)
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+5: 	private fun readOpen(m: OpenMaker) = m.make().first()
+//│ ║        	                                     ^^^^^^^^^^^^^^
+//│ ╟── Instance of class 'Second' does not contain member 'first'
+//│ ║  l.+4: 	  override fun make() = new Second
+//│ ╙──      	                        ^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// Other compilation units can instantiate a public class, with arguments of any shape.
+:e
+class PublicBox(val item)
+private fun readPublic(b: PublicBox) = b.item.first()
+readPublic(PublicBox(new First))
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+2: 	private fun readPublic(b: PublicBox) = b.item.first()
+//│ ║        	                                       ^^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'first' of a value with unknown shape.
+//│ ╟── Parameter 'item' admits values of unknown shape.
+//│ ║  l.+1: 	class PublicBox(val item)
+//│ ║        	                ^^^^^^^^
+//│ ╟── 'PublicBox' is exposed by this compilation unit.
+//│ ║  l.+1: 	class PublicBox(val item)
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// The class of the receiver can be defined in a function or in another class.
+:expect "first"
+private fun enclosing(seed) =
+  class Local(val item)
+  fun readLocal(l: Local) = l.item
+  readLocal(Local(seed))
+enclosing(new First).first()
+//│ = "first"
+
+:expect "first"
+private class Library(val content) with
+  class Entry with
+    fun get() = content
+  fun entry() = new Entry
+  fun readEntry(e: Entry) = e.get()
+private fun useLibrary() =
+  let library = new Library(new First)
+  library.readEntry(library.entry()).first()
+useLibrary()
+//│ = "first"
+
+// A member of the receiver can be a class or an object, whose own members are read the same way.
+:e
+private class Outer with
+  class Inner(val item) with
+    fun use() = item.second()
+private fun build(o: Outer) = new o.Inner(new First)
+private fun buildDirectly(o) = new o.Inner(new Second)
+buildDirectly(new Outer).use()
+build(new Outer).use()
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+3: 	    fun use() = item.second()
+//│ ║        	                ^^^^^^^^^^^
+//│ ╟── Instance of class 'First' does not contain member 'second'
+//│ ║  l.+4: 	private fun build(o: Outer) = new o.Inner(new First)
+//│ ╙──      	                                          ^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+:e
+private class Host with
+  object Helper with
+    fun run(x) = x.second()
+private fun viaHost(h: Host) = h.Helper.run(new First)
+new Host().Helper.run(new Second)
+viaHost(new Host)
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+3: 	    fun run(x) = x.second()
+//│ ║        	                 ^^^^^^^^
+//│ ╟── Instance of class 'First' does not contain member 'second'
+//│ ║  l.+4: 	private fun viaHost(h: Host) = h.Helper.run(new First)
+//│ ╙──      	                                            ^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// A member can read itself through a receiver with a written type.
+:expect "first"
+private class Chain(val value, val next) with
+  fun last() = if next is null then value else rest(next)
+private fun rest(c: Chain) = c.last()
+rest(new Chain(new First, new Chain(new First, null))).first()
+//│ = "first"
+
+:expect "first"
+private class Link[T](val next, val value: T) with
+  fun follow() = next
+private fun lastLink(l: Link[First], n) = if n is 0 then l else lastLink(l.follow(), n - 1)
+lastLink(new Link(new Link(null, new First), new First), 1).value.first()
+//│ = "first"
+
+
+// The arguments of a call reach the parameters of the selected member.
+:expect "second"
+private class Lone with
+  fun take(x) = x.second()
+private fun runLone(t: Lone) = t.take(new Second)
+runLone(new Lone)
+//│ = "second"
+
+// They join the arguments of the calls whose receiver has no written type.
+:e
+:sir
+:siret
+private class Taker with
+  fun take(x) = x.second()
+private fun pick(flag) = if flag then new First else new Second
+private fun runTyped(t: Taker) = t.take(pick(true))
+new Taker().take(new Second)
+runTyped(new Taker)
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+2: 	  fun take(x) = x.second()
+//│ ║        	                ^^^^^^^^
+//│ ╟── Instance of class 'First' does not contain member 'second'
+//│ ║  l.+3: 	private fun pick(flag) = if flag then new First else new Second
+//│ ╙──      	                                      ^^^^^^^^^
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ let tmp: Taker⁰, tmp1: Second⁰, tmp2: Taker⁰;
+//│ @private
+//│ define pick⁰ as fun pick¹(flag: Bool⁰): Object⁰ {
+//│   match flag
+//│     true =>
+//│       return new First⁰()
+//│     else
+//│       return new Second⁰()
+//│   end
+//│ };
+//│ @private
+//│ define runTyped⁰ as fun runTyped¹(t: Taker⁰): Str⁰ {
+//│   let tmp3: Object⁰;
+//│   set tmp3 = pick¹(true);
+//│   return t.take⁰(tmp3)
+//│ };
+//│ @private
+//│ define Taker¹ as class Taker⁰ {
+//│   method take¹ = fun take⁰(x: Object⁰): Str⁰ {
+//│     throw "This code cannot be run as its compilation yielded an error."
+//│   }
+//│ };
+//│ set tmp = new Taker⁰();
+//│ set tmp1 = new Second⁰();
+//│ do tmp.take⁰(tmp1);
+//│ set tmp2 = new Taker⁰();
+//│ return runTyped¹(tmp2)
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+:e
+private class Direct with
+  fun take(x) = x.second()
+private fun runDirect(t: Direct) = t.take(new First)
+new Direct().take(new Second)
+runDirect(new Direct)
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+2: 	  fun take(x) = x.second()
+//│ ║        	                ^^^^^^^^
+//│ ╟── Instance of class 'First' does not contain member 'second'
+//│ ║  l.+3: 	private fun runDirect(t: Direct) = t.take(new First)
+//│ ╙──      	                                          ^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// A member that writes some of its parameter types still receives the arguments for the others.
+:e
+private class Partial with
+  fun mix(count: Int, x) = x.second()
+private fun runPartial(p: Partial) = p.mix(1, new First)
+new Partial().mix(2, new Second)
+runPartial(new Partial)
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+2: 	  fun mix(count: Int, x) = x.second()
+//│ ║        	                           ^^^^^^^^
+//│ ╟── Instance of class 'First' does not contain member 'second'
+//│ ║  l.+3: 	private fun runPartial(p: Partial) = p.mix(1, new First)
+//│ ╙──      	                                              ^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// They also reach the parameters of the members that override the selected one.
+:e
+private class Base with
+  open fun take(x) = "base"
+private class Derived extends Base with
+  override fun take(x) = x.second()
+private fun pickOther(flag) = if flag then new First else new Second
+private fun runBase(t: Base) = t.take(pickOther(true))
+new Derived().take(new Second)
+runBase(new Derived)
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+4: 	  override fun take(x) = x.second()
+//│ ║        	                         ^^^^^^^^
+//│ ╟── Instance of class 'First' does not contain member 'second'
+//│ ║  l.+5: 	private fun pickOther(flag) = if flag then new First else new Second
+//│ ╙──      	                                           ^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// An assignment reaches the field that the class declares.
+:e
+private class Cell with
+  mut val item = new Second
+private fun fill(c: Cell) =
+  set c.item = new First
+  ()
+private fun useCell() =
+  let cell = new mut Cell
+  fill(cell)
+  cell.item.second()
+useCell()
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+9: 	  cell.item.second()
+//│ ║        	  ^^^^^^^^^^^^^^^^
+//│ ╟── Instance of class 'First' does not contain member 'second'
+//│ ║  l.+4: 	  set c.item = new First
+//│ ╙──      	               ^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
+// The type arguments that the receiver's type supplies stand for the type parameters of its class in the written
+// types of the implementation.
+:expect "first"
+private class Wrap[T](val value: T) with
+  fun get() = value
+private fun readWrap(w: Wrap[First]) = w.get().first()
+readWrap(new Wrap(new First))
+//│ = "first"
+
+:expect ["first", "second"]
+private fun readFirst(w: Wrap[First]) = w.get().first()
+private fun readSecond(w: Wrap[Second]) = w.get().second()
+[readFirst(new Wrap(new First)), readSecond(new Wrap(new Second))]
+//│ = ["first", "second"]
+
+:expect "first"
+private fun through[A](w: Wrap[A]) = w.get()
+through(new Wrap(new First)).first()
+//│ = "first"
+
+// A written parameter or result of the member keeps its type, next to the unwritten ones.
+:expect "first"
+private class Store[T](val seed: T) with
+  fun put(x: T, y) = y
+  fun echo(y): T = seed
+private fun store(s: Store[First]) = [s.put(new First, new First).first(), s.echo(1).first()]
+store(new Store(new First)).0
+//│ = "first"
+
+// The receiver's type argument hides the members of the subclasses of the argument.
+:e
+private class Parent
+private class Child extends Parent with
+  val extra = 42
+private fun peek(w: Wrap[Parent]) = w.get().extra
+peek(new Wrap(new Child))
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+4: 	private fun peek(w: Wrap[Parent]) = w.get().extra
+//│ ║        	                                    ^^^^^^^^^^^^^
+//│ ╟── Value of type 'Parent' does not contain member 'extra'
+//│ ║  l.+4: 	private fun peek(w: Wrap[Parent]) = w.get().extra
+//│ ╙──      	                         ^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// The values without a written type are read for all the instances of the generic class, whatever their own type
+// arguments, and meet the arguments of the calls made through the receiver.
+:expect "first"
+private class Tagged[T](val tag: T, val item)
+private fun readTagged(t: Tagged[Int]) = t.item.first()
+readTagged(new Tagged(1, new First))
+//│ = "first"
+
+:e
+private class Combiner with
+  fun combine(z) = z.second()
+private class Pairer[T](val tag: T, val item) with
+  fun use(y) = y.combine(item)
+private fun runPairer(p: Pairer[Int]) = p.use(new Combiner)
+runPairer(new Pairer(1, new First))
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+2: 	  fun combine(z) = z.second()
+//│ ║        	                   ^^^^^^^^
+//│ ╟── Instance of class 'First' does not contain member 'second'
+//│ ║  l.+6: 	runPairer(new Pairer(1, new First))
+//│ ╙──      	                        ^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
+// A projection states that its receiver is an instance of the class that it names, as a written type would,
+// including where the type or the value of the receiver does not tell. It then reads the member of that class
+// for all its instances, and its arguments reach the parameters of that member.
+private class Plain
+
+:expect "first"
+private class Narrow(val content) extends Plain with
+  fun unwrap() = content
+private fun readNarrow(b: Plain) = b.Narrow#unwrap()
+readNarrow(new Narrow(new First)).first()
+//│ = "first"
+
+:e
+private class Strict extends Plain with
+  fun accept(x) = x.second()
+private fun pickStrict(flag) = if flag then new First else new Second
+private fun runStrict(b: Plain) = b.Strict#accept(pickStrict(true))
+new Strict().accept(new Second)
+runStrict(new Strict)
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+2: 	  fun accept(x) = x.second()
+//│ ║        	                  ^^^^^^^^
+//│ ╟── Instance of class 'First' does not contain member 'second'
+//│ ║  l.+3: 	private fun pickStrict(flag) = if flag then new First else new Second
+//│ ╙──      	                                            ^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// The receiver of this projection is a value of unknown shape.
+:e
+private class Guarded with
+  fun accept(x) = x.second()
+fun runGuarded(o) = o.Guarded#accept(new First)
+new Guarded().accept(new Second)
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+2: 	  fun accept(x) = x.second()
+//│ ║        	                  ^^^^^^^^
+//│ ╟── Instance of class 'First' does not contain member 'second'
+//│ ║  l.+3: 	fun runGuarded(o) = o.Guarded#accept(new First)
+//│ ╙──      	                                     ^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// The projected class can be generic. The projection supplies no type arguments, so a member whose written type
+// is a type parameter of the class has an unknown interface.
+:expect "first"
+private class Keeper[T](val held, val label: T) extends Plain with
+  fun release() = held
+private fun readKeeper(b: Plain) = b.Keeper#release()
+readKeeper(new Keeper(new First, new Second)).first()
+//│ = "first"
+
+:e
+private class Labeled[T](val label: T) extends Plain with
+  fun describe() = label
+private fun readLabeled(b: Plain) = b.Labeled#describe()
+readLabeled(new Labeled(new First)).first()
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+4: 	readLabeled(new Labeled(new First)).first()
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Value with an empty interface does not contain member 'first'
+//│ ║  l.+3: 	private fun readLabeled(b: Plain) = b.Labeled#describe()
+//│ ║        	                                    ^^^^^^^^^^^^^^^^^^
+//│ ╟── No member interface is known for this type.
+//│ ║  l.+3: 	private fun readLabeled(b: Plain) = b.Labeled#describe()
+//│ ╙──      	                                    ^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// The result of a projection can reach its own receiver. All the receivers of the projection share one unknown
+// type argument: with one per receiver, each result was a new receiver, and resolution did not terminate.
+private class Unwrapping[T](val held: T) extends Plain with
+  fun get() = held
+private fun unwrapAll(x, n) = if n is 0 then x else unwrapAll(x.Unwrapping#get(), n - 1)
+unwrapAll(new Unwrapping(new First), 1)
+//│ = First
+
+private class Annotated[T](val held: T) extends Plain with
+  fun get(): T = held
+private fun unwrapAnnotated(x, n) = if n is 0 then x else unwrapAnnotated(x.Annotated#get(), n - 1)
+unwrapAnnotated(new Annotated(new First), 1)
+//│ = First
+
+// The projected class can be local to a function.
+:e
+private fun localProjection(seed) =
+  class Sink with
+    fun accept(x) = x.second()
+  let run = (o: Plain) => o.Sink#accept(seed)
+  new Sink().accept(new Second)
+  run
+localProjection(new First)
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+3: 	    fun accept(x) = x.second()
+//│ ║        	                    ^^^^^^^^
+//│ ╟── Instance of class 'First' does not contain member 'second'
+//│ ║  l.+7: 	localProjection(new First)
+//│ ╙──      	                ^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.

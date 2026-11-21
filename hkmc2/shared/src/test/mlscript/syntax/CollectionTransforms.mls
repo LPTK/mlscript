@@ -102,16 +102,8 @@ class Seq[out A] {
 let xs = Seq(1, 2, 3)
 //│ xs = Seq { elements: [1, 2, 3] }
 
-:fixme
 xs.map(=> _ + 1).map(=> _ * 2)
-//│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.+1: 	xs.map(=> _ + 1).map(=> _ * 2)
-//│ ║        	^^^^^^^^^^^^^^^^^^^^
-//│ ╟── Cannot resolve member 'map' of a value with unknown shape.
-//│ ╟── The shape of this value is unknown.
-//│ ║  l.+1: 	xs.map(=> _ + 1).map(=> _ * 2)
-//│ ╙──      	^^^^^^
-//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ = Seq { elements: [4, 6, 8] }
 
 
 declare fun Seq[A](...xs: A): Seq[A]

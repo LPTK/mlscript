@@ -1858,7 +1858,9 @@ without parentheses, so later uses of its result share any state it created.
 An ordinary reference to a function with parameter lists can retain its generic
 scheme until specialization or invocation.
 
-Missing parameter/result annotations use inference. Omitted generic arguments
+Missing parameter/result annotations use inference, including on the members of a class
+that are selected through a receiver with a written type: such a selection observes the
+member for all the instances of the class, and the members that override it. Omitted generic arguments
 likewise count as inference holes rather than anonymous generic parameters; written
 parts continue to restrict the interface. Currently an omitted argument inside a
 shared annotation or alias can mix inferred types from different callers. These

@@ -58,36 +58,32 @@ A correction must preserve both receiver and new-allocation contexts using the
 ordinary marks algebra. Correcting only a binder substitution does not establish
 receiver separation. Regressions: `newres/ConstructorInstances.mls`.
 
-## Inferred member signatures
+## Members read through written types
 
-Missing types on selected members should use the selected declaration's contextual
-inference graph, consistently with partial function signatures:
+A selection whose receiver has a written class type reads a member that leaves types
+unwritten through its implementation, for
+[all the instances](new-resolution-design.md#members-read-through-a-written-type)
+that the receiver can be:
 
 ```mlscript
-class Item(val value: Int)
-class Box with
-  fun item() = Item(1)
-private fun read(x: Box) = x.item().value
+class Box(val item)
+private fun read(x: Box) = x.item
 ```
 
-The desired result is to infer `Box.item`'s result and permit `.value`. The current
-nominal view does not expose that missing result type. The same improvement applies
-to missing parameter, constructor-field, and value-member types.
+`read` observes the arguments of every `Box(...)` call in the compilation unit, including
+those of the boxes that never reach `x`. A more precise read would use the written type
+for the lookup only, and follow the flow of each actual receiver for the values of the
+member, as a selection with an inferred receiver does. A `Base` annotation must still
+not expose `Child`-only members, the written portions of a member must keep their written
+types, and a receiver of unknown shape must keep the read for all instances.
 
-Keep the actual receiver's contextual flow on these inferred connections while
-using the written nominal type for lookup. A `Base` annotation must not expose
-`Child`-only members. Annotated portions retain their written types, and selected
-members retain their own schemes, including overloaded term alternatives.
+A constructor pattern that tests an input of unknown shape still reads the fields of the
+tested class through their declared interface: a field without a written type is unknown
+there. Reading its implementation requires the path of the input, which the interface
+located at the pattern does not have.
 
-Override compatibility is part of this work: a base implementation returning
-`Item` cannot justify `.value` on every dynamic dispatch result if an override can
-return a different interface. Check overriding inputs and outputs against the
-inherited interface before completing targets or exposing inferred dispatch
-results. Preserve imported reference completion and consumer isolation.
-References with inferred receivers already observe the
-[overriding members](new-resolution-design.md#overriding-members) of an unannotated
-member; a nominal view needs the same flows before it exposes such a member.
-Regressions: `newres/DeclaredTypes.mls` and `PartialSignatures.mls`.
+Regressions: `slop/strictres/DeclaredReceiverMembers.mls`, `newres/DeclaredTypes.mls`,
+and `PartialSignatures.mls`.
 
 ## Omitted-argument contexts
 

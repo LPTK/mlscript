@@ -107,13 +107,11 @@ if x is
 //│ deforest > BB⁰(B⁰) ->
 //│ deforest > 	match: x⁴
 //│ deforest > 	fields: x⁴.bb⁰
-//│ deforest > B⁰ ->
-//│ deforest > 	match: a⁰
 //│ deforest > AA⁰(A⁰) ->
 //│ deforest > 	match: x⁴
 //│ deforest > 	fields: x⁴.aa⁰
 //│ deforest > A⁰ ->
-//│ deforest > 	match: a¹
+//│ deforest > 	match: a⁰
 //│ deforest > <<< fusing <<<
 //│ = 1
 
@@ -178,9 +176,9 @@ fun c(a) =
 c(A) + c(B)
 //│ deforest > >>> fusing >>>
 //│ deforest > B⁰ ->
-//│ deforest > 	match: a²
+//│ deforest > 	match: a¹
 //│ deforest > A⁰ ->
-//│ deforest > 	match: a²
+//│ deforest > 	match: a¹
 //│ deforest > <<< fusing <<<
 //│ > 1
 //│ > 2
@@ -209,7 +207,7 @@ fun f(a, b) = if a is
 f(A, B)
 //│ deforest > >>> fusing >>>
 //│ deforest > A⁰ ->
-//│ deforest > 	match: a³
+//│ deforest > 	match: a²
 //│ deforest > B⁰ ->
 //│ deforest > 	match: b⁰
 //│ deforest > <<< fusing <<<
@@ -465,9 +463,9 @@ fun test(a) = if a is
 test(B) + test(C)
 //│ deforest > >>> fusing >>>
 //│ deforest > C⁰ ->
-//│ deforest > 	match: a⁴
+//│ deforest > 	match: a³
 //│ deforest > B⁰ ->
-//│ deforest > 	match: a⁴
+//│ deforest > 	match: a³
 //│ deforest > <<< fusing <<<
 //│ = 4
 
@@ -608,7 +606,7 @@ fun f(a, b) = if a is
 f(A, B)
 //│ deforest > >>> fusing >>>
 //│ deforest > A⁰ ->
-//│ deforest > 	match: a⁵
+//│ deforest > 	match: a⁴
 //│ deforest > B⁰ ->
 //│ deforest > 	match: b¹
 //│ deforest > <<< fusing <<<
@@ -683,8 +681,8 @@ f(AA(1), BB(2))
 //│ deforest > BB⁰(2) ->
 //│ deforest > 	select: bb
 //│ deforest > AA⁰(1) ->
-//│ deforest > 	match: a⁶
-//│ deforest > 	fields: a⁶.aa⁰
+//│ deforest > 	match: a⁵
+//│ deforest > 	fields: a⁵.aa⁰
 //│ deforest > <<< fusing <<<
 //│ = 3
 
@@ -822,8 +820,8 @@ fun c(a) = if a is AA(x) then x
 c(p1(3))
 //│ deforest > >>> fusing >>>
 //│ deforest > AA⁰(x³²) ->
-//│ deforest > 	match: a⁷
-//│ deforest > 	fields: a⁷.aa⁰
+//│ deforest > 	match: a⁶
+//│ deforest > 	fields: a⁶.aa⁰
 //│ deforest > <<< fusing <<<
 //│ ═══[COMPILATION ERROR] Cannot use a value of type 'Function' at an unrelated type 'AA'
 //│ = 0
@@ -1029,11 +1027,11 @@ fun f2(a) = if a is AA(i) then i + 1
 f1(id(AA(1))) + f2(id(AA(2)))
 //│ deforest > >>> fusing >>>
 //│ deforest > AA⁰(2) ->
+//│ deforest > 	match: a⁷
+//│ deforest > 	fields: a⁷.aa⁰
+//│ deforest > AA⁰(1) ->
 //│ deforest > 	match: a⁸
 //│ deforest > 	fields: a⁸.aa⁰
-//│ deforest > AA⁰(1) ->
-//│ deforest > 	match: a⁹
-//│ deforest > 	fields: a⁹.aa⁰
 //│ deforest > <<< fusing <<<
 //│ = 4
 

@@ -484,8 +484,10 @@ enum MemberLookup:
   case All(members: Ls[MemberLookup])
   case Contextual(source: MemberLookup, instances: TypeSubstitution)
   case Found(member: BlockMemberSymbol | RecordMember, marks: Ls[Marks])
-  // Declared members expose signatures only. Their marks transport dependent
-  // type arguments; they never authorize reading an implementation's value flow.
+  // A member found through a declared interface, such as the written type of a receiver. A member with a
+  // fully written interface exposes that interface alone, and its marks transport dependent type arguments.
+  // References read a member that leaves types unwritten through its implementation along the same marks,
+  // with `bindings` as the type arguments of its class (see NewResolver.implementedMember).
   case Declared(member: BlockMemberSymbol, bindings: Map[VarSymbol, TypeArgument], marks: Ls[Marks], annotation: Opt[Term], positive: Bool)
   // A structural field already has its lexical bindings and intersection applied.
   case Typed(field: RcdField, tpe: TypeArgument, marks: Ls[Marks])
@@ -665,7 +667,12 @@ sealed abstract class SymShape(val sym: BlockMemberSymbol, val resSym: FlowSymbo
   * symbol views compose substitutions instead of wrapping one another.
   */
 sealed class CoreSymShape(symbol: BlockMemberSymbol, site: FlowSymbol, marks: Ls[Marks])
-extends SymShape(symbol, site, marks)
+extends SymShape(symbol, site, marks):
+  /** Whether this is a reference through `super`. Such a reference denotes the definition of the inherited
+    * member only, whereas the other references to a member also denote the members that override it in the
+    * class of their receiver (see `NewResolver.Dispatch`).
+    */
+  def throughSuper: Bool = false
 
 /** The symbolic counterpart of ContextualShape: retain the value's substitution
   * until overload selection produces a term shape. This does not consume a scheme.
@@ -676,15 +683,16 @@ extends SymShape(source.sym, source.resSym, source.markss)
 
 /** Keep a declared receiver's boundary while consumers choose between the term,
   * type, and constructor interpretations of the same overload set.
+  * `marks` leads from the instances of the member's class to the reference, so the reference can read the
+  * implementation of a member that leaves types unwritten along that path (see `NewResolver.implementedMember`).
   */
 final class DeclaredSymShape(symbol: BlockMemberSymbol, site: FlowSymbol, marks: Ls[Marks],
-    val bindings: Map[VarSymbol, TypeArgument], val annotation: Opt[Term], val positive: Bool) extends CoreSymShape(symbol, site, marks)
+    val bindings: Map[VarSymbol, TypeArgument], val annotation: Opt[Term], val positive: Bool,
+    override val throughSuper: Bool) extends CoreSymShape(symbol, site, marks)
 
-/** A reference through `super` to an inherited member. It denotes the definition of that member only,
-  * whereas the other references to a member also denote the members that override it in the class of
-  * their receiver (see `NewResolver.Dispatch`).
-  */
-final class SuperSymShape(symbol: BlockMemberSymbol, site: FlowSymbol, marks: Ls[Marks]) extends CoreSymShape(symbol, site, marks)
+/** A reference through `super` to a member that the parent's own definition supplies. */
+final class SuperSymShape(symbol: BlockMemberSymbol, site: FlowSymbol, marks: Ls[Marks]) extends CoreSymShape(symbol, site, marks):
+  override def throughSuper: Bool = true
 
 
 // TODO: make it not a TermShape?
@@ -814,8 +822,11 @@ final case class SpecializedShape(declaration: DefnShape, arguments: Ls[TypeArgu
 final case class ActivatedShapeEvent(value: Shape, instances: TypeSubstitution) extends ShapeEvent:
   require(instances.nonEmpty, "Publish an activation-independent shape without an envelope")
 
-/** A nominal annotation exposes only declarations, including inherited declarations.
-  * In particular, selecting an unannotated field does not inspect its initializer.
+/** A nominal annotation exposes the members that its class declares, including inherited ones,
+  * and none of the members that only the classes of the annotated values declare.
+  * A selection reads a member with a fully written interface through that interface, without
+  * inspecting its initializer or body, and reads the other members through their implementation,
+  * for all the instances of the class (see NewResolver.implementedMember).
   * The annotation is a diagnostic witness, excluded from the semantic key; synthesized
   * interfaces such as a tuple's Array parent have no written annotation.
   * Provenance can instead identify the construct that introduces an interface,

@@ -573,7 +573,7 @@ The written type of a value that escapes without an exposed signature, such as t
 result of a private function returned by an exported one, is exposed in the same way.
 
 Current limitations are [omitted-argument context precision](new-resolution-future-work.md#omitted-argument-contexts)
-and [missing selected member types](new-resolution-future-work.md#inferred-member-signatures).
+and the [precision of members read through written types](new-resolution-future-work.md#members-read-through-written-types).
 
 ## Canonical references and termination obligations
 

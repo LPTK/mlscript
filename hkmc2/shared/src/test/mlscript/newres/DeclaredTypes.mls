@@ -74,9 +74,17 @@ box.extra
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 //│ box = Child { extra: 42 }
 
-// TODO: infer the selected declaration's missing field type in the receiver's context.
-:fixme
+// A selected field without a written type holds the arguments that the constructors of its class receive.
 :expect 42
+private class Item with
+  val extra = 42
+private class Box(val item)
+private fun read(box: Box) = box.item.extra
+read(Box(new Item))
+//│ = 42
+
+// Other compilation units can instantiate a public class with arguments of any shape.
+:ge
 class Item with
   val extra = 42
 class Box(val item)
@@ -86,17 +94,15 @@ read(Box(new Item))
 //│ ║  l.+4: 	fun read(box: Box) = box.item.extra
 //│ ║        	                     ^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'extra' of a value with unknown shape.
-//│ ╟── Constructor parameter 'item' has no type annotation.
+//│ ╟── Parameter 'item' admits values of unknown shape.
 //│ ║  l.+3: 	class Box(val item)
 //│ ║        	          ^^^^^^^^
-//│ ╟── This type annotation does not provide a type for field 'item'.
-//│ ║  l.+4: 	fun read(box: Box) = box.item.extra
-//│ ╙──      	              ^^^
+//│ ╟── 'Box' is exposed by this compilation unit.
+//│ ║  l.+3: 	class Box(val item)
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
-//│ ═══[RUNTIME ERROR] Expected: '42', got: 'undefined'
 
-// TODO: infer the selected method's missing result through a nominal annotation.
-:fixme
+// A selected method without a written result type is read from its body.
 :expect 42
 class Item with
   val extra = 42
@@ -104,15 +110,7 @@ class Box with
   fun item() = new Item
 fun read(box: Box) = box.item().extra
 read(new Box)
-//│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.+5: 	fun read(box: Box) = box.item().extra
-//│ ║        	                     ^^^^^^^^^^^^^^^^
-//│ ╟── Cannot resolve member 'extra' of a value with unknown shape.
-//│ ╟── The shape of this value is unknown.
-//│ ║  l.+5: 	fun read(box: Box) = box.item().extra
-//│ ╙──      	                     ^^^^^^^^
-//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
-//│ ═══[RUNTIME ERROR] Expected: '42', got: 'undefined'
+//│ = 42
 
 // Inherited declared fields retain their type through curried constructors.
 :expect 42
@@ -256,26 +254,14 @@ invoke[() -> Int](() => 42)
 //│ ╙──      	                   ^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
-// TODO: class qualification preserves inference for a selected constructor field.
-:fixme
+// Class qualification selects the same constructor field.
 :expect 42
-class Item with
+private class Item with
   val extra = 42
-class Box(val item)
-fun read(box: Box) = box.Box#item.extra
+private class Box(val item)
+private fun read(box: Box) = box.Box#item.extra
 read(Box(new Item))
-//│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.+4: 	fun read(box: Box) = box.Box#item.extra
-//│ ║        	                     ^^^^^^^^^^^^^^^^^^
-//│ ╟── Cannot resolve member 'extra' of a value with unknown shape.
-//│ ╟── Constructor parameter 'item' has no type annotation.
-//│ ║  l.+3: 	class Box(val item)
-//│ ║        	          ^^^^^^^^
-//│ ╟── This type annotation does not provide a type for field 'item'.
-//│ ║  l.+4: 	fun read(box: Box) = box.Box#item.extra
-//│ ╙──      	              ^^^
-//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
-//│ ═══[RUNTIME ERROR] Expected: '42', got: 'undefined'
+//│ = 42
 
 // A signature alias supplies the interface to both the body and callers.
 :expect 42
@@ -390,26 +376,16 @@ fun test[A](x: Foo[A]) = x.f
  test(new Foo(new Box(Second(2)))).get().second]
 //│ = [1, 2]
 
-// TODO: a class-qualified selection also infers the selected value member's type.
-:fixme
+// A class-qualified selection also reads the initializer of the selected value member.
 :expect 42
 class Item with
   val extra = 42
 class Box with
   val item = new Item
 (new Box as Box).Box#item.extra
-//│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.+5: 	(new Box as Box).Box#item.extra
-//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── Cannot resolve member 'extra' of a value with unknown shape.
-//│ ╟── The shape of this value is unknown.
-//│ ║  l.+5: 	(new Box as Box).Box#item.extra
-//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
-//│ ═══[RUNTIME ERROR] Expected: '42', got: 'undefined'
+//│ = 42
 
-// TODO: infer an unannotated field selected through a module parameter.
-:fixme
+// An unannotated field selected through a module parameter is read from its initializer.
 :expect 42
 class Secret with
   val extra = 42
@@ -418,15 +394,7 @@ module Types with
   val Item = new Secret
 fun hidden(module types: Types) = types.Item.extra
 hidden(Types)
-//│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.+6: 	fun hidden(module types: Types) = types.Item.extra
-//│ ║        	                                  ^^^^^^^^^^^^^^^^
-//│ ╟── Cannot resolve member 'extra' of a value with unknown shape.
-//│ ╟── The shape of this value is unknown.
-//│ ║  l.+6: 	fun hidden(module types: Types) = types.Item.extra
-//│ ╙──      	                                  ^^^^^^^^^^
-//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
-//│ ═══[RUNTIME ERROR] Expected: '42', got: 'undefined'
+//│ = 42
 
 // Callback inputs and outputs share inferred type arguments at the application.
 :expect 43
@@ -531,48 +499,24 @@ xs.1
 //│ = 42
 //│ xs = [1, 42]
 
-// TODO: preserve inferred inherited field types through aliases and value forwarding.
-:fixme
+// An inherited field without a written type is read through aliases and value forwarding.
 :expect 42
-class Item with
+private class Item with
   val extra = 42
-class Parent(val item)
-class Child(input) extends Parent(input)
-type Annotated = Child
+private class Parent(val item)
+private class Child(input) extends Parent(input)
+private type Annotated = Child
 private fun identity(value) = value
-fun read(box: Annotated) = identity(box.item).extra
+private fun read(box: Annotated) = identity(box.item).extra
 read(Child(new Item))
-//│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.+7: 	fun read(box: Annotated) = identity(box.item).extra
-//│ ║        	                           ^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── Cannot resolve member 'extra' of a value with unknown shape.
-//│ ╟── Constructor parameter 'item' has no type annotation.
-//│ ║  l.+3: 	class Parent(val item)
-//│ ║        	             ^^^^^^^^
-//│ ╟── This type annotation does not provide a type for field 'item'.
-//│ ║  l.+7: 	fun read(box: Annotated) = identity(box.item).extra
-//│ ╙──      	              ^^^^^^^^^
-//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
-//│ ═══[RUNTIME ERROR] Expected: '42', got: 'undefined'
+//│ = 42
 
-// TODO: infer a selected callback field's callable interface from its receiver.
-:fixme
+// A selected callback field without a written type is called like the functions that its constructors receive.
 :expect 42
-class Box(val callback)
-fun invoke(box: Box) = box.callback()
+private class Box(val callback)
+private fun invoke(box: Box) = box.callback()
 invoke(Box(() => 42))
-//│ ╔══[COMPILATION ERROR] Resolution error in application
-//│ ║  l.+2: 	fun invoke(box: Box) = box.callback()
-//│ ║        	                       ^^^^^^^^^^^^^^
-//│ ╟── Value of unknown shape cannot be called like a function.
-//│ ╟── Constructor parameter 'callback' has no type annotation.
-//│ ║  l.+1: 	class Box(val callback)
-//│ ║        	          ^^^^^^^^^^^^
-//│ ╟── This type annotation does not provide a type for field 'callback'.
-//│ ║  l.+2: 	fun invoke(box: Box) = box.callback()
-//│ ╙──      	                ^^^
-//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
-//│ ═══[RUNTIME ERROR] Expected: '42', got: 'undefined'
+//│ = 42
 
 // Abstract tuple elements retain the use of the type parameter in the receiver annotation.
 :ge
@@ -643,32 +587,20 @@ fun foo(factory: () -> Wrapped) = factory().value.oops
 //│ ║  l.+3: 	fun foo(factory: () -> Wrapped) = factory().value.oops
 //│ ║        	                                  ^^^^^^^^^^^^^^^^^^^^
 //│ ╟── Cannot resolve member 'oops' of a value with unknown shape.
-//│ ╟── Constructor parameter 'value' has no type annotation.
+//│ ╟── Parameter 'value' admits values of unknown shape.
 //│ ║  l.+1: 	class Box(val value)
 //│ ║        	          ^^^^^^^^^
-//│ ╟── This type annotation does not provide a type for field 'value'.
-//│ ║  l.+3: 	fun foo(factory: () -> Wrapped) = factory().value.oops
-//│ ╙──      	                       ^^^^^^^
+//│ ╟── 'Box' is exposed by this compilation unit.
+//│ ║  l.+1: 	class Box(val value)
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^
 
-// TODO: ascription preserves receiver flow for the selected field's missing type.
-:fixme
+// An ascription selects the field of its class, whose missing type is read the same way.
 :expect 42
-class Item with
+private class Item with
   val oops = 42
-class Box(val value)
+private class Box(val value)
 (Box(new Item) as Box).value.oops
-//│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.+4: 	(Box(new Item) as Box).value.oops
-//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//│ ╟── Cannot resolve member 'oops' of a value with unknown shape.
-//│ ╟── Constructor parameter 'value' has no type annotation.
-//│ ║  l.+3: 	class Box(val value)
-//│ ║        	          ^^^^^^^^^
-//│ ╟── This type annotation does not provide a type for field 'value'.
-//│ ║  l.+4: 	(Box(new Item) as Box).value.oops
-//│ ╙──      	                  ^^^
-//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
-//│ ═══[RUNTIME ERROR] Expected: '42', got: 'undefined'
+//│ = 42
 
 // An abstract function result remains unknown after a nested tuple projection.
 :ge

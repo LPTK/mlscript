@@ -209,8 +209,8 @@ getX(Foo(Bar(42)))
 //│   (type $Foo_typeinfo (sub $TypeInfoBase (struct (field $tag@0 i32) (field $parent@1 (ref null $TypeInfoBase)))))
 //│   (type $Foo_init (func (param $this (ref $Foo)) (param $bar (ref null $Bar)) (result (ref $Foo))))
 //│   (type $Foo_ctor (func (param $bar (ref null $Bar)) (result (ref $Foo))))
-//│   (type $getX (func (param $f (ref null $Foo)) (result (ref null any))))
-//│   (type $entry (func (result (ref null any))))
+//│   (type $getX (func (param $f (ref null $Foo)) (result (ref null i31))))
+//│   (type $entry (func (result (ref null i31))))
 //│   (global $Bar_typeinfo (export "Bar_typeinfo") (ref $Bar_typeinfo) (struct.new $Bar_typeinfo
 //│     (i32.const 1)
 //│     (ref.null $TypeInfoBase)))
@@ -255,12 +255,12 @@ getX(Foo(Bar(42)))
 //│         (local.get $bar)))
 //│     (return
 //│       (local.get $this)))
-//│   (func $getX (export "getX") (type $getX) (param $f (ref null $Foo)) (result (ref null any))
+//│   (func $getX (export "getX") (type $getX) (param $f (ref null $Foo)) (result (ref null i31))
 //│     (return
 //│       (struct.get $Bar $x@1
 //│         (struct.get $Foo $bar@1
 //│           (local.get $f)))))
-//│   (func $entry (export "entry") (type $entry) (result (ref null any))
+//│   (func $entry (export "entry") (type $entry) (result (ref null i31))
 //│     (local $tmp (ref null $Bar))
 //│     (local $tmp1 (ref null $Foo))
 //│     (local.set $tmp

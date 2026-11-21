@@ -442,7 +442,7 @@ f(k1, 1) + f(k2, 5)
 //│   set tmp2 = new C⁰(x);
 //│   set tmp3 = get⁰(C⁰, tmp2);
 //│   set h = g⁹(k, tmp3);
-//│   return h(2)
+//│   return (h(2) as! Int⁰)
 //│ };
 //│ set tmp = f¹³(k1⁵, 1);
 //│ set tmp1 = f¹³(k2⁵, 5);
