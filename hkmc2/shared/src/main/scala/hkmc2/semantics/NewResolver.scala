@@ -3838,6 +3838,10 @@ class NewResolver:
         val callable = instantiateCallable(viewed, res.resSym, lexicalBinders(res), context :: Nil)
         val ps = callable.paramLists.head
         if checked then zipArgumentShapes(context :: Nil, Arity(ps), args, res, lhs)((index, value) =>
+          // TODO: An argument for a parameter without a written type goes nowhere: it should reach the parameter
+          // of the member that this interface declares, and those of the members overriding it (see `Dispatch`).
+          // Until then, these parameters miss the arguments of the calls made through a receiver with a written
+          // type (see slop/strictres/DeclaredReceiverArguments.mls).
           ps.allParams(index).tpe.foreach: tpe =>
             value match
               case value: TermShape => inferTypeArguments(tpe, value, context :: Nil, S(res))

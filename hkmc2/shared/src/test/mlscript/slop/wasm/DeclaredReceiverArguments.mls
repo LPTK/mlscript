@@ -1,0 +1,38 @@
+:.
+#lang(strictResolution: true)
+#lang(eagerResolution: true)
+open wasm.{ i32 }
+open i32.{ const }
+//│ Wasm result:
+//│ = {}
+
+
+// The arguments of a call through a receiver with a written class type do not reach the unannotated parameters
+// of the selected member (see ../strictres/DeclaredReceiverArguments.mls). The parameter of `record` thus takes
+// the representation of the argument of the first call alone, to which the second call converts an instance of
+// `Seconds`. Wasm cannot tell the two classes apart, as their layouts are the same, and reads the field of that
+// instance at the position of `amount`.
+// TODO: Reject this program.
+
+:breakme
+:e
+:noInline
+private class Meters(val amount)
+private class Seconds(val duration)
+private class Meter with
+  mut val last = const(0)
+  fun record(x) =
+    set last = x.amount
+    ()
+private fun pick(flag) = if flag then Seconds(const(2)) else Meters(const(1))
+private fun recordTyped(m: Meter) =
+  m.record(pick(true))
+  ()
+private fun recordBoth() =
+  let meter = new mut Meter
+  meter.record(Meters(const(1)))
+  recordTyped(meter)
+  meter.last
+recordBoth()
+//│ Wasm result:
+//│ = 2
