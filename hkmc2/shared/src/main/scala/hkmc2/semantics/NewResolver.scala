@@ -976,10 +976,6 @@ class NewResolver:
         case N => argumentType(omittedArgument(source, parameter), parameter, source.resolution.source)
       .toList
 
-  private def typeBindings(source: DeclaredType, arguments: TypeApplication, parameters: Ls[TyParam], positive: Bool)
-      (using ResolutionContext): Map[VarSymbol, TypeArgument] =
-    effectiveBindings(source) ++ parameters.iterator.map(_.sym).zip(variantArguments(source, arguments, parameters, positive))
-
   /** Interpret arguments in the caller's polarity, but select their bounds
     * relative to the alias body. The body retains the caller's polarity for its
     * captured binders; reverse the new formal bindings under a negative caller
@@ -1496,8 +1492,6 @@ class NewResolver:
         def follow(current: DeclaredType, args: TypeApplication, aliases: Set[TypeResolution], source: Term,
             publish: Listener)(using ResolutionContext): Unit =
           current.listen: shape =>
-            def bind(params: Ls[TyParam], positive: Bool)(using ResolutionContext): Map[VarSymbol, TypeArgument] =
-              typeBindings(current, args, params, positive)
             def next(res: TypeResolution)(using ResolutionContext): Unit =
               follow(declaredType(res, current), noTypeArguments, aliases, res.source, publish)
             // Each type can expose several union alternatives. Form products
@@ -1529,8 +1523,9 @@ class NewResolver:
                 listenInstanceFlow(instantiateShape(value, current.instances), view)(publish)
               case TypeShape.Nominal(defn) =>
                 val enclosing = lexicalBinders(defn.sym)
-                val own = defn.tparams.map(_.sym).toSet
-                val bindings = bind(defn.tparams, current.positive).filter((parameter, _) => own(parameter) || enclosing.forall(_(parameter)))
+                val captured = effectiveBindings(current).filter((param, _) => enclosing.forall(_(param)))
+                val arguments = variantArguments(current, args, defn.tparams, current.positive)
+                val bindings = captured ++ defn.tparams.lazyZip(arguments).iterator.map((param, arg) => param.sym -> arg)
                 defn.ext match
                   case N => publish(NominalInstanceView(defn, bindings, implicitParent(defn))(S(source), ShapeProvenance.empty)(this))
                   case S(parent) =>
