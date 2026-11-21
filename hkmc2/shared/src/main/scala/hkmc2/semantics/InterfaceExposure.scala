@@ -278,12 +278,11 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
     * Returning `new Sink[Box](...)` exposes `Box` even when the function has no result annotation
     * and the signature of `Sink.accept` names only the class's type parameter.
     */
-  private def constructorArguments(defn: DefnShape, instances: TypeSubstitution, marks: Ls[Marks], path: Path)
+  private def constructorArguments(cls: ClassLikeDef, instances: TypeSubstitution, marks: Ls[Marks], path: Path)
       (using ResolutionContext): Unit =
-    defn.clsDef.foreach: cls =>
-      cls.tparams.foreach: param =>
-        instances.get(param.sym).filter(rctx.hasExplicitTypeArgument).foreach: instance =>
-          exposeSuppliedArgument(rctx.typeParameter(instance), instances, marks, path)
+    cls.tparams.foreach: param =>
+      instances.get(param.sym).filter(rctx.hasExplicitTypeArgument).foreach: instance =>
+        exposeSuppliedArgument(rctx.typeParameter(instance), instances, marks, path)
 
   /** Expose the interface of an escaping value whose type is written, such as the result of
     * a private function with a result annotation. Clients use the value at that type, so the
@@ -336,7 +335,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
         case NoShape => ()
       case specialized: SpecializedShape =>
         val substitution = instances.withOverrides(specialized.instances)
-        constructorArguments(specialized.declaration, substitution, marks, path)
+        specialized.declaration.clsDef.foreach(constructorArguments(_, substitution, marks, path))
         resolver.instantiateShape(specialized.declaration, substitution).exit(marks) match
           case value: TermShape => valueIn(value, path, instances)
           case NoShape => ()
@@ -344,7 +343,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
         declaredValue(instance.tpe, marks, path)
       case ds: DefnShape =>
         shape match
-          case Marked(_: (AppShape | NewShape), _) => constructorArguments(ds, instances, marks, path)
+          case Marked(_: (AppShape | NewShape), _) => ds.clsDef.foreach(constructorArguments(_, instances, marks, path))
           case _ => ()
         // A local argument can specialize an imported class. Its defining unit checked the class body.
         if ds.defn.sym.getState isnt rctx.owner then return
@@ -416,7 +415,9 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
                   fields(inner, readAssignments, marks :: context, substitution.withOverrides(inner.instances), shadowed)
                 case _ => shadowed)
         fields(record, false, marks, instances.withOverrides(record.instances), Set.empty)
-      case base: BaseShape => members(base.defn, S(marks), path)
+      case base: BaseShape =>
+        constructorArguments(base.defn, instances, marks, path)
+        members(base.defn, S(marks), path)
       case callable: CallableTypeShape =>
         callable.declaration.filter(origin => rctx.state.isOwnedSym(origin.definition.tsym)).foreach: origin =>
           val td = origin.definition

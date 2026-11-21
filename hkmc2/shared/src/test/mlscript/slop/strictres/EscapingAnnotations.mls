@@ -10,6 +10,7 @@ private class Box[T](val contents: T)
 private class Cell[T](mut val contents: T)
 private class Sink[T](f: T -> Str) with
   fun accept(x: T) = f(x)
+  fun self() = this
 
 
 // The annotation of a private binding.
@@ -481,6 +482,29 @@ explicitSink().accept(Box(Argument("local")))
 //│ ║        	                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── 'explicitSink' is exposed by this compilation unit.
 //│ ║  l.+1: 	fun explicitSink() = new Sink[Box](box => box.contents.word)
+//│ ╙──      	^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
+// Returning the receiver from a method preserves the constructor's supplied argument.
+:e
+fun returnedSelf() = new Sink[Box](box => box.contents.word).self()
+returnedSelf().accept(Box(Argument("local")))
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+1: 	fun returnedSelf() = new Sink[Box](box => box.contents.word).self()
+//│ ║        	                                          ^^^^^^^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'word' of a value with unknown shape.
+//│ ╟── Type argument 'T' is omitted here and admits values of unknown shape.
+//│ ║  l.+1: 	fun returnedSelf() = new Sink[Box](box => box.contents.word).self()
+//│ ║        	                              ^^^
+//│ ╟── This type argument is supplied here.
+//│ ║  l.+1: 	fun returnedSelf() = new Sink[Box](box => box.contents.word).self()
+//│ ║        	                              ^^^
+//│ ╟── This value is returned here.
+//│ ║  l.+1: 	fun returnedSelf() = new Sink[Box](box => box.contents.word).self()
+//│ ║        	                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── 'returnedSelf' is exposed by this compilation unit.
+//│ ║  l.+1: 	fun returnedSelf() = new Sink[Box](box => box.contents.word).self()
 //│ ╙──      	^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
