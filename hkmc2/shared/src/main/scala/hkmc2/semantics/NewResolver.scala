@@ -2505,8 +2505,8 @@ class NewResolver:
         case RecordMember(member, true) =>
           listenAssignedValues(member.tsym, flow, inner)(read)(using rctx.withInstances(instances))
         case _ => ()
-    case MemberLookup.Declared(member, bound, inner, annotation, positive) =>
-      listenDeclaredMember(member, bound, flow, source, annotation, _ => (), false, positive, inner, N): value =>
+    case MemberLookup.Declared(member, bound, inner, annotation) =>
+      listenDeclaredMember(member, bound, flow, source, annotation, _ => (), receiver = false, positive = true, inner, N): value =>
         transportShape(instantiateShape(value, instances), inner) match
           case value: TermShape => receive(value)
           case NoShape => ()
@@ -2887,7 +2887,7 @@ class NewResolver:
           symbol -> argument
         val local = captureNominalBindings(defn, transported)
         MemberLookup.own(defn, member,
-          MemberLookup.Declared(member, local, scope.toList.map(ExitMark(_, N, NoMarks)), view.annotation, true)
+          MemberLookup.Declared(member, local, scope.toList.map(ExitMark(_, N, NoMarks)), view.annotation)
             .withMarks(location match
               case NoMarks => Nil
               case location: SomeMarks => location :: Nil),
@@ -3521,8 +3521,8 @@ class NewResolver:
                     case MemberLookup.Found(sym: BlockMemberSymbol, marks) =>
                       fromBMS(sym, resSym, marks,
                         field => matchShapePat(instantiateShape(field, instances), pat)(_ => ()), ctor.target, _ => (), false)
-                    case MemberLookup.Declared(member, bindings, marks, annotation, positive) =>
-                      listenDeclaredMember(member, bindings, resSym, ctor.target, annotation, _ => (), false, positive, marks, N): field =>
+                    case MemberLookup.Declared(member, bindings, marks, annotation) =>
+                      listenDeclaredMember(member, bindings, resSym, ctor.target, annotation, _ => (), receiver = false, positive = true, marks, N): field =>
                         // The views below no longer name the declarations of the field's type.
                         scrutineeNamespaces(field, pat)
                         listenInstanceViews(instantiateShape(field, instances)): field =>
@@ -3978,12 +3978,12 @@ class NewResolver:
         if mutable then listenAssignedValues(field.tsym, flow, marks)(publish)
 
   private def publishDeclared(host: NewResolvable & ShapeHost, member: BlockMemberSymbol, flow: FlowSymbol,
-      bindings: Map[VarSymbol, TypeArgument], marks: Ls[Marks], annotation: Opt[Term], positive: Bool,
+      bindings: Map[VarSymbol, TypeArgument], marks: Ls[Marks], annotation: Opt[Term],
       instances: TypeSubstitution)(using ResolutionContext): Unit =
     // Keep one diagnostic witness per semantic candidate, as for unknown values.
     // A different annotation location must not create additional inference flow.
-    val shape = declaredSymShapes.getOrElseUpdate((member, flow, marks, bindings, positive),
-      DeclaredSymShape(member, flow, marks, bindings, annotation, positive))
+    val shape = declaredSymShapes.getOrElseUpdate((member, flow, marks, bindings),
+      DeclaredSymShape(member, flow, marks, bindings, annotation))
     publishViewed(host, shape, instances)
 
   private def publishTyped(host: NewResolvable & ShapeHost, field: RcdField, tpe: DeclaredType,
@@ -4065,8 +4065,8 @@ class NewResolver:
         case MemberLookup.Contextual(source, substitution) => member(source, instances.withOverrides(substitution))
         case MemberLookup.Found(member, marks) =>
           record(member.memberSymbol)(publishMember(ref, member, ref.resSym, marks, instances))
-        case MemberLookup.Declared(member, bindings, marks, annotation, positive) =>
-          record(member)(publishDeclared(ref, member, ref.resSym, bindings, marks, annotation, positive, instances))
+        case MemberLookup.Declared(member, bindings, marks, annotation) =>
+          record(member)(publishDeclared(ref, member, ref.resSym, bindings, marks, annotation, instances))
         case MemberLookup.Typed(field, tpe, marks) =>
           record(field.sym)(publishTyped(ref, field, tpe.output, marks, instances))
         case MemberLookup.Indexed(_, _) if rctx.canResolve(ref) =>
@@ -4456,8 +4456,8 @@ class NewResolver:
       case MemberLookup.All(members) => members.foreach(receive(_, instances))
       case MemberLookup.Contextual(source, substitution) => receive(source, instances.withOverrides(substitution))
       case MemberLookup.Found(member, marks) => publishMember(sup, member, sup.resSym, marks, instances)
-      case MemberLookup.Declared(member, bindings, marks, annotation, positive) =>
-        publishDeclared(sup, member, sup.resSym, bindings, marks, annotation, positive, instances)
+      case MemberLookup.Declared(member, bindings, marks, annotation) =>
+        publishDeclared(sup, member, sup.resSym, bindings, marks, annotation, instances)
       case _ =>
         rctx.markError(sup)
         resolError(sup, msg"No inherited member '${sup.id.name}' is available through 'super'" -> sup.toLoc :: Nil)
@@ -4484,9 +4484,9 @@ class NewResolver:
         log(dbg"newSel member: bms = ${bms.memberSymbol.showDbg}, mss = ${marks.map(_.showDbg)}")
         rctx.recordResolution(sel, sel.resolvedMembers.contains(bms.memberSymbol))(sel.resolvedMembers ::= bms.memberSymbol)
         publishMember(sel, bms, sel.resSym, marks, instances)
-      case MemberLookup.Declared(member, bindings, marks, annotation, positive) if rctx.canResolve(sel) || sel.resolvedMembers.contains(member) =>
+      case MemberLookup.Declared(member, bindings, marks, annotation) if rctx.canResolve(sel) || sel.resolvedMembers.contains(member) =>
         rctx.recordResolution(sel, sel.resolvedMembers.contains(member))(sel.resolvedMembers ::= member)
-        publishDeclared(sel, member, sel.resSym, bindings, marks, annotation, positive, instances)
+        publishDeclared(sel, member, sel.resSym, bindings, marks, annotation, instances)
       case MemberLookup.Typed(field, tpe, marks) if rctx.canResolve(sel) || sel.resolvedMembers.contains(field.sym) =>
         rctx.recordResolution(sel, sel.resolvedMembers.contains(field.sym))(sel.resolvedMembers ::= field.sym)
         publishTyped(sel, field, tpe.output, marks, instances)
@@ -4569,7 +4569,7 @@ class NewResolver:
           // An explicit projection can name a narrower class, but
           // it cannot recover that class's implementation arguments.
           val opaque = abstractType(new TypeResolution(sel, msgs => resolError(sel, msgs)))
-          MemberLookup.Declared(bms, cd.tparams.map(_.sym -> TypeArgument.invariant(opaque)).toMap, context :: Nil, nominal.annotation, true)
+          MemberLookup.Declared(bms, cd.tparams.map(_.sym -> TypeArgument.invariant(opaque)).toMap, context :: Nil, nominal.annotation)
     case _ =>
       // C# selects a declaration, not an instance of C. Transport
       // the member through the actual receiver, never the qualifier.
@@ -4578,7 +4578,7 @@ class NewResolver:
         // interface is available; qualifier values add no evidence.
         val opaque = abstractType(new TypeResolution(sel, msgs => resolError(sel, msgs)))
         MemberLookup.Declared(bms, cd.tparams.map(_.sym -> TypeArgument.invariant(opaque)).toMap,
-          declarationMarks ::: ExitMark(ResolutionBoundary(cd.sym), N, NoMarks) :: Nil, N, true)
+          declarationMarks ::: ExitMark(ResolutionBoundary(cd.sym), N, NoMarks) :: Nil, N)
   
   /** Both constructor references and explicit `new` use the same definition and
     * parameter lists, including auxiliary constructor(...) lists. A partial `new`
@@ -4769,13 +4769,13 @@ class NewResolver:
       (using ResolutionContext): Unit =
     val caller = rctx
     def declared(member: BlockMemberSymbol, bindings: Map[VarSymbol, TypeArgument], marks: Ls[Marks],
-        annotation: Opt[Term], positive: Bool, instances: TypeSubstitution)(using ResolutionContext): Unit =
+        annotation: Opt[Term], instances: TypeSubstitution)(using ResolutionContext): Unit =
       member.onComplete: () =>
         if valueTarget(member, false).flatMap(_.defn).exists:
           case td: TermDefinition => td.k is syntax.MutVal
           case _ => false
         then listenDeclaredMember(member, bindings, rctx.fieldProjectionSite(member), source, annotation, _ => (),
-          false, !positive, marks, N)(
+          receiver = false, positive = false, marks, N)(
           value => value match
             case Marked(instance: InstanceShape, inner) =>
               listener(transportType(instance.tpe, inner :: marks))(using caller)
@@ -4786,10 +4786,10 @@ class NewResolver:
       case MemberLookup.Contextual(source, substitution) => follow(source, instances.withOverrides(substitution))
       case MemberLookup.Typed(_, tpe, marks) =>
         listener(transportType(instantiateType(tpe.input, instances), marks))
-      case MemberLookup.Declared(member, bindings, marks, annotation, positive) =>
-        declared(member, bindings, marks, annotation, positive, instances)
+      case MemberLookup.Declared(member, bindings, marks, annotation) =>
+        declared(member, bindings, marks, annotation, instances)
       case MemberLookup.Found(member: BlockMemberSymbol, marks) =>
-        declared(member, Map.empty, marks, N, true, instances)
+        declared(member, Map.empty, marks, N, instances)
       case _ => ()
     follow(info, rctx.instances)
   
@@ -4810,7 +4810,7 @@ class NewResolver:
       case MemberLookup.Contextual(source, _) => assignableTargets(source)(target)
       case MemberLookup.Found(RecordMember(field, mutable), marks) => if mutable then target(field.tsym, marks)
       case MemberLookup.Found(found: BlockMemberSymbol, marks) => member(found, marks)
-      case MemberLookup.Declared(declared, _, marks, _, _) => member(declared, marks)
+      case MemberLookup.Declared(member = declared, marks = marks) => member(declared, marks)
       case _ => ()
 
   def defineVar(sym: LocalSymbol | TermSymbol, rhs: Term)(loc: Opt[Loc])(using ResolutionContext): DefineVar =
@@ -4971,7 +4971,7 @@ class NewResolver:
       fromSymbolAt(contextual.source, value => listener(instantiateShape(value, contextual.instances)),
         source, selected, receiver, specialization)(using rctx.withInstances(contextual.instances))
     case declared: DeclaredSymShape =>
-      listenDeclaredMember(shape.sym, declared.bindings, shape.resSym, source, declared.annotation, selected, receiver, declared.positive, shape.markss, specialization): value =>
+      listenDeclaredMember(shape.sym, declared.bindings, shape.resSym, source, declared.annotation, selected, receiver, positive = true, shape.markss, specialization): value =>
         transportShape(value, shape.markss) match
           case value: TermShape => listener(value)
           case NoShape => ()
@@ -5095,7 +5095,7 @@ class NewResolver:
             ((d.sign.nonEmpty && (!d.flags.hasResultAnnotation || d.params.forall(ps =>
               ps.allParams.forall(_.sign.nonEmpty)))) ||
               (d.body.isEmpty && d.tsym.owner.exists(_.asDefnSym.defn.exists(_.tparams.nonEmpty)))) =>
-          listenDeclaredMember(bms, instanceBindings(d), resSym, trm, N, selected, receiver, true, markss, specialization): value =>
+          listenDeclaredMember(bms, instanceBindings(d), resSym, trm, N, selected, receiver, positive = true, markss, specialization): value =>
             transportShape(value, markss) match
               case value: TermShape => listener(value)
               case NoShape => ()

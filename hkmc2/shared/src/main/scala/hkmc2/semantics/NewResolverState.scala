@@ -169,7 +169,7 @@ final class NewResolverState(val owner: Elaborator.State):
   // input once per activation; callbacks assigned through it must satisfy that input, not the read type.
   val fieldAssignmentTypes: Seen[(Identity[Term], Identity[Term], DeclaredType)] =
     new Seen(_.fieldAssignmentTypes)
-  val declaredSymShapes: Cache[(BlockMemberSymbol, FlowSymbol, Ls[Marks], Map[VarSymbol, TypeArgument], Bool), DeclaredSymShape] =
+  val declaredSymShapes: Cache[(BlockMemberSymbol, FlowSymbol, Ls[Marks], Map[VarSymbol, TypeArgument]), DeclaredSymShape] =
     new Cache(_.declaredSymShapes, identity)
   val selfShapes: Cache[InnerSymbol, BaseShape] =
     new Cache(_.selfShapes, identity)
