@@ -262,6 +262,22 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
 
   private def value(shape: TermShape, path: Path)(using ResolutionContext): Unit = valueIn(shape, path, rctx.instances)
 
+  /** Expose the types supplied to a class when its constructor or an instance escapes.
+    * Returning `new Sink[Box](...)` exposes `Box` even when the function has no result annotation
+    * and the signature of `Sink.accept` names only the class's type parameter.
+    */
+  private def constructorArguments(defn: DefnShape, instances: TypeSubstitution, marks: Ls[Marks], path: Path)
+      (using ResolutionContext): Unit =
+    defn.clsDef.foreach: cls =>
+      cls.tparams.foreach: param =>
+        instances.get(param.sym).filter(rctx.hasExplicitTypeArgument).foreach: instance =>
+          detach += rctx.typeParameter(instance).arguments.observe: binding =>
+            // The argument starts at the application site. Its binding records the path into
+            // the class, where the escaping constructor or instance has its own path out.
+            binding.argument.foreachBound: bound =>
+              emit(resolver.instanceShape(bound.instantiate(instances)).exit(binding.marks).exit(marks),
+                path.via(msg"This type argument is supplied here." -> bound.resolution.source.toLoc))
+
   /** Expose the interface of an escaping value whose type is written, such as the result of
     * a private function with a result annotation. Clients use the value at that type, so the
     * annotation is exposed like the signature of an exported definition (see `exposeType`).
@@ -311,12 +327,19 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
           valueIn(value, path, substitution)(using rctx.withInstances(substitution))
         case NoShape => ()
       case specialized: SpecializedShape =>
-        resolver.instantiateShape(specialized.declaration, instances.withOverrides(specialized.instances)).exit(marks) match
+        val substitution = instances.withOverrides(specialized.instances)
+        constructorArguments(specialized.declaration, substitution, marks, path)
+        resolver.instantiateShape(specialized.declaration, substitution).exit(marks) match
           case value: TermShape => valueIn(value, path, instances)
           case NoShape => ()
       case instance: InstanceShape =>
         declaredValue(instance.tpe, marks, path)
-      case ds: DefnShape if ds.defn.sym.getState is rctx.owner =>
+      case ds: DefnShape =>
+        shape match
+          case Marked(_: (AppShape | NewShape), _) => constructorArguments(ds, instances, marks, path)
+          case _ => ()
+        // A local argument can specialize an imported class. Its defining unit checked the class body.
+        if ds.defn.sym.getState isnt rctx.owner then return
         ds.defn match
           case td: TermDefinition =>
             // A method may escape on its own, including after partial application.
@@ -338,7 +361,6 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
               signature(td, path)
               td.body.foreach(result(td, _, marks, path))
             case _ => ()
-      case _: DefnShape => () // Imported definitions were checked before publication.
       case intro: IntroShape => intro.trm match
         case Lam(_, body) =>
           parameters(shape.unappliedParams, path, N)

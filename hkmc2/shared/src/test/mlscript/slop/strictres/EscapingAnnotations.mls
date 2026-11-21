@@ -388,7 +388,7 @@ new SharedBoxSink().accept(Box(Argument("local")))
 //│ ╟── Type argument 'T' is omitted here and admits values of unknown shape.
 //│ ║  l.+1: 	private class SharedBoxSink extends Sink[Box](box => box.contents.word)
 //│ ║        	                                         ^^^
-//│ ╟── This type argument appears in an exposed annotation.
+//│ ╟── This type argument is supplied here.
 //│ ║  l.+1: 	private class SharedBoxSink extends Sink[Box](box => box.contents.word)
 //│ ║        	                                         ^^^
 //│ ╟── This parent contributes inherited members.
@@ -420,9 +420,9 @@ new mut BoxCell().read()
 //│ ╟── Type argument 'T' is omitted here and admits values of unknown shape.
 //│ ║  l.+1: 	private class BoxCell extends Cell[Box](Box(Argument("local"))) with
 //│ ║        	                                   ^^^
-//│ ╟── Member 'contents' is accessible here.
-//│ ║  l.XX: 	private class Cell[T](mut val contents: T)
-//│ ║        	                          ^^^^^^^^^^^^^^^
+//│ ╟── This type argument is supplied here.
+//│ ║  l.+1: 	private class BoxCell extends Cell[Box](Box(Argument("local"))) with
+//│ ║        	                                   ^^^
 //│ ╟── This parent contributes inherited members.
 //│ ║  l.+1: 	private class BoxCell extends Cell[Box](Box(Argument("local"))) with
 //│ ║        	                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -435,20 +435,117 @@ new mut BoxCell().read()
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
-// TODO: The type arguments written in a parent clause or at an instantiation are part of the type
-// of the instance. No written type of a member of Sink mentions T, so nothing reads these arguments
-// when the instance escapes by value, and the parameter of `accept` then takes boxes of any contents.
-:breakme
+// Clients can pass boxes of any contents to the inherited accept(x: T). The parent clause
+// supplies Box for T, and the function returns the instance without a result annotation.
 :e
 private class BoxSink extends Sink[Box](box => box.contents.word)
 fun boxSink() = new BoxSink
 new BoxSink().accept(Box(Argument("local")))
-//│ = "local"
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+1: 	private class BoxSink extends Sink[Box](box => box.contents.word)
+//│ ║        	                                               ^^^^^^^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'word' of a value with unknown shape.
+//│ ╟── Type argument 'T' is omitted here and admits values of unknown shape.
+//│ ║  l.+1: 	private class BoxSink extends Sink[Box](box => box.contents.word)
+//│ ║        	                                   ^^^
+//│ ╟── This type argument is supplied here.
+//│ ║  l.+1: 	private class BoxSink extends Sink[Box](box => box.contents.word)
+//│ ║        	                                   ^^^
+//│ ╟── This parent contributes inherited members.
+//│ ║  l.+1: 	private class BoxSink extends Sink[Box](box => box.contents.word)
+//│ ║        	                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── This value is returned here.
+//│ ║  l.+2: 	fun boxSink() = new BoxSink
+//│ ║        	                ^^^^^^^^^^^
+//│ ╟── 'boxSink' is exposed by this compilation unit.
+//│ ║  l.+2: 	fun boxSink() = new BoxSink
+//│ ╙──      	^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
-:breakme
+// The same input is exposed when the constructor itself supplies the written argument.
 :e
 fun explicitSink() = new Sink[Box](box => box.contents.word)
 explicitSink().accept(Box(Argument("local")))
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+1: 	fun explicitSink() = new Sink[Box](box => box.contents.word)
+//│ ║        	                                          ^^^^^^^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'word' of a value with unknown shape.
+//│ ╟── Type argument 'T' is omitted here and admits values of unknown shape.
+//│ ║  l.+1: 	fun explicitSink() = new Sink[Box](box => box.contents.word)
+//│ ║        	                              ^^^
+//│ ╟── This type argument is supplied here.
+//│ ║  l.+1: 	fun explicitSink() = new Sink[Box](box => box.contents.word)
+//│ ║        	                              ^^^
+//│ ╟── This value is returned here.
+//│ ║  l.+1: 	fun explicitSink() = new Sink[Box](box => box.contents.word)
+//│ ║        	                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── 'explicitSink' is exposed by this compilation unit.
+//│ ║  l.+1: 	fun explicitSink() = new Sink[Box](box => box.contents.word)
+//│ ╙──      	^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
+// A returned constructor already exposes the argument it was specialized with.
+:e
+private val makeSink = Sink[Box]
+fun sinkConstructor() = makeSink
+sinkConstructor()(box => box.contents.word).accept(Box(Argument("local")))
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+3: 	sinkConstructor()(box => box.contents.word).accept(Box(Argument("local")))
+//│ ║        	                         ^^^^^^^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'word' of a value with unknown shape.
+//│ ╟── Type argument 'T' is omitted here and admits values of unknown shape.
+//│ ║  l.+1: 	private val makeSink = Sink[Box]
+//│ ║        	                            ^^^
+//│ ╟── This type argument is supplied here.
+//│ ║  l.+1: 	private val makeSink = Sink[Box]
+//│ ║        	                            ^^^
+//│ ╟── This value is returned here.
+//│ ║  l.+2: 	fun sinkConstructor() = makeSink
+//│ ║        	                        ^^^^^^^^
+//│ ╟── 'sinkConstructor' is exposed by this compilation unit.
+//│ ║  l.+2: 	fun sinkConstructor() = makeSink
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ makeSink = fun Sink { class: class Sink }
+
+
+// A local type can reach the public interface through an imported constructor's input bound.
+import "../../../mlscript-compile/GenericLibrary.mls"
+
+:e
+private class Incoming with
+  fun read(x) = x.key
+private val makeParent = GenericLibrary.Parent[in Incoming out Any]
+fun importedParent() = makeParent(new Incoming)
+new Incoming().read({key: 1})
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+2: 	  fun read(x) = x.key
+//│ ║        	                ^^^^^
+//│ ╟── Cannot resolve member 'key' of a value with unknown shape.
+//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ║  l.+2: 	  fun read(x) = x.key
+//│ ║        	           ^
+//│ ╟── Member 'read' is accessible here.
+//│ ║  l.+2: 	  fun read(x) = x.key
+//│ ║        	  ^^^^^^^^^^^
+//│ ╟── This type argument is supplied here.
+//│ ║  l.+3: 	private val makeParent = GenericLibrary.Parent[in Incoming out Any]
+//│ ║        	                                                  ^^^^^^^^
+//│ ╟── This value is returned here.
+//│ ║  l.+4: 	fun importedParent() = makeParent(new Incoming)
+//│ ║        	                       ^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── 'importedParent' is exposed by this compilation unit.
+//│ ║  l.+4: 	fun importedParent() = makeParent(new Incoming)
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ makeParent = fun Parent { class: class Parent }
+
+
+// Constructing and using the same type privately keeps the contents inferred from local calls.
+:expect "local"
+private fun localSink() = new Sink[Box](box => box.contents.word)
+localSink().accept(Box(Argument("local")))
 //│ = "local"
 
 
