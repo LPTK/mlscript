@@ -2282,12 +2282,17 @@ class NewResolver:
     // by writing the inherited annotation on its own declaration.
     transportType(tpe.instantiate(instances), path)
 
-  /** The written type of a formal, or of the member's result when `param` is absent, as seen
-    * through the receiver's parent clause. An override can inherit that type through several
-    * declarations. Each edge interprets the type arguments of its own parent clause.
-    * A slot with no written type anywhere along an override path yields `N` for that path.
+  /** Find the type a member declares or inherits for a parameter, a field, or a method result.
+    * `S(p)` selects parameter `p` of `td` and its counterpart in each overridden declaration.
+    * `N` selects the field's type or the method's result after all its parameter lists.
+    * Start at `td` and use the nearest matching annotation on each override path.
+    *
+    * Call `receive` with the declaring member and its type in the lookup scope given by `marks`
+    * and `instances`, applying the type arguments from each intervening parent clause. A path
+    * with no matching annotation supplies its last member and `N`. A forward declaration can
+    * supply a result after this call returns.
     */
-  private def operationType(td: TermDefinition, param: Opt[Param], marks: Ls[Marks],
+  private def listenDeclaredOrInheritedType(td: TermDefinition, param: Opt[Param], marks: Ls[Marks],
       instances: TypeSubstitution)(receive: (TermDefinition, Opt[DeclaredType]) => ResolutionContext ?=> Unit)(using ResolutionContext): Unit =
     def visit(td: TermDefinition, param: Opt[Param], marks: Ls[Marks], instances: TypeSubstitution,
         seen: Set[TermSymbol])(emit: (TermDefinition, Opt[DeclaredType]) => ResolutionContext ?=> Unit)(using ResolutionContext): Unit =
@@ -2324,7 +2329,8 @@ class NewResolver:
   private[semantics] def externalInput(td: Opt[TermDefinition], param: Opt[Param], fallback: TermShape)
       (receive: Listener)(using ResolutionContext): Unit = td match
     case S(d) if d.owner.nonEmpty && !d.tsym.isPrivate && slotSignature(d, param).isEmpty =>
-      operationType(d, param, Nil, TypeSubstitution.empty)((_, tpe) => receive(tpe.fold(fallback)(instanceShape)))
+      listenDeclaredOrInheritedType(d, param, Nil, TypeSubstitution.empty): (_, tpe) =>
+        receive(tpe.fold(fallback)(instanceShape))
     case _ => receive(fallback)
 
   /** An override reachable through an exposed base member inherits the input wherever it omits
@@ -2342,7 +2348,7 @@ class NewResolver:
         // annotation needs projection through this new parent clause.
         val declared = projectedSlot(base, param, inheritedMarks, instances).map(instanceShape)
         interfaceInputs(symbol).listen(value => receive(declared.getOrElse(inheritedInput(value))))(using rctx.state.context)
-      else operationType(base, param, inheritedMarks, instances): (_, tpe) =>
+      else listenDeclaredOrInheritedType(base, param, inheritedMarks, instances): (_, tpe) =>
         receive(tpe.map(instanceShape).getOrElse(param match
           case S(p) =>
             val rest = base.params.exists(_.variadic.exists(_.param.sym is p.sym))
@@ -2388,7 +2394,7 @@ class NewResolver:
   private def checkOverrideResult(base: TermDefinition, overriding: TermDefinition, marks: Ls[Marks],
       instances: TypeSubstitution)(using ResolutionContext): Unit =
     if writtenSignature(overriding).isEmpty then
-      operationType(base, N, marks, instances): (origin, declared) =>
+      listenDeclaredOrInheritedType(base, N, marks, instances): (origin, declared) =>
         declared.filter(_ => origin.generatorAnnotation.isEmpty).foreach: result =>
           val expected = captureType(result, overriding.tsym)
           overriding.body.foreach: body =>
