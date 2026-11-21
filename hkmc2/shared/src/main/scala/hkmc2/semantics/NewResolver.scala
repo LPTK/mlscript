@@ -2609,16 +2609,15 @@ class NewResolver:
     */
   private def matchParameterTypes(signature: Term, lists: Ls[ParamList])(
       receive: (Param, DeclaredType) => ResolutionContext ?=> Unit)(using ResolutionContext): Unit =
-    def singleArrow(res: TypeResolution, seen: Set[TypeResolution])(using ResolutionContext): Bool =
-      if seen(res) then false else
-        def next(inner: TypeResolution): Bool = singleArrow(inner, seen + res)
-        res.currentShapes.toList match
+    def singleArrow(tpe: DeclaredType, args: TypeApplication, seen: Set[TypeResolution])(using ResolutionContext): Bool =
+      if seen(tpe.resolution) then false else
+        val next = seen + tpe.resolution
+        tpe.shapes match
           case TypeShape.Function(_, _) :: Nil => true
-          case TypeShape.Reference(base, _, _, _) :: Nil => next(base)
-          case TypeShape.Contextual(ref) :: Nil => next(ref.tpe.resolution)
-          case TypeShape.Applied(base, _) :: Nil => next(base)
-          case TypeShape.Alias(_, S(rhs)) :: Nil => next(rhs)
-          case TypeShape.Polymorphic(_, _, body) :: Nil => next(body)
+          case TypeShape.Polymorphic(params, _, body) :: Nil =>
+            singleArrow(declaredType(body, tpe.withoutBinders(params.map(_.parameter.symbol))), args, next)
+          case TypeShape.CapturedArgument(arg) :: Nil => singleArrow(arg.output.instantiate(tpe.instances), args, next)
+          case shape :: Nil => reduceType(tpe, args, shape).exists(step => singleArrow(step.tpe, step.args, next))
           case _ => false
     def loop(value: TermShape, remaining: Ls[ParamList], checkLayout: Bool)(using ResolutionContext): Unit = remaining match
       case Nil => ()
@@ -2626,7 +2625,7 @@ class NewResolver:
         case Marked(callable: CallableTypeShape, marks) =>
           val declared = callable.paramLists.head
           val check = checkLayout && (value match
-            case Marked(instance: InstanceShape, _) => singleArrow(instance.tpe.resolution, Set.empty)
+            case Marked(instance: InstanceShape, _) => singleArrow(instance.tpe, noTypeArguments, Set.empty)
             case _ => false)
           if check && Arity(params) != Arity(declared) then
             rctx.report(ErrorReport(
