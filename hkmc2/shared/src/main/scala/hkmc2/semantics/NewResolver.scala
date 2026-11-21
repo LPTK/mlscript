@@ -1010,7 +1010,8 @@ class NewResolver:
       case TypeShape.CapturedArgument(arg) => arg.foreachBound(bound => visit(bound.instantiate(tpe.instances), Nil))
       case TypeShape.Combined(formula) => formula.orderedAtoms.foreach(atom => visit(atom.instantiate(tpe.instances), Nil))
       case TypeShape.Parameter(symbol = sym) =>
-        tpe.bindings.get(sym).foreach(arg => visit(arg.instantiate(tpe.instances).at(tpe.positive), Nil))
+        // Either bound can name a class or an omitted argument in the exposed interface.
+        tpe.bindings.get(sym).foreach(_.foreachBound(bound => visit(bound.instantiate(tpe.instances), Nil)))
       case TypeShape.Alias(symbol, _) => children(tpe.withoutBinders(symbol.defn.toList.flatMap(_.tparams.map(_.sym))))
       case TypeShape.Polymorphic(params = params) => children(tpe.withoutBinders(params.map(_.parameter.symbol)))
       case _ => children(tpe)

@@ -485,6 +485,30 @@ fun typed() = [typedReader(), typedBox(), new TypedBoxSink]
 //│ = ["typed", "local", "sunk"]
 
 
+// External callers can supply boxes through the input bound of the exported callback.
+:e
+private class Service[T](run: T -> Str) with
+  fun handler(): T -> Str = run
+private val service: Service[in Box out Any] = Service[Box](box => box.contents.word)
+fun handler() = service.handler()
+handler()(Box(Argument("local")))
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+3: 	private val service: Service[in Box out Any] = Service[Box](box => box.contents.word)
+//│ ║        	                                                                   ^^^^^^^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'word' of a value with unknown shape.
+//│ ╟── Type argument 'T' is omitted here and admits values of unknown shape.
+//│ ║  l.+3: 	private val service: Service[in Box out Any] = Service[Box](box => box.contents.word)
+//│ ║        	                                ^^^
+//│ ╟── This value is returned here.
+//│ ║  l.+4: 	fun handler() = service.handler()
+//│ ║        	                ^^^^^^^^^^^^^^^^^
+//│ ╟── 'handler' is exposed by this compilation unit.
+//│ ║  l.+4: 	fun handler() = service.handler()
+//│ ╙──      	^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ service = Service(_)
+
+
 // An annotated value that does not escape keeps the contents inferred in this compilation unit.
 :expect "local"
 private fun readLocal(box) = box.contents.word
