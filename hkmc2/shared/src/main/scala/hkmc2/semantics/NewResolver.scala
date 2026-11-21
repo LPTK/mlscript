@@ -121,7 +121,7 @@ class NewResolver:
             case contextual: ContextualSymShape => (contextual.source, contextual.instances)
             case source: CoreSymShape => (source, TypeSubstitution.empty)
           val bindings = source match
-            case declared: DeclaredSymShape => declared.bindings
+            case declared: DeclaredSymShape => declared.bindings.view.mapValues(captureReceiverArgument).toMap
             case _ => Map.empty[VarSymbol, TypeArgument]
           if shape.markss.isEmpty && bindings.isEmpty && instances.isEmpty then select(symbol)
           else
@@ -372,7 +372,7 @@ class NewResolver:
                 // reads the templates written at their sites (see closure).
                 direct = tpe.instances.values.foldLeft(direct)((acc, instance) => union(acc, instance.siteBinders))
               else visit(tpe.resolution)
-              tpe.bindings.values.foreach(argument => { reference(argument.input); reference(argument.output) })
+              tpe.bindings.values.foreach(_.foreachBound(reference))
             shapes.foreach:
               case TypeShape.Parameter(symbol = symbol) => symbol match
                 // A reference to an already selected instance reads the
@@ -394,7 +394,7 @@ class NewResolver:
                 if throughReferences && omitsArguments(res, bound.size) then direct = union(direct, useScope(res))
               case TypeShape.Reference(base, _, bindings, instances) =>
                 edge(base, bindings.keySet)
-                bindings.values.foreach(argument => { reference(argument.input); reference(argument.output) })
+                bindings.values.foreach(_.foreachBound(reference))
                 if throughReferences then
                   direct = instances.values.foldLeft(direct)((acc, instance) => union(acc, instance.siteBinders))
               case TypeShape.Applied(base, args) =>
@@ -433,6 +433,7 @@ class NewResolver:
               // or inference hosts; none reads the surrounding binding map.
               case TypeShape.Combined(formula) => formula.orderedAtoms.foreach(reference)
               case TypeShape.Contextual(context) => reference(context.tpe)
+              case TypeShape.CapturedArgument(arg) => arg.foreachBound(reference)
               case TypeShape.Inferred(_) | TypeShape.Hole(_) =>
                 if throughReferences && templates.isEmpty then
                   lastWords(s"Template host for ${res.source.describe} must record its scope")
@@ -476,6 +477,7 @@ class NewResolver:
     case TypeShape.Negation(base) => visit(base)
     case TypeShape.Combined(formula) => formula.orderedAtoms.foreach(atom => visit(atom.resolution))
     case TypeShape.Contextual(reference) => visit(reference.tpe.resolution)
+    case TypeShape.CapturedArgument(arg) => arg.foreachBound(tpe => visit(tpe.resolution))
     case _ => ()
 
   /** Check guarded recursion and substitutions on the finite source graph, before observing
@@ -551,6 +553,7 @@ class NewResolver:
               follow(body)
             case TypeShape.Combined(formula) => formula.orderedAtoms.foreach(atom => follow(atom.resolution))
             case TypeShape.Contextual(reference) => follow(reference.tpe.resolution)
+            case TypeShape.CapturedArgument(arg) => arg.foreachBound(tpe => follow(tpe.resolution))
             case _ => ()
       // Structural children start fresh paths, so every cycle is checked even
       // when an enclosing interface guards the use of an invalid alias.
@@ -571,6 +574,7 @@ class NewResolver:
           case TypeShape.Parameter(symbol = symbol) :: Nil => bound(symbol, wrapped)
           case TypeShape.Combined(formula) :: Nil => formula.atoms.flatMap(uses(_, wrapped, next, aliases))
           case TypeShape.Contextual(reference) :: Nil => uses(reference.tpe, wrapped, next, aliases)
+          case TypeShape.CapturedArgument(arg) :: Nil => uses(arg.input, wrapped, next, aliases) ++ uses(arg.output, wrapped, next, aliases)
           case TypeShape.Applied(base, args) :: Nil => alias(base) match
             case S((symbol, rhs)) if !aliases(symbol) =>
               // Constructor analysis ignores scope crossings, but still follows
@@ -814,6 +818,16 @@ class NewResolver:
       declaredType(resolution, Map.empty)
     })
 
+  /** Bind a qualified type member to its receiver's particular type argument. For
+    * `family.Element` with `type Element = T`, the argument for `T` stays fixed wherever
+    * `family.Element` appears. Reads use its output bound and writes use its input bound.
+    */
+  private def captureReceiverArgument(argument: TypeArgument)(using ResolutionContext): TypeArgument =
+    if argument.input == argument.output then argument else
+      val shape = TypeShape.CapturedArgument(argument)
+      val tpe = rctx.state.capturedArguments.getOrElseUpdate(argument, DeclaredType.shared(shape)(invalidSynthesizedType))
+      TypeArgument.invariant(tpe.withInterpretation(shape))
+
   private def extremeType(top: Bool)(using ResolutionContext): DeclaredType =
     rctx.state.extremeTypes.getOrElseUpdate(top, {
       val resolution = new TypeResolution(Term.Missing,
@@ -993,6 +1007,7 @@ class NewResolver:
         visit(DeclaredType(ref.base, tpe.bindings ++ ref.bindings,
           tpe.instances.withOverrides(ref.instances), tpe.positive)(tpe.origin), ref.marks)
       case TypeShape.Contextual(ref) => visit(ref.tpe.instantiate(tpe.instances), ref.marks)
+      case TypeShape.CapturedArgument(arg) => arg.foreachBound(bound => visit(bound.instantiate(tpe.instances), Nil))
       case TypeShape.Combined(formula) => formula.orderedAtoms.foreach(atom => visit(atom.instantiate(tpe.instances), Nil))
       case TypeShape.Parameter(symbol = sym) =>
         tpe.bindings.get(sym).foreach(arg => visit(arg.instantiate(tpe.instances).at(tpe.positive), Nil))
@@ -1508,6 +1523,8 @@ class NewResolver:
               case TypeShape.Top => publish(OpaqueTypeShape(source)(
                 current.origin.getOrElse(TypeInterfaceReason.Unrestricted(source))))
               case TypeShape.Bottom => ()
+              case TypeShape.CapturedArgument(arg) =>
+                listenTypeViews(arg.output.instantiate(current.instances), mergeIntersections)(publish)
               case TypeShape.Inferred(value) => listenInstanceFlow(instantiateShape(value, current.instances), mergeIntersections)(publish)
               case TypeShape.Hole(host) => host.subscribe: value =>
                 listenInstanceFlow(instantiateShape(value, current.instances), mergeIntersections)(publish)
@@ -2112,6 +2129,7 @@ class NewResolver:
             case actual: TermShape => listener(actual, captures ::: marks)
             case NoShape => ()
       def leaf(shape: TypeShape)(using ResolutionContext): Unit = shape match
+        case TypeShape.CapturedArgument(arg) => follow(arg.input.instantiate(tpe.instances), noTypeArguments, captures, next)
         case parameter: TypeShape.Parameter =>
           val symbol = parameter.symbol
           val target = tpe.instances.get(symbol)
@@ -4141,6 +4159,9 @@ class NewResolver:
               follow(bound, if refine then writtenWitness(bound) else reason, refine)
             case TypeShape.Polymorphic(params, _, body) =>
               walk(declaredType(body, current.withoutBinders(params.map(_.parameter.symbol))), args, reason, refine, next)
+            case TypeShape.CapturedArgument(arg) =>
+              val bound = if provided then arg.output else arg.input
+              follow(bound.instantiate(current.instances), reason, refine)
             case parameter: TypeShape.Parameter => if provided then
               listenTypeParameterValues(current.instances.get(parameter.symbol).fold(parameter)(rctx.typeParameter)): value =>
                 valueNamespaces(ref, namespaces, instantiateShape(value, current.instances))

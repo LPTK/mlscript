@@ -248,6 +248,8 @@ final class NewResolverState(val owner: Elaborator.State):
   // Shared by every use of the same formula, so the combinations have no source (see DeclaredType.shared).
   val combinedTypes: Cache[TypeFormula[DeclaredType], DeclaredType] =
     new Cache(_.combinedTypes, identity)
+  val capturedArguments: Cache[TypeArgument, DeclaredType] =
+    new Cache(_.capturedArguments, identity)
   val pendingTypeDependencies: Cache[TypeResolution, TypeDependencyHost] =
     new Cache(_.pendingTypeDependencies, identity)
   val dependencySubscriptions: Seen[(TypeResolution, TypeResolution)] =

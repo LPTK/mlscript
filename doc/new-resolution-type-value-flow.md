@@ -237,6 +237,14 @@ signatures subsequently interpret them from the member's positive interface.
 `TransparentAliasPolarity.mls` covers shorthand and explicit projections;
 `VarianceAliases.mls` covers captured binders and nested identity aliases.
 
+A qualified type member refers to the particular receiver in its name. For a
+value `family: Family[in Dog out Animal]` with `type Element = T`, a value of
+type `family.Element` can be any `Animal`, including when it arrives as a
+function argument. The resolver keeps the receiver argument's bounds together
+when it resolves that type name. Reading a value uses its output bound and
+checking a supplied value uses its input bound. `QualifiedTypeBounds.mls`
+exercises both cases, including a function type defined inside the receiver.
+
 `DeclaredType.positive` records this lexical polarity, independently of a later
 constraint's direction. `TypeArgumentResolution.Wildcard` retains written parts;
 `TypeArgument` retains both interpreted bounds as proper `DeclaredType` references.
