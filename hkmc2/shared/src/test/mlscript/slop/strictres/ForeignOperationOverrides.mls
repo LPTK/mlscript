@@ -78,6 +78,27 @@ private class PublicLeaf extends Inherited.Middle[Payload](Payload(1)) with
   fun read() = item.key
 fun publicLeaf(): PublicLeaf = new PublicLeaf
 
+// Calls through the imported Root can reach all three private classes. LocalMiddle widens
+// the parameter to Any, which both unannotated overrides inherit.
+:e
+private class LocalMiddle extends Inherited.Root[Payload](Payload(0)) with
+  open override fun inspect(x: Any): Int = 0
+private class LocalChild extends LocalMiddle with
+  open override fun inspect(x): Int = 0
+private class LocalLeaf extends LocalChild with
+  override fun inspect(x) = x.key
+new LocalLeaf().inspect(Payload(1))
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+6: 	  override fun inspect(x) = x.key
+//│ ║        	                            ^^^^^
+//│ ╟── Value with an empty interface does not contain member 'key'
+//│ ║  l.+2: 	  open override fun inspect(x: Any): Int = 0
+//│ ║        	                               ^^^
+//│ ╟── Type 'Any' is declared without a member interface.
+//│ ║  in ../../decls/Prelude.mls
+//│ ║  l.XX: 	declare type Any
+//│ ╙──      	             ^^^
+
 // A result written in another unit bounds the callback that an unannotated override returns or holds.
 :e
 private fun returnedCallback(x) = x.only
