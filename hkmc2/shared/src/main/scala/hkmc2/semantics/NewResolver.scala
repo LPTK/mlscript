@@ -5092,10 +5092,13 @@ class NewResolver:
     * from its class to the class of the overridden member along the reverse of the path that links them (see
     * `OverridingMember`), and then follows `markss`. The parent clauses on the reversed path are the sites
     * at which the value enters the scopes of the ancestor classes, so `markss` only lets the value through
-    * if it leaves these scopes through the same parent clauses. A reference whose receiver is an instance
-    * of the ancestor class itself, or of a subclass that does not inherit from the overriding class, thus
-    * reads no value of the overriding member, whereas a reference inside the ancestor class, which does not
-    * leave its scope, reads the values of all the overriding members.
+    * if it leaves these scopes through the same parent clauses, at no particular site, or not at all.
+    * The value of the receiver decides, however the reference writes it. A receiver created as an instance
+    * of the ancestor class (`new Maker()`), or of a subclass that does not inherit from the overriding class,
+    * leaves the ancestor's scope at its instantiation or through the parent clause of its own class: a
+    * reference to it reads no value of the overriding member. The `this` of the ancestor class stands for
+    * the instances of all its subclasses, including through a variable or a parameter that holds it: a
+    * reference to it reads the values of all the overriding members.
     * A reference reads a field or getter with a written type, or a method with a fully written signature,
     * through its declared interface alone (see `listenDeclaredMember`). Type checking will require the
     * overriding members to conform to that interface.

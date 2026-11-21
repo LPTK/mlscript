@@ -49,6 +49,40 @@ new SecondThisMaker().read()
 //│ ╙──      	                        ^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
+// A variable or a parameter that holds `this` stands for the same instances as `this` does.
+:e
+private class AliasMaker with
+  open fun make() = new First
+  fun read() =
+    let that = this
+    that.make().first()
+private class SecondAliasMaker extends AliasMaker with
+  override fun make() = new Second
+new SecondAliasMaker().read()
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+5: 	    that.make().first()
+//│ ║        	    ^^^^^^^^^^^^^^^^^
+//│ ╟── Instance of class 'Second' does not contain member 'first'
+//│ ║  l.+7: 	  override fun make() = new Second
+//│ ╙──      	                        ^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+:e
+private fun readFrom(maker) = maker.make().first()
+private class PassedMaker with
+  open fun make() = new First
+  fun read() = readFrom(this)
+private class SecondPassedMaker extends PassedMaker with
+  override fun make() = new Second
+new SecondPassedMaker().read()
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+1: 	private fun readFrom(maker) = maker.make().first()
+//│ ║        	                              ^^^^^^^^^^^^^^^^^^
+//│ ╟── Instance of class 'Second' does not contain member 'first'
+//│ ║  l.+6: 	  override fun make() = new Second
+//│ ╙──      	                        ^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
 // An overridden field is read the same way.
 :e
 private class Holder with
@@ -310,7 +344,9 @@ local()
 //│ = "first"
 
 
-// A reference whose receiver is an instance of the overridden member's own class reads no overriding member.
+// What a reference reads depends on the value of its receiver, not on how the reference writes it. A receiver
+// created as an instance of the overridden member's own class is no instance of a subclass: a reference to it
+// reads no overriding member.
 :expect "first"
 private class ExactMaker with
   open fun make() = new First
@@ -324,7 +360,7 @@ new ExactMaker().read().first()
 new Self().self().make().first()
 //│ = "first"
 
-// Neither does a reference whose receiver is an instance of a subclass that does not inherit the overriding member.
+// Neither does a reference to an instance created from a subclass that does not inherit the overriding member.
 :expect "first"
 private class Root with
   open fun make() = new First
@@ -488,10 +524,11 @@ DroppedSuffix().pick(5, "ignored")
 //│ = 5
 
 
-// FIXME: The values of the selected member reach all its references, including those whose receiver is an
-// instance of a class that overrides the member, where the selected member is not evaluated. An instance of
-// `BothMaker` only makes instances of `Both`, but the selection below also finds `First`, which lacks `second`.
-:fixme
+// The body of a class is resolved once for all its instances, so the values of the selected member reach all
+// its references, including those whose receiver is an instance of a class that overrides the member, where the
+// selected member is not evaluated. An instance of `BothMaker` only makes instances of `Both`, but the selection
+// below also finds `First`, which lacks `second`.
+:e // TODO: allow?
 private class DefaultMaker with
   open fun make() = new First
   fun read() = make()

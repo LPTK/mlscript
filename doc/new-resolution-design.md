@@ -135,12 +135,15 @@ that finds the overridden member from its class, in the `OverridingMembers` host
 the overridden member. `fromBMSAt` and `assignableTargets` subscribe to that host,
 so that a subclass defined after a reference still contributes its members.
 [Scope marks](new-resolution-scopes.md#maintaining-the-endpoint-premise) decide which
-references observe an overriding member: every reference in the body of the ancestor
-class, which is inferred once for all the instances that evaluate it, and no reference
-to an instance of the ancestor class itself or of a class outside the overriding
-class's ancestry. The selected member remains the only resolved target of the
-reference: lowering emits a virtual selection, and erasure joins the representations
-of the override family.
+references observe an overriding member, from the value of their receiver and not
+from how they write it. The `this` of the ancestor class stands for the instances of
+all its subclasses, as the body of a class is inferred once for all the instances
+that evaluate it: a reference to it observes every overriding member, including
+through a variable or a parameter that holds it. A receiver created as an instance
+of the ancestor class itself (`new Maker()`), or of a class outside the overriding
+class's ancestry, observes none. The selected member remains the only resolved
+target of the reference: lowering emits a virtual selection, and erasure joins the
+representations of the override family.
 
 Two kinds of reference do not observe overriding members. A reference through
 `super` denotes the inherited definition itself (`SuperSymShape`). A reference to
