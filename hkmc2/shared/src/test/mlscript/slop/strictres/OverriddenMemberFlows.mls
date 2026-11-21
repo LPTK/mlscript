@@ -1,9 +1,10 @@
 :.
 
-// A reference to an overridable member through `this` evaluates the members that override it in the classes of
-// the instances that reach it. Resolution only follows the definition of the referenced member itself.
-// TODO: Check the values that overriding members return and receive against the overridden member's (see
-// "Inferred member signatures" in doc/new-resolution-future-work.md). The blocks marked below are accepted.
+// The receiver of a reference to an overridable member can be an instance of a subclass, where another member
+// overrides the one that the reference selects. Such a reference also reads the overriding members: their results,
+// the values of their fields, and their parameters, which receive the arguments of its calls.
+// The body of a class is resolved once for all the instances that evaluate it, so the references it makes through
+// `this` read the overriding members of every subclass (see also ../wasm/OverriddenMemberFlows.mls).
 
 private class First with
   fun first() = "first"
@@ -11,48 +12,61 @@ private class First with
 private class Second with
   fun second() = "second"
 
+private class Both with
+  fun first() = "first of both"
+  fun second() = "second of both"
 
-// The selection of `first` is resolved in `First` alone, but the call returns an instance of `Second`.
-:breakme
+
+// The call in `read` returns an instance of `Second` when the receiver is an instance of `SecondMaker`.
 :e
-:re
 private class Maker with
   open fun make() = new First
   fun read() = make().first()
 private class SecondMaker extends Maker with
   override fun make() = new Second
 new SecondMaker().read()
-//│ ═══[RUNTIME ERROR] TypeError: tmp1.first is not a function
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+3: 	  fun read() = make().first()
+//│ ║        	               ^^^^^^^^^^^^
+//│ ╟── Instance of class 'Second' does not contain member 'first'
+//│ ║  l.+5: 	  override fun make() = new Second
+//│ ╙──      	                        ^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 // An explicit `this` selects the same member.
-:breakme
 :e
-:re
 private class ThisMaker with
   open fun make() = new First
   fun read() = this.make().first()
 private class SecondThisMaker extends ThisMaker with
   override fun make() = new Second
 new SecondThisMaker().read()
-//│ ═══[RUNTIME ERROR] TypeError: tmp2.first is not a function
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+3: 	  fun read() = this.make().first()
+//│ ║        	               ^^^^^^^^^^^^^^^^^
+//│ ╟── Instance of class 'Second' does not contain member 'first'
+//│ ║  l.+5: 	  override fun make() = new Second
+//│ ╙──      	                        ^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 // An overridden field is read the same way.
-:breakme
 :e
-:re
 private class Holder with
   open val item = new First
   fun read() = item.first()
 private class SecondHolder extends Holder with
   override val item = new Second
 new SecondHolder().read()
-//│ ═══[RUNTIME ERROR] TypeError: this.item.first is not a function
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+3: 	  fun read() = item.first()
+//│ ║        	               ^^^^^^^^^^
+//│ ╟── Instance of class 'Second' does not contain member 'first'
+//│ ║  l.+5: 	  override val item = new Second
+//│ ╙──      	                      ^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
-// The parameter of the overriding member only holds the arguments of the calls that select it, not those of
-// the call in `run`, which selects the overridden member.
-:breakme
+// The parameter of an overriding member also receives the arguments of the calls that select the overridden one.
 :e
-:re
 private class Taker with
   open fun take(x) = "base"
   fun run() = take(new First)
@@ -60,10 +74,15 @@ private class SecondTaker extends Taker with
   override fun take(x) = x.second()
 new SecondTaker().take(new Second)
 new SecondTaker().run()
-//│ ═══[RUNTIME ERROR] TypeError: x.second is not a function
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+5: 	  override fun take(x) = x.second()
+//│ ║        	                         ^^^^^^^^
+//│ ╟── Instance of class 'First' does not contain member 'second'
+//│ ║  l.+3: 	  fun run() = take(new First)
+//│ ╙──      	                   ^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
-// The result of `read` takes the representation of the instances that `Producer.make` creates, to which the
-// result of the call is converted, although the call returns an instance of `Second` here.
+// The result of `read` takes a representation that the instances created by both members share.
 :sir
 :siret
 private class Producer with
@@ -75,7 +94,7 @@ private fun produce() = new SecondProducer().read()
 produce()
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ @private
-//│ define produce⁰ as fun produce¹(): First⁰ {
+//│ define produce⁰ as fun produce¹(): Object⁰ {
 //│   let tmp: SecondProducer⁰;
 //│   set tmp = new SecondProducer⁰();
 //│   return tmp.read⁰()
@@ -85,8 +104,8 @@ produce()
 //│   method make⁰ = fun make¹(): Object⁰ {
 //│     return new First⁰()
 //│   }
-//│   method read¹ = fun read⁰(): First⁰ {
-//│     return (Producer¹.this.make¹() as! First⁰)
+//│   method read¹ = fun read⁰(): Object⁰ {
+//│     return Producer¹.this.make¹()
 //│   }
 //│ };
 //│ @private
@@ -106,3 +125,383 @@ private class TypedSecondMaker extends TypedMaker with
   override fun make() = new First
 new TypedSecondMaker().read()
 //│ = "first"
+
+// An abstract member has no value of its own: a reference to it reads its implementations.
+:expect "first"
+private abstract class AbstractMaker with
+  fun make()
+  fun read() = make().first()
+private class ConcreteMaker extends AbstractMaker with
+  fun make() = new First
+new ConcreteMaker().read()
+//│ = "first"
+
+// An abstract method of a generic class is read through its declared interface, whose result is unknown.
+// Its implementations still receive the arguments of its calls.
+:e
+private abstract class Folder[T] with
+  fun step(x)
+  fun run() = step(new First)
+private class SecondFolder extends Folder[Int] with
+  fun step(x) = x.second()
+new SecondFolder().step(new Second)
+new SecondFolder().run()
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+5: 	  fun step(x) = x.second()
+//│ ║        	                ^^^^^^^^
+//│ ╟── Instance of class 'First' does not contain member 'second'
+//│ ║  l.+3: 	  fun run() = step(new First)
+//│ ╙──      	                   ^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// The member of an object and the member of a refined instance override the members of their class too.
+:e
+private class Greeter with
+  open fun greet() = new First
+  fun run() = greet().first()
+private object Loud extends Greeter with
+  override fun greet() = new Second
+Loud.run()
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+3: 	  fun run() = greet().first()
+//│ ║        	              ^^^^^^^^^^^^^
+//│ ╟── Instance of class 'Second' does not contain member 'first'
+//│ ║  l.+5: 	  override fun greet() = new Second
+//│ ╙──      	                         ^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+:e
+private class Host with
+  open fun greet() = new First
+  fun run() = greet().first()
+private fun refined() = new Host with
+  override fun greet() = new Second
+refined().run()
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+3: 	  fun run() = greet().first()
+//│ ║        	              ^^^^^^^^^^^^^
+//│ ╟── Instance of class 'Second' does not contain member 'first'
+//│ ║  l.+5: 	  override fun greet() = new Second
+//│ ╙──      	                         ^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// A class defined after a reference contributes its members to it.
+:e
+private fun early() = new LateMaker().read()
+private class EarlyMaker with
+  open fun make() = new First
+  fun read() = make().first()
+private class LateMaker extends EarlyMaker with
+  override fun make() = new Second
+early()
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+4: 	  fun read() = make().first()
+//│ ║        	               ^^^^^^^^^^^^
+//│ ╟── Instance of class 'Second' does not contain member 'first'
+//│ ║  l.+6: 	  override fun make() = new Second
+//│ ╙──      	                        ^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// An instance that leaves its class through `this` is still an instance of any subclass.
+:e
+private class Self with
+  open fun make() = new First
+  fun self() = this
+private class SecondSelf extends Self with
+  override fun make() = new Second
+new SecondSelf().self().make().first()
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+6: 	new SecondSelf().self().make().first()
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Instance of class 'Second' does not contain member 'first'
+//│ ║  l.+5: 	  override fun make() = new Second
+//│ ╙──      	                        ^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// A method value that a reference selects stands for the overriding methods too.
+:e
+private class Factory with
+  open fun make(x) = new First
+  fun maker() = make
+private class SecondFactory extends Factory with
+  override fun make(x) = new Second
+new SecondFactory().maker()(1).first()
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+6: 	new SecondFactory().maker()(1).first()
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Instance of class 'Second' does not contain member 'first'
+//│ ║  l.+5: 	  override fun make(x) = new Second
+//│ ╙──      	                         ^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// A pattern reads an overridden field like a selection does.
+:e
+private class Pair(val left, val right)
+private class Tree with
+  open val content = Pair(new First, new First)
+  fun leftmost() = if content is Pair(l, _) then l.first()
+private class SecondTree extends Tree with
+  override val content = Pair(new Second, new Second)
+new SecondTree().leftmost()
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+4: 	  fun leftmost() = if content is Pair(l, _) then l.first()
+//│ ║        	                                                 ^^^^^^^
+//│ ╟── Instance of class 'Second' does not contain member 'first'
+//│ ║  l.+6: 	  override val content = Pair(new Second, new Second)
+//│ ╙──      	                              ^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// The members of a generic class and of a class defined in a function are overridden like the others.
+:expect "first"
+private class Box[T](val content: T) with
+  open fun get() = content
+  fun read() = get()
+private class Tagged[U](val tag: U) extends Box[U](tag) with
+  override fun get() = tag
+new Tagged(new First).read().first()
+//│ = "first"
+
+// In the body of `Sealed`, a value of the type parameter of an overriding class has no known interface.
+:e
+private class Sealed[T](val content: T) with
+  open fun get() = new First
+  fun read() = get().first()
+private class Replaced[U](val tag: U) extends Sealed[U](tag) with
+  override fun get() = tag
+new Replaced(new Second).read()
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+3: 	  fun read() = get().first()
+//│ ║        	               ^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'first' of a value with unknown shape.
+//│ ║  l.+4: 	private class Replaced[U](val tag: U) extends Sealed[U](tag) with
+//│ ║        	                                   ^
+//│ ╟── Type parameter 'U' does not specify a member interface.
+//│ ║  l.+4: 	private class Replaced[U](val tag: U) extends Sealed[U](tag) with
+//│ ╙──      	                       ^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+:e
+private class Outer with
+  open fun make() = new First
+  fun read() = make().first()
+private fun inner() =
+  class Inner extends Outer with
+    override fun make() = new Second
+  new Inner().read()
+inner()
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+3: 	  fun read() = make().first()
+//│ ║        	               ^^^^^^^^^^^^
+//│ ╟── Instance of class 'Second' does not contain member 'first'
+//│ ║  l.+6: 	    override fun make() = new Second
+//│ ╙──      	                          ^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+:expect "first"
+private fun local() =
+  class LocalMaker with
+    open fun make() = new First
+    fun read() = make()
+  class LocalSecondMaker extends LocalMaker with
+    override fun make() = new Second
+  new LocalSecondMaker().read()
+  new LocalMaker().read().first()
+local()
+//│ = "first"
+
+
+// A reference whose receiver is an instance of the overridden member's own class reads no overriding member.
+:expect "first"
+private class ExactMaker with
+  open fun make() = new First
+  fun read() = make()
+private class ExactSecondMaker extends ExactMaker with
+  override fun make() = new Second
+new ExactMaker().read().first()
+//│ = "first"
+
+:expect "first"
+new Self().self().make().first()
+//│ = "first"
+
+// Neither does a reference whose receiver is an instance of a subclass that does not inherit the overriding member.
+:expect "first"
+private class Root with
+  open fun make() = new First
+  fun read() = make()
+private class Left extends Root with
+  override fun make() = new Second
+private class Right extends Root
+new Right().read().first()
+//│ = "first"
+
+// `Middle` inherits the member that `Bottom` overrides: an instance of `Middle` is not an instance of `Bottom`.
+:expect "first"
+private class Top with
+  open fun make() = new First
+private class Middle extends Top with
+  fun read() = this.make()
+private class Bottom extends Middle with
+  override fun make() = new Second
+new Middle().read().first()
+//│ = "first"
+
+:e
+new Bottom().read().first()
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+1: 	new Bottom().read().first()
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Instance of class 'Second' does not contain member 'first'
+//│ ║  l.XX: 	  override fun make() = new Second
+//│ ╙──      	                        ^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// The arguments of a call on an instance of the overridden member's class do not reach the overriding member.
+:expect "second"
+private class ExactTaker with
+  open fun take(x) = "base"
+private class ExactSecondTaker extends ExactTaker with
+  override fun take(x) = x.second()
+new ExactTaker().take(new First)
+new ExactSecondTaker().take(new Second)
+//│ = "second"
+
+// A reference through `super` reads the inherited member only, whatever the class of the instance.
+:expect "first"
+private class Wrapper(val inner)
+private class Source with
+  open fun make() = new First
+private class WrappingSource extends Source with
+  override fun make() = Wrapper(super.make().first())
+new WrappingSource().make().inner
+//│ = "first"
+
+// Each call of an overriding member returns its own argument.
+:expect ["first", "second"]
+private class Identity with
+  open fun same(x) = x
+  fun both() = [same(new First).first(), same(new Second).second()]
+private class Renamed extends Identity with
+  override fun same(y) = y
+new Renamed().both()
+//│ = ["first", "second"]
+
+// A private member of a subclass overrides no member.
+:expect "first"
+private class Keeper with
+  open fun make() = new First
+  fun read() = make().first()
+private class PrivateKeeper extends Keeper with
+  private fun make() = new Second
+new PrivateKeeper().read()
+//│ = "first"
+
+
+// An overriding mutable field holds the values assigned through the field it overrides.
+:e
+private class Cell with
+  open mut val item = new First
+  fun put(x) =
+    set item = x
+    ()
+private class BothCell extends Cell with
+  override mut val item = new Both
+private fun useCell() =
+  let cell = new mut BothCell
+  cell.put(new Second)
+  cell.item.first()
+useCell()
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+11: 	  cell.item.first()
+//│ ║         	  ^^^^^^^^^^^^^^^
+//│ ╟── Instance of class 'Second' does not contain member 'first'
+//│ ║  l.+10: 	  cell.put(new Second)
+//│ ╙──       	           ^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// A read through the overridden field returns the values assigned to the overriding one.
+:e
+private class Slot with
+  open mut val item = new First
+  fun get() = item
+private class OtherSlot extends Slot with
+  override mut val item = new First
+private fun useSlot() =
+  let slot = new mut OtherSlot
+  set slot.item = new Second
+  slot.get().first()
+useSlot()
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+9: 	  slot.get().first()
+//│ ║        	  ^^^^^^^^^^^^^^^^
+//│ ╟── Instance of class 'Second' does not contain member 'first'
+//│ ║  l.+8: 	  set slot.item = new Second
+//│ ╙──      	                  ^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// An assignment to an instance of the overridden field's class does not reach the overriding field.
+:expect "first"
+private class BaseCell with
+  open mut val item = new First
+private class DerivedCell extends BaseCell with
+  override mut val item = new First
+private fun useCells() =
+  let base = new mut BaseCell
+  let derived = new mut DerivedCell
+  set base.item = new Second
+  derived.item.first()
+useCells()
+//│ = "first"
+
+
+// A call passes all its arguments to an overriding member that omits a `drop` parameter.
+// The arity of the call is only checked against the member it selects.
+:noInline
+:expect 5
+private class DropSuffix() with
+  open fun pick(value, drop ignored) = value
+  fun run() = pick(5, "ignored")
+private class DroppedSuffix() extends DropSuffix() with
+  override fun pick(renamed) = renamed
+DroppedSuffix().run()
+//│ = 5
+
+:noInline
+:expect 5
+private class DropTyped() with
+  open fun pick(value, drop ignored) = value
+  fun run() = pick(5, "ignored")
+private class DroppedTyped() extends DropTyped() with
+  override fun pick(renamed: Int): Int = renamed
+DroppedTyped().run()
+//│ = 5
+
+// A direct call of the overriding member is checked against its own parameters.
+:e
+DroppedSuffix().pick(5, "ignored")
+//│ ╔══[COMPILATION ERROR] Resolution error in application
+//│ ║  l.+1: 	DroppedSuffix().pick(5, "ignored")
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Function 'pick' expected 1 argument, but got 2
+//│ ║  l.XX: 	  override fun pick(renamed) = renamed
+//│ ╙──      	  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ = 5
+
+
+// FIXME: The values of the selected member reach all its references, including those whose receiver is an
+// instance of a class that overrides the member, where the selected member is not evaluated. An instance of
+// `BothMaker` only makes instances of `Both`, but the selection below also finds `First`, which lacks `second`.
+:fixme
+private class DefaultMaker with
+  open fun make() = new First
+  fun read() = make()
+private class BothMaker extends DefaultMaker with
+  override fun make() = new Both
+new BothMaker().read().second()
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+6: 	new BothMaker().read().second()
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Instance of class 'First' does not contain member 'second'
+//│ ║  l.+2: 	  open fun make() = new First
+//│ ╙──      	                    ^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.

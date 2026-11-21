@@ -84,6 +84,9 @@ Override compatibility is part of this work: a base implementation returning
 return a different interface. Check overriding inputs and outputs against the
 inherited interface before completing targets or exposing inferred dispatch
 results. Preserve imported reference completion and consumer isolation.
+References with inferred receivers already observe the
+[overriding members](new-resolution-design.md#overriding-members) of an unannotated
+member; a nominal view needs the same flows before it exposes such a member.
 Regressions: `newres/DeclaredTypes.mls` and `PartialSignatures.mls`.
 
 ## Omitted-argument contexts

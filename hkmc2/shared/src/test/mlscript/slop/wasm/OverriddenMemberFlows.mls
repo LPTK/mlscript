@@ -7,13 +7,13 @@ open i32.{ const }
 //│ = {}
 
 
-// A reference to an overridable member through `this` is only resolved in the definition of that member
-// (see ../strictres/OverriddenMemberFlows.mls). Wasm selects a field by its position in the class that
-// resolution found. Reading the field from an instance of another class, which an overriding member returns,
-// yields the field of that instance at the same position, or fails if the layouts of the classes differ.
-// TODO: Reject these programs.
+// Wasm selects a field by its position in the class that resolution found, and converts the selection's receiver
+// to that class. A selection must therefore find the classes of all the instances that its receiver can be.
+// A reference to an overridable member reads the members that override it (see
+// ../strictres/OverriddenMemberFlows.mls), so the selections below also find the classes that the overriding
+// members instantiate, which lack the selected field. Reading the field from such an instance would yield the
+// field at the same position, or fail where the layouts of the two classes differ.
 
-:breakme
 :e
 :noInline
 private class Meters(val amount)
@@ -25,12 +25,16 @@ private class TimedSource extends Source with
   override fun make() = Seconds(const(2))
 private fun readSource() = new TimedSource().read()
 readSource()
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+5: 	  fun read() = make().amount
+//│ ║        	               ^^^^^^^^^^^^^
+//│ ╟── Instance of class 'Seconds' does not contain member 'amount'
+//│ ║  l.+7: 	  override fun make() = Seconds(const(2))
+//│ ╙──      	                        ^^^^^^^^^^^^^^^^^
 //│ Wasm result:
-//│ = 2
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
-:breakme
 :e
-:re
 :noInline
 private class Distance(val amount)
 private class Labeled(val label, val duration)
@@ -41,5 +45,39 @@ private class LabeledSource extends DistanceSource with
   override fun make() = Labeled("label", const(2))
 private fun readLabeled() = new LabeledSource().read()
 readLabeled()
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+5: 	  fun read() = make().amount
+//│ ║        	               ^^^^^^^^^^^^^
+//│ ╟── Instance of class 'Labeled' does not contain member 'amount'
+//│ ║  l.+7: 	  override fun make() = Labeled("label", const(2))
+//│ ╙──      	                        ^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ Wasm result:
-//│ ═══[RUNTIME ERROR] RuntimeError: illegal cast
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// The selection resolves to the field that the classes of both members' results inherit.
+:noInline
+private class Length(val amount)
+private class Yards(amount) extends Length(amount)
+private class Feet(amount) extends Length(amount)
+private class LengthSource with
+  open fun make() = Yards(const(1))
+  fun read() = make().amount
+private class FeetSource extends LengthSource with
+  override fun make() = Feet(const(2))
+private fun readLength() = new FeetSource().read()
+readLength()
+//│ Wasm result:
+//│ = 2
+
+// The parameter of the overriding member takes a representation that admits the arguments of the calls that
+// select the overridden member.
+:noInline
+private class Sink with
+  open fun take(x) = const(0)
+  fun run() = take(Yards(const(3)))
+private class LengthSink extends Sink with
+  override fun take(x) = x.amount
+private fun runSink() = new LengthSink().run()
+runSink()
+//│ Wasm result:
+//│ = 3

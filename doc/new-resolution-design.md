@@ -118,6 +118,52 @@ and return steps that expose it. `newres/InterfaceExposure.mls` covers discovery
 typed closures, overloads, and later exposure of a private definition from an
 earlier block; its expected failures also document remaining precision gaps.
 
+## Overriding members
+
+A member lookup follows the classes that its receiver is known to extend. The
+receiver can also be an instance of a subclass, where another member overrides
+the one that the lookup selects: in a method of `Maker`, `this.make()` calls
+`SecondMaker.make` on an instance of `SecondMaker`. A reference that reads the
+implementation of an overridable member (an `open` or abstract member of a class)
+therefore also observes the members that override it. It receives the values of
+overriding fields and getters, and the function values of overriding methods, to
+which calls supply their arguments and from which they read their results.
+An assignment to an overridable mutable field also writes the fields that override it.
+
+`registerInheritance` publishes each overriding member, with the path of the lookup
+that finds the overridden member from its class, in the `OverridingMembers` host of
+the overridden member. `fromBMSAt` and `assignableTargets` subscribe to that host,
+so that a subclass defined after a reference still contributes its members.
+[Scope marks](new-resolution-scopes.md#maintaining-the-endpoint-premise) decide which
+references observe an overriding member: every reference in the body of the ancestor
+class, which is inferred once for all the instances that evaluate it, and no reference
+to an instance of the ancestor class itself or of a class outside the overriding
+class's ancestry. The selected member remains the only resolved target of the
+reference: lowering emits a virtual selection, and erasure joins the representations
+of the override family.
+
+Two kinds of reference do not observe overriding members. A reference through
+`super` denotes the inherited definition itself (`SuperSymShape`). A reference to
+a field or getter with a written type, or to a method with a fully written
+signature, reads that declared interface alone; type checking will require the
+overriding members to conform to it. References read the members that other
+compilation units can override this way: the unit that defines them is resolved
+without the overriding members of its importers, so an exposed overridable member
+must specify its signature (see `OverrideChecks.checkExposedSignatures`).
+
+A call reaches an overriding method through the parameter lists of the selected
+member. The method binds the arguments in the order of its own lists, which
+`OverrideLayout` checks to agree with the selected member's. The call does not
+check its arity against the overriding method, which can omit the `drop`
+parameters it inherits (`OverridingShape`).
+
+The selected member's own values reach every reference to it, including those whose
+receiver is an instance of a class that overrides it: scope marks tell which class
+an instance belongs to only where a value leaves the class's scope, not which
+definition produced the value. `slop/strictres/OverriddenMemberFlows.mls` covers
+these flows and their precision; `slop/wasm/OverriddenMemberFlows.mls` checks the
+representations that depend on them.
+
 ## Structural and dynamic shapes
 
 Record fields have their own `BlockMemberSymbol`s. Lookup follows overwrites and

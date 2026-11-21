@@ -680,6 +680,12 @@ extends SymShape(source.sym, source.resSym, source.markss)
 final class DeclaredSymShape(symbol: BlockMemberSymbol, site: FlowSymbol, marks: Ls[Marks],
     val bindings: Map[VarSymbol, TypeArgument], val annotation: Opt[Term], val positive: Bool) extends CoreSymShape(symbol, site, marks)
 
+/** A reference through `super` to an inherited member. It denotes the definition of that member only,
+  * whereas the other references to a member also denote the members that override it in the class of
+  * their receiver (see `NewResolver.Dispatch`).
+  */
+final class SuperSymShape(symbol: BlockMemberSymbol, site: FlowSymbol, marks: Ls[Marks]) extends CoreSymShape(symbol, site, marks)
+
 
 // TODO: make it not a TermShape?
 class BaseShape(val defn: ClassLikeDef, val ext: Opt[TermShape]) extends CoreHeadShape:
@@ -877,14 +883,18 @@ final case class WrappedResult(annotation: Annot.Async | Annot.Generator, remain
 
 /** The source operation behind a declared callable and the parameter lists a caller can
   * still supply. A partial application retains a suffix of the original declaration's lists.
+  * `overriding` tells whether the callable is the target of a call that selects a member it overrides:
+  * like an `OverridingShape`, it then receives calls written against that member's parameter lists.
   */
-final case class CallableDeclaration(definition: TermDefinition, remaining: Ls[ParamList]) extends ValueKey:
-  protected val valueHash: Int = ValueKey.hash(System.identityHashCode(definition), System.identityHashCode(remaining))
+final case class CallableDeclaration(definition: TermDefinition, remaining: Ls[ParamList], overriding: Bool) extends ValueKey:
+  protected val valueHash: Int =
+    ValueKey.hash(System.identityHashCode(definition), System.identityHashCode(remaining), overriding.hashCode)
   protected def sameValue(other: ValueKey): Bool = other match
-    case that: CallableDeclaration => (definition is that.definition) && (remaining is that.remaining)
+    case that: CallableDeclaration =>
+      (definition is that.definition) && (remaining is that.remaining) && overriding == that.overriding
     case _ => false
   def afterApplication: Opt[CallableDeclaration] = remaining match
-    case _ :: (tail: NELs[ParamList]) => S(CallableDeclaration(definition, tail))
+    case _ :: (tail: NELs[ParamList]) => S(CallableDeclaration(definition, tail, overriding))
     case _ => N
 
 /** Calls through annotations expose only the declared result. Argument shapes
@@ -1041,6 +1051,16 @@ class DefnShape(val defn: Definition, val ext: Opt[TermShape]) extends CoreHeadS
       case S(cls: ClassDef) => cls.ctorLoc
       case _ => N
     case _ => N
+
+/** A method as the target of a call that selects a member it overrides. Such a call is written against the
+  * parameter lists of the selected member, and passes its arguments to this method in the same order.
+  * `codegen.OverrideLayout` checks that each parameter of this method then receives the argument of the
+  * inherited parameter it corresponds to. The method can omit the `drop` parameters of the selected member,
+  * whose arguments it ignores, so the call checks the number of its arguments against the selected member only.
+  * A shape of this class is a candidate distinct from the `DefnShape` of the same method, which denotes
+  * the method where a reference selects it.
+  */
+final class OverridingShape(definition: TermDefinition) extends DefnShape(definition, N)
 
 /*
 // TODO – see `RefinedShape`

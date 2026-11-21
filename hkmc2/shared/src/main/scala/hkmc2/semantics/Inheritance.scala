@@ -14,6 +14,21 @@ private[semantics] final class OverrideLinks extends Host[TermSymbol]:
   def showDbg(using DebugPrinter): Str = "overridden members"
   def members(using Erasure): Ls[TermSymbol] = shapes.toList
 
+/** A member that overrides an inherited member. `path` leads from the scope of the class that defines the
+  * inherited member to the scope of the class that defines `member`, through the parent clauses between them:
+  * it is the path of the lookup that finds the inherited member from the overriding class.
+  */
+private[semantics] final case class OverridingMember(member: BlockMemberSymbol, path: Ls[Marks])
+
+/** The members that override an overridable member, in the reverse direction of `OverrideLinks`.
+  * `NewResolver.registerInheritance` publishes them, and the references to the overridden member subscribe
+  * to them (see `NewResolver.Dispatch`), so that classes defined after a reference still contribute their members.
+  */
+private[semantics] final class OverridingMembers extends Host[OverridingMember]:
+  def showDbg(using DebugPrinter): Str = "overriding members"
+  def publish(overriding: OverridingMember)(using ResolutionContext): Unit =
+    if currentShapes.add(overriding) then notifyShapeListeners(overriding)
+
 object Inheritance:
   def hasModifier(d: Definition, keyword: Keyword.Modifier): Bool = d.annotations.exists:
     case Annot.Modifier(kw) => kw == keyword

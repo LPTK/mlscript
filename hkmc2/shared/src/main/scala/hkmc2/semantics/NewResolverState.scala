@@ -175,6 +175,14 @@ final class NewResolverState(val owner: Elaborator.State):
     new Cache(_.selfShapes, identity)
   val defnShapes: Cache[DefinitionSymbol[?], DefnShape] =
     new Cache(_.defnShapes, identity)
+  // A method has one more shape as the target of the calls that select a member it overrides.
+  val overridingShapes: Cache[TermSymbol, OverridingShape] =
+    new Cache(_.overridingShapes, identity)
+  // The members overriding each overridable member. Like memberVariables, these hosts are kept in
+  // resolver state, so that a consumer registering an override of an imported member publishes it
+  // into its own copy of the host's data, where the imported references to that member observe it.
+  private[semantics] val overridingMembers: Cache[TermSymbol, OverridingMembers] =
+    new Cache(_.overridingMembers, identity)
   // Parameterless definition bodies share a result node before following their
   // references. Keep distinct generic activations separate, and inherit the host
   // identity so imported listeners use the consumer's private publisher data.
@@ -745,6 +753,13 @@ final class ResolutionContext private[semantics] (
         new Host[ShapeEvent]:
           def showDbg(using DebugPrinter): Str = s"assignments to ${symbol.nme}"
       ))(using state.context)
+  /** The host of the members that override `symbol`, shared with the unit that defines `symbol` when
+    * that unit already created it, like `memberVariable`.
+    */
+  def overridingMembers(symbol: TermSymbol): OverridingMembers =
+    state.overridingMembers.getOrElseUpdate(symbol,
+      symbol.getState.newResolverState.overridingMembers.get(symbol)(using symbol.getState.newResolverState.context).getOrElse(
+        new OverridingMembers))(using state.context)
   def recordLexicalBinders(term: Term, binders: Set[VarSymbol]): Unit =
     term.initialData(state)
     state.lexicalTermBinders.update(term, binders)(using state.context)

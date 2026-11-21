@@ -1910,7 +1910,7 @@ class NewResolver:
               case callable: CallableTypeShape if !isByName(td) =>
                 val parameters = td.tparams.toList.flatten.map(p => declaredParameter(p.sym)) ::: callable.tparams
                 CallableTypeShape(callable.source, callable.paramLists, callable.result,
-                  if parameters.isEmpty then N else S(TypeScheme(td.tsym, parameters)), callable.supplied, S(CallableDeclaration(td, td.params)),
+                  if parameters.isEmpty then N else S(TypeScheme(td.tsym, parameters)), callable.supplied, S(CallableDeclaration(td, td.params, false)),
                   td.resultWrapperAnnotation.map(WrappedResult(_, td.params.length)))
               case instance: InstanceShape if !isByName(td) =>
                 instanceShape(quantifiedType(instance.tpe, td.tparams.toList.flatten.map(_.sym)))
@@ -1954,7 +1954,7 @@ class NewResolver:
         case _ =>
           // A nested nominal declaration denotes its statically selected symbol;
           // selecting it does not inspect an instance field or method body.
-          fromBMSAt(member, flow, Nil, listener, source, selected, receiver, specialization)
+          fromBMSAt(member, flow, Nil, listener, source, selected, receiver, specialization, Dispatch.Static)
 
   def resolError(src: Term | Pattern, msgs: Ls[(Message, Opt[Loc])])(using rs: ResolutionContext): Unit =
     rs.reportResolutionError(src, msgs)
@@ -2528,7 +2528,7 @@ class NewResolver:
         case Marked(callable: CallableTypeShape, expectedContext) => remaining match
           case (params, _) :: tail =>
             val declared = callable.paramLists.head
-            if callbackArityMismatch(Arity(params), declared) then
+            if checksOwnArity(actual) && callbackArityMismatch(Arity(params), declared) then
               arityError(expected)
             // Diagnostics must not disconnect parameter or result constraints.
             val allParams = params.allParams
@@ -3204,14 +3204,24 @@ class NewResolver:
       val rest = if remaining == tuple.segments then tuple else TupleShape.restView(tuple, remaining)(this)
       publish(expectedCount, rest.exit(marks).enter(mss))
   
+  /** Whether a call checks the number of its arguments against the parameter lists of `callable` itself.
+    * A call that reaches a method through a member it overrides checks them against that member's lists
+    * (see OverridingShape).
+    */
+  private def checksOwnArity(callable: TermShape): Bool = callable.applicationHead._1 match
+    case _: OverridingShape => false
+    case declared: CallableTypeShape => !declared.declaration.exists(_.overriding)
+    case _ => true
+
   private def checkArgumentArity(args: Term, arity: Arity, src: Term,
       callable: TermShape)(matched: ShapeListener[(TupleShape, Marks)])(using ResolutionContext): Unit =
     val reportKey = new Object
+    val checked = checksOwnArity(callable)
     listenTermViews(args):
       case Marked(tuple: TupleShape, marks) =>
         val known = tuple.segments.count(_.isInstanceOf[TupleShape.Fixed])
         val unknown = known != tuple.segments.length
-        val mismatch = (!unknown && known < arity.required) || (!arity.hasRest && known > arity.leading)
+        val mismatch = checked && ((!unknown && known < arity.required) || (!arity.hasRest && known > arity.leading))
         if mismatch then
           if rctx.state.reportedArities.getOrElseUpdate(reportKey, mutable.Set.empty).add(known) then
             val count = if unknown then msg"at least ${known}" else msg"${known}"
@@ -3939,7 +3949,10 @@ class NewResolver:
       flow: FlowSymbol, marks: Ls[Marks], instances: TypeSubstitution)(using ResolutionContext): Unit =
     def publish(shape: Shape)(using ResolutionContext): Unit = publishViewed(host, shape, instances)
     def definition(sym: BlockMemberSymbol)(using ResolutionContext): Unit =
-      publish(symShapes.getOrElseUpdate((sym, flow, marks), CoreSymShape(sym, flow, marks)))
+      // Each reference has its own site, so the references through `super` do not share these shapes with others.
+      publish(symShapes.getOrElseUpdate((sym, flow, marks), host match
+        case _: Super => SuperSymShape(sym, flow, marks)
+        case _ => CoreSymShape(sym, flow, marks)))
     member match
       case member: BlockMemberSymbol => definition(member)
       case RecordMember(field, mutable) =>
@@ -4776,17 +4789,23 @@ class NewResolver:
     */
   private def assignableTargets(info: MemberLookup)(target: (TermSymbol, Ls[Marks]) => ResolutionContext ?=> Unit)
       (using ResolutionContext): Unit =
-    def member(member: BlockMemberSymbol, marks: Ls[Marks])(using ResolutionContext): Unit = member.onComplete: () =>
-      valueTarget(member, false) match
-        case S(field: TermSymbol) if field.defn.exists(isAssignableField) => target(field, marks)
-        case _ => ()
+    def member(found: BlockMemberSymbol, marks: Ls[Marks], overridden: Ls[TermSymbol])(using ResolutionContext): Unit =
+      found.onComplete: () =>
+        valueTarget(found, false) match
+          case S(field: TermSymbol) => field.defn.filter(isAssignableField).foreach: td =>
+            target(field, marks)
+            // In an instance of a subclass, the assignment stores its value in the field that overrides this one,
+            // where the references that select the overriding field read it (see `Dispatch`).
+            foreachOverridingMember(td, marks, overridden): (overriding, path) =>
+              member(overriding, path, field :: overridden)
+          case _ => ()
     info match
       case MemberLookup.All(members) => members.foreach(assignableTargets(_)(target))
       // The receiver's substitution interprets the field's value; assigned values keep their own.
       case MemberLookup.Contextual(source, _) => assignableTargets(source)(target)
       case MemberLookup.Found(RecordMember(field, mutable), marks) => if mutable then target(field.tsym, marks)
-      case MemberLookup.Found(found: BlockMemberSymbol, marks) => member(found, marks)
-      case MemberLookup.Declared(declared, _, marks, _, _) => member(declared, marks)
+      case MemberLookup.Found(found: BlockMemberSymbol, marks) => member(found, marks, Nil)
+      case MemberLookup.Declared(declared, _, marks, _, _) => member(declared, marks, Nil)
       case _ => ()
 
   def defineVar(sym: LocalSymbol | TermSymbol, rhs: Term)(loc: Opt[Loc])(using ResolutionContext): DefineVar =
@@ -4903,6 +4922,12 @@ class NewResolver:
                       else rctx.state.resultExposure.getOrElse(target, Left(Nil)) match
                         case Right(path) => exposeOverrideResult(overriding, path)
                         case Left(waiting) => rctx.state.resultExposure(target) = Left(overriding :: waiting)
+                // The references to the inherited member also read this member (see `fromBMSAt`). Parent class
+                // values can make several paths lead to the same inherited member: each of them links the two.
+                for
+                  inherited <- target.defn if newResolution && isOverridable(inherited)
+                  overriding <- own.defn if !Inheritance.changesMemberKind(overriding, inherited)
+                do rctx.overridingMembers(target).publish(OverridingMember(member, marks))
           // Private members are not overridden, so they do not hide the inherited members they shadow.
           lookup.visibleFrom(_ => false, reportInaccessible = false).foreachClassMember(rctx.instances)(link)
 
@@ -4951,11 +4976,69 @@ class NewResolver:
         transportShape(value, shape.markss) match
           case value: TermShape => listener(value)
           case NoShape => ()
-    case _ => fromBMSAt(shape.sym, shape.resSym, shape.markss, listener, source, selected, receiver, specialization)
+    case _: SuperSymShape =>
+      fromBMSAt(shape.sym, shape.resSym, shape.markss, listener, source, selected, receiver, specialization, Dispatch.Static)
+    case _ =>
+      fromBMSAt(shape.sym, shape.resSym, shape.markss, listener, source, selected, receiver, specialization, Dispatch.Virtual(Nil))
 
   def fromBMS(bms: BlockMemberSymbol, resSym: FlowSymbol, markss: Ls[Marks], listener: Listener,
       trm: Term, selected: ShapeListener[DefinitionSymbol[?]], receiver: Bool)(using ResolutionContext): Unit =
-    fromBMSAt(bms, resSym, markss, listener, trm, selected, receiver, N)
+    fromBMSAt(bms, resSym, markss, listener, trm, selected, receiver, N, Dispatch.Virtual(Nil))
+
+  /** Which definitions a reference to a member reads, besides the definition that its lookup selects.
+    *
+    * An instance of a class is also an instance of the classes that this class extends. A lookup that finds
+    * a member in a class can thus concern an instance of a subclass, in which another member may override
+    * the one found: in a method of `Maker`, `this.make()` calls `SecondMaker.make` on an instance of
+    * `SecondMaker`. The lookup alone cannot tell, as it only follows the classes that its receiver is known
+    * to extend, so a reference must also read the members that override its selected member.
+    */
+  private enum Dispatch:
+    /** The reference reads the selected definition only: `super.make()` calls the inherited `make`, whatever
+      * the class of the instance.
+      */
+    case Static
+    /** The reference also reads the members that override the selected definition (see `fromBMSAt`).
+      * `overridden` lists the members through which the reference reached the current definition, from the
+      * closest one to the selected one: it is empty for the selected definition itself.
+      */
+    case Virtual(overridden: Ls[TermSymbol])
+
+  /** Whether `td` writes its whole interface: a separate signature, or a result type with the types of all
+    * its parameters. References read such a member through that interface alone (see `fromBMSAt`).
+    */
+  private def hasWrittenInterface(td: TermDefinition): Bool =
+    td.sign.nonEmpty && (!td.flags.hasResultAnnotation || td.params.forall(ps => ps.allParams.forall(_.sign.nonEmpty)))
+
+  /** Whether members can override `td`: an open or abstract member of a class. Modules and objects cannot be
+    * extended, and definitions outside classes have no instance to dispatch on.
+    */
+  private def isOverridable(td: TermDefinition): Bool =
+    Inheritance.isOpen(td) && td.owner.exists(_.asDefnSym.defn.exists(_.isInstanceOf[ClassDef]))
+
+  /** The paths `left` and `right` without their longest common prefix. */
+  @tailrec private def withoutSharedPrefix(left: Ls[Marks], right: Ls[Marks]): (Ls[Marks], Ls[Marks]) = (left, right) match
+    case (first :: rest, other :: others) if first == other => withoutSharedPrefix(rest, others)
+    case _ => (left, right)
+
+  /** Visit each member that overrides `td`, including those of classes defined later, for a reference whose
+    * lookup found `td` through `path`. The visitor receives the path from the overriding member's class to the
+    * reference: the reverse of the path that links the two members (see `OverridingMember`), followed by `path`.
+    * `overridden` lists the members that led the reference to `td` (see `Dispatch.Virtual`).
+    */
+  private def foreachOverridingMember(td: TermDefinition, path: Ls[Marks], overridden: Ls[TermSymbol])
+      (visit: (BlockMemberSymbol, Ls[Marks]) => ResolutionContext ?=> Unit)(using ResolutionContext): Unit =
+    // An erroneous inheritance cycle makes a member override itself: stop at the members already visited.
+    if isOverridable(td) && !overridden.exists(_ is td.tsym) then
+      val callerInstances = rctx.instances
+      rctx.overridingMembers(td.tsym).subscribeToShapes: overriding =>
+        // The lookup of the reference and the link can start with the same parent clauses. The reference then
+        // lies in the scope of an intermediate class, which the overriding member's class extends: connect the
+        // two from that scope. Reversing the whole link would go through the ancestor classes and enter that
+        // scope again at no particular site, which would also connect the overriding member to the references
+        // whose receiver is an instance of the intermediate class.
+        val (link, rest) = withoutSharedPrefix(overriding.path, path)
+        visit(overriding.member, inverseMarks(link) ::: rest)(using rctx.withInstances(callerInstances))
 
   // External declarations with no written parameter lists derive their calling
   // convention from the signature. An ordinary parameterless function executes
@@ -5001,9 +5084,25 @@ class NewResolver:
     constrainQuantifiedBounds(parameters, instances)
     instances
 
+  /** Read the values of the member `bms` at the reference `resSym`, whose lookup found the member through the
+    * path `markss`: the values leave the member's definition at `resSym` and then follow that path.
+    *
+    * A reference that reads the implementation of an overridable member also reads the members that override
+    * it, as `dispatch` requires. A value of an overriding member leaves its definition at `resSym` too, goes
+    * from its class to the class of the overridden member along the reverse of the path that links them (see
+    * `OverridingMember`), and then follows `markss`. The parent clauses on the reversed path are the sites
+    * at which the value enters the scopes of the ancestor classes, so `markss` only lets the value through
+    * if it leaves these scopes through the same parent clauses. A reference whose receiver is an instance
+    * of the ancestor class itself, or of a subclass that does not inherit from the overriding class, thus
+    * reads no value of the overriding member, whereas a reference inside the ancestor class, which does not
+    * leave its scope, reads the values of all the overriding members.
+    * A reference reads a field or getter with a written type, or a method with a fully written signature,
+    * through its declared interface alone (see `listenDeclaredMember`). Type checking will require the
+    * overriding members to conform to that interface.
+    */
   private def fromBMSAt(bms: BlockMemberSymbol, resSym: FlowSymbol, markss: Ls[Marks], listener: Listener,
       trm: Term, selected: ShapeListener[DefinitionSymbol[?]], receiver: Bool,
-      specialization: Opt[(FlowSymbol, Ls[TypeArgument])])(using ResolutionContext): Unit =
+      specialization: Opt[(FlowSymbol, Ls[TypeArgument])], dispatch: Dispatch)(using ResolutionContext): Unit =
     log(dbg"listenBMS: bms = ${bms.describe}")
     bms.onComplete: () =>
       log(dbg"listenedBMS: bms = ${bms.describe}")
@@ -5013,6 +5112,12 @@ class NewResolver:
         // an assignment needs its target even if the value has no inferred shape.
         // Pattern resolution supplies its own interpretation of the selected head.
         selected(sym)
+        def readOverriding(td: TermDefinition)(using ResolutionContext): Unit = dispatch match
+          case Dispatch.Virtual(overridden) => foreachOverridingMember(td, markss, overridden): (member, path) =>
+            // The overriding member is a term, and the reference selects none of the interpretations of its name.
+            fromBMSAt(member, resSym, path, listener, trm, _ => (), false, specialization,
+              Dispatch.Virtual(td.tsym :: overridden))
+          case Dispatch.Static => ()
         val wrappedListener: Listener = sh =>
           log(dbg"fromBMS: bms = ${bms.showDbg}, sh = ${sh.shwDbg}, flow = ${resSym.showDbg}, markss = ${markss.map(_.showDbg)}")
           val sh0 = sh
@@ -5067,21 +5172,33 @@ class NewResolver:
               // a read could resolve a member statically in the initializer's class only, while another class's
               // instance was assigned. The fields of external declarations, which have no body, are left unobserved.
               if td.k is syntax.MutVal then listenAssignedValues(td.tsym, resSym, markss)(listener)
+          if memberSignature(td).isEmpty then readOverriding(td)
         case S(d: TermDefinition) if !d.tsym.isInstanceOf[ClassCtorSymbol] &&
-            ((d.sign.nonEmpty && (!d.flags.hasResultAnnotation || d.params.forall(ps =>
-              ps.allParams.forall(_.sign.nonEmpty)))) ||
+            (hasWrittenInterface(d) ||
               (d.body.isEmpty && d.tsym.owner.exists(_.asDefnSym.defn.exists(_.tparams.nonEmpty)))) =>
           listenDeclaredMember(bms, instanceBindings(d), resSym, trm, N, selected, receiver, true, markss, specialization): value =>
-            transportShape(value, markss) match
+            // The declared counterpart of an `OverridingShape`.
+            val reached = (dispatch, value) match
+              case (Dispatch.Virtual(_ :: _), Marked(callable: CallableTypeShape, marks)) =>
+                Marked(callable.copy(declaration = callable.declaration.map(_.copy(overriding = true))), marks)
+              case _ => value
+            transportShape(reached, markss) match
               case value: TermShape => listener(value)
               case NoShape => ()
+          // References read an abstract member of a generic class through its declared interface, even where its
+          // signature leaves types unwritten. The calls through that interface still pass their arguments to the
+          // members that implement it, and return their results.
+          if !hasWrittenInterface(d) then readOverriding(d)
         case S(d: TermDefinition) =>
           d.tsym match
           case ccs: ClassCtorSymbol =>
             val cls = ccs.associatedCls.defn.get
             listenExt(cls, extsh => wrappedListener(constructorShape(cls, extsh)))
           case _ =>
-            wrappedListener(defnShapes.getOrElseUpdate(sym, DefnShape(d, N)))
+            wrappedListener(dispatch match
+              case Dispatch.Virtual(_ :: _) => rctx.state.overridingShapes.getOrElseUpdate(d.tsym, OverridingShape(d))
+              case _ => defnShapes.getOrElseUpdate(sym, DefnShape(d, N)))
+            readOverriding(d)
         case S(d: ClassLikeDef) =>
           listenExt(d, extsh =>
             // defnShapes.get(sym).foreach: existing =>
