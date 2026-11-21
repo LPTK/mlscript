@@ -262,6 +262,18 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
 
   private def value(shape: TermShape, path: Path)(using ResolutionContext): Unit = valueIn(shape, path, rctx.instances)
 
+  /** Expose the types that an application supplies for a formal parameter. A wildcard can
+    * name different types on input and output, both of which occur in the exposed interface.
+    */
+  private def exposeSuppliedArgument(parameter: TypeShape.Parameter, instances: TypeSubstitution, marks: Ls[Marks], path: Path)
+      (using ResolutionContext): Unit =
+    detach += parameter.arguments.observe: binding =>
+      // The binding carries the argument from the application site into the declaration.
+      // From there the escaping value's marks lead back to the client.
+      binding.argument.foreachBound: bound =>
+        emit(resolver.instanceShape(bound.instantiate(instances)).exit(binding.marks).exit(marks),
+          path.via(msg"This type argument is supplied here." -> bound.resolution.source.toLoc))
+
   /** Expose the types supplied to a class when its constructor or an instance escapes.
     * Returning `new Sink[Box](...)` exposes `Box` even when the function has no result annotation
     * and the signature of `Sink.accept` names only the class's type parameter.
@@ -271,12 +283,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
     defn.clsDef.foreach: cls =>
       cls.tparams.foreach: param =>
         instances.get(param.sym).filter(rctx.hasExplicitTypeArgument).foreach: instance =>
-          detach += rctx.typeParameter(instance).arguments.observe: binding =>
-            // The argument starts at the application site. Its binding records the path into
-            // the class, where the escaping constructor or instance has its own path out.
-            binding.argument.foreachBound: bound =>
-              emit(resolver.instanceShape(bound.instantiate(instances)).exit(binding.marks).exit(marks),
-                path.via(msg"This type argument is supplied here." -> bound.resolution.source.toLoc))
+          exposeSuppliedArgument(rctx.typeParameter(instance), instances, marks, path)
 
   /** Expose the interface of an escaping value whose type is written, such as the result of
     * a private function with a result annotation. Clients use the value at that type, so the
@@ -307,7 +314,8 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
               Option.when(parameter.symbol.isInstanceOf[TypeParameterInstance] ||
                 rctx.templateBindersOf(tpe.resolution).nonEmpty)(parameter)
             target.foreach: actual =>
-              watch((tpe, marks, "type argument"))(resolver.listenTypeParameterValues(actual))(candidate)
+              if rctx.hasExplicitTypeArgument(actual.symbol) then exposeSuppliedArgument(actual, tpe.instances, marks, path)
+              else watch((tpe, marks, "type argument"))(resolver.listenTypeParameterValues(actual))(candidate)
           case TypeShape.Hole(host) => watch((tpe, marks, "inferred argument"))(host.subscribe(_))(candidate)
           case TypeShape.Inferred(value) => candidate(value)
           case _ => ()

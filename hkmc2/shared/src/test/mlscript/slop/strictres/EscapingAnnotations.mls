@@ -574,6 +574,39 @@ new AliasArgument().read({key: 1})
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
+// The constructor receives A from a private factory. Its input bound names a class that the
+// output bound Any would hide.
+:e
+private class ForwardedInput with
+  fun read(x) = x.key
+private fun buildSink[A](f: A -> Str) = new Sink[A](f)
+fun forwardedSink() = buildSink[in ForwardedInput out Any](x => "sink")
+new ForwardedInput().read({key: 1})
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+2: 	  fun read(x) = x.key
+//│ ║        	                ^^^^^
+//│ ╟── Cannot resolve member 'key' of a value with unknown shape.
+//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ║  l.+2: 	  fun read(x) = x.key
+//│ ║        	           ^
+//│ ╟── Member 'read' is accessible here.
+//│ ║  l.+2: 	  fun read(x) = x.key
+//│ ║        	  ^^^^^^^^^^^
+//│ ╟── This type argument is supplied here.
+//│ ║  l.+4: 	fun forwardedSink() = buildSink[in ForwardedInput out Any](x => "sink")
+//│ ║        	                                   ^^^^^^^^^^^^^^
+//│ ╟── This type argument is supplied here.
+//│ ║  l.+3: 	private fun buildSink[A](f: A -> Str) = new Sink[A](f)
+//│ ║        	                                                 ^
+//│ ╟── This value is returned here.
+//│ ║  l.+4: 	fun forwardedSink() = buildSink[in ForwardedInput out Any](x => "sink")
+//│ ║        	                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── 'forwardedSink' is exposed by this compilation unit.
+//│ ║  l.+4: 	fun forwardedSink() = buildSink[in ForwardedInput out Any](x => "sink")
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
 // Constructing and using the same type privately keeps the contents inferred from local calls.
 :expect "local"
 private fun localSink() = new Sink[Box](box => box.contents.word)
