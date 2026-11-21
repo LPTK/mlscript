@@ -257,7 +257,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
       val resolver = this.resolver
       val declared = resolver.declaredType(resolver.typeResolution(sign), Map.empty).instantiate(rctx.instances)
       watch((td.tsym, declared, marks))(listener =>
-        resolver.listenSignatureResult(td, declared)(resolver.listenTypeInstances(_)(listener))): shape =>
+        resolver.listenSignatureResult(td, declared, TypeView.Provided)(resolver.listenTypeInstances(_)(listener))): shape =>
         emit(shape.exit(marks), path)
 
   private def value(shape: TermShape, path: Path)(using ResolutionContext): Unit = valueIn(shape, path, rctx.instances)

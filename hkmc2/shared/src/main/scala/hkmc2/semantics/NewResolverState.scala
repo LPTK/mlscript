@@ -271,8 +271,7 @@ final class NewResolverState(val owner: Elaborator.State):
     new Cache(_.typeApplicationSites, identity)
   private[semantics] val fieldProjectionSites: Cache[BlockMemberSymbol, FlowSymbol] =
     new Cache(_.fieldProjectionSites, identity)
-  // The flag selects merged member interfaces versus independent constraint inputs.
-  val typeViews: Cache[(DeclaredType, Bool), TermShapeHost] =
+  val typeViews: Cache[(DeclaredType, TypeView), TermShapeHost] =
     new Cache(_.typeViews, identity)
   val patternTypes: Cache[(Pattern.Constructor, InnerSymbol), DeclaredType] =
     new Cache(_.patternTypes, identity)

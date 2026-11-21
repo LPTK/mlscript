@@ -4,6 +4,16 @@ package semantics
 import hkmc2.utils.*, shorthands.*
 import codegen.Erasure
 
+/** The interface needed from a type. Member lookup combines the fields of an intersection.
+  * Comparing a provided value with a required type visits each component separately.
+  * A captured argument describes what a value can provide by its output bound and what
+  * an implementation must supply by its input bound.
+  */
+private[semantics] enum TypeView:
+  case Members, Provided, Required
+
+  def bound(argument: TypeArgument): DeclaredType = if this == Required then argument.input else argument.output
+
 /** A proper type interpretation, separate from both type arguments and value shapes.
   * Compound types retain links to their operands so forward aliases need not be expanded eagerly.
   */

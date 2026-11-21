@@ -50,6 +50,45 @@ accept(pet => pet.tag)
 //│ ╙──      	                          ^^^^^^
 //│ functions = Family(fun)
 
+// Writing the family's element as a function's whole signature must check the same callback.
+:e
+fun separate: functions.Element
+fun separate(pet) = pet.tag
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+2: 	fun separate(pet) = pet.tag
+//│ ║        	                    ^^^^^^^
+//│ ╟── Value of type 'Animal' does not contain member 'tag'
+//│ ║  l.XX: 	val functions: Family[in (Animal -> Int) out (Dog -> Int)] = Family[Animal -> Int](x => 0)
+//│ ╙──      	                          ^^^^^^
+
+// A returned closure must also meet the signature's input bound.
+:e
+val makers: Family[in (() -> (Animal -> Int)) out (() -> (Dog -> Int))] = Family[() -> (Animal -> Int)](() => pet => 0)
+fun maker: makers.Element
+fun maker() = pet => pet.tag
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+3: 	fun maker() = pet => pet.tag
+//│ ║        	                     ^^^^^^^
+//│ ╟── Value of type 'Animal' does not contain member 'tag'
+//│ ║  l.+1: 	val makers: Family[in (() -> (Animal -> Int)) out (() -> (Dog -> Int))] = Family[() -> (Animal -> Int)](() => pet => 0)
+//│ ╙──      	                              ^^^^^^
+//│ makers = Family(fun)
+
+// A caller can rely on the output bound of the written signature.
+:e
+val pets: Family[in (() -> Dog) out (() -> Animal)] = Family[() -> Dog](() => Dog(1))
+fun make: pets.Element
+fun make() = Dog(1)
+make().tag
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+4: 	make().tag
+//│ ║        	^^^^^^^^^^
+//│ ╟── Value of type 'Animal' does not contain member 'tag'
+//│ ║  l.+1: 	val pets: Family[in (() -> Dog) out (() -> Animal)] = Family[() -> Dog](() => Dog(1))
+//│ ╙──      	                                           ^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ pets = Family(fun)
+
 // The same selection in a generic signature keeps the type supplied by each call.
 :expect [1, "cat"]
 private fun petOf[T](f: Family[out T]): f.Element = f.pet

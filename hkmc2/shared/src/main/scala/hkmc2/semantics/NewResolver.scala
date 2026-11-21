@@ -1060,7 +1060,7 @@ class NewResolver:
     * same graph nodes instead of allocating fresh inference variables.
     */
   private[semantics] def listenInstanceViews(value: TermShape)(listener: ValueListener)(using ResolutionContext): Unit =
-    listenInstanceFlow(value, mergeIntersections = true)(ShapeObserver.values(listener))
+    listenInstanceFlow(value, TypeView.Members)(ShapeObserver.values(listener))
 
   /** A namespace probe (see NamespaceProbe) is not a value, wherever it arrives: as a value,
     * or as the view of a type variable that it reached. Consumers of actual values ignore it.
@@ -1069,19 +1069,19 @@ class NewResolver:
     * their hosts are shared by all their consumers.
     */
   private def listenInstanceViewsOrProbe(value: TermShape)(listener: ValueListener, probe: ProbeListener)(using ResolutionContext): Unit =
-    listenInstanceFlow(value, mergeIntersections = true)(ShapeObserver(listener, probe))
+    listenInstanceFlow(value, TypeView.Members)(ShapeObserver(listener, probe))
 
   private def listenConstraintViews(value: TermShape)(listener: ValueListener)(using ResolutionContext): Unit =
-    listenInstanceFlow(value, mergeIntersections = false)(ShapeObserver.values(listener))
+    listenInstanceFlow(value, TypeView.Provided)(ShapeObserver.values(listener))
 
-  private def listenInstanceFlow(value: TermShape, mergeIntersections: Bool)(listener: Listener)(using ResolutionContext): Unit = value match
-    case Marked(view: IntersectionView, marks) if !mergeIntersections =>
-      view.values.foreach: value =>
+  private def listenInstanceFlow(value: TermShape, view: TypeView)(listener: Listener)(using ResolutionContext): Unit = value match
+    case Marked(intersection: IntersectionView, marks) if view != TypeView.Members =>
+      intersection.values.foreach: value =>
         transportShape(value, marks :: Nil) match
-          case value: TermShape => listenInstanceFlow(value, mergeIntersections)(listener)
+          case value: TermShape => listenInstanceFlow(value, view)(listener)
           case NoShape => ()
     case Marked(instance: InstanceShape, marks) =>
-      listenTypeViews(transportType(instance.tpe, marks :: Nil), mergeIntersections)(listener)
+      listenTypeViews(transportType(instance.tpe, marks :: Nil), view)(listener)
     case _ => listener(value)
 
   private def listenTermViews(term: Term)(listener: ValueListener)(using ResolutionContext): Unit =
@@ -1463,15 +1463,13 @@ class NewResolver:
       case values => publish(IntersectionView(values))
 
   private def listenTypeViews(tpe: DeclaredType)(listener: Listener)(using ResolutionContext): Unit =
-    listenTypeViews(tpe, mergeIntersections = true)(listener)
+    listenTypeViews(tpe, TypeView.Members)(listener)
 
-  /** Constraint inspection propagates every intersection component separately.
-    * L1 & L2 <: R installs both L1 <: R and L2 <: R; it does not choose one.
-    * Do not wait for every component or form products of their candidates.
-    * Member lookup still merges record intersections, so cache the two kinds of
-    * observation separately and retain the choice through deferred references.
+  /** Observe the value interfaces that `input` provides or requires. The view determines
+    * which bound of a captured argument applies and whether to merge intersected records
+    * for member lookup. Constraint propagation visits every intersection component separately.
     */
-  private def listenTypeViews(input: DeclaredType, mergeIntersections: Bool)(listener: Listener)(using ResolutionContext): Unit =
+  private def listenTypeViews(input: DeclaredType, view: TypeView)(listener: Listener)(using ResolutionContext): Unit =
     // Formula arms can inherit instances that only another arm reads. Project
     // before caching so those ambient activations share one observation graph.
     val tpe = projectType(input)
@@ -1488,7 +1486,7 @@ class NewResolver:
           case S(reason) => listener(Marked(OpaqueTypeShape(opaque.source)(reason), marks))
           case N => listener(shape)
       case _ => listener(shape)
-    val key = (tpe, mergeIntersections)
+    val key = (tpe, view)
     typeViews.get(key) match
       case S(host) => host.listen(observe)
       case N =>
@@ -1515,8 +1513,8 @@ class NewResolver:
               // A singleton clause already has its complete view. Rebuilding a
               // record would move its outer marks into every field and prevent
               // subsequent scope crossings from filtering the whole candidate.
-              case head :: Nil if values.isEmpty => listenTypeViews(head, mergeIntersections)(publish)
-              case head :: tail => listenTypeViews(head, mergeIntersections): value =>
+              case head :: Nil if values.isEmpty => listenTypeViews(head, view)(publish)
+              case head :: tail => listenTypeViews(head, view): value =>
                 conjunction(tail, value :: values)
               case Nil => intersectViews(values.reverse)(publish)
             shape match
@@ -1525,10 +1523,10 @@ class NewResolver:
                 current.origin.getOrElse(TypeInterfaceReason.Unrestricted(source))))
               case TypeShape.Bottom => ()
               case TypeShape.CapturedArgument(arg) =>
-                listenTypeViews(arg.output.instantiate(current.instances), mergeIntersections)(publish)
-              case TypeShape.Inferred(value) => listenInstanceFlow(instantiateShape(value, current.instances), mergeIntersections)(publish)
+                listenTypeViews(view.bound(arg).instantiate(current.instances), view)(publish)
+              case TypeShape.Inferred(value) => listenInstanceFlow(instantiateShape(value, current.instances), view)(publish)
               case TypeShape.Hole(host) => host.subscribe: value =>
-                listenInstanceFlow(instantiateShape(value, current.instances), mergeIntersections)(publish)
+                listenInstanceFlow(instantiateShape(value, current.instances), view)(publish)
               case TypeShape.Nominal(defn) =>
                 val enclosing = lexicalBinders(defn.sym)
                 val own = defn.tparams.map(_.sym).toSet
@@ -1544,7 +1542,7 @@ class NewResolver:
                     val parentType = typeResolution(parent.cls)
                     withTypeDependencies(parentType): dependencies =>
                       val local = captureNominalBindings(defn, bindings.filter((symbol, _) => dependencies(symbol)))
-                      listenTypeViews(declaredType(parentType, local), mergeIntersections): ext =>
+                      listenTypeViews(declaredType(parentType, local), view): ext =>
                         publish(NominalInstanceView(defn, bindings, S(ext))(S(source), ShapeProvenance.empty)(this))
               case TypeShape.Alias(symbol, _) if symbol is prelude.builtins.Awaited =>
                 val arguments = variantArguments(current, args, symbol.defn.get.tparams, current.positive)
@@ -1565,7 +1563,11 @@ class NewResolver:
                 case S(bound) => follow(bound.instantiate(current.instances).at(current.positive), noTypeArguments, aliases, source, publish)
                 case N =>
                   val target = current.instances.get(parameter.symbol).fold(parameter)(rctx.typeParameter)
-                  listenTypeParameterValues(target): value =>
+                  if view == TypeView.Required && rctx.hasExplicitTypeArgument(target.symbol) then
+                    target.arguments.subscribe: supplied =>
+                      val bound = supplied.argument.input.instantiate(current.instances)
+                      listenTypeViews(transportType(bound, supplied.marks :: Nil), view)(publish)
+                  else listenTypeParameterValues(target): value =>
                     // Report the use of an abstract parameter in a signature, not
                     // just its declaration. This survives substitution through
                     // generic members and nested tuple or function annotations.
@@ -1576,7 +1578,7 @@ class NewResolver:
                         UnknownValueShape(unknown.source, unknown.fromPublicInterface)(unknown.provenance.withTypeOrigin(source)).exit(marks)
                       case _ => value
                     annotated match
-                      case value: TermShape => listenInstanceFlow(instantiateShape(value, current.instances), mergeIntersections)(publish)
+                      case value: TermShape => listenInstanceFlow(instantiateShape(value, current.instances), view)(publish)
                       case NoShape => ()
               case reference: TypeShape.Reference =>
                 follow(referenceType(reference, current), args, aliases, source, publish)
@@ -1591,7 +1593,7 @@ class NewResolver:
                 // Share the source's interpretation across transported references.
                 // Its cached host also stops cycles before adding subscriptions.
                 // Applications still bind arguments at the template's endpoint.
-                if args.arguments.isEmpty then listenTypeViews(base, mergeIntersections)(transfer)
+                if args.arguments.isEmpty then listenTypeViews(base, view)(transfer)
                 else follow(base, args.move(inverseMarks(reference.marks)), aliases, source, transfer)
               case TypeShape.Function(params, ret) =>
                 val ps = params match
@@ -1631,7 +1633,7 @@ class NewResolver:
                   case TypeShape.TupleField(field, false) :: tail =>
                     expand(tail, TupleShape.TypedField(TypeArgument.invariant(declaredType(field, current)), Nil) :: reversed)
                   case TypeShape.TupleField(field, true) :: tail =>
-                    listenTypeViews(declaredType(field, current), mergeIntersections = false):
+                    listenTypeViews(declaredType(field, current), TypeView.Provided):
                       case Marked(tuple: TupleShape, marks) =>
                         expand(tail, TupleShape.Spread(tuple, marks) :: reversed)
                       case Marked(array: NominalInstanceView, marks) if arrayElementType(array).nonEmpty =>
@@ -1655,10 +1657,10 @@ class NewResolver:
                   fields.collect { case (field, _) if source.mut => field.key.get }.toSet, aliases.toMap)(
                   source, fields.map((field, _) => field.key.get -> field).toMap))
               case TypeShape.Union(left, right) => next(left); next(right)
-              case TypeShape.Intersection(left, right) if !mergeIntersections => next(left); next(right)
+              case TypeShape.Intersection(left, right) if view != TypeView.Members => next(left); next(right)
               case TypeShape.Intersection(left, right) =>
                 conjunction(declaredType(left, current) :: declaredType(right, current) :: Nil, Nil)
-              case TypeShape.Combined(formula) if !mergeIntersections =>
+              case TypeShape.Combined(formula) if view != TypeView.Members =>
                 formula.orderedAtoms.foreach: atom =>
                   val component = atom.instantiate(current.instances)
                   follow(component, noTypeArguments, aliases, component.resolution.source, publish)
@@ -1812,7 +1814,7 @@ class NewResolver:
     */
   private def listenDefinitionResult(td: TermDefinition, instances: TypeSubstitution)(listener: Listener)(using ResolutionContext): Unit =
     def bodyResult(listener: Listener): Unit = memberSignature(td) match
-      case S(sign) => listenSignatureResult(td, declaredType(typeResolution(sign), Map.empty).instantiate(instances))(
+      case S(sign) => listenSignatureResult(td, declaredType(typeResolution(sign), Map.empty).instantiate(instances), TypeView.Provided)(
         listenTypeInstances(_)(listener))
       case N => td.body.foreach(body => listenResult(body)(listener))
     td.resultWrapperAnnotation match
@@ -2074,7 +2076,7 @@ class NewResolver:
   def checkDeclaredResult(definition: TermDefinition)(using ResolutionContext): Unit =
     definition.body.foreach: body =>
       memberSignature(definition).foreach: sign =>
-        listenSignatureResult(definition, declaredType(typeResolution(sign), Map.empty)): result =>
+        listenSignatureResult(definition, declaredType(typeResolution(sign), Map.empty), TypeView.Required): result =>
           checkResult(result, S(body))(listenResult(body))
 
   private def checkResult(expected: DeclaredType, site: Opt[Term])(values: Listener => Unit)(using ResolutionContext): Unit =
@@ -2109,13 +2111,13 @@ class NewResolver:
       fulfilled: Bool)(using ResolutionContext): Unit =
     if !rctx.addTypeConstraint(tpe, value, marks, fulfilled) then return
     def observeValue(listener: ValueListener)(using ResolutionContext): Unit =
-      listenInstanceFlow(value, mergeIntersections = false)(ShapeObserver(listener, requireTypeNamespaces(_, tpe)))
+      listenInstanceFlow(value, TypeView.Provided)(ShapeObserver(listener, requireTypeNamespaces(_, tpe)))
     // Structural constraints already observe the lower endpoint. Bare parameters
     // and holes forward it symbolically, including probes arriving later, without
     // expanding its interface. An alias can contribute a namespace even when its
     // body only forwards a parameter, so it independently demands this observation.
     def observeNamespaces(using ResolutionContext): Unit =
-      listenInstanceFlow(value, mergeIntersections = false)(ShapeObserver.probes(requireTypeNamespaces(_, tpe)))
+      listenInstanceFlow(value, TypeView.Provided)(ShapeObserver.probes(requireTypeNamespaces(_, tpe)))
     val annotation = tpe.resolution.source
     def follow(tpe: DeclaredType, args: TypeApplication, captures: Ls[Marks],
         seen: Set[TypeResolution])(using ResolutionContext): Unit = if !seen(tpe.resolution) then
@@ -2264,7 +2266,7 @@ class NewResolver:
     memberSignature(td) match
       case S(sign) =>
         // An override may declare a result type even when its base leaves the result unannotated.
-        listenSignatureResult(td, declaredType(typeResolution(sign), Map.empty)): result =>
+        listenSignatureResult(td, declaredType(typeResolution(sign), Map.empty), TypeView.Provided): result =>
           rctx.exposeValue(instanceShape(result), path)
       case N =>
         val exits = InterfaceExposure.declarationExits(td, N)
@@ -2342,7 +2344,7 @@ class NewResolver:
                   case S(parent) if Inheritance.isOpen(parent) && !Inheritance.changesMemberKind(td, parent) => inherit(parent, path, bindings)
                   case _ => emit(td, N)
             if !found then emit(td, N))
-        case (S(tpe), _) if param.isEmpty => listenSignatureResult(td, tpe)(result => emit(td, S(result)))
+        case (S(tpe), _) if param.isEmpty => listenSignatureResult(td, tpe, TypeView.Required)(result => emit(td, S(result)))
         case (tpe, _) => emit(td, tpe)
     visit(td, param, marks, instances, Set.empty)(receive)
 
@@ -2433,7 +2435,7 @@ class NewResolver:
     */
   private def constrainTuple(expected: DeclaredType, actual: TermShape, marks: Ls[Marks],
       site: Opt[Term])(using ResolutionContext): Unit =
-    listenTypeViews(expected, mergeIntersections = false):
+    listenTypeViews(expected, TypeView.Required):
       case Marked(tuple: TupleShape, context) =>
         def constrain(field: TupleShape.Fixed, value: TermShape)(using ResolutionContext): Unit =
           listenTupleFieldArgument(field): argument =>
@@ -2552,7 +2554,7 @@ class NewResolver:
         case _ => ()
       case _ => ()
     def matchLists(expected: DeclaredType, remaining: Ls[(ParamList, Ls[Marks])])(using ResolutionContext): Unit =
-      listenTypeViews(expected, mergeIntersections = false):
+      listenTypeViews(expected, TypeView.Required):
         case Marked(callable: CallableTypeShape, expectedContext) => remaining match
           case (params, _) :: tail =>
             val declared = callable.paramLists.head
@@ -2576,12 +2578,12 @@ class NewResolver:
         case _ => ()
     actual match
       case Marked(_: UnknownValueShape, _) =>
-        listenTypeViews(expected, mergeIntersections = false):
+        listenTypeViews(expected, TypeView.Required):
           case Marked(callable: CallableTypeShape, _) =>
             callable.result.foreach(ret => inferTypeArguments(ret, actual, marks, site))
           case _ => ()
       case Marked(givenType: CallableTypeShape, actualContext) =>
-        listenTypeViews(expected, mergeIntersections = false):
+        listenTypeViews(expected, TypeView.Required):
           case Marked(wanted: CallableTypeShape, expectedContext) =>
             val domain = givenType.paramLists.head
             val expectedDomain = wanted.paramLists.head
@@ -2616,12 +2618,12 @@ class NewResolver:
           case TypeShape.Function(_, _) :: Nil => true
           case TypeShape.Polymorphic(params, _, body) :: Nil =>
             singleArrow(declaredType(body, tpe.withoutBinders(params.map(_.parameter.symbol))), args, next)
-          case TypeShape.CapturedArgument(arg) :: Nil => singleArrow(arg.output.instantiate(tpe.instances), args, next)
+          case TypeShape.CapturedArgument(arg) :: Nil => singleArrow(arg.input.instantiate(tpe.instances), args, next)
           case shape :: Nil => reduceType(tpe, args, shape).exists(step => singleArrow(step.tpe, step.args, next))
           case _ => false
     def loop(value: TermShape, remaining: Ls[ParamList], checkLayout: Bool)(using ResolutionContext): Unit = remaining match
       case Nil => ()
-      case params :: tail => listenConstraintViews(value):
+      case params :: tail => listenInstanceFlow(value, TypeView.Required):
         case Marked(callable: CallableTypeShape, marks) =>
           val declared = callable.paramLists.head
           val check = checkLayout && (value match
@@ -2686,7 +2688,7 @@ class NewResolver:
         positions.foreach(index => publish(index, argument.output))
         if arity.hasRest then rest(arrayType(argument))
       declared.rest.foreach: rest =>
-        listenTypeViews(rest, mergeIntersections = false):
+        listenTypeViews(rest, TypeView.Provided):
           case Marked(array: NominalInstanceView, marks) =>
             arrayElementType(array).foreach(restElement(_, marks))
           case Marked(tuple: TupleShape, marks) =>
@@ -2765,14 +2767,15 @@ class NewResolver:
       zipDeclaredParameters(arity, declared): (index, tpe) =>
         listenTypeInstances(tpe)(shape => publish(index, shape.exit(marks).enter(mss)))
   
-  /** The types a member's body must return before any async or generator wrapper is applied.
-    * A separate signature describes the whole function. Follow one resolved arrow for each
-    * implementation parameter list, retaining the bindings and scope of each result. */
-  private[semantics] def listenSignatureResult(td: TermDefinition, signature: DeclaredType)
+  /** Find a member's result type before async or generator wrapping. A separate signature
+    * supplies one arrow per parameter list. Use the required view when checking a body and
+    * the provided view when observing a call. These can differ when the signature names a
+    * callable through a receiver with bounded type arguments. */
+  private[semantics] def listenSignatureResult(td: TermDefinition, signature: DeclaredType, view: TypeView)
       (listener: ShapeListener[DeclaredType])(using ResolutionContext): Unit =
     def loop(tpe: DeclaredType, count: Int)(using ResolutionContext): Unit =
       if count == 0 then listener(tpe)
-      else listenTypeViews(tpe, mergeIntersections = false):
+      else listenTypeViews(tpe, view):
         case Marked(callable: CallableTypeShape, marks) =>
           callable.result.foreach(ret => loop(transportType(ret, marks :: Nil), count - 1))
         case _ => ()
@@ -3821,7 +3824,7 @@ class NewResolver:
             case NoShape => ()
         return
       case Marked(_: InstanceShape, _) =>
-        listenInstanceFlow(instantiateShape(lhs, instances), mergeIntersections = checked)(applyShape(_, args, res, checked))
+        listenInstanceFlow(instantiateShape(lhs, instances), if checked then TypeView.Members else TypeView.Provided)(applyShape(_, args, res, checked))
         return
       case _ => ()
     // Explicit calls require a known interface or an explicitly dynamic value.
