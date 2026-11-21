@@ -235,16 +235,16 @@ class NewResolver:
       TypeArgument(input.fold(extremeType(false))(interpret(_, !positive)),
         output.fold(missingOutput(source))(interpret(_, positive)))
 
-  /** Explicit term specializations supply a proper type unchanged, or the two
-    * written wildcard bounds. This differs from substituting a nominal argument
-    * into a type expression, which interprets that expression in both polarities.
+  /** Bind a term's explicit type argument in the caller's scope. A proper type supplies both
+    * bounds unchanged, while a wildcard supplies its bounds separately. Keeping the written
+    * type lets interface exposure visit even the arguments an alias drops on expansion.
     */
   private def suppliedArgument(term: Term)(using ResolutionContext): TypeArgument =
-    val source = typeArgumentResolution(term)
-    val argument = source match
-      case TypeArgumentResolution.Type(resolution) => TypeArgument.invariant(declaredType(resolution, Map.empty))
-      case _ => interpretArgument(source, true)((resolution, positive) => declaredType(resolution, Map.empty, positive))
-    argument.instantiate(rctx.instances)
+    def written(resolution: TypeResolution, positive: Bool): DeclaredType =
+      DeclaredType(resolution, Map.empty, rctx.instances, positive)(N)
+    typeArgumentResolution(term) match
+      case TypeArgumentResolution.Type(resolution) => TypeArgument.invariant(written(resolution, true))
+      case wildcard => interpretArgument(wildcard, true)(written)
 
   /** Register complete signatures while resolution can still publish candidates. Arrow operands
     * need their own interpretations: erasure may consume the arrows as physical parameter lists.

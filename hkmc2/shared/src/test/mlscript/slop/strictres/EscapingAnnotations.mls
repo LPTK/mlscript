@@ -542,6 +542,38 @@ new Incoming().read({key: 1})
 //│ makeParent = fun Parent { class: class Parent }
 
 
+// A constructor type argument exposes each class it names, even when an alias ignores that class.
+:e
+private type Ignore[A] = Int
+private class AliasArgument with
+  fun read(x) = x.key
+fun aliasSink() = new Sink[Ignore[AliasArgument]](n => "sink")
+new AliasArgument().read({key: 1})
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+3: 	  fun read(x) = x.key
+//│ ║        	                ^^^^^
+//│ ╟── Cannot resolve member 'key' of a value with unknown shape.
+//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ║  l.+3: 	  fun read(x) = x.key
+//│ ║        	           ^
+//│ ╟── Member 'read' is accessible here.
+//│ ║  l.+3: 	  fun read(x) = x.key
+//│ ║        	  ^^^^^^^^^^^
+//│ ╟── This type argument appears in an exposed annotation.
+//│ ║  l.+4: 	fun aliasSink() = new Sink[Ignore[AliasArgument]](n => "sink")
+//│ ║        	                                  ^^^^^^^^^^^^^
+//│ ╟── This type argument is supplied here.
+//│ ║  l.+4: 	fun aliasSink() = new Sink[Ignore[AliasArgument]](n => "sink")
+//│ ║        	                           ^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── This value is returned here.
+//│ ║  l.+4: 	fun aliasSink() = new Sink[Ignore[AliasArgument]](n => "sink")
+//│ ║        	                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── 'aliasSink' is exposed by this compilation unit.
+//│ ║  l.+4: 	fun aliasSink() = new Sink[Ignore[AliasArgument]](n => "sink")
+//│ ╙──      	^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
 // Constructing and using the same type privately keeps the contents inferred from local calls.
 :expect "local"
 private fun localSink() = new Sink[Box](box => box.contents.word)
