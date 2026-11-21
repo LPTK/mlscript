@@ -2273,23 +2273,25 @@ class NewResolver:
         registerParameterSignature(td.params, full)(using rctx.state.context)
         parameterSignature(p)
 
-  private def projectedSlot(td: TermDefinition, param: Opt[Param], positive: Bool, marks: Ls[Marks],
+  private def projectedSlot(td: TermDefinition, param: Opt[Param], marks: Ls[Marks],
       instances: TypeSubstitution)(using ResolutionContext): Opt[DeclaredType] = slotSignature(td, param).map: tpe =>
     // A constructor field's annotation belongs to the constructor parameter's scope.
     val path = if param.isEmpty && td.tsym.decl.exists(_.isInstanceOf[Param]) then marks
       else ExitMark(ResolutionBoundary(td.tsym), S(rctx.fieldProjectionSite(td.bsym)), NoMarks) :: marks
-    transportType(tpe.withPolarity(positive).instantiate(instances), path)
+    // The overriding body reads a parameter or field with the bounds it would get
+    // by writing the inherited annotation on its own declaration.
+    transportType(tpe.instantiate(instances), path)
 
   /** The written type of a formal, or of the member's result when `param` is absent, as seen
     * through the receiver's parent clause. An override can inherit that type through several
     * declarations. Each edge interprets the type arguments of its own parent clause.
     * A slot with no written type anywhere along an override path yields `N` for that path.
     */
-  private def operationType(td: TermDefinition, param: Opt[Param], positive: Bool, marks: Ls[Marks],
+  private def operationType(td: TermDefinition, param: Opt[Param], marks: Ls[Marks],
       instances: TypeSubstitution)(receive: (TermDefinition, Opt[DeclaredType]) => ResolutionContext ?=> Unit)(using ResolutionContext): Unit =
     def visit(td: TermDefinition, param: Opt[Param], marks: Ls[Marks], instances: TypeSubstitution,
         seen: Set[TermSymbol])(emit: (TermDefinition, Opt[DeclaredType]) => ResolutionContext ?=> Unit)(using ResolutionContext): Unit =
-      (projectedSlot(td, param, positive, marks, instances), td.owner) match
+      (projectedSlot(td, param, marks, instances), td.owner) match
         case (N, S(owner)) if !seen(td.tsym) =>
           def inherit(parent: TermDefinition, path: Ls[Marks], bindings: TypeSubstitution)(using ResolutionContext): Unit =
             def fromSlot(slot: Opt[Param]): Unit =
@@ -2322,7 +2324,7 @@ class NewResolver:
   private[semantics] def externalInput(td: Opt[TermDefinition], param: Opt[Param], fallback: TermShape)
       (receive: Listener)(using ResolutionContext): Unit = td match
     case S(d) if d.owner.nonEmpty && !d.tsym.isPrivate && slotSignature(d, param).isEmpty =>
-      operationType(d, param, false, Nil, TypeSubstitution.empty)((_, tpe) => receive(tpe.fold(fallback)(instanceShape)))
+      operationType(d, param, Nil, TypeSubstitution.empty)((_, tpe) => receive(tpe.fold(fallback)(instanceShape)))
     case _ => receive(fallback)
 
   /** An override reachable through an exposed base member inherits the input wherever it omits
@@ -2338,9 +2340,9 @@ class NewResolver:
       if rctx.state.isOwnedSym(symbol) then
         // A local predecessor already forwarded any inherited type. Only its own written
         // annotation needs projection through this new parent clause.
-        val declared = projectedSlot(base, param, false, inheritedMarks, instances).map(instanceShape)
+        val declared = projectedSlot(base, param, inheritedMarks, instances).map(instanceShape)
         interfaceInputs(symbol).listen(value => receive(declared.getOrElse(inheritedInput(value))))(using rctx.state.context)
-      else operationType(base, param, false, inheritedMarks, instances): (_, tpe) =>
+      else operationType(base, param, inheritedMarks, instances): (_, tpe) =>
         receive(tpe.map(instanceShape).getOrElse(param match
           case S(p) =>
             val rest = base.params.exists(_.variadic.exists(_.param.sym is p.sym))
@@ -2386,7 +2388,7 @@ class NewResolver:
   private def checkOverrideResult(base: TermDefinition, overriding: TermDefinition, marks: Ls[Marks],
       instances: TypeSubstitution)(using ResolutionContext): Unit =
     if writtenSignature(overriding).isEmpty then
-      operationType(base, N, true, marks, instances): (origin, declared) =>
+      operationType(base, N, marks, instances): (origin, declared) =>
         declared.filter(_ => origin.generatorAnnotation.isEmpty).foreach: result =>
           val expected = captureType(result, overriding.tsym)
           overriding.body.foreach: body =>
