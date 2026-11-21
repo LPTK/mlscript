@@ -114,7 +114,7 @@ object ShapeIdentity:
       case view: NominalInstanceView => ValueKey.hash(System.identityHashCode(view.defn), ValueKey.mapHash(view.bindings)(System.identityHashCode, _.hashCode), parentHash(view.parent))
       case view: CallableTypeShape => ValueKey.hash(System.identityHashCode(view.source), view.paramLists.hashCode,
         view.result.hashCode, view.scheme.hashCode, view.supplied.hashCode,
-        view.declaration.fold(0)(System.identityHashCode), view.wrappedResult.hashCode)
+        view.declaration.hashCode, view.wrappedResult.hashCode)
       case view: RecordTypeShape => ValueKey.hash(
         ValueKey.mapHash(view.fields)(_.hashCode, _.hashCode), view.mutable.hashCode, view.aliases.hashCode)
       case view: IntersectionView => view.values.map(_.comparison).hashCode
@@ -142,7 +142,7 @@ object ShapeIdentity:
         case a: CallableTypeShape => that.shape match
           case b: CallableTypeShape => (a.source eq b.source) && a.paramLists == b.paramLists && a.result == b.result &&
             a.scheme == b.scheme && a.supplied == b.supplied &&
-            a.declaration.fold(b.declaration.isEmpty)(x => b.declaration.exists(_ eq x)) && a.wrappedResult == b.wrappedResult
+            a.declaration == b.declaration && a.wrappedResult == b.wrappedResult
           case _ => false
         case a: RecordTypeShape => that.shape match
           case b: RecordTypeShape => a.fields == b.fields && a.mutable == b.mutable && a.aliases == b.aliases
@@ -461,7 +461,7 @@ enum MemberLookup:
   case Found(member: BlockMemberSymbol | RecordMember, marks: Ls[Marks])
   // Declared members expose signatures only. Their marks transport dependent
   // type arguments; they never authorize reading an implementation's value flow.
-  case Declared(member: BlockMemberSymbol, bindings: Map[VarSymbol, TypeArgument], marks: Ls[Marks], annotation: Opt[Term], positive: Bool)
+  case Declared(member: BlockMemberSymbol, bindings: Map[VarSymbol, TypeArgument], marks: Ls[Marks], annotation: Opt[Term])
   // A structural field already has its lexical bindings and intersection applied.
   case Typed(field: RcdField, tpe: TypeArgument, marks: Ls[Marks])
   // A preceding spread can place several different fields at the same index.
@@ -479,7 +479,7 @@ enum MemberLookup:
     case Contextual(source, instances) => Contextual(source.withMarks(marks), instances)
     case Private(own, owner, inherited) => Private(own.withMarks(marks), owner, inherited.withMarks(marks))
     case Found(member, inner) => Found(member, inner ::: marks)
-    case Declared(member, bindings, inner, annotation, positive) => Declared(member, bindings, inner ::: marks, annotation, positive)
+    case Declared(member, bindings, inner, annotation) => Declared(member, bindings, inner ::: marks, annotation)
     case Typed(field, tpe, inner) => Typed(field, tpe, inner ::: marks)
     case Indexed(fields, inner) => Indexed(fields, inner ::: marks)
     case Dynamic(inner) => Dynamic(inner ::: marks)
@@ -490,7 +490,7 @@ enum MemberLookup:
     case All(members) => All(members.map(_.withAnnotation(annotation)))
     case Contextual(source, instances) => Contextual(source.withAnnotation(annotation), instances)
     case Private(own, owner, inherited) => Private(own.withAnnotation(annotation), owner, inherited.withAnnotation(annotation))
-    case Declared(member, bindings, marks, _, positive) => Declared(member, bindings, marks, annotation, positive)
+    case Declared(member, bindings, marks, _) => Declared(member, bindings, marks, annotation)
     case _ => this
 
   def instantiate(instances: TypeSubstitution): MemberLookup =
@@ -498,6 +498,16 @@ enum MemberLookup:
       case Contextual(source, previous) => Contextual(source, instances.withOverrides(previous))
       case Missing | Unknown(_, _, _) | Dynamic(_) => this
       case _ => Contextual(this, instances)
+
+  /** Visit the class member declarations selected by a visible lookup. Preserve each receiver's
+    * substitution and scope path so the caller can interpret values at that declaration.
+    */
+  def foreachClassMember(instances: TypeSubstitution)(visit: (BlockMemberSymbol, Ls[Marks], TypeSubstitution) => Unit): Unit = this match
+    case All(options) => options.foreach(_.foreachClassMember(instances)(visit))
+    case Contextual(source, substitution) => source.foreachClassMember(instances.withOverrides(substitution))(visit)
+    case Found(member: BlockMemberSymbol, marks) => visit(member, marks, instances)
+    case Declared(member = member, marks = marks) => visit(member, marks, instances)
+    case _ => ()
 
   /** The members found by this lookup when it is performed by code that can access the private members of the
     * class-like definitions satisfying `canAccess` (see SrcScope.canAccessPrivatesOf). Inaccessible private members
@@ -643,7 +653,7 @@ extends SymShape(source.sym, source.resSym, source.markss)
   * type, and constructor interpretations of the same overload set.
   */
 final class DeclaredSymShape(symbol: BlockMemberSymbol, site: FlowSymbol, marks: Ls[Marks],
-    val bindings: Map[VarSymbol, TypeArgument], val annotation: Opt[Term], val positive: Bool) extends CoreSymShape(symbol, site, marks)
+    val bindings: Map[VarSymbol, TypeArgument], val annotation: Opt[Term]) extends CoreSymShape(symbol, site, marks)
 
 
 // TODO: make it not a TermShape?
@@ -840,6 +850,18 @@ final case class WrappedResult(annotation: Annot.Async | Annot.Generator, remain
     case _ => false
   require(remainingLists > 0)
 
+/** The source operation behind a declared callable and the parameter lists a caller can
+  * still supply. A partial application retains a suffix of the original declaration's lists.
+  */
+final case class CallableDeclaration(definition: TermDefinition, remaining: Ls[ParamList]) extends ValueKey:
+  protected val valueHash: Int = ValueKey.hash(System.identityHashCode(definition), System.identityHashCode(remaining))
+  protected def sameValue(other: ValueKey): Bool = other match
+    case that: CallableDeclaration => (definition is that.definition) && (remaining is that.remaining)
+    case _ => false
+  def afterApplication: Opt[CallableDeclaration] = remaining match
+    case _ :: (tail: NELs[ParamList]) => S(CallableDeclaration(definition, tail))
+    case _ => N
+
 /** Calls through annotations expose only the declared result. Argument shapes
   * constrain type parameters in the interface; they do not recover its implementation.
   * `scheme` retains binders that are still available for instantiation; capture
@@ -850,10 +872,10 @@ final case class WrappedResult(annotation: Annot.Async | Annot.Generator, remain
   */
 final case class CallableTypeShape(source: Term, paramLists: NELs[DeclaredParams],
     result: Opt[DeclaredType], scheme: Opt[TypeScheme], supplied: Opt[Ls[TypeArgument]],
-    declaration: Opt[TermDefinition], wrappedResult: Opt[WrappedResult]) extends CoreHeadShape:
+    declaration: Opt[CallableDeclaration], wrappedResult: Opt[WrappedResult]) extends CoreHeadShape:
   def tparams: Ls[DeclaredTypeParameter] = scheme.toList.flatMap(_.parameters)
-  def describe: Str = declaration.fold("function with a declared signature")(d => s"function '${d.bsym.nme}'")
-  def toLoc: Opt[Loc] = declaration.fold(source.toLoc)(_.headerLoc)
+  def describe: Str = declaration.fold("function with a declared signature")(d => s"function '${d.definition.bsym.nme}'")
+  def toLoc: Opt[Loc] = declaration.fold(source.toLoc)(_.definition.headerLoc)
   protected def getMemberImpl(name: MemberKey)(using ResolutionContext): MemberLookup = MemberLookup.Missing
 
 /** Why observing a type did not expose a member interface. Keep this evidence
@@ -1304,7 +1326,7 @@ final class RecordShape private (val source: Term.Rcd, val elements: Ls[RecordSh
           case Missing => N
           case Found(member: RecordMember, inner) =>
             S(Found(member.copy(mutable = member.mutable || source.mut), inner ::: marks :: Nil))
-          case Found(_: BlockMemberSymbol, _) | Declared(_, _, _, _, _) | Typed(_, _, _) | Indexed(_, _) | Private(_, _, _) =>
+          case Found(_: BlockMemberSymbol, _) | _: Declared | Typed(_, _, _) | Indexed(_, _) | Private(_, _, _) =>
             // Record spreads recursively look up RecordShapes, which only create RecordMembers.
             lastWords("Record lookup returned a nominal member")
         spread(shape.getMember(name)).getOrElse(loop(rest))

@@ -20,7 +20,6 @@ import hkmc2.Message.MessageContext
 final class Erasure(root: Statement, report: Raise)(using Config, Ctx, State):
   private given Erasure = this
   private given reporter: Diagnostic.Reporter = new Diagnostic.Reporter(report)
-  private val valueTypes = mutable.Map.empty[TermShape, Opt[ErasedValueType]]
 
   /** Whether erasure encountered errors, including ones diagnosed in inherited signatures.
     * Signatures are initialized even on failure for later diagnostics, but the program must not
@@ -32,7 +31,10 @@ final class Erasure(root: Statement, report: Raise)(using Config, Ctx, State):
   def requireCompleted(statement: Statement): Unit =
     assert(root is statement, "Lowering requires completed erasure of this program")
 
-  private def valueType(shape: TermShape): Opt[ErasedValueType] = valueTypes.getOrElseUpdate(shape, shape match
+  /** The representation of the values that `shape` describes, or `N` for a shape that does not
+    * constrain the representation of the slots holding its values.
+    */
+  private def valueType(shape: TermShape): Opt[ErasedValueType] = shape match
     case MarkedShape(value, _) => valueType(value)
     case ContextualShape(value, _) => valueType(value)
     case SpecializedShape(value, _, _) => valueType(value)
@@ -74,7 +76,6 @@ final class Erasure(root: Statement, report: Raise)(using Config, Ctx, State):
       S(ErasedType.Unknown)
     case _: NamespaceProbe =>
       lastWords("Erasure inputs must filter namespace probes before completion")
-  )
 
   private def nominalType(definition: ClassLikeDef): ErasedValueType = definition.sym match
     case symbol: (ClassSymbol | ModuleOrObjectSymbol) => ErasedType.ValueLike(S(false), symbol)
@@ -157,7 +158,7 @@ final class Erasure(root: Statement, report: Raise)(using Config, Ctx, State):
           if lhs == ErasedType.Unknown || rhs == ErasedType.Unknown then inferredSource.flatMap(externalInputOrigin)
           else N
         val notes = origin.toList.flatMap(_.diagnostic(
-          msg"The exposed interface admits values of unknown representation."))
+          msg"The exposed interface admits values of unknown representation unless a type annotation restricts them."))
         raise(ErrorReport(
           msg"Types '${lhs.describe}' and '${rhs.describe}' have no common representation" -> loc :: notes,
           source = Diagnostic.Source.Compilation))
@@ -168,7 +169,7 @@ final class Erasure(root: Statement, report: Raise)(using Config, Ctx, State):
       case _ => tpe
 
   /** The already-diagnosed representation error carried by a slot, if any. */
-  private[codegen] def representationError(tpe: Opt[ErasedValueType]): Opt[ErasedType.Incompatible] = tpe.collect:
+  private def representationError(tpe: Opt[ErasedValueType]): Opt[ErasedType.Incompatible] = tpe.collect:
     case incompatible: ErasedType.Incompatible if incompatible.reported => incompatible
 
   /** A diagnosed parameter error that prevents checking this definition's result, if any.
@@ -360,9 +361,8 @@ final class Erasure(root: Statement, report: Raise)(using Config, Ctx, State):
     // Definitions are keyed by identity: as case classes, they would otherwise
     // be hashed and compared through their entire bodies on every lookup.
     val effectiveMembers = mutable.Map.empty[Identity[ClassLikeDef], Map[ImplementationKey, TermSymbol]]
-    def checkConstruction(term: Term & PossiblyErroneous, cls: ClassDef): Unit =
+    def checkConstruction(term: Term, cls: ClassDef): Unit =
       if Inheritance.hasModifier(cls, syntax.Keyword.`abstract`) then
-        term.isErroneous = true
         raise(ErrorReport(
           msg"Cannot instantiate abstract class '${cls.sym.nme}'" -> term.toLoc ::
             (msg"Abstract class defined here" -> cls.toLoc) :: Nil, source = Diagnostic.Source.Compilation))
@@ -535,30 +535,3 @@ final class Erasure(root: Statement, report: Raise)(using Config, Ctx, State):
       case _ => ()
     // Compare signatures only after every definition has completed erasure.
     overrideChecks.checkSignatures()
-    statements.foreach:
-      case td: TermDefinition => checkExposedMutableField(td)
-      case _ => ()
-
-  /** Other compilation units assign values to a mutable field with the representation of its erased type, which
-    * therefore must not depend on the values that this compilation unit happens to assign to the field. Interface
-    * exposure assigns a value of unknown shape referring to the field itself to the mutable fields reachable from the
-    * unit's interface (see InterfaceExposure); such a field must declare its type. Fields that merely receive unknown
-    * values from this unit's own exposed parameters do not need to: their representation is already the unknown one.
-    * Record fields cannot declare types; their exposed representation is the unknown one.
-    */
-  private def checkExposedMutableField(td: TermDefinition): Unit =
-    // A constructor parameter declares the type of the field it defines.
-    val declared = td.tsym.decl match
-      case S(p: Param) => p.sign.isDefined || p.modulefulness.isModuleful
-      case _ => td.sign.isDefined || td.modulefulness.isModuleful
-    val inputs = summon[State].newResolverState.erasureInputs
-    if config.language.useNewResolution && (td.k is syntax.MutVal) && !declared && !Inheritance.isExternal(td)
-        && inputs.isPrepared(td.tsym) then
-      val exposure = inputs.shapes(td.tsym).iterator.map(_.applicationHead._1).collectFirst:
-        case unknown: UnknownValueShape if unknown.fromPublicInterface && (unknown.source match
-          case ref: MemberRef => ref.sym is td.bsym
-          case _ => false) => unknown
-      exposure.foreach: unknown =>
-        raise(ErrorReport(unknown.provenance.diagnostic(
-          msg"Mutable field '${td.tsym.nme}' is exposed to other compilation units, which can assign to it; annotate its type",
-          td.tsym.toLoc), source = Diagnostic.Source.Compilation))

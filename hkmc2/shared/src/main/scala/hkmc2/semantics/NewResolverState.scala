@@ -77,11 +77,15 @@ final class NewResolverState(val owner: Elaborator.State):
   private[semantics] val exposureInputs = mutable.LinkedHashMap.empty[(ShapeIdentity.Key, ResolutionContext), InterfaceExposure.Input]
   /** The overridable members of extensible classes and objects that [[InterfaceExposure]] reached,
     * each with the first exposure path that reached it. Erasure, which knows the parameters an
-    * override inherits, requires these members to have fully specified signatures. A worksheet block
-    * exposes its definitions before it is erased, and later blocks can only re-expose them.
+    * override inherits, requires these members to have fully specified signatures.
     */
   private[semantics] val exposedOpenMembers = mutable.Map.empty[TermSymbol, ShapeProvenance]
+  private[semantics] val interfaceInputs = mutable.Map.empty[VarSymbol | TermSymbol, TermShapeHost]
   
+  // A declaration stores its waiting overrides until the exposure walk reaches its result.
+  // Recording the first path before visiting those overrides also breaks recursive exposure.
+  private[semantics] val resultExposure = mutable.Map.empty[TermSymbol, Either[Ls[TermDefinition], ShapeProvenance]]
+
   /** How [[InterfaceExposure]] first reached `member`, if `member` is an exposed overridable member
     * of an extensible class or object of this compilation unit.
     */
@@ -165,7 +169,7 @@ final class NewResolverState(val owner: Elaborator.State):
   // input once per activation; callbacks assigned through it must satisfy that input, not the read type.
   val fieldAssignmentTypes: Seen[(Identity[Term], Identity[Term], DeclaredType)] =
     new Seen(_.fieldAssignmentTypes)
-  val declaredSymShapes: Cache[(BlockMemberSymbol, FlowSymbol, Ls[Marks], Map[VarSymbol, TypeArgument], Bool), DeclaredSymShape] =
+  val declaredSymShapes: Cache[(BlockMemberSymbol, FlowSymbol, Ls[Marks], Map[VarSymbol, TypeArgument]), DeclaredSymShape] =
     new Cache(_.declaredSymShapes, identity)
   val selfShapes: Cache[InnerSymbol, BaseShape] =
     new Cache(_.selfShapes, identity)
@@ -244,6 +248,8 @@ final class NewResolverState(val owner: Elaborator.State):
   // Shared by every use of the same formula, so the combinations have no source (see DeclaredType.shared).
   val combinedTypes: Cache[TypeFormula[DeclaredType], DeclaredType] =
     new Cache(_.combinedTypes, identity)
+  val capturedArguments: Cache[TypeArgument, DeclaredType] =
+    new Cache(_.capturedArguments, identity)
   val pendingTypeDependencies: Cache[TypeResolution, TypeDependencyHost] =
     new Cache(_.pendingTypeDependencies, identity)
   val dependencySubscriptions: Seen[(TypeResolution, TypeResolution)] =
@@ -265,8 +271,7 @@ final class NewResolverState(val owner: Elaborator.State):
     new Cache(_.typeApplicationSites, identity)
   private[semantics] val fieldProjectionSites: Cache[BlockMemberSymbol, FlowSymbol] =
     new Cache(_.fieldProjectionSites, identity)
-  // The flag selects merged member interfaces versus independent constraint inputs.
-  val typeViews: Cache[(DeclaredType, Bool), TermShapeHost] =
+  val typeViews: Cache[(DeclaredType, TypeView), TermShapeHost] =
     new Cache(_.typeViews, identity)
   val patternTypes: Cache[(Pattern.Constructor, InnerSymbol), DeclaredType] =
     new Cache(_.patternTypes, identity)
@@ -291,7 +296,7 @@ final class NewResolverState(val owner: Elaborator.State):
     new Cache(_.abstractTypes, identity)
   val omittedTypes: Cache[(TypeResolution, VarSymbol), DeclaredType] =
     new Cache(_.omittedTypes, identity)
-  val exposedTypeHoles: Seen[(DeclaredType, ShapeIdentity.Key, Ls[Marks])] =
+  val exposedTypeHoles: Seen[(DeclaredType, ShapeIdentity.Key)] =
     new Seen(_.exposedTypeHoles)
   val signatureParameters: Cache[VarSymbol, DeclaredType] =
     new Cache(_.signatureParameters, identity)
@@ -324,7 +329,7 @@ final class NewResolverState(val owner: Elaborator.State):
   // A method projection or nested constraint can change the observation scope
   // without changing this property. Missing supplied positions remain inferred.
   private[semantics] val explicitTypeArguments = mutable.Set.empty[VarSymbol]
-  private[semantics] val typeConstraints: Seen[(DeclaredType, ShapeIdentity.Key, Ls[Marks])] =
+  private[semantics] val typeConstraints: Seen[(DeclaredType, ShapeIdentity.Key, Ls[Marks], Bool)] =
     new Seen(_.typeConstraints)
   val typeArgumentArityErrors: Seen[(TyApp, Int)] =
     new Seen(_.typeArgumentArityErrors)
@@ -841,10 +846,10 @@ final class ResolutionContext private[semantics] (
     * Install each constraint edge before subscribing: callback parameter/result
     * flow can revisit it immediately. Distinct instantiations retain their marks.
     */
-  def addTypeConstraint(tpe: DeclaredType, value: TermShape, marks: Ls[Marks]): Bool =
-    typeConstraints.add((tpe, ShapeIdentity.key(value), marks))
+  def addTypeConstraint(tpe: DeclaredType, value: TermShape, marks: Ls[Marks], fulfilled: Bool): Bool =
+    typeConstraints.add((tpe, ShapeIdentity.key(value), marks, fulfilled))
   def hasTypeConstraint(tpe: DeclaredType, value: TermShape, marks: Ls[Marks]): Bool =
-    typeConstraints((tpe, ShapeIdentity.key(value), marks))
+    typeConstraints((tpe, ShapeIdentity.key(value), marks, false))
 
 /** One pair of call sites per spread source. Incoming alternatives share these
   * observations and the element host, so their Cartesian product is never built.
