@@ -1335,6 +1335,25 @@ final class RecordShape private (val source: Term.Rcd, val elements: Ls[RecordSh
             lastWords("Record lookup returned a nominal member")
         spread(shape.getMember(name)).getOrElse(loop(rest))
     loop(elements.reverse).instantiate(instances)
+
+  /** Visit the fields a client can read from this record, with the same mutability, scope path,
+    * and type arguments as a selection. A computed key can leave any earlier field visible.
+    */
+  def foreachReadableField(marks: Ls[Marks], scope: TypeSubstitution)
+      (visit: (RecordMember, Ls[Marks], TypeSubstitution) => Unit): Unit =
+    val shadowed = scala.collection.mutable.Set.empty[MemberKey]
+    val visited = scala.collection.mutable.Set.empty[(RecordShape, Bool, Ls[Marks], TypeSubstitution)]
+    def fields(record: RecordShape, mutableRead: Bool, path: Ls[Marks], bindings: TypeSubstitution): Unit =
+      // A repeated spread in the same context can only repeat fields or keys already visited.
+      if visited.add((record, mutableRead, path, bindings)) then record.elements.reverseIterator.foreach:
+        case RecordShape.Field(field) if field.key.forall(shadowed.add) =>
+          visit(RecordMember(field, mutableRead), path, bindings)
+        case RecordShape.Spread(inner, mark) =>
+          fields(inner, mutableRead || inner.source.mut, if mark == NoMarks then path else mark :: path,
+            bindings.withOverrides(inner.instances))
+        case _ => ()
+    fields(this, source.mut, marks.filterNot(_ == NoMarks), scope.withOverrides(instances))
+
   def containsSpread(record: Term.Rcd, marks: Marks): Bool = elements.exists:
     case RecordShape.Spread(shape, inner) =>
       ((shape.source is record) && inner == marks) || shape.containsSpread(record, marks)

@@ -314,11 +314,6 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
           constructorContext
         case _ => rctx
       members(cls, S(marks), path)(using memberContext)
-    def contextualTerm(value: Term, context: Ls[Marks], path: Path,
-        substitution: TypeSubstitution)(using ResolutionContext): Unit =
-      watch((value, context, substitution))(
-        listener => resolver.listenTerm(value)(listener)(using rctx.withInstances(substitution))): shape =>
-          emit(resolver.instantiateShape(shape, substitution).exit(context), path)
     head match
       case contextual: ContextualShape => contextual.source.exit(marks) match
         case value: TermShape =>
@@ -362,39 +357,14 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
         val field = segment.element
         watch((tuple, field, marks))(resolver.listenTupleField(field)): shape =>
           emit(shape.exit(marks), path.via(msg"This value is stored in this tuple." -> tuple.source.toLoc))
-      case record: RecordShape =>
-        // A spread copies fields, not its source record. Like member lookup, exposure follows the last value
-        // written at each key; exposing the whole source would also expose values replaced by later fields.
-        // Unknown keys cannot prove that an earlier field is overwritten, so retain both possible values.
-        // Preserve spread paths and substitutions for assigned values as well as initializers: a mutable copy
-        // can expose writes to an originally immutable field, and a generic source interprets them in its scope.
-        val mutableCopy = record.source.mut
-        // A record can spread the same producer repeatedly. Memoize each contextual view and overwrite set so
-        // nested copies walk the shared graph rather than expanding it into a tree. Empty marks add no context.
-        val visited = mutable.Map.empty[(RecordShape, Bool, Ls[Marks], TypeSubstitution, Set[MemberKey]), Set[MemberKey]]
-        def fields(record: RecordShape, copied: Bool, context: Ls[Marks], substitution: TypeSubstitution,
-            shadowed: Set[MemberKey]): Set[MemberKey] =
-          val readAssignments = copied || record.source.mut
-          visited.getOrElseUpdate((record, readAssignments, context.filter(_ != NoMarks), substitution, shadowed),
-            record.elements.reverse.foldLeft(shadowed): (shadowed, element) =>
-              element match
-                case RecordShape.Field(field) =>
-                  if !field.key.exists(shadowed) then
-                    val fieldPath = path.via(msg"This value is stored in this record field." -> field.toLoc)
-                    contextualTerm(field.rhs, context, fieldPath, substitution)
-                    if readAssignments then
-                      watch((field.tsym, context, substitution, "assigned values"))(
-                        listener => resolver.listenAssignedValues(field.tsym, source(field.sym).resSym, context)(listener)(
-                          using rctx.withInstances(substitution))): value =>
-                        emit(resolver.instantiateShape(value, substitution), fieldPath)
-                    // A copy reads its source's assigned values, but only the exposed record's own mutability
-                    // admits external writes. An immutable spread copy does not expose its mutable source.
-                    if mutableCopy then assignable(field.tsym, field.sym, path)
-                  shadowed ++ field.key
-                case RecordShape.Spread(inner, marks) =>
-                  fields(inner, readAssignments, marks :: context, substitution.withOverrides(inner.instances), shadowed)
-                case _ => shadowed)
-        fields(record, false, marks, instances.withOverrides(record.instances), Set.empty)
+      case record: RecordShape => record.foreachReadableField(marks, instances): (member, context, bindings) =>
+        val field = member.field
+        val lookup = MemberLookup.Found(member, context)
+        watch((field.tsym, member.mutable, context, bindings))(resolver.listenMemberValue(lookup,
+          rctx.fieldProjectionSite(field.sym), field.rhs, bindings, () => ())): value =>
+          emit(value, path.via(msg"This value is stored in this record field." -> field.toLoc))
+        // Copying a mutable source reads its writes. Clients can write only to a mutable result.
+        if record.source.mut then assignable(field.tsym, field.sym, path)
       case base: BaseShape => exposeClassInterface(base.defn)
       case callable: CallableTypeShape =>
         callable.declaration.filter(origin => rctx.state.isOwnedSym(origin.definition.tsym)).foreach: origin =>
