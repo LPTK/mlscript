@@ -852,18 +852,21 @@ final case class WrappedResult(annotation: Annot.Async | Annot.Generator, remain
 
 /** The source operation behind a declared callable and the parameter lists a caller can
   * still supply. A partial application retains a suffix of the original declaration's lists.
+  * `instances` binds the method's type parameters at the call that instantiated it.
+  * Later argument lists use those same bindings for inherited parameter types.
   */
-final case class CallableDeclaration(definition: TermDefinition, remaining: Ls[ParamList]) extends ValueKey:
-  protected val valueHash: Int = ValueKey.hash(System.identityHashCode(definition), System.identityHashCode(remaining))
+final case class CallableDeclaration(definition: TermDefinition, remaining: Ls[ParamList], instances: TypeSubstitution) extends ValueKey:
+  protected val valueHash: Int = ValueKey.hash(System.identityHashCode(definition), System.identityHashCode(remaining), instances.hashCode)
   protected def sameValue(other: ValueKey): Bool = other match
-    case that: CallableDeclaration => (definition is that.definition) && (remaining is that.remaining)
+    case that: CallableDeclaration => (definition is that.definition) && (remaining is that.remaining) && instances == that.instances
     case _ => false
   def afterApplication: Opt[CallableDeclaration] = remaining match
-    case _ :: (tail: NELs[ParamList]) => S(CallableDeclaration(definition, tail))
+    case _ :: (tail: NELs[ParamList]) => S(copy(remaining = tail))
     case _ => N
 
-/** Calls through annotations expose only the declared result. Argument shapes
-  * constrain type parameters in the interface; they do not recover its implementation.
+/** A call through a written type returns the result specified by the signature.
+  * Arguments constrain its type parameters. A source method also receives argument
+  * shapes for parameters whose annotations it omits.
   * `scheme` retains binders that are still available for instantiation; capture
   * substitution leaves those binders alone. `instantiateCallable` consumes the
   * scheme by substituting its references and clearing it, so stored values and

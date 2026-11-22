@@ -154,6 +154,53 @@ throughBase(new LocalChild)
 //│ ╙──      	             ^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
+// A call through the base type supplies the unannotated parameter of its override.
+:e
+private class ReadBase with
+  open fun read(x): Int = 0
+private class ReadChild extends ReadBase with
+  override fun read(x) = x.only
+private fun runRead(p: ReadBase) = p.read(null)
+new ReadChild().read({only: 7})
+runRead(new ReadChild)
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+4: 	  override fun read(x) = x.only
+//│ ║        	                         ^^^^^^
+//│ ╟── Null literal does not contain member 'only'
+//│ ║  l.+5: 	private fun runRead(p: ReadBase) = p.read(null)
+//│ ╙──      	                                          ^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// The only value for x arrives through the second application of a saved nominal method.
+:expect 8
+private class ReadItem(val only: Int)
+private class CurriedReader with
+  fun read(n: Int)(x): Int = n + x.only
+private fun remaining(p: CurriedReader) = p.read(1)
+remaining(new CurriedReader)(ReadItem(7))
+//│ = 8
+
+// An explicit projection locates the method even when the receiver's type has no member interface.
+:expect 9
+private class ProjectionReader with
+  fun read(x): Int = x.only
+private fun projectedRead(p: Any, x) = p.ProjectionReader#read(x)
+projectedRead(new ProjectionReader, ReadItem(9))
+//│ = 9
+
+// A saved nominal method retains each call's own type argument through its remaining parameter list.
+:expect [7, 9]
+private class ReadOther(val other: Int)
+private class PolyReadBase with
+  open fun choose[A]()(x: A): A = x
+private class PolyReadChild extends PolyReadBase with
+  override fun choose[B]()(x): B = x
+private fun chooseBoth(p: PolyReadChild) =
+  let choose = p.choose
+  [choose()(ReadItem(7)).only, choose()(ReadOther(9)).other]
+chooseBoth(new PolyReadChild)
+//│ = [7, 9]
+
 // The override must also handle every type a base caller can choose for A.
 :e
 private class PolyBase with

@@ -1925,7 +1925,8 @@ class NewResolver:
               case callable: CallableTypeShape if !isByName(td) =>
                 val parameters = td.tparams.toList.flatten.map(p => declaredParameter(p.sym)) ::: callable.tparams
                 CallableTypeShape(callable.source, callable.paramLists, callable.result,
-                  if parameters.isEmpty then N else S(TypeScheme(td.tsym, parameters)), callable.supplied, S(CallableDeclaration(td, td.params)),
+                  if parameters.isEmpty then N else S(TypeScheme(td.tsym, parameters)), callable.supplied,
+                  S(CallableDeclaration(td, td.params, TypeSubstitution.empty)),
                   td.resultWrapperAnnotation.map(WrappedResult(_, td.params.length)))
               case instance: InstanceShape if !isByName(td) =>
                 instanceShape(quantifiedType(instance.tpe, td.tparams.toList.flatten.map(_.sym)))
@@ -2052,7 +2053,7 @@ class NewResolver:
           val instantiated = CallableTypeShape(callable.source,
             callable.paramLists.ne_map: params =>
               params.mapTypes(instantiate)
-            , callable.result.map(instantiate), N, N, callable.declaration, callable.wrappedResult)
+            , callable.result.map(instantiate), N, N, callable.declaration.map(_.copy(instances = substitution)), callable.wrappedResult)
           // Reentrant observations must find the view before supplied arguments
           // can publish candidates or trigger another observation of this call.
           rctx.state.instantiatedCallables(key) = instantiated
@@ -2137,7 +2138,8 @@ class NewResolver:
             destination.arguments.subscribe: supplied =>
               // Compare in the caller's scope, retaining the supplied
               // reference's endpoint for any further parameter constraint.
-              Marked(instanceShape(supplied.argument.input), supplied.marks).exit(captures).exit(marks) match
+              val bound = supplied.argument.input.instantiate(tpe.instances)
+              Marked(instanceShape(bound), supplied.marks).exit(captures).exit(marks) match
                 case Marked(instance: InstanceShape, context) =>
                   val endpoint = if context == NoMarks then Nil else context :: Nil
                   value.exit(marks).enter(context) match
@@ -3170,7 +3172,11 @@ class NewResolver:
       def publish(value: TermShape): Unit = publishParameter(p.sym, value)(using rctx.withInstances(instances))
       parameterSignature(p) match
         case S(tpe) => inferTypeArguments(tpe.instantiate(instances), sh, marks, site)
-        case N => callee.map(_.applicationHead._1).collect { case ds: DefnShape => ds.defn } match
+        case N => callee.map(_.applicationHead._1).flatMap {
+          case ds: DefnShape => S(ds.defn)
+          case callable: CallableTypeShape => callable.declaration.map(_.definition)
+          case _ => N
+        } match
           case S(td: TermDefinition) if newResolution && td.owner.nonEmpty &&
               !td.tsym.isPrivate && !td.tsym.isInstanceOf[ClassCtorSymbol] =>
             val scope = ResolutionBoundary(td.tsym)
@@ -3901,11 +3907,18 @@ class NewResolver:
           case _ => lastWords("A callable view must remain callable")
         val callable = instantiateCallable(viewed, res.resSym, lexicalBinders(res), context :: Nil)
         val ps = callable.paramLists.head
-        if checked then zipArgumentShapes(context :: Nil, Arity(ps), args, res, lhs)((index, value) =>
-          ps.allParams(index).tpe.foreach: tpe =>
-            value match
-              case value: TermShape => inferTypeArguments(tpe, value, context :: Nil, S(res))
-              case NoShape => ())
+        if checked then
+          zipArgumentShapes(context :: Nil, Arity(ps), args, res, lhs): (index, value) =>
+            ps.allParams(index).tpe match
+              case S(tpe) => value match
+                case value: TermShape => inferTypeArguments(tpe, value, context :: Nil, S(res))
+                case NoShape => ()
+              case N =>
+                // Only a source method can leave a parameter unannotated. Its body and
+                // overrides still receive this argument when the receiver has a written type.
+                val method = callable.declaration.getOrElse(lastWords("An unannotated parameter needs its source method"))
+                constrainParameterIn(method.remaining.head.allParams(index), value, context :: Nil,
+                  instances.withOverrides(method.instances), S(res), S(callable))
         def publish(shape: TermShape)(using ResolutionContext): Unit = transportShape(shape, context :: Nil) match
           case value: TermShape =>
             publishViewed(res, value, TypeSubstitution.empty)(using rctx.withInstances(callerInstances))
@@ -4593,7 +4606,7 @@ class NewResolver:
                     rctx.recordResolution(sel, sel.resolvedTargets.contains(sym))(sel.resolvedTargets ::= sym)
                 // Projections pass on probes like other selections (see the case above).
                 listenTermViewsOrProbe(sel.prefix)(receiver =>
-                  member(projectedLookup(sel, cd, bms, declarationMarks, receiver, visible),
+                  member(projectedLookup(sel, ref, bms, declarationMarks, receiver, visible),
                     msg"Class '${cd.sym.nme}'", message => (message -> cd.headerLoc) :: Nil, TypeSubstitution.empty)
                 , probe => publishActivated(sel, probe))
               case _ => member(info, msg"Class '${cd.sym.nme}'", message => (message -> cd.headerLoc) :: Nil, TypeSubstitution.empty))
@@ -4603,28 +4616,25 @@ class NewResolver:
         )
   
   /** The member that a projection `sel` (`o.C#m`) selects in `receiver`, one of the receivers of `o`, where `C`
-    * resolves to `cd` and `m` to the member `bms` of `cd`, with the marks `declarationMarks`. `visible` applies the
+    * resolves to `cls` and `m` to its member `bms`, with the marks `declarationMarks`. `visible` applies the
     * private-member visibility of the scope where `sel` is written.
     */
-  private def projectedLookup(sel: NewSel, cd: ClassDef, bms: BlockMemberSymbol, declarationMarks: Ls[Marks],
-      receiver: TermShape, visible: MemberLookup => MemberLookup)(using ResolutionContext): MemberLookup = receiver match
-    case Marked(nominal: NominalInstanceView, context) =>
-      nominal.ancestor(cd) match
-        case S(view) => visible(view.getMember(sel.id.name)).withAnnotation(nominal.annotation).withMarks(context :: Nil)
-        case N =>
-          // An explicit projection can name a narrower class, but
-          // it cannot recover that class's implementation arguments.
-          val opaque = abstractType(new TypeResolution(sel, msgs => resolError(sel, msgs)))
-          MemberLookup.Declared(bms, cd.tparams.map(_.sym -> TypeArgument.invariant(opaque)).toMap, context :: Nil, nominal.annotation)
-    case _ =>
-      // C# selects a declaration, not an instance of C. Transport
-      // the member through the actual receiver, never the qualifier.
-      projectedMember(receiver, cd, sel.id.name).map(visible).getOrElse:
-        // Without a path into this class, only its declared
-        // interface is available; qualifier values add no evidence.
-        val opaque = abstractType(new TypeResolution(sel, msgs => resolError(sel, msgs)))
-        MemberLookup.Declared(bms, cd.tparams.map(_.sym -> TypeArgument.invariant(opaque)).toMap,
-          declarationMarks ::: ExitMark(ResolutionBoundary(cd.sym), N, NoMarks) :: Nil, N)
+  private def projectedLookup(sel: NewSel, cls: ClassReference, bms: BlockMemberSymbol, declarationMarks: Ls[Marks],
+      receiver: TermShape, visible: MemberLookup => MemberLookup)(using ResolutionContext): MemberLookup =
+    val cd = cls.definition
+    def signature(annotation: Opt[Term]): MemberLookup =
+      // The qualifier locates the declaration in the projection's lexical scope, including
+      // captures in a saved projection. The receiver supplies no class type arguments here.
+      val opaque = abstractType(new TypeResolution(sel, msgs => resolError(sel, msgs)))
+      MemberLookup.Declared(bms, cd.tparams.map(_.sym -> TypeArgument.invariant(opaque)).toMap,
+        declarationMarks ::: cls.marks, annotation)
+    receiver match
+      case Marked(nominal: NominalInstanceView, context) =>
+        nominal.ancestor(cd).fold(signature(nominal.annotation)): view =>
+          visible(view.getMember(sel.id.name)).withAnnotation(nominal.annotation).withMarks(context :: Nil)
+      case _ =>
+        // A constructed receiver locates the implementation in its own class ancestry.
+        projectedMember(receiver, cd, sel.id.name).map(visible).getOrElse(signature(N))
   
   /** Both constructor references and explicit `new` use the same definition and
     * parameter lists, including auxiliary constructor(...) lists. A partial `new`
@@ -4770,7 +4780,7 @@ class NewResolver:
                 listenExt(cd, ext => visible(DefnShape(cd, ext).getInstanceMember(sel.id.name), reportInaccessible = true) match
                   case MemberLookup.Found(bms: BlockMemberSymbol, declarationMarks) =>
                     listenTermViews(sel.prefix): receiver =>
-                      lookup(projectedLookup(sel, cd, bms, declarationMarks, receiver, visible(_, reportInaccessible = true)))
+                      lookup(projectedLookup(sel, ref, bms, declarationMarks, receiver, visible(_, reportInaccessible = true)))
                   case info => selected(info))
               , _ => ())
         // Mirror the lookups of `unresolvedRef`.

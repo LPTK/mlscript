@@ -1707,10 +1707,11 @@ An exposed operation admits calls or writes to every implementation that overrid
 it. An unannotated member also exposes the values its implementations return or
 store, including values supplied to a field through a constructor argument or a later write.
 Every override must handle the parameter types and arguments its base admits,
-even in a private hierarchy. For example, a call to `new Base().read(null)`
-also checks the corresponding parameter of each override against `null` when
-the base parameter has no annotation. An override that omits a parameter or
-mutable field annotation inherits the base member's type for that input.
+even in a private hierarchy. If `Base.read(x)` leaves `x` unannotated, both
+`new Base().read(null)` and `p.read(null)` with `p: Base` supply `null` to
+the corresponding parameter in the base and every override.
+An override that omits a parameter or mutable field annotation inherits the
+base member's type for that input.
 If the base parameter has type `Box[Item]` and the override writes `x: Box`,
 the overriding body must handle unknown contents even when all local calls
 supply boxes of `Item`. Writing `x: Box[Item]` gives the body access to `Item`.
