@@ -185,7 +185,7 @@ private[hkmc2] object ErasureInputs:
 
   private given CandidateKey[Returned | Representation] with
     def apply(result: Returned | Representation)(using ResolutionContext): Any = result match
-      case Returned(_, value) => ShapeIdentity.key(value)
+      case Returned(member, value) => (member.tsym, ShapeIdentity.key(value))
       case source: Representation => source.member.tsym
 
   /** The values clients can read from a member across all receivers, together with the

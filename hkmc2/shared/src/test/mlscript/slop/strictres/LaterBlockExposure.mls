@@ -37,11 +37,8 @@ lateResult({only: 1})
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
-// Known limitation of worksheets, WON'T FIX: the remaining slots are observed only while their own
-// block is checked. Each block marked `:breakme` accepts a helper that the call following it reaches
-// with a null argument. The same code in one compilation unit is rejected.
-
-// The omitted argument of a written result type.
+// Known worksheet limitation: a written result's omitted type argument is observed only while
+// its block is checked. The following call can reach the helper with a null argument.
 class Cell[T](val item: T)
 let cell = Cell(x => 0)
 fun readCell(): Cell = cell
@@ -90,23 +87,30 @@ fun cellReaderAgain(): CellReader = new CellReader
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
-// The inferred result of an exported function, which reads a private field.
+// A later write changes what callers receive from an already exported function.
 private class Store(mut val f)
 private val store = Store(x => 0)
 fun current() = store.f
 //│ store = Store(fun)
 
-:breakme
 :e
 private fun lateField(x) = x.only
 set store.f = lateField
 lateField({only: 1})
-//│ = 1
-
-:fixme
-invoke(current())
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of null (reading 'only')
-
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+1: 	private fun lateField(x) = x.only
+//│ ║        	                           ^^^^^^
+//│ ╟── Cannot resolve member 'only' of a value with unknown shape.
+//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ║  l.+1: 	private fun lateField(x) = x.only
+//│ ║        	                      ^
+//│ ╟── This value is returned here.
+//│ ║  l.XX: 	fun current() = store.f
+//│ ║        	                ^^^^^^^
+//│ ╟── 'current' is exposed by this compilation unit.
+//│ ║  l.XX: 	fun current() = store.f
+//│ ╙──      	^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 // Written in one block, each of these cases is rejected.
 :e

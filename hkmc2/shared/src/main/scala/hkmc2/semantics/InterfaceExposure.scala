@@ -128,8 +128,11 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
     */
   private def memberInterface(td: TermDefinition, path: Path)(using ResolutionContext): Unit =
     signature(td, path)
-    if resolver.writtenSignature(td).isEmpty && watched.add(td.tsym) then
-      resolver.exposeMemberResult(td, path)(using declarationContext)
+    if resolver.writtenSignature(td).isEmpty then
+      memberResult(td, InterfaceExposure.declarationExits(td, N), path)(using declarationContext)
+
+  private def memberResult(td: TermDefinition, marks: Ls[Marks], path: Path)(using ResolutionContext): Unit =
+    if watched.add((td.tsym, marks, rctx)) then resolver.exposeMemberResult(td, marks, path)
 
   private def alias(symbol: BlockMemberSymbol, path: Path)(using ResolutionContext): Unit =
     symbol.asAls.flatMap(_.defn).filter(InterfaceExposure.isPublic).foreach(_.rhs.foreach(annotation(_, path)))
@@ -325,13 +328,8 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
             // A previously exposed class already admits calls to the whole method.
             if !admitted(td.tsym) then parameters(shape.unappliedParams, path, S(td))
             if ds.clsDef.isEmpty then
-              if Inheritance.isOpen(td) then memberInterface(td, path) else signature(td, path)
-              td.body.foreach: body =>
-                // A saved method retains its receiver's arguments. Its result can expose
-                // a class named only at the receiver's construction site.
-                val at = if resolver.memberSignature(td).isEmpty then path.via(msg"This value is returned here." -> body.toLoc) else path
-                watch((td.tsym, instances, marks))(resolver.listenDefinitionResult(td, instances)): result =>
-                  emit(resolver.instantiateShape(result, instances).exit(marks), at)
+              signature(td, path)
+              memberResult(td, marks, path)
           case _ => parameters(shape.unappliedParams, path, N)
         ds.clsDef.foreach(exposeClassInterface)
       case intro: IntroShape => intro.trm match
