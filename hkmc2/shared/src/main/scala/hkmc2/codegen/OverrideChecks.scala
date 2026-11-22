@@ -50,12 +50,6 @@ final class OverrideChecks(definitions: Ls[TermDefinition])(using Config, Ctx, S
     */
   val validatedBases: Map[TermSymbol, Ls[TermSymbol]] = edges.groupMap(_.overriding.tsym)(_.inherited.tsym)
   
-  /** The members whose source layouts preserve the argument bindings of each member they override:
-    * the pairs of [[validatedBases]] in the other direction. A call resolved to an inherited member
-    * can dispatch to them, so erasure joins their results into an inherited result that it infers.
-    */
-  val validatedOverriders: Map[TermSymbol, Ls[TermDefinition]] = edges.groupMap(_.inherited.tsym)(_.overriding)
-  
   /** Maps each overriding parameter to the inherited parameters that deliver the same argument,
     * omitted-argument default, or rest slice. Erasure joins all their representations when the
     * overriding parameter has no annotation of its own. Parameters with no inherited counterpart

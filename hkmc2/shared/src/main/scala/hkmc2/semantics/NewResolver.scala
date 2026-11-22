@@ -2249,10 +2249,8 @@ class NewResolver:
   private[semantics] def exposeMemberResult(td: TermDefinition, path: ShapeProvenance)(using ResolutionContext): Unit =
     val state = rctx.state
     assert(state.isOwnedSym(td.tsym))
-    val waiting = state.resultExposure.getOrElse(td.tsym, Left(Nil)) match
-      case Right(_) => return
-      case Left(overrides) => overrides
-    state.resultExposure(td.tsym) = Right(path)
+    if state.exposedResults.contains(td.tsym) then return
+    state.exposedResults(td.tsym) = path
     memberSignature(td) match
       case S(sign) =>
         // An override may declare a result type even when its base leaves the result unannotated.
@@ -2269,7 +2267,7 @@ class NewResolver:
           listenDefinitionResult(td, TypeSubstitution.empty)(expose(_, at))
         // Clients can read writes through an abstract or declared field even when it has no initializer.
         if isAssignableField(td) then listenMemberVariable(td.tsym)(expose(_, path))
-        waiting.foreach(exposeOverrideResult(_, path))
+        state.overridingResults(td.tsym).foreach(exposeOverrideResult(_, path))
 
   private def exposeOverrideResult(td: TermDefinition, base: ShapeProvenance)(using ResolutionContext): Unit =
     exposeMemberResult(td, base.via(msg"Member '${td.tsym.nme}' overrides the exposed member here." -> td.headerLoc))
@@ -2397,8 +2395,8 @@ class NewResolver:
     * a private hierarchy. An unannotated field receives the base's written type, or the values
     * assigned through the base if it has no annotation. Each field keeps its own initializer.
     */
-  private def connectOverrideInputs(base: TermDefinition, overriding: TermDefinition, inheritedMarks: Ls[Marks],
-      instances: TypeSubstitution)(using ResolutionContext): Unit =
+  private def connectOverrideInputs(base: TermDefinition, overriding: TermDefinition, parameters: Ls[(Param, Param)],
+      inheritedMarks: Ls[Marks], instances: TypeSubstitution)(using ResolutionContext): Unit =
     def exposeOmitted(tpe: DeclaredType)(using ResolutionContext): Unit =
       val source = tpe.resolution.source
       val path = ShapeProvenance.empty
@@ -2431,29 +2429,28 @@ class NewResolver:
             val ref = MemberRef(base.bsym)(N, rctx.fieldProjectionSite(base.bsym))
             InterfaceExposure.fieldInput(base.tsym, ref, inheritedExposure(base))
           forwardInputs(rctx.memberVariable(base.tsym), N, foreignWrite)(writeField(overriding.tsym, _, Nil))
-    else if base.params.nonEmpty then
-      codegen.OverrideLayout.correspondingParameters(overriding.params, base.params).foreach: pairs =>
-        val scope = ResolutionBoundary(overriding.tsym)
-        val entry = signatureSite(overriding)
-        pairs.foreach: (target, inherited) =>
-          parameterSignature(target) match
-            case S(tpe) => exposeOmitted(tpe)
-            case N =>
-              val rest = base.params.exists(_.variadic.exists(_.param.sym is inherited.sym))
-              // Direct calls to the override also use the inherited parameter's runtime slot.
-              // Their arguments contribute to its representation without entering the base body.
-              if !rest && parameterSignature(inherited).isEmpty then
-                val declarations = rctx.withInstances(TypeSubstitution.empty)
-                for
-                  baseInputs <- observeErasureVariable(inherited.sym)(using declarations)
-                  ownInputs <- observeErasureVariable(target.sym)(using declarations)
-                do ownInputs.listen(baseInputs.publish)
-              def foreignArgument =
-                InterfaceExposure.parameterInput(inherited, rest, inheritedExposure(base))(this)._2
-              forwardInputs(inherited.sym, S(inherited), foreignArgument): value =>
-                // This input can check the overriding body without becoming the result of an
-                // unrelated direct call. Direct calls enter the override at their own selection.
-                publishParameter(target.sym, MarkedShape.enter(value, scope, entry))
+    else if parameters.nonEmpty then
+      val scope = ResolutionBoundary(overriding.tsym)
+      val entry = signatureSite(overriding)
+      parameters.foreach: (target, inherited) =>
+        parameterSignature(target) match
+          case S(tpe) => exposeOmitted(tpe)
+          case N =>
+            val rest = base.params.exists(_.variadic.exists(_.param.sym is inherited.sym))
+            // Direct calls to the override also use the inherited parameter's runtime slot.
+            // Their arguments contribute to its representation without entering the base body.
+            if !rest && parameterSignature(inherited).isEmpty then
+              val declarations = rctx.withInstances(TypeSubstitution.empty)
+              for
+                baseInputs <- observeErasureVariable(inherited.sym)(using declarations)
+                ownInputs <- observeErasureVariable(target.sym)(using declarations)
+              do ownInputs.listen(baseInputs.publish)
+            def foreignArgument =
+              InterfaceExposure.parameterInput(inherited, rest, inheritedExposure(base))(this)._2
+            forwardInputs(inherited.sym, S(inherited), foreignArgument): value =>
+              // This input can check the overriding body without becoming the result of an
+              // unrelated direct call. Direct calls enter the override at their own selection.
+              publishParameter(target.sym, MarkedShape.enter(value, scope, entry))
 
   /** A caller of an inherited operation can use its written result, including any callback
     * domains. Check the overriding implementation and subsequent field writes against that result.
@@ -4965,15 +4962,17 @@ class NewResolver:
                   for
                     inherited <- target.defn if newResolution && Inheritance.isOpen(inherited)
                     overriding <- own.defn if !Inheritance.changesMemberKind(overriding, inherited)
+                    parameters <- codegen.OverrideLayout.correspondingParameters(overriding.params, inherited.params).toOption
                   do
-                    connectOverrideInputs(inherited, overriding, marks, instances)
+                    connectOverrideInputs(inherited, overriding, parameters, marks, instances)
                     checkOverrideResult(inherited, overriding, marks, instances)
                     if writtenSignature(inherited).isEmpty then
                       if !rctx.state.isOwnedSym(target) then
                         exposeOverrideResult(overriding, inheritedExposure(inherited))
-                      else rctx.state.resultExposure.getOrElse(target, Left(Nil)) match
-                        case Right(path) => exposeOverrideResult(overriding, path)
-                        case Left(waiting) => rctx.state.resultExposure(target) = Left(overriding :: waiting)
+                      else
+                        val state = rctx.state
+                        state.resultOverrides(target) = overriding :: state.overridingResults(target)
+                        state.exposedResults.get(target).foreach(exposeOverrideResult(overriding, _))
           // Private members are not overridden, so they do not hide the inherited members they shadow.
           lookup.visibleFrom(_ => false, reportInaccessible = false).foreachClassMember(rctx.instances)((base, path, instances, _) =>
             link(base, path, instances))

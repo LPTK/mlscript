@@ -20,8 +20,6 @@ private[hkmc2] final class ErasureDeclarations(root: Statement):
   val statements = mutable.ArrayBuffer.empty[Statement]
   val parameters = mutable.LinkedHashMap.empty[VarSymbol, Param]
   val variables = mutable.LinkedHashSet.empty[InputSymbol]
-  /** The members that `handle` blocks define to implement the members of their effect classes. */
-  val handlerMembers = mutable.Set.empty[TermSymbol]
   private val visited = mutable.Set.empty[Identity[Statement]]
 
   private def parameter(p: Param): Unit =
@@ -98,7 +96,6 @@ private[hkmc2] final class ErasureDeclarations(root: Statement):
         param.lb.foreach(visit)
         param.ub.foreach(visit)
       case Handle(_, _, _, _, definitions, _) => definitions.foreach: d =>
-        handlerMembers += d.td.tsym
         variable(d.resumeSym)
         visit(d.td)
       case LetDecl(sym: InputSymbol, _) => variable(sym)

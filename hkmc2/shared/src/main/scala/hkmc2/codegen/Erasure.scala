@@ -230,29 +230,24 @@ final class Erasure(root: Statement, report: Raise)(using Config, Ctx, State):
       case S(_: Annot.Generator) => ErasedResult.Generator(bodyType)
       case N => ErasedResult.Direct(bodyType)
 
-  /** The representations of the values that calls of `td` return, for a member `td` that neither declares
-    * nor inherits a result: those of the values that resolution observed its body to produce, and those that
-    * the members overriding it contribute. A call resolved to `td` can dispatch to any of these members,
-    * and the unannotated ones inherit the result representation of `td`.
-    *
-    * An overriding member contributes what its own callers receive: its declared result or its wrapper
-    * object, and otherwise its own observed values with the contributions of the members overriding it.
-    * `visiting` stops at inheritance cycles. The members of `handlerMembers` contribute nothing: the body of
-    * a handler member produces the result of the handled expression, whereas a call of the effect member
-    * it implements returns the value that the handler resumes with.
+  /** The result representation of a member that neither declares nor inherits one. Join the values
+    * its implementations can return. An implementation with a fixed result contributes the type
+    * its callers receive, including the promise or iterator of a wrapped function.
     */
-  private def observedResultTypes(td: TermDefinition, overrides: OverrideChecks,
-      handlerMembers: Set[TermSymbol], visiting: Set[TermSymbol]): Ls[ErasedValueType] =
-    inferredType(td.tsym).toList ::: overrides.validatedOverriders.getOrElse(td.tsym, Nil).flatMap: overriding =>
-      if overriding.isErroneous || visiting(overriding.tsym) || handlerMembers(overriding.tsym)
-          || parameterError(overriding).isDefined then Nil
-      // Erasure assigns inherited signatures before their overrides. A signature assigned earlier belongs
-      // to a declaration that erasure does not infer, whose published result is all that is known.
-      else if overriding.tsym.isErased then overriding.tsym.sourceDeclaredResultType.getOrElse(ErasedType.Unknown) :: Nil
-      else if overriding.resultWrapperAnnotation.nonEmpty then wrappedResult(overriding, N).callType.toList
-      else declaredResultType(overriding) match
-        case S(declared) => declared :: Nil
-        case N => observedResultTypes(overriding, overrides, handlerMembers, visiting + overriding.tsym)
+  private def inferredResultType(td: TermDefinition): Opt[ErasedValueType] =
+    if !config.language.useNewResolution then return N
+    val seen = mutable.Set(td.tsym)
+    val types = List.newBuilder[ErasedValueType]
+    def collect(member: TermDefinition): Unit =
+      inferredType(member.tsym).foreach(types += _)
+      summon[State].newResolverState.overridingResults(member.tsym).foreach: child =>
+        if seen.add(child.tsym) && !child.isErroneous && parameterError(child).isEmpty then
+          if child.tsym.isErased then types += child.tsym.sourceDeclaredResultType.getOrElse(ErasedType.Unknown)
+          else wrappedResult(child, declaredResultType(child)).callType match
+            case S(tpe) => types += tpe
+            case N => collect(child)
+    collect(td)
+    joined(types.result())
 
   /** Computes the representation to publish on a member symbol: a value type, a getter result,
     * or a function's parameter lists and result. Parameter symbols must already have their erased
@@ -260,12 +255,11 @@ final class Erasure(root: Statement, report: Raise)(using Config, Ctx, State):
     * function without parameter lists, as in `declare fun f: (Int) -> Str`, describe the function
     * value it returns. Unannotated overrides can obtain their result from an inherited member
     * that passed source layout validation in `overrides` and has completed erasure. Other unannotated
-    * members take the result representation of their whole override family (see `observedResultTypes`).
+    * members take the result representation of their whole override family (see `inferredResultType`).
     * Diagnosed parameter errors suppress result checking. The result signature retains the error
     * marker, as it does for an unrepresentable result, so overrides inherit it without another diagnostic.
     */
-  private def erasedDefinitionSignature(td: TermDefinition, overrides: OverrideChecks,
-      handlerMembers: Set[TermSymbol]): Opt[ErasedValueType | ErasedCallableSignature] =
+  private def erasedDefinitionSignature(td: TermDefinition, overrides: OverrideChecks): Opt[ErasedValueType | ErasedCallableSignature] =
     val declared = Annot.declareModifierOf(td.annotations).isDefined
     val resultType = parameterError(td) match
       case S(error) =>
@@ -280,11 +274,7 @@ final class Erasure(root: Statement, report: Raise)(using Config, Ctx, State):
           // An ordinary override keeps the first specified inherited result unchanged. Infer a result
           // only when no validated base supplies one, as for a definition with no overrides.
           else overrides.validatedBases.getOrElse(td.tsym, Nil).iterator.filter(_.isErased)
-            .flatMap(_.sourceDeclaredResultType).nextOption().orElse:
-              // The legacy resolver observes no values, and its unannotated results stay unknown.
-              if config.language.useNewResolution
-              then joined(observedResultTypes(td, overrides, handlerMembers, Set.single(td.tsym)))
-              else N
+            .flatMap(_.sourceDeclaredResultType).nextOption().orElse(inferredResultType(td))
         candidateResultType.map:
           representable(_, td.resultSignature.orElse(td.sign).flatMap(_.toLoc).orElse(td.tsym.toLoc),
             if declaredResult.isEmpty then S(td.tsym) else N)
@@ -485,7 +475,6 @@ final class Erasure(root: Statement, report: Raise)(using Config, Ctx, State):
       case _ => ()
     // Erase inherited results before their overrides, guarding against erroneous inheritance cycles.
     val definitionsBySymbol = definitions.map(td => td.tsym -> td).toMap
-    val handlerMembers = declarations.handlerMembers.toSet
     /** Publishes a declaration's erased signature after initializing its local inherited members,
       * so an unannotated override can inherit their result representation. Imported members already
       * have erased signatures. `visiting` breaks erroneous inheritance cycles; signature computation
@@ -496,7 +485,7 @@ final class Erasure(root: Statement, report: Raise)(using Config, Ctx, State):
         td.tsym.overriddenMembers.flatMap(definitionsBySymbol.get).foreach(eraseDefinition(_, visiting + td.tsym))
         // Definitions rejected before erasure still need initialized signatures for diagnostic recovery.
         td.tsym.initializeErasure:
-          if td.isErroneous then N else erasedDefinitionSignature(td, overrideChecks, handlerMembers)
+          if td.isErroneous then N else erasedDefinitionSignature(td, overrideChecks)
     definitions.foreach(eraseDefinition(_, Set.empty))
     def variableType(sym: ErasureInputs.InputSymbol): Opt[ErasedValueType] =
       inferredType(sym).map(representable(_, sym.toLoc, S(sym)))
