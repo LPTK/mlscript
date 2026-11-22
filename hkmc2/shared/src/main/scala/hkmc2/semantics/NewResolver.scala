@@ -2382,17 +2382,15 @@ class NewResolver:
         case (tpe, _) => emit(td, tpe)
     visit(td, slot, marks, instances, Set.empty)(receive)
 
-  /** Supply the argument or field write admitted at an exposed declaration. For a public member,
-    * interpret its declared or inherited annotation in the enclosing class's scope. Use `fallback`
-    * for other inputs and on each override path that supplies no annotation.
+  /** The annotation that bounds external arguments or writes, in the enclosing class's scope.
+    * A path with no declared or inherited type admits arbitrary external values.
     */
-  private[semantics] def externalInput(td: Opt[TermDefinition], param: Opt[Param], fallback: => TermShape)
-      (receive: Listener)(using ResolutionContext): Unit = td match
+  private[semantics] def externalInputType(td: Opt[TermDefinition], param: Opt[Param])
+      (receive: ShapeListener[Opt[DeclaredType]])(using ResolutionContext): Unit = td match
     case S(d) if d.owner.nonEmpty && !d.tsym.isPrivate =>
       val slot = param.fold(MemberSlot.Result)(MemberSlot.Parameter(_))
-      listenDeclaredOrInheritedType(d, slot, Nil, TypeSubstitution.empty, signatureSite): (_, tpe) =>
-        receive(tpe.fold(fallback)(instanceShape))
-    case _ => receive(fallback)
+      listenDeclaredOrInheritedType(d, slot, Nil, TypeSubstitution.empty, signatureSite)((_, tpe) => receive(tpe))
+    case _ => receive(N)
 
   /** Supply overriding parameters and mutable fields with the inputs their base admits, even in
     * a private hierarchy. An unannotated field receives the base's written type, or the values
@@ -2423,7 +2421,7 @@ class NewResolver:
       listenValueHost(host)(forward(_, baseExit))
       // An imported declaration may have no recorded external inputs in its producer.
       if !rctx.state.isOwnedSym(base.tsym) then
-        externalInput(S(base), param, foreignInput)(forward(_, inheritedMarks))
+        externalInputType(S(base), param)(tpe => forward(tpe.fold(foreignInput)(instanceShape), inheritedMarks))
     if base.k is syntax.MutVal then
       slotSignature(overriding, MemberSlot.Result) match
         case S(tpe) => exposeOmitted(tpe)

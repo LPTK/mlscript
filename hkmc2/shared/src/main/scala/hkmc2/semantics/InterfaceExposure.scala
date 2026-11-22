@@ -160,14 +160,10 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
     if resolver.parameterSignature(param).isEmpty then
       val (unknown, input) = externalArguments.getOrElseUpdate(param.sym,
         InterfaceExposure.parameterInput(param, rest, path)(resolver))
-      resolver.externalInput(method, S(param), input): admitted =>
-        (method, admitted) match
-          case (S(td), typed: InstanceShape) =>
-            // An inherited signature has already crossed its parent clause into this class.
-            val tpe = resolver.captureType(typed.tpe, td.tsym)
-            resolver.constrainParameter(param, resolver.instanceShape(tpe), Nil)
-            resolver.exposeTypeHoles(tpe, unknown)
-          case _ => resolver.constrainParameter(param, admitted.enter(marks), marks)
+      resolver.externalInputType(method, S(param)):
+        // The override already receives its inherited type from the base parameter.
+        case S(tpe) => resolver.exposeTypeHoles(tpe, unknown)
+        case N => resolver.publishParameter(param.sym, input.enter(marks))
 
   private def parameters(lists: Ls[(ParamList, Ls[Marks])], path: Path, method: Opt[TermDefinition])(using ResolutionContext): Unit =
     lists.foreach: (params, marks) =>
@@ -243,7 +239,9 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
     if rctx.state.isOwnedSym(field) && field.defn.flatMap(resolver.writtenSignature).isEmpty then
       val resolver = this.resolver
       val unknown = InterfaceExposure.fieldInput(field, source(symbol), path)
-      resolver.externalInput(field.defn, N, unknown)(resolver.writeField(field, _, Nil))
+      resolver.externalInputType(field.defn, N):
+        case S(tpe) => resolver.exposeTypeHoles(tpe, unknown)
+        case N => resolver.writeField(field, unknown, Nil)
 
   private def result(td: TermDefinition, body: Term, marks: Ls[Marks], path: Path)(using ResolutionContext): Unit = resolver.memberSignature(td) match
     case N =>
