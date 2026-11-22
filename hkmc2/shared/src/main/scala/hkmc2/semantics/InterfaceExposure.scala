@@ -410,7 +410,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
         callable.declaration.filter(origin => rctx.state.isOwnedSym(origin.definition.tsym)).foreach: origin =>
           val td = origin.definition
           signature(td, path)
-          if Inheritance.isOpen(td) && !admitted(td.tsym) then
+          if !admitted(td.tsym) then
             parameters(origin.remaining.map(_ -> marks), path, S(td))
         // A callable can carry type arguments fixed by an earlier application.
         // Its remaining parameters can receive external values for any omitted arguments.

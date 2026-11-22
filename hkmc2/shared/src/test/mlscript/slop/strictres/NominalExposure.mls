@@ -701,6 +701,29 @@ new DetachedChild().inspect({only: 7})
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
+// Returning a final method exposes its argument even when its declaring class stays private.
+:e
+private class ClosedReader with
+  fun read(x): Int = x.only
+private fun methodOf(p: ClosedReader) = p.read
+fun escapedRead() = methodOf(new ClosedReader)
+new ClosedReader().read({only: 7})
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+2: 	  fun read(x): Int = x.only
+//│ ║        	                     ^^^^^^
+//│ ╟── Cannot resolve member 'only' of a value with unknown shape.
+//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ║  l.+2: 	  fun read(x): Int = x.only
+//│ ║        	           ^
+//│ ╟── This value is returned here.
+//│ ║  l.+4: 	fun escapedRead() = methodOf(new ClosedReader)
+//│ ║        	                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── 'escapedRead' is exposed by this compilation unit.
+//│ ║  l.+4: 	fun escapedRead() = methodOf(new ClosedReader)
+//│ ╙──      	^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
 // The first application retains the second parameter list of a separately declared signature.
 :e
 private class CurriedBase with
