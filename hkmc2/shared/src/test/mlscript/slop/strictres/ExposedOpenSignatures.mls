@@ -65,14 +65,14 @@ class DogReader extends Reader with
   override mut val nextPet = () => Dog(2)
   fun currentTag() = nextPet().tag
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.+10: 	  override fun tagOf(next) = next().tag
-//│ ║         	                             ^^^^^^^^^^
+//│ ║  l.+12: 	  fun currentTag() = nextPet().tag
+//│ ║         	                     ^^^^^^^^^^^^^
 //│ ╟── Value of type 'Animal' does not contain member 'tag'
 //│ ║  l.+5: 	val family: Family[in Dog out Animal] = new Family[Animal]
 //│ ╙──      	                              ^^^^^^
 //│ ╔══[COMPILATION ERROR] Resolution error in selection
-//│ ║  l.+12: 	  fun currentTag() = nextPet().tag
-//│ ║         	                     ^^^^^^^^^^^^^
+//│ ║  l.+10: 	  override fun tagOf(next) = next().tag
+//│ ║         	                             ^^^^^^^^^^
 //│ ╟── Value of type 'Animal' does not contain member 'tag'
 //│ ║  l.+5: 	val family: Family[in Dog out Animal] = new Family[Animal]
 //│ ╙──      	                              ^^^^^^

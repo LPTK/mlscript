@@ -45,7 +45,7 @@ class SubstitutionGrowthTest extends AnyFunSuite:
        |""".stripMargin
 
   private final case class Measurement(views: Int, largestSubstitution: Int, activations: Int, typeInstances: Int,
-      typeReferences: Int, externalWriteHosts: Int)
+      typeReferences: Int)
 
   private val cctx = TestFolders.compilerCtx(os.pwd)
   private given DebugPrinter = new DebugPrinter()
@@ -79,8 +79,7 @@ class SubstitutionGrowthTest extends AnyFunSuite:
   private def measure(file: os.Path): Measurement =
     val state = compile(file).state.newResolverState.context
     Measurement(state.allocatedShapeViewCount, state.largestRetainedSubstitution,
-      state.activationContextCount, state.allocatedTypeInstanceCount, state.state.typeReferences.size,
-      state.state.externalFieldWrites.size)
+      state.activationContextCount, state.allocatedTypeInstanceCount, state.state.typeReferences.size)
 
   // Rotation and transposition generate every permutation. Merely exporting the recursive
   // record must not build those instantiated interfaces when no field was ever selected.
@@ -108,11 +107,24 @@ class SubstitutionGrowthTest extends AnyFunSuite:
 
   // Naming an imported class can expose it without introducing a local mutable field.
   test("naming the classes of other units retains no external writes for their fields"):
-    val source = """#lang(0.3.x, strictResolution: true)
-       |module ImportedOperationInputs with
-       |  fun increment(x: Int) = x + 1
-       |""".stripMargin
-    assert(measure("ImportedOperationInputs", source).externalWriteHosts == 0)
+    val library = sourceFile("Cells", """#lang(0.3.x, strictResolution: true)
+       |module Cells with
+       |  class Cell with { mut val item = 0 }
+       |""".stripMargin)
+    val producer = compile(library)
+    val field = new ErasureDeclarations(producer.term).statements.collectFirst {
+      case td: TermDefinition if td.tsym.nme == "item" => td.tsym
+    }.get
+    given owner: ResolutionContext = producer.state.newResolverState.context
+    assert(owner.memberVariable(field).currentShapes.nonEmpty)
+    val client = library / os.up / "Client.mls"
+    os.write(client, """#lang(0.3.x, strictResolution: true)
+       |import "./Cells.mls" as Cells
+       |module Client with
+       |  fun ignore(x: Cells.Cell): Int = 0
+       |""".stripMargin)
+    val consumer = compile(client).state.newResolverState
+    assert(consumer.memberVariables.get(field)(using consumer.context).isEmpty)
 
   // A diff test cannot distinguish repeated copies of the same external input. Count the
   // actual candidates kept by the methods and record field of one compiled module.

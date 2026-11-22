@@ -236,20 +236,14 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
         // `class Derived extends storedClass(1)`, which no type denotes.
         case N => annotation(parent.cls, inherited)(using declarationContext)
 
-  /** Record the writes other units may make through this field. An unannotated field uses them
-    * to infer its type. An annotated field gets its type and any unknown type arguments from
-    * its signature. An open field also admits those writes to its overrides.
+  /** Include writes from other units in the inferred type of an exposed field.
+    * A field with a written type already admits the values of that type.
     */
   private def assignable(field: TermSymbol, symbol: BlockMemberSymbol, path: Path)(using ResolutionContext): Unit =
-    if rctx.state.isOwnedSym(field) then
+    if rctx.state.isOwnedSym(field) && field.defn.flatMap(resolver.writtenSignature).isEmpty then
       val resolver = this.resolver
-      val annotated = field.defn.flatMap(resolver.writtenSignature).isDefined
-      val open = field.defn.exists(Inheritance.isOpen)
-      if !annotated || open then
-        val unknown = InterfaceExposure.fieldInput(field, source(symbol), path)
-        resolver.externalInput(field.defn, N, unknown): admitted =>
-          if !annotated then resolver.writeField(field, admitted, Nil)
-          if open then resolver.externalFieldWrites(field).publish(admitted)(using rctx.state.context)
+      val unknown = InterfaceExposure.fieldInput(field, source(symbol), path)
+      resolver.externalInput(field.defn, N, unknown)(resolver.writeField(field, _, Nil))
 
   private def result(td: TermDefinition, body: Term, marks: Ls[Marks], path: Path)(using ResolutionContext): Unit = resolver.memberSignature(td) match
     case N =>

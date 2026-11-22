@@ -880,3 +880,85 @@ new IgnoredArgument().read({key: 1})
 //│ ║  l.+4: 	fun count(x: Ignore[IgnoredArgument]) = x
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
+// A write through the private base type reaches the field read in the leaf.
+:e
+private class WriteRoot with
+  open mut val item = Argument("root")
+private class WriteMiddle extends WriteRoot with
+  open override mut val item = Argument("middle")
+private class WriteLeaf extends WriteMiddle with
+  override mut val item = Argument("leaf")
+  fun read() = item.word
+private fun clearItem(p: WriteRoot) = set p.item = null
+private val writeLeaf = new mut WriteLeaf
+clearItem(writeLeaf)
+writeLeaf.read()
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+7: 	  fun read() = item.word
+//│ ║        	               ^^^^^^^^^
+//│ ╟── Null literal does not contain member 'word'
+//│ ║  l.+8: 	private fun clearItem(p: WriteRoot) = set p.item = null
+//│ ╙──      	                                                   ^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ writeLeaf = WriteLeaf
+
+
+// The base's annotation reaches a private override even when nobody writes the field.
+:e
+private class BroadSlot with
+  open mut val item: Any = Argument("base")
+private class LocalSlot extends BroadSlot with
+  override mut val item = Argument("child")
+  fun read() = item.word
+new LocalSlot().read()
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+5: 	  fun read() = item.word
+//│ ║        	               ^^^^^^^^^
+//│ ╟── Value with an empty interface does not contain member 'word'
+//│ ║  l.+2: 	  open mut val item: Any = Argument("base")
+//│ ║        	                     ^^^
+//│ ╟── Type 'Any' is declared without a member interface.
+//│ ║  in ../../decls/Prelude.mls
+//│ ║  l.XX: 	declare type Any
+//│ ╙──      	             ^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
+// Each field has its own initializer. Later assignments through the base can replace the child's value.
+:expect ["child", "written"]
+private class InitialSlot with
+  open mut val item = null
+private class WordSlot extends InitialSlot with
+  override mut val item = Argument("child")
+  fun read() = item.word
+private fun replaceItem(p: InitialSlot) = set p.item = Argument("written")
+private val wordSlot = new mut WordSlot
+let beforeWrite = wordSlot.read()
+replaceItem(wordSlot)
+[beforeWrite, wordSlot.read()]
+//│ = ["child", "written"]
+//│ beforeWrite = "child"
+//│ wordSlot = WordSlot
+
+
+// A private override's own bare Box also admits unknown contents.
+:e
+private class LocalBoxSlot with
+  open mut val item: Box[Argument] = Box(Argument("base"))
+private class BareBoxSlot extends LocalBoxSlot with
+  override mut val item: Box = Box(Argument("child"))
+  fun read() = item.contents.word
+new BareBoxSlot().read()
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+5: 	  fun read() = item.contents.word
+//│ ║        	               ^^^^^^^^^^^^^^^^^^
+//│ ╟── Cannot resolve member 'word' of a value with unknown shape.
+//│ ╟── This overriding annotation leaves a type argument unspecified.
+//│ ║  l.+4: 	  override mut val item: Box = Box(Argument("child"))
+//│ ║        	                         ^^^
+//│ ╟── Member 'item' is declared here.
+//│ ║  l.+2: 	  open mut val item: Box[Argument] = Box(Argument("base"))
+//│ ╙──      	  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
