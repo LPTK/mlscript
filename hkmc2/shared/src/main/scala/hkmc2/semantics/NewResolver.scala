@@ -2077,10 +2077,7 @@ class NewResolver:
         listenTypeInstances(signature)(publishActivated(rctx.memberVariable(definition.tsym), _))
       definition.body.foreach: body =>
         listenSignatureResult(definition, signature, TypeView.Required): result =>
-          checkResult(result, S(body))(listenResult(body))
-
-  private def checkResult(expected: DeclaredType, site: Opt[Term])(values: Listener => Unit)(using ResolutionContext): Unit =
-    values(shape => inferTypeArguments(expected.instantiate(rctx.instances), shape, Nil, site))
+          listenResult(body)(value => inferTypeArguments(result.instantiate(rctx.instances), value, Nil, S(body)))
 
   def checkAscription(body: Term, sign: Term)(using ResolutionContext): Unit =
     val expected = declaredType(typeResolution(sign), Map.empty)
@@ -2449,8 +2446,8 @@ class NewResolver:
               // unrelated direct call. Direct calls enter the override at their own selection.
               publishParameter(target.sym, MarkedShape.enter(value, scope, entry))
 
-  /** A caller of an inherited operation can use its written result, including any callback
-    * domains. Check the overriding implementation and subsequent field writes against that result.
+  /** Check an overriding body or field initializer against the result type its callers inherit.
+    * For a returned callback, the inherited type supplies the arguments callers may pass to it.
     */
   private def checkOverrideResult(base: TermDefinition, overriding: TermDefinition, marks: Ls[Marks],
       instances: TypeSubstitution)(using ResolutionContext): Unit =
@@ -2465,8 +2462,6 @@ class NewResolver:
                 // JavaScript adopts returned promises before a caller receives the fulfillment.
                 listenAwaitedValue(value, body)(constrainValue(target, _, Nil, S(body), fulfilled = true))
               else inferTypeArguments(target, value, Nil, S(body))
-          if isAssignableField(overriding) then
-            checkResult(expected, overriding.body)(listenMemberVariable(overriding.tsym))
 
   /** Expand fixed tuple spreads before matching positions. Unknown-length
     * segments share the remaining middle elements, as with declared parameter
