@@ -2065,14 +2065,17 @@ class NewResolver:
           constrainQuantifiedBounds(scheme.parameters, substitution)
           instantiated
 
-  /** The body must satisfy its annotated result even if no value escapes or no
-    * call inspects the implementation. In particular a returned closure receives
-    * its declared domain before its member targets are completed.
+  /** Check a definition's body against its written result and publish a mutable field's declared
+    * type for its overrides. A returned closure receives its declared parameter types even without
+    * a call, and an abstract field supplies its type even without an assignment.
     */
-  def checkDeclaredResult(definition: TermDefinition)(using ResolutionContext): Unit =
-    definition.body.foreach: body =>
-      memberSignature(definition).foreach: sign =>
-        listenSignatureResult(definition, declaredType(typeResolution(sign), Map.empty), TypeView.Required): result =>
+  def registerResultSignature(definition: TermDefinition)(using ResolutionContext): Unit =
+    memberSignature(definition).foreach: sign =>
+      lazy val signature = declaredType(typeResolution(sign), Map.empty)
+      if definition.k is syntax.MutVal then
+        listenTypeInstances(signature)(publishActivated(rctx.memberVariable(definition.tsym), _))
+      definition.body.foreach: body =>
+        listenSignatureResult(definition, signature, TypeView.Required): result =>
           checkResult(result, S(body))(listenResult(body))
 
   private def checkResult(expected: DeclaredType, site: Opt[Term])(values: Listener => Unit)(using ResolutionContext): Unit =
@@ -2406,14 +2409,10 @@ class NewResolver:
       slotSignature(overriding, N) match
         case S(tpe) => exposeOmitted(tpe)
         case N =>
-          def write(value: TermShape)(using ResolutionContext): Unit = writeField(overriding.tsym, value, Nil)
-          slotSignature(base, N) match
-            case S(tpe) => write(instanceShape(projectSlot(base, N, tpe, inheritedMarks, instances, signatureSite(base))))
-            case N =>
-              def foreignWrite =
-                val ref = MemberRef(base.bsym)(N, rctx.fieldProjectionSite(base.bsym))
-                InterfaceExposure.fieldInput(base.tsym, ref, inheritedExposure(base))
-              forwardInputs(rctx.memberVariable(base.tsym), N, foreignWrite)(write)
+          def foreignWrite =
+            val ref = MemberRef(base.bsym)(N, rctx.fieldProjectionSite(base.bsym))
+            InterfaceExposure.fieldInput(base.tsym, ref, inheritedExposure(base))
+          forwardInputs(rctx.memberVariable(base.tsym), N, foreignWrite)(writeField(overriding.tsym, _, Nil))
     else if base.params.nonEmpty then
       codegen.OverrideLayout.correspondingParameters(overriding.params, base.params).foreach: pairs =>
         val scope = ResolutionBoundary(overriding.tsym)
@@ -2504,11 +2503,10 @@ class NewResolver:
           // A structural interface only describes public members.
           val lookup = actual.getMember(field.key.get).visibleFrom(_ => false, reportInaccessible = false)
           listenMemberValue(lookup, flow, field.rhs, TypeSubstitution.empty, () => ())(receive)
-          if mutable then
-            assignableTargets(lookup): (target, inner) =>
-              listenTypeInstances(expected.input)(writeField(target, _, inner))
-            listenFieldInput(lookup, field.rhs): input =>
-              listenTypeInstances(expected.input)(inferTypeArguments(input, _, marks, site))
+          if mutable then resolveFieldWrite(lookup, field.rhs)((target, inner) =>
+            listenTypeInstances(expected.input)(writeField(target, _, inner))
+          ): input =>
+            listenTypeInstances(expected.input)(inferTypeArguments(input, _, marks, site))
 
   /** Read a member using the same declaration and scope rules for ordinary
     * constraints and implicit protocol observations. The caller decides whether
@@ -4722,9 +4720,9 @@ class NewResolver:
 
   /** Assignments to a field are inputs of the field, like its initializer: erasure infers the representation of a
     * field without a declared type from both (see `observeErasureDefinition`). Resolve the assigned member the way
-    * `newSel` and `unresolvedRef` resolve selections, for every class that the receiver can be an instance of, and
-    * write the assigned values to each assignable field that the lookups find (see `writeField`). `scope` is where
-    * `lhs` is written, which determines the private members it can select.
+    * `newSel` and `unresolvedRef` resolve selections. For each possible receiver, check the assigned value against
+    * the field's written type or supply it to the field for inference (see `resolveFieldWrite`). The source
+    * `scope` of `lhs` determines the private members it can select.
     * Dynamic receivers and computed keys have no static target field: lowering compiles such assignments without
     * converting their values to the representation of a field, which only the JavaScript backend supports, as all
     * its values share one representation. A record type's field belongs to the type rather than to the values it
@@ -4742,10 +4740,7 @@ class NewResolver:
               case value: TermShape => writeField(field, value, marks)
               case NoShape => ()
       def lookup(info: MemberLookup)(using ResolutionContext): Unit =
-        assignableTargets(info)(assign)
-        // The interface's input constrains assigned callbacks and generic arguments even when its
-        // implementation is hidden. Checking only the field's reads would select the opposite bound.
-        listenFieldInput(info, lhs): input =>
+        resolveFieldWrite(info, lhs)(assign): input =>
           if rctx.state.fieldAssignmentTypes.add((new Identity(lhs), new Identity(rhs), input)) then
             listenTerm(rhs): value =>
               transport(value) match
@@ -4781,11 +4776,11 @@ class NewResolver:
         case _ => ()
     target(lhs, value => value)
 
-  /** Write `value` to the host of the assignable `field` (`memberVariable`), which holds the values assigned to the
-    * field as seen from inside its definition, like its initializer. Reading the field leaves its definition and
-    * then follows the path of the member lookup to the reader (see `fromBMSAt`), so a value assigned through a lookup
-    * with the path `marks` enters the field along the reverse path. A value enters the field's definition at no
-    * particular site: the field is not evaluated anew by each read, as a by-name definition would be.
+  /** Publish an input to an assignable field in the scope of its definition. The field's input can
+    * come from an assignment, an inherited type, or a constructor parameter's annotation.
+    * Reading the field exits its definition and follows the lookup path to the reader, so an
+    * input from a lookup with path `marks` enters along the reverse path. Every read of the
+    * field can observe a write, regardless of which selection made it.
     */
   private[semantics] def writeField(field: TermSymbol, value: TermShape, marks: Ls[Marks])(using ResolutionContext): Unit =
     softAssert(field.defn.exists(isAssignableField), "Only assignable fields hold assigned values")
@@ -4806,58 +4801,43 @@ class NewResolver:
           case NoShape => ()
         case NoShape => ()
   
-  /** A mutable member's write interface, interpreted at the lookup site. A nominal signature must be
-    * interpreted negatively before its receiver bindings select an endpoint; a structural field already
-    * retains both endpoints. Use the ordinary declared-member transport so captures and constructor fields
-    * follow exactly the same scope path as a read. Unannotated concrete fields impose no declared input.
+  /** Resolve a write to each field reached by `info`. For a field with an inferred type, `assign`
+    * receives the field and its lookup path. For a written nominal or structural type, `check`
+    * receives the field's input type at this receiver. For `item: T` in `Slot[T]`, a write
+    * through `Slot[Int]` checks against `Int`. An override of `Slot[Str]` inherits `Str`.
     */
-  private def listenFieldInput(info: MemberLookup, source: Term)(listener: ShapeListener[DeclaredType])
+  private def resolveFieldWrite(info: MemberLookup, source: Term)
+      (assign: (TermSymbol, Ls[Marks]) => ResolutionContext ?=> Unit)(check: ShapeListener[DeclaredType])
       (using ResolutionContext): Unit =
     val caller = rctx
-    def declared(member: BlockMemberSymbol, bindings: Map[VarSymbol, TypeArgument], marks: Ls[Marks],
+    def memberField(member: BlockMemberSymbol, bindings: Map[VarSymbol, TypeArgument], marks: Ls[Marks],
         annotation: Opt[Term], instances: TypeSubstitution)(using ResolutionContext): Unit =
       member.onComplete: () =>
-        if valueTarget(member, false).flatMap(_.defn).exists:
-          case td: TermDefinition => td.k is syntax.MutVal
-          case _ => false
-        then listenDeclaredMember(member, bindings, rctx.fieldProjectionSite(member), source, annotation, _ => (),
-          receiver = false, positive = false, marks, N)(
-          value => value match
-            case Marked(instance: InstanceShape, inner) =>
-              listener(transportType(instance.tpe, inner :: marks))(using caller)
-            case _ => ()
-        )(using rctx.withInstances(instances))
+        valueTarget(member, false).flatMap(_.defn) match
+          case S(td: TermDefinition) if (td.k is syntax.MutVal) && writtenSignature(td).isDefined =>
+            // The write selects the input bound of the receiver's type arguments.
+            listenDeclaredMember(member, bindings, rctx.fieldProjectionSite(member), source, annotation, _ => (),
+              receiver = false, positive = false, marks, N)(
+              value => value match
+                case Marked(instance: InstanceShape, inner) =>
+                  check(transportType(instance.tpe, inner :: marks))(using caller)
+                case _ => ()
+            )(using rctx.withInstances(instances))
+          case S(td: TermDefinition) if isAssignableField(td) => assign(td.tsym, marks)
+          case _ => ()
     def follow(info: MemberLookup, instances: TypeSubstitution)(using ResolutionContext): Unit = info match
       case MemberLookup.All(members) => members.foreach(follow(_, instances))
       case MemberLookup.Contextual(source, substitution) => follow(source, instances.withOverrides(substitution))
       case MemberLookup.Typed(_, tpe, marks) =>
-        listener(transportType(instantiateType(tpe.input, instances), marks))
+        check(transportType(instantiateType(tpe.input, instances), marks))
       case MemberLookup.Declared(member, bindings, marks, annotation) =>
-        declared(member, bindings, marks, annotation, instances)
+        memberField(member, bindings, marks, annotation, instances)
+      case MemberLookup.Found(RecordMember(field, mutable), marks) =>
+        if mutable then assign(field.tsym, marks)
       case MemberLookup.Found(member: BlockMemberSymbol, marks) =>
-        declared(member, Map.empty, marks, N, instances)
+        memberField(member, Map.empty, marks, N, instances)
       case _ => ()
     follow(info, rctx.instances)
-  
-  /** The assignable fields (see `isAssignableField`) that a member lookup finds, with the paths of their lookups.
-    * The fields of an immutable record are only assignable through mutable lookups: assigning them through the
-    * immutable record has no effect. Lookups through structural types, dynamic receivers, and computed keys find
-    * no assignable field (see `assignField`).
-    */
-  private def assignableTargets(info: MemberLookup)(target: (TermSymbol, Ls[Marks]) => ResolutionContext ?=> Unit)
-      (using ResolutionContext): Unit =
-    def member(member: BlockMemberSymbol, marks: Ls[Marks])(using ResolutionContext): Unit = member.onComplete: () =>
-      valueTarget(member, false) match
-        case S(field: TermSymbol) if field.defn.exists(isAssignableField) => target(field, marks)
-        case _ => ()
-    info match
-      case MemberLookup.All(members) => members.foreach(assignableTargets(_)(target))
-      // The receiver's substitution interprets the field's value; assigned values keep their own.
-      case MemberLookup.Contextual(source, _) => assignableTargets(source)(target)
-      case MemberLookup.Found(RecordMember(field, mutable), marks) => if mutable then target(field.tsym, marks)
-      case MemberLookup.Found(found: BlockMemberSymbol, marks) => member(found, marks)
-      case MemberLookup.Declared(member = declared, marks = marks) => member(declared, marks)
-      case _ => ()
 
   def defineVar(sym: LocalSymbol | TermSymbol, rhs: Term)(loc: Opt[Loc])(using ResolutionContext): DefineVar =
     if newResolution then sym match

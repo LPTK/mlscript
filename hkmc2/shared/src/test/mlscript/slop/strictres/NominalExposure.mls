@@ -962,3 +962,39 @@ new BareBoxSlot().read()
 //│ ║  l.+2: 	  open mut val item: Box[Argument] = Box(Argument("base"))
 //│ ╙──      	  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
+// The same field declaration admits Int on one receiver and Argument on the specialized override.
+:expect ["word", 42]
+private class Slot[T](seed: T) with
+  open mut val item: T = seed
+private class WordSlotView extends Slot[Argument](Argument("base")) with
+  override mut val item = Argument("word")
+  fun read() = item.word
+private fun setNumber(p: Slot[Int]) = set p.item = 42
+private val numberSlot = new mut Slot[Int](0)
+setNumber(numberSlot)
+[new WordSlotView().read(), numberSlot.item]
+//│ = ["word", 42]
+//│ numberSlot = Slot(_)
+
+
+// An abstract field supplies its annotation even when the base has no initializer or writes.
+:e
+private abstract class AbstractSlot with
+  mut val item: Any
+private class FilledSlot extends AbstractSlot with
+  override mut val item = Argument("filled")
+  fun read() = item.word
+new FilledSlot().read()
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+5: 	  fun read() = item.word
+//│ ║        	               ^^^^^^^^^
+//│ ╟── Value with an empty interface does not contain member 'word'
+//│ ║  l.+2: 	  mut val item: Any
+//│ ║        	                ^^^
+//│ ╟── Type 'Any' is declared without a member interface.
+//│ ║  in ../../decls/Prelude.mls
+//│ ║  l.XX: 	declare type Any
+//│ ╙──      	             ^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
