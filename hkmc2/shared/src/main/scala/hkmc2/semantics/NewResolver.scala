@@ -5148,9 +5148,7 @@ class NewResolver:
               // instance was assigned. The fields of external declarations, which have no body, are left unobserved.
               if td.k is syntax.MutVal then listenAssignedValues(td.tsym, resSym, markss)(listener)
         case S(d: TermDefinition) if !d.tsym.isInstanceOf[ClassCtorSymbol] &&
-            ((d.sign.nonEmpty && (!d.flags.hasResultAnnotation || d.params.forall(ps =>
-              ps.allParams.forall(_.sign.nonEmpty)))) ||
-              (d.body.isEmpty && d.tsym.owner.exists(_.asDefnSym.defn.exists(_.tparams.nonEmpty)))) =>
+            (d.sign.nonEmpty || (d.body.isEmpty && d.tsym.owner.exists(_.asDefnSym.defn.exists(_.tparams.nonEmpty)))) =>
           listenDeclaredMember(bms, instanceBindings(d), resSym, trm, N, selected, receiver, positive = true, markss, specialization): value =>
             transportShape(value, markss) match
               case value: TermShape => listener(value)

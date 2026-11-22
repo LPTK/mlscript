@@ -244,6 +244,17 @@ private val savedIdentity = new NamedIdentity().id
 //│ = [7, 8]
 //│ savedIdentity = fun id
 
+// An explicitly written result B reads the type argument inferred through the inherited parameter x.
+:expect [7, 9]
+private class ResultBase with
+  open fun id[A](x: A): A = x
+private class NamedResult extends ResultBase with
+  override fun id[B](x): B = x
+private val pick = new NamedResult().id
+[pick(LeftItem(7)).left, pick(RightItem(9)).right]
+//│ = [7, 9]
+//│ pick = fun id
+
 // A single selection can dispatch to overrides with different method type parameters.
 :expect [5, 6]
 private class OtherIdentity extends IdentityBase with
