@@ -4,7 +4,7 @@ package semantics
 import scala.collection.mutable
 import hkmc2.utils.*, shorthands.*
 import Term.*
-import ErasureInputs.InputSymbol
+import ErasureInputs.{Input, InputSymbol, Slot}
 
 /** Source declarations needed both when observing inference and when assigning representations.
   * Several declarations are outside subStatements: split bindings, handler parameters,
@@ -121,17 +121,17 @@ private[hkmc2] final class ErasureDeclarations(root: Statement):
   * No erased types or mutable bookkeeping are stored on source symbols during resolution.
   */
 private[hkmc2] final class ErasureInputs:
-  private val values = mutable.Map.empty[InputSymbol, TermShapeHost]
+  private val values = mutable.Map.empty[InputSymbol, Slot]
 
   // Includes property declarations synthesized by named-tuple resolution, which
   // have source expressions but are not separate nodes in the source syntax.
   def symbols: Ls[InputSymbol] = values.keysIterator.toList
 
   private[semantics] def register(symbol: InputSymbol)(connect: ResolutionContext.Listener => Unit)
-      (using ResolutionContext): TermShapeHost = values.get(symbol) match
+      (using ResolutionContext): Slot = values.get(symbol) match
     case S(host) => host
     case N =>
-      val host = new TermShapeHost
+      val host = new Slot
       values(symbol) = host
       // Even an unused/unproductive definition has a completed, empty observation.
       host.inferenceHost
@@ -141,14 +141,37 @@ private[hkmc2] final class ErasureInputs:
   /** Whether `symbol` is a source slot of this compilation unit that was prepared for erasure. */
   def isPrepared(symbol: InputSymbol): Bool = values.contains(symbol)
 
-  def shapes(symbol: InputSymbol): Ls[TermShape] =
+  /** The completed inputs to a source slot, including results forwarded from its overrides. */
+  def observations(symbol: InputSymbol): Iterator[Input] =
     val host = values.getOrElse(symbol, lastWords("Source slot was not prepared for erasure"))
     assert(host.originalData.completed, "Erasure requires completed value observations")
-    host.shapes.toList
+    host.shapes.iterator
 
 private[hkmc2] object ErasureInputs:
   /** Symbols whose variable values or definition results supply runtime representations.
     * Elaboration temporaries include the saved value restored by a backtracking assignment.
     */
   type InputSymbol = LocalVarSymbol | TermSymbol
+
+  /** A value that a virtual call or field read can return through its base declaration.
+    * A written signature, constructor field, or promise/iterator wrapper provides a fixed
+    * representation even when the implementation produces no observed values. The source
+    * lets erasure recognize an implementation with a rejected parameter.
+    */
+  enum OverrideResult:
+    def source: TermDefinition
+    case Observed(source: TermDefinition, value: TermShape)
+    case Contract(source: TermDefinition)
+  type Input = TermShape | OverrideResult
+
+  private given CandidateKey[Input] with
+    def apply(input: Input)(using ResolutionContext): Any = input match
+      case shape: TermShape => ShapeIdentity.key(shape)
+      case OverrideResult.Observed(member, shape) => member.tsym -> ShapeIdentity.key(shape)
+      case OverrideResult.Contract(member) => member.tsym
+
+  /** Collects the inputs to one source slot across its calls, writes, and overrides. */
+  private[semantics] final class Slot extends Host[Input]:
+    def showDbg(using DebugPrinter): Str = "erasure inputs"
+    def publish(input: Input)(using ResolutionContext): Unit = inferenceHost.publish(input)
 

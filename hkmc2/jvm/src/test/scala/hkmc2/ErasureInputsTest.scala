@@ -18,7 +18,7 @@ class ErasureInputsTest extends AnyFunSuite:
     val initial = DynShape()
     source.publish(initial)
     defining.completeBlock(Term.UnitVal())
-    val snapshot = inputs.shapes(symbol)
+    val snapshot = inputs.observations(symbol).toList
     val first = new Elaborator.State().newResolverState.context
     val second = new Elaborator.State().newResolverState.context
     val later = UnknownValueShape.at(Term.UnitVal())
@@ -30,4 +30,4 @@ class ErasureInputsTest extends AnyFunSuite:
     assert(source.currentShapes(using second).toSet == Set(initial, other))
     assert(source.currentShapes(using defining).toSet == Set(initial, other))
     assert(snapshot == List(initial))
-    assert(inputs.shapes(symbol) == snapshot)
+    assert(inputs.observations(symbol).toList == snapshot)

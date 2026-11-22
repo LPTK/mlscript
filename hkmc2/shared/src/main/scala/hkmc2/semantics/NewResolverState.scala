@@ -87,7 +87,7 @@ final class NewResolverState(val owner: Elaborator.State):
 
   /** The local implementations whose results can reach a call to `member` through one override.
     * A written signature bounds the result at that declaration. */
-  def overridingResults(member: TermSymbol): Ls[TermDefinition] = resultOverrides.getOrElse(member, Nil)
+  private[semantics] def overridingResults(member: TermSymbol): Ls[TermDefinition] = resultOverrides.getOrElse(member, Nil)
 
   /** How [[InterfaceExposure]] first reached `member`, if `member` is an exposed overridable member
     * of an extensible class or object of this compilation unit.

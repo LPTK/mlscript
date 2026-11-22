@@ -6,6 +6,7 @@ import scala.collection.mutable
 import hkmc2.utils.*, shorthands.*
 import semantics.*
 import semantics.Elaborator.{Ctx, State}
+import semantics.ErasureInputs.OverrideResult
 import semantics.Term.*
 import hkmc2.Message.MessageContext
 
@@ -31,10 +32,14 @@ final class Erasure(root: Statement, report: Raise)(using Config, Ctx, State):
   def requireCompleted(statement: Statement): Unit =
     assert(root is statement, "Lowering requires completed erasure of this program")
 
-  /** The representation of the values that `shape` describes, or `N` for a shape that does not
-    * constrain the representation of the slots holding its values.
+  /** The representation an observation contributes to its slot, or `N` when it places no constraint.
+    * A fixed override contributes the result representation its callers receive.
     */
-  private def valueType(shape: TermShape): Opt[ErasedValueType] = shape match
+  private def valueType(input: ErasureInputs.Input): Opt[ErasedValueType] = input match
+    case OverrideResult.Observed(_, shape) => valueType(shape)
+    case OverrideResult.Contract(td) =>
+      if td.tsym.isErased then S(td.tsym.sourceDeclaredResultType.getOrElse(ErasedType.Unknown))
+      else wrappedResult(td, declaredResultType(td)).callType
     case MarkedShape(value, _) => valueType(value)
     case ContextualShape(value, _) => valueType(value)
     case SpecializedShape(value, _, _) => valueType(value)
@@ -81,9 +86,17 @@ final class Erasure(root: Statement, report: Raise)(using Config, Ctx, State):
     case symbol: (ClassSymbol | ModuleOrObjectSymbol) => ErasedType.ValueLike(S(false), symbol)
     case _ => ErasedType.Unknown
 
+  /** The observations that constrain a slot. Erasure checks parameters before results, so an
+    * override whose parameters have no representation cannot cause a second error at its base.
+    */
+  private def observations(symbol: ErasureInputs.InputSymbol): Iterator[ErasureInputs.Input] =
+    if !config.language.useNewResolution then Iterator.empty
+    else summon[State].newResolverState.erasureInputs.observations(symbol).filter:
+      case result: OverrideResult => !result.source.isErroneous && parameterError(result.source).isEmpty
+      case _ => true
+
   private def inferredType(symbol: ErasureInputs.InputSymbol): Opt[ErasedValueType] =
-    if !config.language.useNewResolution then N
-    else joined(summon[State].newResolverState.erasureInputs.shapes(symbol).flatMap(valueType))
+    joined(observations(symbol).flatMap(valueType).toList)
 
   /** The representation of a slot that holds values of each of `types`, or `N` when there are none. */
   private def joined(types: Ls[ErasedValueType]): Opt[ErasedValueType] = types match
@@ -134,7 +147,10 @@ final class Erasure(root: Statement, report: Raise)(using Config, Ctx, State):
   private def externalInputOrigin(symbol: ErasureInputs.InputSymbol): Opt[UnknownValueShape] =
     val inputs = summon[State].newResolverState.erasureInputs
     if !config.language.useNewResolution || !inputs.isPrepared(symbol) then N
-    else inputs.shapes(symbol).iterator.map(_.applicationHead._1).collectFirst:
+    else observations(symbol).collect:
+      case value: TermShape => value
+      case OverrideResult.Observed(_, value) => value
+    .map(_.applicationHead._1).collectFirst:
       case unknown: UnknownValueShape if unknown.fromPublicInterface => unknown
 
   /** Rejects a slot type without a runtime representation, such as `Int32 | Str`:
@@ -230,32 +246,13 @@ final class Erasure(root: Statement, report: Raise)(using Config, Ctx, State):
       case S(_: Annot.Generator) => ErasedResult.Generator(bodyType)
       case N => ErasedResult.Direct(bodyType)
 
-  /** The result representation of a member that neither declares nor inherits one. Join the values
-    * its implementations can return. An implementation with a fixed result contributes the type
-    * its callers receive, including the promise or iterator of a wrapped function.
-    */
-  private def inferredResultType(td: TermDefinition): Opt[ErasedValueType] =
-    if !config.language.useNewResolution then return N
-    val seen = mutable.Set(td.tsym)
-    val types = List.newBuilder[ErasedValueType]
-    def collect(member: TermDefinition): Unit =
-      inferredType(member.tsym).foreach(types += _)
-      summon[State].newResolverState.overridingResults(member.tsym).foreach: child =>
-        if seen.add(child.tsym) && !child.isErroneous && parameterError(child).isEmpty then
-          if child.tsym.isErased then types += child.tsym.sourceDeclaredResultType.getOrElse(ErasedType.Unknown)
-          else wrappedResult(child, declaredResultType(child)).callType match
-            case S(tpe) => types += tpe
-            case N => collect(child)
-    collect(td)
-    joined(types.result())
-
   /** Computes the representation to publish on a member symbol: a value type, a getter result,
     * or a function's parameter lists and result. Parameter symbols must already have their erased
     * types. A function's physical parameter lists are its written ones: arrows in the type of a
     * function without parameter lists, as in `declare fun f: (Int) -> Str`, describe the function
     * value it returns. Unannotated overrides can obtain their result from an inherited member
     * that passed source layout validation in `overrides` and has completed erasure. Other unannotated
-    * members take the result representation of their whole override family (see `inferredResultType`).
+    * members use the result values resolution has collected from their implementations.
     * Diagnosed parameter errors suppress result checking. The result signature retains the error
     * marker, as it does for an unrepresentable result, so overrides inherit it without another diagnostic.
     */
@@ -267,15 +264,11 @@ final class Erasure(root: Statement, report: Raise)(using Config, Ctx, State):
         S(error)
       case N =>
         val declaredResult = declaredResultType(td)
-        val candidateResultType = declaredResult.orElse:
-          // Async/generator bodies produce a payload; inherited callable results describe the wrapper,
-          // and the members overriding such a function produce payloads or results of their own.
-          if config.language.useNewResolution && td.resultWrapperAnnotation.nonEmpty then inferredType(td.tsym)
-          // An ordinary override keeps the first specified inherited result unchanged. Infer a result
-          // only when no validated base supplies one, as for a definition with no overrides.
-          else overrides.validatedBases(td.tsym).filter(_.isErased)
-            .flatMap(_.sourceDeclaredResultType).nextOption().orElse(inferredResultType(td))
-        candidateResultType.map:
+        val specified = declaredResult.orElse:
+          // A wrapped definition inherits no payload type from its base's callable result.
+          if config.language.useNewResolution && td.resultWrapperAnnotation.nonEmpty then N
+          else overrides.validatedBases(td.tsym).filter(_.isErased).flatMap(_.sourceDeclaredResultType).nextOption()
+        specified.orElse(inferredType(td.tsym)).map:
           representable(_, td.resultSignature.orElse(td.sign).flatMap(_.toLoc).orElse(td.tsym.toLoc),
             if declaredResult.isEmpty then S(td.tsym) else N)
     val result = wrappedResult(td, resultType)
