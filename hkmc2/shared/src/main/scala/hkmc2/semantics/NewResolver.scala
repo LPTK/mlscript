@@ -2236,16 +2236,10 @@ class NewResolver:
     // nominal argument, or arrow installs another edge with its own cycle guard.
     withCanonicalType(tpe)(follow(_, noTypeArguments, Nil, Set.empty))
 
-  private def interfaceInputs(symbol: VarSymbol | TermSymbol)(using ResolutionContext): TermShapeHost =
-    assert(rctx.state.isOwnedSym(symbol))
-    rctx.state.interfaceInputs.getOrElseUpdate(symbol, new TermShapeHost)
-
-  /** Make an external argument or field write available to overrides of this declaration.
-    * A typed input carries its declared or inherited type in the enclosing class's scope.
-    */
-  private[semantics] def publishInterfaceInput(symbol: VarSymbol | TermSymbol, value: TermShape)
-      (using ResolutionContext): Unit =
-    interfaceInputs(symbol).publish(value)(using rctx.state.context)
+  /** Writes admitted through an exposed mutable field, in the declaring class's scope. */
+  private[semantics] def externalFieldWrites(field: TermSymbol)(using ResolutionContext): TermShapeHost =
+    assert(rctx.state.isOwnedSym(field))
+    rctx.state.externalFieldWrites.getOrElseUpdate(field, new TermShapeHost)
 
   /** Expose the values clients can read from a member, including through its overrides. Observe
     * the declaration across all its invocations so later writes and constructor arguments can
@@ -2381,66 +2375,68 @@ class NewResolver:
         receive(tpe.fold(fallback)(instanceShape))
     case _ => receive(fallback)
 
-  /** Check an unannotated overriding parameter against the type its base declares, including
-    * in private hierarchies. Forward external arguments and field writes to overrides when
-    * the base is exposed. An exposed override with a written type admits unknown values for
-    * any type arguments it omits.
+  /** Connect each overriding parameter to the corresponding base parameter's annotations and
+    * arguments, including calls within a private hierarchy. Mutable field overrides receive
+    * the writes admitted through the exposed base field.
     */
   private def connectOverrideInputs(base: TermDefinition, overriding: TermDefinition, inheritedMarks: Ls[Marks],
       instances: TypeSubstitution)(using ResolutionContext): Unit =
-    def symbol(td: TermDefinition, param: Opt[Param]): VarSymbol | TermSymbol =
-      param.fold[VarSymbol | TermSymbol](td.tsym)(_.sym)
-    def foreignFallback(param: Opt[Param])(using ResolutionContext): TermShape = param match
-      case S(p) =>
-        val rest = base.params.exists(_.variadic.exists(_.param.sym is p.sym))
-        InterfaceExposure.parameterInput(p, rest, inheritedExposure(base))(this)._2
-      case N =>
-        val site = rctx.fieldProjectionSite(base.bsym)
-        InterfaceExposure.fieldInput(base.tsym, MemberRef(base.bsym)(N, site), inheritedExposure(base))
-    def connect(inherited: Opt[Param], target: Opt[Param])(admit: Listener): Unit =
-      def forward(value: => TermShape)(using ResolutionContext): Unit =
-        if Inheritance.isOpen(overriding) then publishInterfaceInput(symbol(overriding, target), value)
-      def exposed(input: TermShape)(using ResolutionContext): Unit = slotSignature(overriding, target) match
-        case S(tpe) =>
-          val source = tpe.resolution.source
-          val path = ShapeProvenance.empty
-            .via(msg"Member '${base.tsym.nme}' is accessible here." -> base.headerLoc)
-            .via(msg"This overriding annotation leaves a type argument unspecified." -> source.toLoc)
-          exposeTypeHoles(tpe.instantiate(rctx.instances), UnknownValueShape(source, fromPublicInterface = true)(path))
-          forward(instanceShape(projectSlot(overriding, target, tpe, Nil, TypeSubstitution.empty, signatureSite(overriding))))
-        case N =>
-          // The base supplies its input in its own class's scope. Apply this parent clause
-          // once so that the overriding body and any further overrides see the same type.
-          val value = input match
-            case Marked(instance: InstanceShape, marks) =>
-              instanceShape(transportType(instance.tpe.instantiate(instances), marks :: inheritedMarks))
-            case _ => input
-          admit(value)
-          forward(value)
-      // A partial application can expose just the remaining parameters of a local method.
-      // An imported base already admits external calls and writes.
-      if rctx.state.isOwnedSym(base.tsym) then
-        interfaceInputs(symbol(base, inherited)).listen(exposed)(using rctx.state.context)
-      else externalInput(S(base), inherited, foreignFallback(inherited))(exposed)
+    def exposeOmitted(tpe: DeclaredType)(using ResolutionContext): Unit =
+      val source = tpe.resolution.source
+      val path = ShapeProvenance.empty
+        .via(msg"Member '${base.tsym.nme}' is declared here." -> base.headerLoc)
+        .via(msg"This overriding annotation leaves a type argument unspecified." -> source.toLoc)
+      exposeTypeHoles(tpe, UnknownValueShape(source, fromPublicInterface = true)(path))
     if base.k is syntax.MutVal then
-      connect(N, N)(writeField(overriding.tsym, _, Nil))
+      def admitted(input: TermShape)(using ResolutionContext): Unit =
+        def forward(value: => TermShape): Unit = if Inheritance.isOpen(overriding) then
+          externalFieldWrites(overriding.tsym).publish(value)(using rctx.state.context)
+        slotSignature(overriding, N) match
+          case S(tpe) =>
+            exposeOmitted(tpe.instantiate(rctx.instances))
+            forward(instanceShape(projectSlot(overriding, N, tpe, Nil, TypeSubstitution.empty, signatureSite(overriding))))
+          case N =>
+            val value = input match
+              case Marked(instance: InstanceShape, marks) =>
+                instanceShape(transportType(instance.tpe.instantiate(instances), marks :: inheritedMarks))
+              case _ => input
+            writeField(overriding.tsym, value, Nil)
+            forward(value)
+      if rctx.state.isOwnedSym(base.tsym) then
+        externalFieldWrites(base.tsym).listen(admitted)(using rctx.state.context)
+      else
+        val ref = MemberRef(base.bsym)(N, rctx.fieldProjectionSite(base.bsym))
+        externalInput(S(base), N, InterfaceExposure.fieldInput(base.tsym, ref, inheritedExposure(base)))(admitted)
     else if base.params.nonEmpty then
       codegen.OverrideLayout.correspondingParameters(overriding.params, base.params).foreach: pairs =>
-        val inside = ExitMark(ResolutionBoundary(overriding.tsym), N, NoMarks) :: Nil
+        // The parent clause names one receiver. Inputs from every receiver of the base
+        // method can reach an override, including inputs from a different allocation site.
+        @tailrec def allBaseCalls(path: Marks, tail: Ls[Marks]): Ls[Marks] = path match
+          case ExitMark(scope, _, rest) => allBaseCalls(rest, ExitMark(scope, N, NoMarks) :: tail)
+          case EntryMark(scope, id, rest) => allBaseCalls(rest, EntryMark(scope, id, NoMarks) :: tail)
+          case NoMarks => tail
+        val baseExit = ExitMark(ResolutionBoundary(base.tsym), N, NoMarks) ::
+          inheritedMarks.foldRight(Nil: Ls[Marks])(allBaseCalls)
+        val scope = ResolutionBoundary(overriding.tsym)
+        val entry = signatureSite(overriding)
         pairs.foreach: (target, inherited) =>
-          if rctx.state.isOwnedSym(base.tsym) && parameterSignature(target).isEmpty then
-            // Check this body even when the hierarchy stays private. A wildcard exit includes
-            // the base method's abstract type parameters. A separate entry at the override
-            // prevents those checking inputs from escaping through the result of a local call.
-            val entry = signatureSite(overriding)
-            listenDeclaredOrInheritedType(base, S(inherited), inheritedMarks, instances, _ => N): (_, tpe) =>
-              tpe.foreach: declared =>
-                val input = MarkedShape.enter(instanceShape(declared), ResolutionBoundary(overriding.tsym), entry)
-                publishParameter(target.sym, input)
-          connect(S(inherited), S(target)): input =>
-            input.enter(inside) match
-              case value: TermShape => publishParameter(target.sym, value)
-              case NoShape => ()
+          parameterSignature(target) match
+            case S(tpe) => exposeOmitted(tpe)
+            case N =>
+              def admit(input: TermShape, path: Ls[Marks])(using ResolutionContext): Unit =
+                val value = instantiateShape(input, rctx.instances.withOverrides(instances))
+                transportShape(value, path) match
+                  case value: TermShape =>
+                    // This input can check the overriding body without becoming the result of an
+                    // unrelated direct call. Direct calls enter the override at their own selection.
+                    publishParameter(target.sym, MarkedShape.enter(value, scope, entry))(using rctx.withInstances(TypeSubstitution.empty))
+                  case NoShape => ()
+              listenValueHost(inherited.sym)(admit(_, baseExit))
+              if !rctx.state.isOwnedSym(base.tsym) then
+                // An imported declaration may have no recorded external calls in its producer.
+                val rest = base.params.exists(_.variadic.exists(_.param.sym is inherited.sym))
+                externalInput(S(base), S(inherited), InterfaceExposure.parameterInput(inherited, rest, inheritedExposure(base))(this)._2)(
+                  admit(_, inheritedMarks))
 
   /** A caller of an inherited operation can use its written result, including any callback
     * domains. Check the overriding implementation and subsequent field writes against that result.

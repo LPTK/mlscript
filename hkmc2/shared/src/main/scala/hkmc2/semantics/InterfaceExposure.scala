@@ -157,22 +157,17 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
     param.sign.foreach(annotation(_, path))
     // An inherited signature can arrive after this walk. Its listener only needs the resolver.
     val resolver = this.resolver
-    val annotated = resolver.parameterSignature(param).isDefined
-    val open = method.exists(Inheritance.isOpen)
-    // The signature walk already exposes omitted arguments in annotated parameters.
-    // An open method must still notify its overrides that this parameter admits external calls.
-    if annotated && !open then return
-    val (unknown, input) = externalArguments.getOrElseUpdate(param.sym,
-      InterfaceExposure.parameterInput(param, rest, path)(resolver))
-    resolver.externalInput(method, S(param), input): admitted =>
-      if !annotated then (method, admitted) match
-        case (S(td), typed: InstanceShape) =>
-          // An inherited signature has already crossed its parent clause into this class.
-          val tpe = resolver.captureType(typed.tpe, td.tsym)
-          resolver.constrainParameter(param, resolver.instanceShape(tpe), Nil)
-          resolver.exposeTypeHoles(tpe, unknown)
-        case _ => resolver.constrainParameter(param, admitted.enter(marks), marks)
-      if open then resolver.publishInterfaceInput(param.sym, admitted)
+    if resolver.parameterSignature(param).isEmpty then
+      val (unknown, input) = externalArguments.getOrElseUpdate(param.sym,
+        InterfaceExposure.parameterInput(param, rest, path)(resolver))
+      resolver.externalInput(method, S(param), input): admitted =>
+        (method, admitted) match
+          case (S(td), typed: InstanceShape) =>
+            // An inherited signature has already crossed its parent clause into this class.
+            val tpe = resolver.captureType(typed.tpe, td.tsym)
+            resolver.constrainParameter(param, resolver.instanceShape(tpe), Nil)
+            resolver.exposeTypeHoles(tpe, unknown)
+          case _ => resolver.constrainParameter(param, admitted.enter(marks), marks)
 
   private def parameters(lists: Ls[(ParamList, Ls[Marks])], path: Path, method: Opt[TermDefinition])(using ResolutionContext): Unit =
     lists.foreach: (params, marks) =>
@@ -254,7 +249,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
         val unknown = InterfaceExposure.fieldInput(field, source(symbol), path)
         resolver.externalInput(field.defn, N, unknown): admitted =>
           if !annotated then resolver.writeField(field, admitted, Nil)
-          if open then resolver.publishInterfaceInput(field, admitted)
+          if open then resolver.externalFieldWrites(field).publish(admitted)(using rctx.state.context)
 
   private def result(td: TermDefinition, body: Term, marks: Ls[Marks], path: Path)(using ResolutionContext): Unit = resolver.memberSignature(td) match
     case N =>

@@ -45,7 +45,7 @@ class SubstitutionGrowthTest extends AnyFunSuite:
        |""".stripMargin
 
   private final case class Measurement(views: Int, largestSubstitution: Int, activations: Int, typeInstances: Int,
-      typeReferences: Int, overrideInputs: Int)
+      typeReferences: Int, externalWriteHosts: Int)
 
   private val cctx = TestFolders.compilerCtx(os.pwd)
   private given DebugPrinter = new DebugPrinter()
@@ -80,7 +80,7 @@ class SubstitutionGrowthTest extends AnyFunSuite:
     val state = compile(file).state.newResolverState.context
     Measurement(state.allocatedShapeViewCount, state.largestRetainedSubstitution,
       state.activationContextCount, state.allocatedTypeInstanceCount, state.state.typeReferences.size,
-      state.state.interfaceInputs.size)
+      state.state.externalFieldWrites.size)
 
   // Rotation and transposition generate every permutation. Merely exporting the recursive
   // record must not build those instantiated interfaces when no field was ever selected.
@@ -106,15 +106,13 @@ class SubstitutionGrowthTest extends AnyFunSuite:
       withClue(s"input=$input, callback=$callback, retained type references for widths 3, 4, 5: $counts "):
         counts.indices.foreach(i => assert(counts(i) <= counts.head + 16 * i))
 
-  // Exposure records the inputs that external callers can pass to an overridable operation, so that the
-  // members overriding it receive them. A unit that names the classes of other units in its exposed
-  // annotations, and overrides none of their operations, has no use for such records.
-  test("naming the classes of other units retains no inputs for their operations"):
+  // Naming an imported class can expose it without introducing a local mutable field.
+  test("naming the classes of other units retains no external writes for their fields"):
     val source = """#lang(0.3.x, strictResolution: true)
        |module ImportedOperationInputs with
        |  fun increment(x: Int) = x + 1
        |""".stripMargin
-    assert(measure("ImportedOperationInputs", source).overrideInputs == 0)
+    assert(measure("ImportedOperationInputs", source).externalWriteHosts == 0)
 
   // A diff test cannot distinguish repeated copies of the same external input. Count the
   // actual candidates kept by the methods and record field of one compiled module.
@@ -132,10 +130,15 @@ class SubstitutionGrowthTest extends AnyFunSuite:
          |""".stripMargin)
       val artifact = compile(file)
       given state: ResolutionContext = artifact.state.newResolverState.context
-      val inputs = state.state.interfaceInputs
-      assert(inputs.size == 2)
-      assert(inputs.valuesIterator.forall(_.currentShapes.size == 1))
-      val field = new ErasureDeclarations(artifact.term).statements.collectFirst:
+      val declarations = new ErasureDeclarations(artifact.term).statements
+      val inputs = declarations.collect:
+        case td: TermDefinition if td.tsym.nme == "use" || td.tsym.nme == "call" =>
+          val param = td.params.last.allParams.head
+          param.sym.currentShapes.iterator.collect:
+            case Marked(input: (UnknownValueShape | TupleShape), _) => input
+          .toSet
+      assert(inputs.size == 2 && inputs.forall(_.size == 1))
+      val field = declarations.collectFirst:
         case field: RcdField if field.sym.nme == "item" => field.tsym
       assert(state.memberVariable(field.get).currentShapes.size == 1)
 

@@ -80,7 +80,7 @@ final class NewResolverState(val owner: Elaborator.State):
     * override inherits, requires these members to have fully specified signatures.
     */
   private[semantics] val exposedOpenMembers = mutable.Map.empty[TermSymbol, ShapeProvenance]
-  private[semantics] val interfaceInputs = mutable.Map.empty[VarSymbol | TermSymbol, TermShapeHost]
+  private[semantics] val externalFieldWrites = mutable.Map.empty[TermSymbol, TermShapeHost]
   
   // A declaration stores its waiting overrides until the exposure walk reaches its result.
   // Recording the first path before visiting those overrides also breaks recursive exposure.
