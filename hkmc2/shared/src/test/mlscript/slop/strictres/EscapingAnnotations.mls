@@ -604,6 +604,20 @@ fun genericFactory() = new Factory[LocalArgument](new LocalArgument).factory()
 //│ = [42, "local"]
 
 
+// Both calls return the same bare constructor. Its public field gets its type from the
+// client's construction, even when the receiver of the second call holds a private type.
+:expect ["fresh", "local"]
+private class HiddenInput with
+  fun read(x) = x.word
+private class Builder[T](val value: T) with
+  fun factory() = Builder
+private val makeBuilder = new Builder[Int](0).factory()
+fun freshBuilder() = makeBuilder[HiddenInput](new HiddenInput).factory()
+[freshBuilder()[Str]("fresh").value, new HiddenInput().read({word: "local"})]
+//│ = ["fresh", "local"]
+//│ makeBuilder = fun Builder { class: class Builder }
+
+
 // A local type can reach the public interface through an imported constructor's input bound.
 import "../../../mlscript-compile/GenericLibrary.mls"
 

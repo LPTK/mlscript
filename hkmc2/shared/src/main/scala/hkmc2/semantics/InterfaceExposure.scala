@@ -204,12 +204,13 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
       parameters(td.params.map(_ -> inside), path, S(td))
 
   /** Expose a class's public operations and the type arguments supplied by an escaping receiver.
-    * The receiver carries the scope for its member values and the bindings for this particular
-    * instance or constructor. A named type contributes arguments through its written annotation.
+    * A receiver's marks locate its member values, and the current scope binds its type parameters.
+    * A named type contributes arguments through its written annotation.
     */
-  private def members(cls: ClassLikeDef, receiver: Opt[(Ls[Marks], TypeSubstitution)], path: Path)(using ResolutionContext): Unit =
+  private def members(cls: ClassLikeDef, receiver: Opt[Ls[Marks]], path: Path)(using ResolutionContext): Unit =
     // A local argument can specialize an imported class or a class whose members we already visited.
-    receiver.foreach: (marks, instances) =>
+    receiver.foreach: marks =>
+      val instances = rctx.instances
       cls.tparams.foreach: param =>
         instances.get(param.sym).filter(rctx.hasExplicitTypeArgument).foreach: instance =>
           exposeSuppliedArgument(rctx.typeParameter(instance), instances, marks, path)
@@ -226,14 +227,14 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
               operation(td, memberPath)(using declarationContext)
               if resolver.writtenSignature(td).isEmpty then
                 resolver.exposeMemberResult(td, memberPath)(using declarationContext)
-            receiver.foreach: (marks, _) =>
+            receiver.foreach: marks =>
               if resolver.writtenSignature(td).nonEmpty then member(td.bsym, marks, memberPath)
-          case _ => member(d.bsym, receiver.fold[Ls[Marks]](Nil)(_._1), memberPath)
+          case _ => member(d.bsym, receiver.getOrElse(Nil), memberPath)
       case _ => ()
     cls.ext.foreach: parent =>
       val inherited = path.via(msg"This parent contributes inherited members." -> parent.toLoc)
       receiver match
-        case S((marks, _)) => term(parent, marks, inherited)
+        case S(marks) => term(parent, marks, inherited)
         // A class named in an annotation exposes its parent clause even if one of its instances
         // escaped first: `exposeType` visits the clause once. A class that only escapes by value
         // does not expose the clause as a type, because its parent can be a class value, as in
@@ -314,17 +315,23 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
           case _ => ()
         resolver.foreachInterfaceComponent(tpe, shape)((part, inner) => bound(part, inner ::: marks))
 
-  /** Follow an escaping value through its scope. For a first-class constructor, `specialization`
-    * keeps the type arguments it has already bound while its declaration supplies the parameter lists. */
+  /** Expose the operations available on an escaping value. For a constructor, `specialization`
+    * records the bindings chosen by an explicit type application such as `Box[Item].class`.
+    * A bare `Box` inside a method of `Box[T]` still accepts a fresh type argument. */
   private def exposeValue(shape: TermShape, path: Path, specialization: TypeSubstitution)(using ResolutionContext): Unit =
     val (head, marks) = shape.applicationHead
     val instances = rctx.instances
-    def exposeClassInterface(cls: ClassLikeDef): Unit = shape match
-      case Marked(_: DefnShape, _) =>
-        if cls.paramsOpt.isEmpty then parameters(cls.auxParams.map(_ -> marks), path, N)
-        // Returning the bare constructor from an instance method leaves its binders fresh.
-        members(cls, S(marks -> specialization), path)
-      case _ => members(cls, S(marks -> instances), path)
+    def exposeClassInterface(cls: ClassLikeDef): Unit =
+      val memberContext = shape match
+        case Marked(_: DefnShape, _) =>
+          // A method returning its own class's constructor can bind the same parameters on its
+          // receiver. The constructor keeps enclosing bindings and its own explicit arguments.
+          val enclosing = instances.without(cls.tparams.iterator.map(_.sym))
+          val constructorContext = rctx.withInstances(enclosing.withOverrides(specialization))
+          if cls.paramsOpt.isEmpty then parameters(cls.auxParams.map(_ -> marks), path, N)(using constructorContext)
+          constructorContext
+        case _ => rctx
+      members(cls, S(marks), path)(using memberContext)
     def contextualTerm(value: Term, context: Ls[Marks], path: Path,
         substitution: TypeSubstitution)(using ResolutionContext): Unit =
       watch((value, context, substitution))(
