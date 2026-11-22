@@ -964,18 +964,25 @@ new BareBoxSlot().read()
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
-// The same field declaration admits Int on one receiver and Argument on the specialized override.
-:expect ["word", 42]
+// Writes through either generic base admit Int on that receiver. The leaf inherits Argument.
+:expect ["word", 42, 43]
 private class Slot[T](seed: T) with
   open mut val item: T = seed
-private class WordSlotView extends Slot[Argument](Argument("base")) with
+private class Middle[T](seed: T) extends Slot[T](seed) with
+  open override mut val item = seed
+private class WordSlotView extends Middle[Argument](Argument("base")) with
   override mut val item = Argument("word")
   fun read() = item.word
 private fun setNumber(p: Slot[Int]) = set p.item = 42
+private fun setMiddleNumber(p: Middle[Int]) = set p.item = 43
 private val numberSlot = new mut Slot[Int](0)
+private val middleNumberSlot = new mut Middle[Int](0)
 setNumber(numberSlot)
-[new WordSlotView().read(), numberSlot.item]
-//│ = ["word", 42]
+set middleNumberSlot.item = 1
+setMiddleNumber(middleNumberSlot)
+[new WordSlotView().read(), numberSlot.item, middleNumberSlot.item]
+//│ = ["word", 42, 43]
+//│ middleNumberSlot = Middle(_)
 //│ numberSlot = Slot(_)
 
 

@@ -1711,9 +1711,12 @@ even in a private hierarchy. If `Base.read(x)` leaves `x` unannotated, both
 `new Base().read(null)` and `p.read(null)` with `p: Base` supply `null` to
 the corresponding parameter in the base and every override.
 An override that omits a parameter or mutable field annotation inherits the
-base member's type for that input. If the base field has no annotation, writes
-through it reach the overriding field even in a private hierarchy. Each field
-keeps its own initializer.
+base member's type for that input. For example, if `Middle[T]` overrides
+`Slot[T].item: T` without repeating the annotation, a write through `Middle[Int]`
+uses `Int`, and an override of `Middle[Argument]` inherits `Argument`.
+If no declaration in the field's override chain supplies a type, writes through
+it reach the overriding field even in a private hierarchy. Each field keeps its
+own initializer.
 If the base parameter has type `Box[Item]` and the override writes `x: Box`,
 the overriding body must handle unknown contents even when all local calls
 supply boxes of `Item`. Writing `x: Box[Item]` gives the body access to `Item`.

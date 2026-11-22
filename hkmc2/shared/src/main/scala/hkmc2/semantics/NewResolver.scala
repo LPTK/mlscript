@@ -1904,7 +1904,7 @@ class NewResolver:
     case _ => value.exit(marks)
 
   private def listenDeclaredMember(member: BlockMemberSymbol, bindings: Map[VarSymbol, TypeArgument], flow: FlowSymbol,
-      source: Term, annotation: Opt[Term], selected: ShapeListener[DefinitionSymbol[?]], receiver: Bool, positive: Bool,
+      source: Term, annotation: Opt[Term], selected: ShapeListener[DefinitionSymbol[?]], receiver: Bool,
       receiverMarks: Ls[Marks], specialization: Opt[(FlowSymbol, Ls[TypeArgument])])(listener: Listener)(using ResolutionContext): Unit =
     member.onComplete: () =>
       valueTarget(member, receiver) match
@@ -1943,13 +1943,13 @@ class NewResolver:
           def signature(sign: Term, polarity: Bool)(using ResolutionContext): DeclaredType =
             val tpe = declaredType(typeResolution(sign), capturedBindings, polarity)
             if isByName(td) then tpe.instantiate(instances) else tpe
-          def result = memberSignature(td).map(signature(_, positive))
+          def result = memberSignature(td).map(signature(_, polarity = true))
           if td.sign.nonEmpty && (td.k is syntax.Fun) && !td.flags.hasResultAnnotation && !isByName(td) then
-            listenTypeViews(signature(td.sign.get, positive))(publish)
+            listenTypeViews(signature(td.sign.get, polarity = true))(publish)
           else td.params match
             case params: NELs[ParamList] => publish(CallableTypeShape(source,
               params.ne_map: ps =>
-                def parameter(p: Param) = DeclaredParam(p.sign.map(signature(_, !positive)), p.flags)
+                def parameter(p: Param) = DeclaredParam(p.sign.map(signature(_, polarity = false)), p.flags)
                 DeclaredParams(ps.params.map(parameter), ps.variadic.map(_.map(parameter)))
               ,
               result, N, N, N, N))
@@ -2276,9 +2276,18 @@ class NewResolver:
   private def inheritedExposure(base: TermDefinition): ShapeProvenance =
     ShapeProvenance.empty.via(msg"Member '${base.tsym.nme}' is inherited from another compilation unit." -> base.headerLoc)
 
-  private def slotSignature(td: TermDefinition, param: Opt[Param])(using ResolutionContext): Opt[DeclaredType] = param match
-    case N => memberSignature(td).map(t => declaredType(typeResolution(t), Map.empty))
-    case S(p) => parameterSignature(p).orElse:
+  private enum MemberSlot:
+    case Parameter(param: Param)
+    case Result
+    // A declared receiver supplies the arguments of its nominal type. A constructed receiver
+    // carries its class arguments in the lookup's TypeSubstitution.
+    case FieldWrite(bindings: Opt[Map[VarSymbol, TypeArgument]])
+
+  private def slotSignature(td: TermDefinition, slot: MemberSlot)(using ResolutionContext): Opt[DeclaredType] = slot match
+    case MemberSlot.Result => memberSignature(td).map(t => declaredType(typeResolution(t), Map.empty))
+    case MemberSlot.FieldWrite(bindings) =>
+      writtenSignature(td).map(t => declaredType(typeResolution(t), bindings.getOrElse(Map.empty), positive = false))
+    case MemberSlot.Parameter(p) => parameterSignature(p).orElse:
       // A legacy producer stores its full signature in the AST. Interpret its domains
       // in the consumer using the same parameter correspondence as a local signature.
       td.sign.filter(_ => !td.flags.hasResultAnnotation && !rctx.state.isOwnedSym(td.tsym)).flatMap: full =>
@@ -2290,13 +2299,11 @@ class NewResolver:
     S(rctx.fieldProjectionSite(td.bsym))
 
   /** Interpret a written parameter, field, or result type in the class that declares or inherits the member. */
-  private def projectSlot(td: TermDefinition, param: Opt[Param], tpe: DeclaredType, marks: Ls[Marks],
+  private def projectSlot(td: TermDefinition, tpe: DeclaredType, marks: Ls[Marks],
       instances: TypeSubstitution, site: Opt[FlowSymbol])(using ResolutionContext): DeclaredType =
     // A constructor field's annotation belongs to the constructor parameter's scope.
-    val path = if param.isEmpty && td.tsym.decl.exists(_.isInstanceOf[Param]) then marks
+    val path = if td.tsym.decl.exists(_.isInstanceOf[Param]) then marks
       else ExitMark(ResolutionBoundary(td.tsym), site, NoMarks) :: marks
-    // The overriding body reads a parameter or field with the bounds it would get
-    // by writing the inherited annotation on its own declaration.
     transportType(tpe.instantiate(instances), path)
 
   /** Interpret a generic method's signature in an override. Pair its type parameters by
@@ -2320,9 +2327,9 @@ class NewResolver:
       instances.withOverrides(group)
 
   /** Find the type a member declares or inherits for a parameter, a field, or a method result.
-    * `S(p)` selects parameter `p` of `td` and its counterpart in each overridden declaration.
-    * `N` selects the field's type or the method's result after all its parameter lists.
-    * Start at `td` and use the nearest matching annotation on each override path.
+    * Start at `td` and use the nearest matching annotation on each override path. Parameters
+    * correspond by position. A result selects the field's type or the method's final result.
+    * A field write selects the input bound of the field's type at the receiver of the write.
     *
     * Call `receive` with the declaring member and its type in the lookup scope given by `marks`
     * and `instances`, applying the type arguments from each intervening parent clause. A path
@@ -2330,39 +2337,50 @@ class NewResolver:
     * supply a result after this call returns. `methodSite` selects the invocation of the declaring
     * method to read. Use `N` to include its abstract type parameters when checking a method body.
     */
-  private def listenDeclaredOrInheritedType(td: TermDefinition, param: Opt[Param], marks: Ls[Marks],
+  private def listenDeclaredOrInheritedType(td: TermDefinition, slot: MemberSlot, marks: Ls[Marks],
       instances: TypeSubstitution, methodSite: TermDefinition => Opt[FlowSymbol])
       (receive: (TermDefinition, Opt[DeclaredType]) => ResolutionContext ?=> Unit)(using ResolutionContext): Unit =
-    def visit(td: TermDefinition, param: Opt[Param], marks: Ls[Marks], instances: TypeSubstitution,
+    def visit(td: TermDefinition, slot: MemberSlot, marks: Ls[Marks], instances: TypeSubstitution,
         seen: Set[TermSymbol])(emit: (TermDefinition, Opt[DeclaredType]) => ResolutionContext ?=> Unit)(using ResolutionContext): Unit =
-      val declared = slotSignature(td, param).map(projectSlot(td, param, _, marks, instances, methodSite(td)))
+      val declared = slotSignature(td, slot).map(projectSlot(td, _, marks, instances, methodSite(td)))
       (declared, td.owner) match
-        case (N, S(owner)) if !seen(td.tsym) =>
-          def inherit(parent: TermDefinition, path: Ls[Marks], bindings: TypeSubstitution)(using ResolutionContext): Unit =
-            def fromSlot(slot: Opt[Param]): Unit =
-              val parentInstances = instantiateOverriddenMethod(parent, td, path, bindings, methodSite)
+        case (N, S(owner)) if !td.tsym.isPrivate && !seen(td.tsym) =>
+          def inherit(parent: TermDefinition, path: Ls[Marks], substitution: TypeSubstitution,
+              nominal: Opt[Map[VarSymbol, TypeArgument]])(using ResolutionContext): Unit =
+            def fromSlot(slot: MemberSlot): Unit =
+              val parentInstances = instantiateOverriddenMethod(parent, td, path, substitution, methodSite)
               visit(parent, slot, path, parentInstances, seen + td.tsym): (origin, tpe) =>
                 emit(origin, tpe.map(t => transportType(t.instantiate(instances), marks)))
-            param match
-              case N => fromSlot(N)
-              case S(p) =>
+            slot match
+              case MemberSlot.FieldWrite(_) => fromSlot(MemberSlot.FieldWrite(nominal))
+              case MemberSlot.Result => fromSlot(MemberSlot.Result)
+              case MemberSlot.Parameter(p) =>
                 val source = codegen.OverrideLayout.correspondingParameters(td.params, parent.params).toOption
                   .flatMap(_.collectFirst { case (target, inherited) if target.sym is p.sym => inherited })
-                source.fold(emit(td, N))(p => fromSlot(S(p)))
-          // A forward parent can still be elaborating its own body when its subclass
-          // discovers this member. Its currently empty override links are inconclusive.
-          owner.asDefnSym.whenDefined(cls => listenInheritedMember(cls, td.bsym.nme): lookup =>
+                source.fold(emit(td, N))(p => fromSlot(MemberSlot.Parameter(p)))
+          def inherited(lookup: MemberLookup)(using ResolutionContext): Unit =
             var found = false
-            lookup.visibleFrom(_ => false, reportInaccessible = false).foreachClassMember(rctx.instances): (name, path, bindings) =>
+            lookup.visibleFrom(_ => false, reportInaccessible = false).foreachClassMember(rctx.instances): (name, path, substitution, nominal) =>
               found = true
               name.onComplete: () =>
                 name.asTrm.flatMap(_.defn) match
-                  case S(parent) if Inheritance.isOpen(parent) && !Inheritance.changesMemberKind(td, parent) => inherit(parent, path, bindings)
+                  case S(parent) if Inheritance.isOpen(parent) && !Inheritance.changesMemberKind(td, parent) =>
+                    inherit(parent, path, substitution, nominal)
                   case _ => emit(td, N)
-            if !found then emit(td, N))
-        case (S(tpe), _) if param.isEmpty => listenSignatureResult(td, tpe, TypeView.Required)(result => emit(td, S(result)))
+            if !found then emit(td, N)
+          // A forward parent can still be elaborating its own body when its subclass
+          // discovers this member. Its currently empty override links are inconclusive.
+          owner.asDefnSym.whenDefined: cls =>
+            (slot, cls.ext) match
+              case (MemberSlot.FieldWrite(S(bindings)), S(parent)) =>
+                // In `Middle[T] extends Slot[T]`, interpret the parent clause with the
+                // arguments of the receiver whose field is being written.
+                listenTypeViews(declaredType(typeResolution(parent.cls), bindings)): view =>
+                  inherited(view.getMember(td.bsym.nme))
+              case _ => listenInheritedMember(cls, td.bsym.nme)(inherited)
+        case (S(tpe), _) if slot == MemberSlot.Result => listenSignatureResult(td, tpe, TypeView.Required)(result => emit(td, S(result)))
         case (tpe, _) => emit(td, tpe)
-    visit(td, param, marks, instances, Set.empty)(receive)
+    visit(td, slot, marks, instances, Set.empty)(receive)
 
   /** Supply the argument or field write admitted at an exposed declaration. For a public member,
     * interpret its declared or inherited annotation in the enclosing class's scope. Use `fallback`
@@ -2371,7 +2389,8 @@ class NewResolver:
   private[semantics] def externalInput(td: Opt[TermDefinition], param: Opt[Param], fallback: => TermShape)
       (receive: Listener)(using ResolutionContext): Unit = td match
     case S(d) if d.owner.nonEmpty && !d.tsym.isPrivate =>
-      listenDeclaredOrInheritedType(d, param, Nil, TypeSubstitution.empty, signatureSite): (_, tpe) =>
+      val slot = param.fold(MemberSlot.Result)(MemberSlot.Parameter(_))
+      listenDeclaredOrInheritedType(d, slot, Nil, TypeSubstitution.empty, signatureSite): (_, tpe) =>
         receive(tpe.fold(fallback)(instanceShape))
     case _ => receive(fallback)
 
@@ -2406,7 +2425,7 @@ class NewResolver:
       if !rctx.state.isOwnedSym(base.tsym) then
         externalInput(S(base), param, foreignInput)(forward(_, inheritedMarks))
     if base.k is syntax.MutVal then
-      slotSignature(overriding, N) match
+      slotSignature(overriding, MemberSlot.Result) match
         case S(tpe) => exposeOmitted(tpe)
         case N =>
           def foreignWrite =
@@ -2435,7 +2454,7 @@ class NewResolver:
   private def checkOverrideResult(base: TermDefinition, overriding: TermDefinition, marks: Ls[Marks],
       instances: TypeSubstitution)(using ResolutionContext): Unit =
     if writtenSignature(overriding).isEmpty then
-      listenDeclaredOrInheritedType(base, N, marks, instances, signatureSite): (origin, declared) =>
+      listenDeclaredOrInheritedType(base, MemberSlot.Result, marks, instances, signatureSite): (origin, declared) =>
         declared.filter(_ => origin.generatorAnnotation.isEmpty).foreach: result =>
           val expected = captureType(result, overriding.tsym)
           overriding.body.foreach: body =>
@@ -2503,7 +2522,7 @@ class NewResolver:
           // A structural interface only describes public members.
           val lookup = actual.getMember(field.key.get).visibleFrom(_ => false, reportInaccessible = false)
           listenMemberValue(lookup, flow, field.rhs, TypeSubstitution.empty, () => ())(receive)
-          if mutable then resolveFieldWrite(lookup, field.rhs)((target, inner) =>
+          if mutable then resolveFieldWrite(lookup)((target, inner) =>
             listenTypeInstances(expected.input)(writeField(target, _, inner))
           ): input =>
             listenTypeInstances(expected.input)(inferTypeArguments(input, _, marks, site))
@@ -2526,7 +2545,7 @@ class NewResolver:
           listenAssignedValues(member.tsym, flow, inner)(read)(using rctx.withInstances(instances))
         case _ => ()
     case MemberLookup.Declared(member, bound, inner, annotation) =>
-      listenDeclaredMember(member, bound, flow, source, annotation, _ => (), receiver = false, positive = true, inner, N): value =>
+      listenDeclaredMember(member, bound, flow, source, annotation, _ => (), receiver = false, inner, N): value =>
         transportShape(instantiateShape(value, instances), inner) match
           case value: TermShape => receive(value)
           case NoShape => ()
@@ -3171,7 +3190,7 @@ class NewResolver:
             lazy val selection = markCarrier.enter(marks) match
               case Marked(_, EntryMark(`scope`, id, _)) => id
               case _ => N
-            listenDeclaredOrInheritedType(td, S(p), Nil, TypeSubstitution.empty, _ => selection):
+            listenDeclaredOrInheritedType(td, MemberSlot.Parameter(p), Nil, TypeSubstitution.empty, _ => selection):
               case (_, S(declared)) =>
                 // Keep the type generic when publishing it to the body. Two calls through
                 // one saved method can supply different type arguments at the same selection.
@@ -3562,7 +3581,7 @@ class NewResolver:
                       fromBMS(sym, resSym, marks,
                         field => matchShapePat(instantiateShape(field, instances), pat)(_ => ()), ctor.target, _ => (), false)
                     case MemberLookup.Declared(member, bindings, marks, annotation) =>
-                      listenDeclaredMember(member, bindings, resSym, ctor.target, annotation, _ => (), receiver = false, positive = true, marks, N): field =>
+                      listenDeclaredMember(member, bindings, resSym, ctor.target, annotation, _ => (), receiver = false, marks, N): field =>
                         // The views below no longer name the declarations of the field's type.
                         scrutineeNamespaces(field, pat)
                         listenInstanceViews(instantiateShape(field, instances)): field =>
@@ -4740,7 +4759,7 @@ class NewResolver:
               case value: TermShape => writeField(field, value, marks)
               case NoShape => ()
       def lookup(info: MemberLookup)(using ResolutionContext): Unit =
-        resolveFieldWrite(info, lhs)(assign): input =>
+        resolveFieldWrite(info)(assign): input =>
           if rctx.state.fieldAssignmentTypes.add((new Identity(lhs), new Identity(rhs), input)) then
             listenTerm(rhs): value =>
               transport(value) match
@@ -4803,26 +4822,21 @@ class NewResolver:
   
   /** Resolve a write to each field reached by `info`. For a field with an inferred type, `assign`
     * receives the field and its lookup path. For a written nominal or structural type, `check`
-    * receives the field's input type at this receiver. For `item: T` in `Slot[T]`, a write
-    * through `Slot[Int]` checks against `Int`. An override of `Slot[Str]` inherits `Str`.
+    * receives the field's input type at this receiver. If `Middle[T]` inherits the type of
+    * `Slot[T].item: T`, a write through `Middle[Int]` checks against `Int`.
     */
-  private def resolveFieldWrite(info: MemberLookup, source: Term)
+  private def resolveFieldWrite(info: MemberLookup)
       (assign: (TermSymbol, Ls[Marks]) => ResolutionContext ?=> Unit)(check: ShapeListener[DeclaredType])
       (using ResolutionContext): Unit =
     val caller = rctx
-    def memberField(member: BlockMemberSymbol, bindings: Map[VarSymbol, TypeArgument], marks: Ls[Marks],
-        annotation: Opt[Term], instances: TypeSubstitution)(using ResolutionContext): Unit =
+    def memberField(member: BlockMemberSymbol, bindings: Opt[Map[VarSymbol, TypeArgument]], marks: Ls[Marks],
+        instances: TypeSubstitution)(using ResolutionContext): Unit =
       member.onComplete: () =>
         valueTarget(member, false).flatMap(_.defn) match
-          case S(td: TermDefinition) if (td.k is syntax.MutVal) && writtenSignature(td).isDefined =>
-            // The write selects the input bound of the receiver's type arguments.
-            listenDeclaredMember(member, bindings, rctx.fieldProjectionSite(member), source, annotation, _ => (),
-              receiver = false, positive = false, marks, N)(
-              value => value match
-                case Marked(instance: InstanceShape, inner) =>
-                  check(transportType(instance.tpe, inner :: marks))(using caller)
-                case _ => ()
-            )(using rctx.withInstances(instances))
+          case S(td: TermDefinition) if td.k is syntax.MutVal =>
+            listenDeclaredOrInheritedType(td, MemberSlot.FieldWrite(bindings), marks, instances, signatureSite):
+              case (_, S(input)) => check(input)(using caller)
+              case (_, N) => assign(td.tsym, marks)(using caller)
           case S(td: TermDefinition) if isAssignableField(td) => assign(td.tsym, marks)
           case _ => ()
     def follow(info: MemberLookup, instances: TypeSubstitution)(using ResolutionContext): Unit = info match
@@ -4830,12 +4844,12 @@ class NewResolver:
       case MemberLookup.Contextual(source, substitution) => follow(source, instances.withOverrides(substitution))
       case MemberLookup.Typed(_, tpe, marks) =>
         check(transportType(instantiateType(tpe.input, instances), marks))
-      case MemberLookup.Declared(member, bindings, marks, annotation) =>
-        memberField(member, bindings, marks, annotation, instances)
+      case MemberLookup.Declared(member = member, bindings = bindings, marks = marks) =>
+        memberField(member, S(bindings), marks, instances)
       case MemberLookup.Found(RecordMember(field, mutable), marks) =>
         if mutable then assign(field.tsym, marks)
       case MemberLookup.Found(member: BlockMemberSymbol, marks) =>
-        memberField(member, Map.empty, marks, N, instances)
+        memberField(member, N, marks, instances)
       case _ => ()
     follow(info, rctx.instances)
 
@@ -4926,7 +4940,7 @@ class NewResolver:
               rctx.report(ErrorReport(
                 msg"Member '${member.nme}' uses the same @jsSymbol key as inherited member '${base.nme}'; overrides must keep the inherited name." -> own.toLoc ::
                 msg"The inherited member is declared here." -> base.toLoc :: Nil))
-            lookup.visibleFrom(_ => false, reportInaccessible = false).foreachClassMember(rctx.instances)((base, _, _) => collision(base))
+            lookup.visibleFrom(_ => false, reportInaccessible = false).foreachClassMember(rctx.instances)((base, _, _, _) => collision(base))
         listenInheritedMember(defn, member.nme): lookup =>
           def link(base: BlockMemberSymbol, marks: Ls[Marks], instances: TypeSubstitution): Unit = base.onComplete: () =>
             base.asTrm.filterNot(_.isPrivate).foreach: target =>
@@ -4954,7 +4968,8 @@ class NewResolver:
                         case Right(path) => exposeOverrideResult(overriding, path)
                         case Left(waiting) => rctx.state.resultExposure(target) = Left(overriding :: waiting)
           // Private members are not overridden, so they do not hide the inherited members they shadow.
-          lookup.visibleFrom(_ => false, reportInaccessible = false).foreachClassMember(rctx.instances)(link)
+          lookup.visibleFrom(_ => false, reportInaccessible = false).foreachClassMember(rctx.instances)((base, path, instances, _) =>
+            link(base, path, instances))
 
   private def listenInheritedMember(defn: ClassLikeDef, name: MemberKey)
       (listener: ShapeListener[MemberLookup])(using ResolutionContext): Unit =
@@ -4997,7 +5012,7 @@ class NewResolver:
       fromSymbolAt(contextual.source, value => listener(instantiateShape(value, contextual.instances)),
         source, selected, receiver, specialization)(using rctx.withInstances(contextual.instances))
     case declared: DeclaredSymShape =>
-      listenDeclaredMember(shape.sym, declared.bindings, shape.resSym, source, declared.annotation, selected, receiver, positive = true, shape.markss, specialization): value =>
+      listenDeclaredMember(shape.sym, declared.bindings, shape.resSym, source, declared.annotation, selected, receiver, shape.markss, specialization): value =>
         transportShape(value, shape.markss) match
           case value: TermShape => listener(value)
           case NoShape => ()
@@ -5119,7 +5134,7 @@ class NewResolver:
               if td.k is syntax.MutVal then listenAssignedValues(td.tsym, resSym, markss)(listener)
         case S(d: TermDefinition) if !d.tsym.isInstanceOf[ClassCtorSymbol] &&
             (d.sign.nonEmpty || (d.body.isEmpty && d.tsym.owner.exists(_.asDefnSym.defn.exists(_.tparams.nonEmpty)))) =>
-          listenDeclaredMember(bms, instanceBindings(d), resSym, trm, N, selected, receiver, positive = true, markss, specialization): value =>
+          listenDeclaredMember(bms, instanceBindings(d), resSym, trm, N, selected, receiver, markss, specialization): value =>
             transportShape(value, markss) match
               case value: TermShape => listener(value)
               case NoShape => ()
