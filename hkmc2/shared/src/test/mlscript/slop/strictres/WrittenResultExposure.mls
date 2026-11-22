@@ -61,6 +61,38 @@ overridden({only: 1})
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
+// Only the saved method escapes. Calling it through its base type can return the override's callback.
+:e
+private fun fromOverride(x) = x.only
+private class Producer with
+  open fun get() = (x => 0)
+private class CallbackProducer extends Producer with
+  override fun get() = fromOverride
+private fun methodOf(p: Producer) = p.get
+fun savedGet() = methodOf(new CallbackProducer)
+fromOverride({only: 1})
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+1: 	private fun fromOverride(x) = x.only
+//│ ║        	                              ^^^^^^
+//│ ╟── Cannot resolve member 'only' of a value with unknown shape.
+//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ║  l.+1: 	private fun fromOverride(x) = x.only
+//│ ║        	                         ^
+//│ ╟── This value is returned here.
+//│ ║  l.+5: 	  override fun get() = fromOverride
+//│ ║        	                       ^^^^^^^^^^^^
+//│ ╟── Member 'get' overrides the exposed member here.
+//│ ║  l.+5: 	  override fun get() = fromOverride
+//│ ║        	  ^^^^^^^^^^^^^^^^^^
+//│ ╟── This value is returned here.
+//│ ║  l.+7: 	fun savedGet() = methodOf(new CallbackProducer)
+//│ ║        	                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── 'savedGet' is exposed by this compilation unit.
+//│ ║  l.+7: 	fun savedGet() = methodOf(new CallbackProducer)
+//│ ╙──      	^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
 // The value of a field.
 :e
 private fun fieldValue(x) = x.only

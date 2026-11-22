@@ -123,6 +123,13 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
     resolver.writtenSignature(td).foreach(annotation(_, path))
     td.params.foreach(_.allParams.foreach(_.sign.foreach(annotation(_, path))))
 
+  /** Expose a member through its declaring class. Without a written result type, a caller
+    * can obtain any value returned by the member or an override.
+    */
+  private def memberInterface(td: TermDefinition, path: Path)(using ResolutionContext): Unit =
+    signature(td, path)
+    if resolver.writtenSignature(td).isEmpty then resolver.exposeMemberResult(td, path)(using declarationContext)
+
   private def alias(symbol: BlockMemberSymbol, path: Path)(using ResolutionContext): Unit =
     symbol.asAls.flatMap(_.defn).filter(InterfaceExposure.isPublic).foreach(_.rhs.foreach(annotation(_, path)))
 
@@ -186,7 +193,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
     * Rest tuples and captured input types need the same scope crossings as ordinary calls.
     */
   private def operation(td: TermDefinition, path: Path)(using ResolutionContext): Unit =
-    signature(td, path)
+    memberInterface(td, path)
     val virtual = Inheritance.isOpen(td)
     if td.params.nonEmpty && (virtual || !Inheritance.isExternal(td)) then
       admitted += td.tsym
@@ -216,8 +223,6 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
               recordOpenMember(cls, td, path)
               if td.k is syntax.MutVal then assignable(td.tsym, td.bsym, path)(using declarationContext)
               operation(td, memberPath)(using declarationContext)
-              if resolver.writtenSignature(td).isEmpty then
-                resolver.exposeMemberResult(td, memberPath)(using declarationContext)
             receiver.foreach: marks =>
               if resolver.writtenSignature(td).nonEmpty then member(td.bsym, marks, memberPath)
           case _ => member(d.bsym, receiver.getOrElse(Nil), memberPath)
@@ -333,9 +338,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
             // A previously exposed class already admits calls to the whole method.
             if !admitted(td.tsym) then parameters(shape.unappliedParams, path, S(td))
             if ds.clsDef.isEmpty then
-              signature(td, path)
-              if Inheritance.isOpen(td) && resolver.writtenSignature(td).isEmpty then
-                resolver.exposeMemberResult(td, path)(using declarationContext)
+              if Inheritance.isOpen(td) then memberInterface(td, path) else signature(td, path)
               td.body.foreach: body =>
                 // A saved method retains its receiver's arguments. Its result can expose
                 // a class named only at the receiver's construction site.
@@ -395,7 +398,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
       case callable: CallableTypeShape =>
         callable.declaration.filter(origin => rctx.state.isOwnedSym(origin.definition.tsym)).foreach: origin =>
           val td = origin.definition
-          signature(td, path)
+          memberInterface(td, path)
           if !admitted(td.tsym) then
             parameters(origin.remaining.map(_ -> marks), path, S(td))
         // A callable can carry type arguments fixed by an earlier application.
