@@ -538,3 +538,56 @@ syncCallback(Keyed(2))
 //│ ║  l.XX: 	declare type Any
 //│ ╙──      	             ^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
+// Calling get through AsyncBase can yield the callback from the deepest override.
+:e
+private fun asyncCallback(x) = x.only
+private class AsyncBase with
+  @async open fun get() = x => 0
+private class AsyncMiddle extends AsyncBase with
+  @async open override fun get() = x => 1
+private class AsyncLeaf extends AsyncMiddle with
+  @async override fun get() = asyncCallback
+fun asyncBase(): AsyncBase = new AsyncLeaf
+asyncCallback({only: 2})
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+1: 	private fun asyncCallback(x) = x.only
+//│ ║        	                               ^^^^^^
+//│ ╟── Cannot resolve member 'only' of a value with unknown shape.
+//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ║  l.+1: 	private fun asyncCallback(x) = x.only
+//│ ║        	                          ^
+//│ ╟── This value is fulfilled by this promise.
+//│ ║  in ../../decls/Prelude.mls
+//│ ║  l.XX: 	declare class Promise[out A](executor: ((A | Promise[A]) -> (), Any -> ()) -> ()) {
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── This value is returned here.
+//│ ║  in WrittenResultExposure.mls:+1
+//│ ║  l.+7: 	  @async override fun get() = asyncCallback
+//│ ║        	                              ^^^^^^^^^^^^^
+//│ ╟── Member 'get' overrides the exposed member here.
+//│ ║  l.+7: 	  @async override fun get() = asyncCallback
+//│ ║        	         ^^^^^^^^^^^^^^^^^^
+//│ ╟── Member 'get' overrides the exposed member here.
+//│ ║  l.+5: 	  @async open override fun get() = x => 1
+//│ ║        	         ^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Member 'get' is accessible here.
+//│ ║  l.+3: 	  @async open fun get() = x => 0
+//│ ║        	         ^^^^^^^^^^^^^^
+//│ ╟── 'asyncBase' is exposed by this compilation unit.
+//│ ║  l.+8: 	fun asyncBase(): AsyncBase = new AsyncLeaf
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
+// Calling items through the base exposes the iterator. The override's final callback stays private.
+:expect 7
+private fun iteratorCallback(x) = x.only
+private class IteratorBase with
+  @generator open fun items() = 0
+private class IteratorChild extends IteratorBase with
+  @generator override fun items() = iteratorCallback
+fun iteratorBase(): IteratorBase = new IteratorChild
+iteratorCallback({only: 7})
+//│ = 7

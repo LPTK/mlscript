@@ -4,7 +4,7 @@ package semantics
 import scala.collection.mutable
 import hkmc2.utils.*, shorthands.*
 import Term.*
-import ErasureInputs.{Input, InputSymbol, Slot}
+import ErasureInputs.{InputSymbol, ResultSlot}
 
 /** Source declarations needed both when observing inference and when assigning representations.
   * Several declarations are outside subStatements: split bindings, handler parameters,
@@ -115,23 +115,23 @@ private[hkmc2] final class ErasureDeclarations(root: Statement):
 
   visit(root)
 
-/** Inference-only inputs to the representation pass. Each source slot owns a host in its
-  * defining compilation unit. Forwarding listeners capture only that host; imported inference
-  * writes to the consumer's publisher copy, never to these completed original candidates.
-  * No erased types or mutable bookkeeping are stored on source symbols during resolution.
+/** Source values and virtual member results collected during resolution. Interface exposure
+  * can subscribe to a member's results as they arrive. Erasure reads the completed observations
+  * of the defining compilation unit. Later writes in an importing unit reach that unit's copy.
   */
 private[hkmc2] final class ErasureInputs:
-  private val values = mutable.Map.empty[InputSymbol, Slot]
+  private val values = mutable.Map.empty[InputSymbol, TermShapeHost]
+  private val results = mutable.Map.empty[TermSymbol, ResultSlot]
 
   // Includes property declarations synthesized by named-tuple resolution, which
   // have source expressions but are not separate nodes in the source syntax.
   def symbols: Ls[InputSymbol] = values.keysIterator.toList
 
   private[semantics] def register(symbol: InputSymbol)(connect: ResolutionContext.Listener => Unit)
-      (using ResolutionContext): Slot = values.get(symbol) match
+      (using ResolutionContext): TermShapeHost = values.get(symbol) match
     case S(host) => host
     case N =>
-      val host = new Slot
+      val host = new TermShapeHost
       values(symbol) = host
       // Even an unused/unproductive definition has a completed, empty observation.
       host.inferenceHost
@@ -141,11 +141,24 @@ private[hkmc2] final class ErasureInputs:
   /** Whether `symbol` is a source slot of this compilation unit that was prepared for erasure. */
   def isPrepared(symbol: InputSymbol): Bool = values.contains(symbol)
 
-  /** The completed inputs to a source slot, including results forwarded from its overrides. */
-  def observations(symbol: InputSymbol): Iterator[Input] =
+  /** The live sources of results that overrides can supply through `member`. */
+  private[semantics] def resultSlot(member: TermDefinition, inferredValues: Opt[TermShapeHost]): ResultSlot =
+    results.getOrElseUpdate(member.tsym, new ResultSlot(member, inferredValues))
+
+  /** The completed inputs to a source slot, including the values or declared results of the
+    * overrides that `includeOverride` accepts.
+    */
+  def observations(symbol: InputSymbol)(includeOverride: TermDefinition => Bool): Iterator[TermShape | TermDefinition] =
     val host = values.getOrElse(symbol, lastWords("Source slot was not prepared for erasure"))
-    assert(host.originalData.completed, "Erasure requires completed value observations")
-    host.shapes.iterator
+    val overriding = symbol match
+      case member: TermSymbol =>
+        for
+          slot <- results.get(member).iterator if slot.inferredValues.nonEmpty
+          source <- ErasureInputs.completed(slot) if includeOverride(source.member)
+          value <- source.erasureInputs
+        yield value
+      case _ => Iterator.empty
+    ErasureInputs.completed(host) ++ overriding
 
 private[hkmc2] object ErasureInputs:
   /** Symbols whose variable values or definition results supply runtime representations.
@@ -153,25 +166,17 @@ private[hkmc2] object ErasureInputs:
     */
   type InputSymbol = LocalVarSymbol | TermSymbol
 
-  /** A value that a virtual call or field read can return through its base declaration.
-    * A written signature, constructor field, or promise/iterator wrapper provides a fixed
-    * representation even when the implementation produces no observed values. The source
-    * lets erasure recognize an implementation with a rejected parameter.
+  private def completed[A](host: Host[A]): Iterator[A] =
+    assert(host.originalData.completed, "Erasure requires completed value observations")
+    host.shapes.iterator
+
+  /** A member whose result may be returned by a virtual call or field read. Subscribers receive
+    * the slots of overrides whose results are also reachable through this member. An inferred
+    * slot carries the member's observed body and field values. A fixed slot supplies the result
+    * representation of its declaration, even if the member never produces an observed value.
     */
-  enum OverrideResult:
-    def source: TermDefinition
-    case Observed(source: TermDefinition, value: TermShape)
-    case Contract(source: TermDefinition)
-  type Input = TermShape | OverrideResult
-
-  private given CandidateKey[Input] with
-    def apply(input: Input)(using ResolutionContext): Any = input match
-      case shape: TermShape => ShapeIdentity.key(shape)
-      case OverrideResult.Observed(member, shape) => member.tsym -> ShapeIdentity.key(shape)
-      case OverrideResult.Contract(member) => member.tsym
-
-  /** Collects the inputs to one source slot across its calls, writes, and overrides. */
-  private[semantics] final class Slot extends Host[Input]:
-    def showDbg(using DebugPrinter): Str = "erasure inputs"
-    def publish(input: Input)(using ResolutionContext): Unit = inferenceHost.publish(input)
+  private[semantics] final class ResultSlot(val member: TermDefinition, val inferredValues: Opt[TermShapeHost]) extends Host[ResultSlot]:
+    def showDbg(using DebugPrinter): Str = "override results"
+    def publish(result: ResultSlot)(using ResolutionContext): Unit = inferenceHost.publish(result)
+    def erasureInputs: Iterator[TermShape | TermDefinition] = inferredValues.fold(Iterator.single(member))(completed)
 

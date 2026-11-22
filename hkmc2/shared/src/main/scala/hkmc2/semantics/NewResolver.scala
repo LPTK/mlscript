@@ -63,15 +63,15 @@ class NewResolver:
       case td: TermDefinition => observeErasureDefinition(td)
       case _ => ()
 
-  private def observeErasure(symbol: ErasureInputs.InputSymbol)(connect: Listener => Unit)(using ResolutionContext): Opt[ErasureInputs.Slot] =
+  private def observeErasure(symbol: ErasureInputs.InputSymbol)(connect: Listener => Unit)(using ResolutionContext): Opt[TermShapeHost] =
     Option.when(rctx.state.isOwnedSym(symbol))(rctx.state.erasureInputs.register(symbol): publish =>
       connect(shape => listenInstanceViews(shape)(publish))
     )
 
-  private def observeErasureVariable(symbol: VarSymbol)(using ResolutionContext): Opt[ErasureInputs.Slot] =
+  private def observeErasureVariable(symbol: VarSymbol)(using ResolutionContext): Opt[TermShapeHost] =
     if symbol.isErased then N else observeErasure(symbol)(listenTerm(SimpleRef(symbol)(N)))
 
-  private def observeErasureDefinition(td: TermDefinition)(using ResolutionContext): Opt[ErasureInputs.Slot] =
+  private def observeErasureDefinition(td: TermDefinition)(using ResolutionContext): Opt[TermShapeHost] =
     if td.tsym.isErased then N else observeErasure(td.tsym): publish =>
       // The function body returns its payload. AsyncLowering wraps that body later;
       // the callable's promise representation is assigned separately by Erasure.
@@ -2246,8 +2246,7 @@ class NewResolver:
   private[semantics] def exposeMemberResult(td: TermDefinition, path: ShapeProvenance)(using ResolutionContext): Unit =
     val state = rctx.state
     assert(state.isOwnedSym(td.tsym))
-    if state.exposedResults.contains(td.tsym) then return
-    state.exposedResults(td.tsym) = path
+    if !state.exposedResults.add(td.tsym) then return
     val exits = InterfaceExposure.declarationExits(td, N)
     def expose(shape: TermShape, at: ShapeProvenance)(using ResolutionContext): Unit =
       instantiateShape(shape, rctx.instances).exit(exits) match
@@ -2261,10 +2260,11 @@ class NewResolver:
     if !written then
       // Clients can read writes through an abstract or declared field even when it has no initializer.
       if isAssignableField(td) then listenMemberVariable(td.tsym)(expose(_, path))
-      state.overridesAwaitingExposure.remove(td.tsym).getOrElse(Nil).foreach(exposeOverrideResult(_, path))
+      if Inheritance.isOpen(td) then memberResultSlot(td).subscribeToShapes: result =>
+        exposeMemberResult(result.member, overrideExposure(result.member, path))
 
-  private def exposeOverrideResult(td: TermDefinition, base: ShapeProvenance)(using ResolutionContext): Unit =
-    exposeMemberResult(td, base.via(msg"Member '${td.tsym.nme}' overrides the exposed member here." -> td.headerLoc))
+  private def overrideExposure(td: TermDefinition, base: ShapeProvenance): ShapeProvenance =
+    base.via(msg"Member '${td.tsym.nme}' overrides the exposed member here." -> td.headerLoc)
 
   private def inheritedExposure(base: TermDefinition): ShapeProvenance =
     ShapeProvenance.empty.via(msg"Member '${base.tsym.nme}' is inherited from another compilation unit." -> base.headerLoc)
@@ -2446,23 +2446,23 @@ class NewResolver:
               // unrelated direct call. Direct calls enter the override at their own selection.
               publishParameter(target.sym, MarkedShape.enter(value, scope, entry))
 
-  /** Forward the results of an override into its base's inferred runtime result slot.
-    * A method with a fixed call result contributes its contract. An ordinary inferred
-    * implementation forwards the values it returns, including later writes to a mutable field.
+  /** The possible results of calls or field reads through `td`, across its invocations and overrides. */
+  private def memberResultSlot(td: TermDefinition)(using ResolutionContext): ErasureInputs.ResultSlot =
+    // Constructor parameters determine field storage. An async or generator body produces a
+    // payload, while callers receive a promise or iterator with its own fixed representation.
+    val inferred = if td.sign.nonEmpty || td.tsym.decl.exists(_.isInstanceOf[Param]) || td.resultWrapperAnnotation.nonEmpty
+      then N else observeErasureDefinition(td)
+    rctx.state.erasureInputs.resultSlot(td, inferred)
+
+  /** Publish the implementations whose results a call or field read through `base` can return.
+    * Keeping the source declaration lets a reader observe its signature, wrapped result, or
+    * field writes and report where an escaping value came from.
     */
   private def connectOverrideResult(base: TermDefinition, overriding: TermDefinition)(using ResolutionContext): Unit =
-    import ErasureInputs.OverrideResult
-    // A constructor parameter fixes its field's storage, even if nobody constructs the class.
-    // Async and generator bodies keep their own payload slots because callers receive the wrapper.
-    def hasFixedCallResult(td: TermDefinition): Bool = td.tsym.isErased || td.sign.nonEmpty ||
-      td.tsym.decl.exists(_.isInstanceOf[Param]) || td.resultWrapperAnnotation.nonEmpty
-    if !hasFixedCallResult(base) then observeErasureDefinition(base).foreach: slot =>
-      if hasFixedCallResult(overriding) then
-        slot.publish(OverrideResult.Contract(overriding))
-      else observeErasureDefinition(overriding).foreach: own =>
-        own.subscribeToShapes:
-          case value: TermShape => slot.publish(OverrideResult.Observed(overriding, value))
-          case result: OverrideResult => slot.publish(result)
+    val slot = memberResultSlot(base)
+    val own = memberResultSlot(overriding)
+    slot.publish(own)
+    if own.inferredValues.nonEmpty then own.subscribeToShapes(slot.publish)
 
   /** Check an overriding body or field initializer against the result type its callers inherit.
     * For a returned callback, the inherited type supplies the arguments callers may pass to it.
@@ -4978,14 +4978,9 @@ class NewResolver:
                     checkOverrideResult(inherited, overriding, marks, instances)
                     if writtenSignature(inherited).isEmpty then
                       if !rctx.state.isOwnedSym(target) then
-                        exposeOverrideResult(overriding, inheritedExposure(inherited))
+                        exposeMemberResult(overriding, overrideExposure(overriding, inheritedExposure(inherited)))
                       else
-                        val state = rctx.state
                         connectOverrideResult(inherited, overriding)(using rctx.withInstances(TypeSubstitution.empty))
-                        state.exposedResults.get(target) match
-                          case S(path) => exposeOverrideResult(overriding, path)
-                          case N =>
-                            state.overridesAwaitingExposure.updateWith(target)(pending => S(overriding :: pending.getOrElse(Nil)))
           // Private members are not overridden, so they do not hide the inherited members they shadow.
           lookup.visibleFrom(_ => false, reportInaccessible = false).foreachClassMember(rctx.instances)((base, path, instances, _) =>
             link(base, path, instances))

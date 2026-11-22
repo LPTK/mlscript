@@ -6,7 +6,6 @@ import scala.collection.mutable
 import hkmc2.utils.*, shorthands.*
 import semantics.*
 import semantics.Elaborator.{Ctx, State}
-import semantics.ErasureInputs.OverrideResult
 import semantics.Term.*
 import hkmc2.Message.MessageContext
 
@@ -35,9 +34,8 @@ final class Erasure(root: Statement, report: Raise)(using Config, Ctx, State):
   /** The representation an observation contributes to its slot, or `N` when it places no constraint.
     * A fixed override contributes the result representation its callers receive.
     */
-  private def valueType(input: ErasureInputs.Input): Opt[ErasedValueType] = input match
-    case OverrideResult.Observed(_, shape) => valueType(shape)
-    case OverrideResult.Contract(td) =>
+  private def valueType(input: TermShape | TermDefinition): Opt[ErasedValueType] = input match
+    case td: TermDefinition =>
       if td.tsym.isErased then S(td.tsym.sourceDeclaredResultType.getOrElse(ErasedType.Unknown))
       else wrappedResult(td, declaredResultType(td)).callType
     case MarkedShape(value, _) => valueType(value)
@@ -89,11 +87,10 @@ final class Erasure(root: Statement, report: Raise)(using Config, Ctx, State):
   /** The observations that constrain a slot. Erasure checks parameters before results, so an
     * override whose parameters have no representation cannot cause a second error at its base.
     */
-  private def observations(symbol: ErasureInputs.InputSymbol): Iterator[ErasureInputs.Input] =
+  private def observations(symbol: ErasureInputs.InputSymbol): Iterator[TermShape | TermDefinition] =
     if !config.language.useNewResolution then Iterator.empty
-    else summon[State].newResolverState.erasureInputs.observations(symbol).filter:
-      case result: OverrideResult => !result.source.isErroneous && parameterError(result.source).isEmpty
-      case _ => true
+    else summon[State].newResolverState.erasureInputs.observations(symbol): td =>
+      !td.isErroneous && parameterError(td).isEmpty
 
   private def inferredType(symbol: ErasureInputs.InputSymbol): Opt[ErasedValueType] =
     joined(observations(symbol).flatMap(valueType).toList)
@@ -147,10 +144,7 @@ final class Erasure(root: Statement, report: Raise)(using Config, Ctx, State):
   private def externalInputOrigin(symbol: ErasureInputs.InputSymbol): Opt[UnknownValueShape] =
     val inputs = summon[State].newResolverState.erasureInputs
     if !config.language.useNewResolution || !inputs.isPrepared(symbol) then N
-    else observations(symbol).collect:
-      case value: TermShape => value
-      case OverrideResult.Observed(_, value) => value
-    .map(_.applicationHead._1).collectFirst:
+    else observations(symbol).collect { case value: TermShape => value.applicationHead._1 }.collectFirst:
       case unknown: UnknownValueShape if unknown.fromPublicInterface => unknown
 
   /** Rejects a slot type without a runtime representation, such as `Int32 | Str`:
