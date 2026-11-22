@@ -133,9 +133,7 @@ read(new Child)
 //│ ╙──      	                            ^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
-// The direct call supplies a record, but the call through LocalBase also reaches LocalChild.read.
-// TODO: Include that call's input when resolving x.only in the private override.
-:breakme
+// LocalChild.read inherits Any even though its only direct call supplies a record with 'only'.
 :e
 private class LocalBase with
   open fun read(x: Any): Int = 0
@@ -144,7 +142,35 @@ private class LocalChild extends LocalBase with
 private fun throughBase(p: LocalBase) = p.read(null)
 new LocalChild().read({only: 7})
 throughBase(new LocalChild)
-//│ ═══[RUNTIME ERROR] TypeError: Cannot read properties of null (reading 'only')
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+4: 	  override fun read(x) = x.only
+//│ ║        	                         ^^^^^^
+//│ ╟── Value with an empty interface does not contain member 'only'
+//│ ║  l.+2: 	  open fun read(x: Any): Int = 0
+//│ ║        	                   ^^^
+//│ ╟── Type 'Any' is declared without a member interface.
+//│ ║  in ../decls/Prelude.mls
+//│ ║  l.XX: 	declare type Any
+//│ ╙──      	             ^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+// The override must also handle every type a base caller can choose for A.
+:e
+private class PolyBase with
+  open fun inspect[A](x: A): Int = 0
+private class PolyChild extends PolyBase with
+  override fun inspect(x) = x.only
+new PolyChild().inspect({only: 7})
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+4: 	  override fun inspect(x) = x.only
+//│ ║        	                            ^^^^^^
+//│ ╟── Cannot resolve member 'only' of a value with unknown shape.
+//│ ║  l.+2: 	  open fun inspect[A](x: A): Int = 0
+//│ ║        	                         ^
+//│ ╟── Type parameter 'A' does not specify a member interface.
+//│ ║  l.+2: 	  open fun inspect[A](x: A): Int = 0
+//│ ╙──      	                   ^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 // A separate polymorphic signature retains binders for explicit type application.
 :expect [11, 12]

@@ -2291,12 +2291,16 @@ class NewResolver:
         registerParameterSignature(td.params, full)(using rctx.state.context)
         parameterSignature(p)
 
+  /** The site that reads a member's signature independently of calls to its implementation. */
+  private def signatureSite(td: TermDefinition)(using ResolutionContext): Opt[FlowSymbol] =
+    S(rctx.fieldProjectionSite(td.bsym))
+
   /** Interpret a written parameter, field, or result type in the class that declares or inherits the member. */
   private def projectSlot(td: TermDefinition, param: Opt[Param], tpe: DeclaredType, marks: Ls[Marks],
-      instances: TypeSubstitution)(using ResolutionContext): DeclaredType =
+      instances: TypeSubstitution, site: Opt[FlowSymbol])(using ResolutionContext): DeclaredType =
     // A constructor field's annotation belongs to the constructor parameter's scope.
     val path = if param.isEmpty && td.tsym.decl.exists(_.isInstanceOf[Param]) then marks
-      else ExitMark(ResolutionBoundary(td.tsym), S(rctx.fieldProjectionSite(td.bsym)), NoMarks) :: marks
+      else ExitMark(ResolutionBoundary(td.tsym), site, NoMarks) :: marks
     // The overriding body reads a parameter or field with the bounds it would get
     // by writing the inherited annotation on its own declaration.
     transportType(tpe.instantiate(instances), path)
@@ -2309,13 +2313,15 @@ class NewResolver:
     * Call `receive` with the declaring member and its type in the lookup scope given by `marks`
     * and `instances`, applying the type arguments from each intervening parent clause. A path
     * with no matching annotation supplies its last member and `N`. A forward declaration can
-    * supply a result after this call returns.
+    * supply a result after this call returns. `methodSite` selects the invocation of the declaring
+    * method to read. Use `N` to include its abstract type parameters when checking a method body.
     */
   private def listenDeclaredOrInheritedType(td: TermDefinition, param: Opt[Param], marks: Ls[Marks],
-      instances: TypeSubstitution)(receive: (TermDefinition, Opt[DeclaredType]) => ResolutionContext ?=> Unit)(using ResolutionContext): Unit =
+      instances: TypeSubstitution, methodSite: TermDefinition => Opt[FlowSymbol])
+      (receive: (TermDefinition, Opt[DeclaredType]) => ResolutionContext ?=> Unit)(using ResolutionContext): Unit =
     def visit(td: TermDefinition, param: Opt[Param], marks: Ls[Marks], instances: TypeSubstitution,
         seen: Set[TermSymbol])(emit: (TermDefinition, Opt[DeclaredType]) => ResolutionContext ?=> Unit)(using ResolutionContext): Unit =
-      val declared = slotSignature(td, param).map(projectSlot(td, param, _, marks, instances))
+      val declared = slotSignature(td, param).map(projectSlot(td, param, _, marks, instances, methodSite(td)))
       (declared, td.owner) match
         case (N, S(owner)) if !seen(td.tsym) =>
           def inherit(parent: TermDefinition, path: Ls[Marks], bindings: TypeSubstitution)(using ResolutionContext): Unit =
@@ -2350,13 +2356,14 @@ class NewResolver:
   private[semantics] def externalInput(td: Opt[TermDefinition], param: Opt[Param], fallback: => TermShape)
       (receive: Listener)(using ResolutionContext): Unit = td match
     case S(d) if d.owner.nonEmpty && !d.tsym.isPrivate =>
-      listenDeclaredOrInheritedType(d, param, Nil, TypeSubstitution.empty): (_, tpe) =>
+      listenDeclaredOrInheritedType(d, param, Nil, TypeSubstitution.empty, signatureSite): (_, tpe) =>
         receive(tpe.fold(fallback)(instanceShape))
     case _ => receive(fallback)
 
-  /** Supply an overriding method or mutable field with the arguments or writes that callers can
-    * make through its base declaration. An unannotated input inherits the base input in the
-    * subclass's scope. A written annotation supplies its own type and exposes any omitted type arguments.
+  /** Check an unannotated overriding parameter against the type its base declares, including
+    * in private hierarchies. Forward external arguments and field writes to overrides when
+    * the base is exposed. An exposed override with a written type admits unknown values for
+    * any type arguments it omits.
     */
   private def connectOverrideInputs(base: TermDefinition, overriding: TermDefinition, inheritedMarks: Ls[Marks],
       instances: TypeSubstitution)(using ResolutionContext): Unit =
@@ -2379,7 +2386,7 @@ class NewResolver:
             .via(msg"Member '${base.tsym.nme}' is accessible here." -> base.headerLoc)
             .via(msg"This overriding annotation leaves a type argument unspecified." -> source.toLoc)
           exposeTypeHoles(tpe.instantiate(rctx.instances), UnknownValueShape(source, fromPublicInterface = true)(path))
-          forward(instanceShape(projectSlot(overriding, target, tpe, Nil, TypeSubstitution.empty)))
+          forward(instanceShape(projectSlot(overriding, target, tpe, Nil, TypeSubstitution.empty, signatureSite(overriding))))
         case N =>
           // The base supplies its input in its own class's scope. Apply this parent clause
           // once so that the overriding body and any further overrides see the same type.
@@ -2400,6 +2407,15 @@ class NewResolver:
       codegen.OverrideLayout.correspondingParameters(overriding.params, base.params).foreach: pairs =>
         val inside = ExitMark(ResolutionBoundary(overriding.tsym), N, NoMarks) :: Nil
         pairs.foreach: (target, inherited) =>
+          if rctx.state.isOwnedSym(base.tsym) && parameterSignature(target).isEmpty then
+            // Check this body even when the hierarchy stays private. A wildcard exit includes
+            // the base method's abstract type parameters. A separate entry at the override
+            // prevents those checking inputs from escaping through the result of a local call.
+            val entry = signatureSite(overriding)
+            listenDeclaredOrInheritedType(base, S(inherited), inheritedMarks, instances, _ => N): (_, tpe) =>
+              tpe.foreach: declared =>
+                val input = MarkedShape.enter(instanceShape(declared), ResolutionBoundary(overriding.tsym), entry)
+                publishParameter(target.sym, input)
           connect(S(inherited), S(target)): input =>
             input.enter(inside) match
               case value: TermShape => publishParameter(target.sym, value)
@@ -2411,7 +2427,7 @@ class NewResolver:
   private def checkOverrideResult(base: TermDefinition, overriding: TermDefinition, marks: Ls[Marks],
       instances: TypeSubstitution)(using ResolutionContext): Unit =
     if writtenSignature(overriding).isEmpty then
-      listenDeclaredOrInheritedType(base, N, marks, instances): (origin, declared) =>
+      listenDeclaredOrInheritedType(base, N, marks, instances, signatureSite): (origin, declared) =>
         declared.filter(_ => origin.generatorAnnotation.isEmpty).foreach: result =>
           val expected = captureType(result, overriding.tsym)
           overriding.body.foreach: body =>

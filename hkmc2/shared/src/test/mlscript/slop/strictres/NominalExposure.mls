@@ -345,6 +345,29 @@ new LocalService().inspect({value: 4})
 //│ = 4
 
 
+// The base is the only declaration called. Its parent type arguments determine x in the leaf.
+:expect "through base"
+private class LocalReader[T] with
+  open fun read(x: T): Str = ""
+private class MiddleReader[T] extends LocalReader[T] with
+  open override fun read(x) = ""
+private class WordReader extends MiddleReader[Argument] with
+  override fun read(x) = x.word
+private fun readLocal(p: LocalReader[Argument]) = p.read(Argument("through base"))
+readLocal(new WordReader)
+//│ = "through base"
+
+
+// A written annotation on a private override can infer an omitted argument from local calls.
+:expect "local"
+private class LocalBoxReader with
+  open fun read(x: Box[Argument]): Str = ""
+private class OwnBoxReader extends LocalBoxReader with
+  override fun read(x: Box) = x.contents.word
+new OwnBoxReader().read(Box(Argument("local")))
+//│ = "local"
+
+
 // A narrow factory annotation cannot narrow the domain that the implementation inherits.
 :e
 private class Consumer[T] with
@@ -656,11 +679,10 @@ new CurriedChild().inspect(0)({only: 7})
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
-// Callers of the returned function cannot supply the first argument again.
+// Callers of the returned function cannot supply the unannotated first argument again.
 :expect 7
 private class PartialBase with
-  fun inspect: Any -> Any -> Int
-  open fun inspect(first)(second) = 0
+  open fun inspect(first)(second: Any): Int = 0
 private class PartialChild extends PartialBase with
   override fun inspect(first)(second) = first.only
 fun remainingArgument() = new PartialBase().inspect(0)
