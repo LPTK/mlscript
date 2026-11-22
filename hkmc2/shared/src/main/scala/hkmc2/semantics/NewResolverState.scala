@@ -262,9 +262,9 @@ final class NewResolverState(val owner: Elaborator.State):
     new Cache(_.contextualSymbols, identity)
   val inferredInstantiations: Seen[(AnyDefinitionSymbol, FlowSymbol, TypeSubstitution, Ls[Marks])] =
     new Seen(_.inferredInstantiations)
-  // A scheme is owned by its source definition, or by the original interpretation
-  // of an anonymous quantified annotation. Neither a view nor an instance is an owner.
-  private[semantics] val typeInstances: Cache[(AnyDefinitionSymbol | TypeResolution, FlowSymbol), TypeSubstitution] =
+  // Views of the same source scheme share its instances at a site. An inherited signature
+  // also depends on which overriding method supplies the binders for its type parameters.
+  private[semantics] val typeInstances: Cache[(TypeInstantiationOwner, FlowSymbol), TypeSubstitution] =
     new Cache(_.typeInstances, identity)
   private[semantics] var allocatedTypeInstances: Int = 0
   private[semantics] val typeApplicationSites: Cache[TyApp, FlowSymbol] =
@@ -804,7 +804,7 @@ final class ResolutionContext private[semantics] (
       field.tsym.flatMap(definitionBindersOf).foreach(recordSiteBinders(site, _))
       site
     )(using state.context)
-  private[hkmc2] def instantiateTypeParameters(scheme: AnyDefinitionSymbol | TypeResolution,
+  private[hkmc2] def instantiateTypeParameters(scheme: TypeInstantiationOwner,
       site: FlowSymbol, parameters: Ls[VarSymbol], siteBinders: Opt[Set[VarSymbol]]): TypeSubstitution =
     require(parameters.distinct.length == parameters.length, "A scheme cannot bind a parameter twice")
     val origin = scheme match
@@ -850,6 +850,9 @@ final class ResolutionContext private[semantics] (
     typeConstraints.add((tpe, ShapeIdentity.key(value), marks, fulfilled))
   def hasTypeConstraint(tpe: DeclaredType, value: TermShape, marks: Ls[Marks]): Bool =
     typeConstraints((tpe, ShapeIdentity.key(value), marks, false))
+
+/** A source scheme, or a base method interpreted in one particular overriding declaration. */
+private[hkmc2] type TypeInstantiationOwner = AnyDefinitionSymbol | TypeResolution | (TermSymbol, TermSymbol)
 
 /** One pair of call sites per spread source. Incoming alternatives share these
   * observations and the element host, so their Cartesian product is never built.

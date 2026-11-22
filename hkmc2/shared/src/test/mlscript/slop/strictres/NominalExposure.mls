@@ -368,6 +368,21 @@ new OwnBoxReader().read(Box(Argument("local")))
 //│ = "local"
 
 
+// Returning an inherited parameter exposes its declared type. A subtype passed by a direct
+// caller can still have methods whose only arguments come from this unit.
+:expect 7
+private class Input
+private class SpecificInput extends Input with
+  fun use(x) = x.only
+private class EchoBase with
+  open fun echo(x: Input): Input = x
+private class EchoChild extends EchoBase with
+  override fun echo(x) = x
+fun echoed() = new EchoChild().echo(new SpecificInput)
+new SpecificInput().use({only: 7})
+//│ = 7
+
+
 // A narrow factory annotation cannot narrow the domain that the implementation inherits.
 :e
 private class Consumer[T] with

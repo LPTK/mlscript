@@ -2305,6 +2305,26 @@ class NewResolver:
     // by writing the inherited annotation on its own declaration.
     transportType(tpe.instantiate(instances), path)
 
+  /** Interpret a generic method's signature in an override. Pair its type parameters by
+    * position so that an override of `id[A](x: A)` written as `id[B](x)` uses `B` for `x`.
+    * A selection can infer a base parameter for which the override has no corresponding binder.
+    */
+  private def instantiateOverriddenMethod(base: TermDefinition, overriding: TermDefinition, marks: Ls[Marks],
+      instances: TypeSubstitution, methodSite: TermDefinition => Opt[FlowSymbol])(using ResolutionContext): TypeSubstitution =
+    val parameters = definitionBinders(base)
+    if parameters.isEmpty then return instances
+    methodSite(overriding).fold(instances): site =>
+      val own = definitionBinders(overriding)
+      // One selection can reach two overrides of the same base. Each binds the base's
+      // parameters in its own method scope, even when the caller supplies the same argument.
+      val binders = union(lexicalBinders(overriding.tsym).map(_ ++ own), rctx.siteBindersOf(site))
+      val group = rctx.instantiateTypeParameters((base.tsym, overriding.tsym), site, parameters, binders)
+      val path = ExitMark(ResolutionBoundary(base.tsym), methodSite(base), NoMarks) ::
+        (marks :+ EntryMark(ResolutionBoundary(overriding.tsym), N, NoMarks))
+      val arguments = own.map(p => TypeArgument.invariant(parameterType(rctx.typeParameter(p))))
+      bindTypeArguments(parameters.map(p => rctx.typeParameter(group(p))), path, arguments)
+      instances.withOverrides(group)
+
   /** Find the type a member declares or inherits for a parameter, a field, or a method result.
     * `S(p)` selects parameter `p` of `td` and its counterpart in each overridden declaration.
     * `N` selects the field's type or the method's result after all its parameter lists.
@@ -2326,7 +2346,8 @@ class NewResolver:
         case (N, S(owner)) if !seen(td.tsym) =>
           def inherit(parent: TermDefinition, path: Ls[Marks], bindings: TypeSubstitution)(using ResolutionContext): Unit =
             def fromSlot(slot: Opt[Param]): Unit =
-              visit(parent, slot, path, bindings, seen + td.tsym): (origin, tpe) =>
+              val parentInstances = instantiateOverriddenMethod(parent, td, path, bindings, methodSite)
+              visit(parent, slot, path, parentInstances, seen + td.tsym): (origin, tpe) =>
                 emit(origin, tpe.map(t => transportType(t.instantiate(instances), marks)))
             param match
               case N => fromSlot(N)
@@ -2574,7 +2595,7 @@ class NewResolver:
             // Diagnostics must not disconnect parameter or result constraints.
             val allParams = params.allParams
             zipCallbackArguments(context, Arity(params), declared, callable.source, expectedContext)(
-              (index, shape) => constrainParameterIn(allParams(index), shape, context, instances, site))
+              (index, shape) => constrainParameterIn(allParams(index), shape, context, instances, site, S(actual)))
             callable.result.foreach: ret =>
               tail match
                 case Nil => results: shape =>
@@ -3141,18 +3162,34 @@ class NewResolver:
       instances: TypeSubstitution)(using ResolutionContext): Unit =
     val params = ps.allParams
     zipArgumentShapes(mss, Arity(ps), args, src, funSh)(
-      (index, shape) => constrainParameterIn(params(index), shape, mss, instances, S(src)))
+      (index, shape) => constrainParameterIn(params(index), shape, mss, instances, S(src), S(funSh)))
 
   private[semantics] def constrainParameter(p: Param, shape: TermShape | NoShape, marks: Ls[Marks])(using ResolutionContext): Unit =
-    constrainParameterIn(p, shape, marks, rctx.instances, N)
+    constrainParameterIn(p, shape, marks, rctx.instances, N, N)
 
   private def constrainParameterIn(p: Param, shape: TermShape | NoShape, marks: Ls[Marks],
-      instances: TypeSubstitution, site: Opt[Term])(using ResolutionContext): Unit = shape match
+      instances: TypeSubstitution, site: Opt[Term], callee: Opt[TermShape])(using ResolutionContext): Unit = shape match
     case NoShape => ()
     case sh: TermShape =>
+      def publish(value: TermShape): Unit = publishParameter(p.sym, value)(using rctx.withInstances(instances))
       parameterSignature(p) match
         case S(tpe) => inferTypeArguments(tpe.instantiate(instances), sh, marks, site)
-        case N => publishParameter(p.sym, sh)(using rctx.withInstances(instances))
+        case N => callee.map(_.applicationHead._1).collect { case ds: DefnShape => ds.defn } match
+          case S(td: TermDefinition) if newResolution && td.owner.nonEmpty &&
+              !td.tsym.isPrivate && !td.tsym.isInstanceOf[ClassCtorSymbol] =>
+            val scope = ResolutionBoundary(td.tsym)
+            lazy val selection = markCarrier.enter(marks) match
+              case Marked(_, EntryMark(`scope`, id, _)) => id
+              case _ => N
+            listenDeclaredOrInheritedType(td, S(p), Nil, TypeSubstitution.empty, _ => selection):
+              case (_, S(declared)) =>
+                // Keep the type generic when publishing it to the body. Two calls through
+                // one saved method can supply different type arguments at the same selection.
+                val tpe = transportType(declared, EntryMark(scope, selection, NoMarks) :: Nil)
+                publishParameter(p.sym, instanceShape(tpe))(using rctx.withInstances(TypeSubstitution.empty))
+                inferTypeArguments(tpe.instantiate(instances), sh, marks, site)
+              case (_, N) => publish(sh)
+          case _ => publish(sh)
 
   /** The type declared for a parameter by its inline annotation or the enclosing function's
     * separate signature, or `N` if neither supplies one.
@@ -3891,7 +3928,7 @@ class NewResolver:
       else
         // Protocol observations supply no arguments, so a rest parameter is empty.
         ps.variadic.foreach(v => constrainParameterIn(v.param,
-          TupleShape(args, Nil)(this), mss, instances, N))
+          TupleShape(args, Nil)(this), mss, instances, N, S(lhs)))
     log(dbg"appShape isSaturated? ${sh.isSaturated}; head? ${sh.applicationHead._1.shwDbg}, ${sh.applicationHead._2.map(_.showDbg)}")
     def register(using ResolutionContext) = publish(sh)
     log(dbg"lhs ${lhs.isSaturated} ${lhs.unappliedParams.map(_.mapFirst(_.showDbg).mapSecond(_.map(_.showDbg)))}")
