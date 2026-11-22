@@ -1413,7 +1413,7 @@ class NewResolver:
     * cannot hide another view. MarkedShape preserves the decoded core's type.
     * Keep applications intact: their consumed term lists are not view wrappers.
     */
-  private def shapeParts(value: TermShape): ShapeParts =
+  private[semantics] def shapeParts(value: TermShape): ShapeParts =
     val Marked(source, marks) = value
     source match
       case ContextualShape(source, instances) => ShapeParts(Marked(source, marks), instances, N)

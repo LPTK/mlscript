@@ -82,7 +82,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
   private def emit(shape: TermShape | NoShape, path: Path)(using ResolutionContext): Unit = shape match
     case shape: TermShape if exposed.add(ShapeIdentity.key(shape)) =>
       val current = rctx
-      work.enqueue(() => exposeValue(shape, path, TypeSubstitution.empty)(using current))
+      work.enqueue(() => exposeValue(shape, path)(using current))
     case _ => ()
 
   private def source(symbol: BlockMemberSymbol): MemberRef =
@@ -297,34 +297,25 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
           case _ => ()
         resolver.foreachInterfaceComponent(tpe, shape)((part, inner) => bound(part, inner ::: marks))
 
-  /** Expose the operations available on an escaping value. For a constructor, `specialization`
-    * records the bindings chosen by an explicit type application such as `Box[Item].class`.
-    * A bare `Box` inside a method of `Box[T]` still accepts a fresh type argument. */
-  private def exposeValue(shape: TermShape, path: Path, specialization: TypeSubstitution)(using ResolutionContext): Unit =
+  /** Expose the operations available on a value in its captured lexical scope. */
+  private def exposeValue(value: TermShape, path: Path)(using origin: ResolutionContext): Unit =
+    val ShapeParts(shape, lexical, supplied) = resolver.shapeParts(value)
+    val instances = origin.instances.withOverrides(lexical)
+    given ResolutionContext = origin.withInstances(instances)
     val (head, marks) = shape.applicationHead
-    val instances = rctx.instances
     def exposeClassInterface(cls: ClassLikeDef): Unit =
       val memberContext = shape match
         case Marked(_: DefnShape, _) =>
           // A method returning its own class's constructor can bind the same parameters on its
           // receiver. The constructor keeps enclosing bindings and its own explicit arguments.
-          val enclosing = instances.without(cls.tparams.iterator.map(_.sym))
-          val constructorContext = rctx.withInstances(enclosing.withOverrides(specialization))
+          val constructorContext = if supplied.nonEmpty then rctx
+            else rctx.withInstances(instances.without(cls.tparams.iterator.map(_.sym)))
           if cls.paramsOpt.isEmpty then parameters(cls.auxParams.map(_ -> marks), path, N)(using constructorContext)
           constructorContext
         case _ => rctx
       members(cls, S(marks), path)(using memberContext)
     head match
-      case contextual: ContextualShape => contextual.source.exit(marks) match
-        case value: TermShape =>
-          val substitution = instances.withOverrides(contextual.instances)
-          exposeValue(value, path, specialization)(using rctx.withInstances(substitution))
-        case NoShape => ()
-      case specialized: SpecializedShape =>
-        val substitution = instances.withOverrides(specialized.instances)
-        resolver.instantiateShape(specialized.declaration, substitution).exit(marks) match
-          case value: TermShape => exposeValue(value, path, substitution)
-          case NoShape => ()
+      case _: (ContextualShape | SpecializedShape) => lastWords("A core application head cannot contain a substitution wrapper")
       case instance: InstanceShape =>
         declaredValue(instance.tpe, marks, path)
       case ds: DefnShape =>
