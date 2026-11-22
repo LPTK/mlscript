@@ -1904,6 +1904,19 @@ class NewResolver:
       instanceShape(transportType(instance.tpe, inner :: marks))
     case _ => value.exit(marks)
 
+  private def isStoredValue(sym: AnyDefinitionSymbol): Bool = sym match
+    case sym: TermSymbol => sym.k.isInstanceOf[ValLike]
+    case _ => false
+
+  /** The scope crossings that locate a receiver, in traversal order. `exitSite` selects the
+    * invocation at each exit. Entry sites locate captured values and retain their identity. */
+  private def receiverPath(marks: Ls[Marks])(exitSite: (ResolutionBoundary, Opt[FlowSymbol]) => Opt[FlowSymbol]): Ls[Marks] =
+    @tailrec def crossings(path: Marks, tail: Ls[Marks]): Ls[Marks] = path match
+      case ExitMark(scope, site, rest) => crossings(rest, ExitMark(scope, exitSite(scope, site), NoMarks) :: tail)
+      case EntryMark(scope, site, rest) => crossings(rest, EntryMark(scope, site, NoMarks) :: tail)
+      case NoMarks => tail
+    marks.foldRight(Nil: Ls[Marks])(crossings)
+
   private def listenDeclaredMember(member: BlockMemberSymbol, bindings: Map[VarSymbol, TypeArgument], flow: FlowSymbol,
       source: Term, annotation: Opt[Term], selected: ShapeListener[DefinitionSymbol[?]], receiver: Bool,
       receiverMarks: Ls[Marks], specialization: Opt[(FlowSymbol, Ls[TypeArgument])])(listener: Listener)(using ResolutionContext): Unit =
@@ -2383,7 +2396,7 @@ class NewResolver:
     // The parent clause names one receiver. A call or write through any receiver of
     // the base can reach the override, including one from a different allocation site.
     lazy val baseExit = ExitMark(ResolutionBoundary(base.tsym), N, NoMarks) ::
-      receiverPath(inheritedMarks)(_ => true)
+      receiverPath(inheritedMarks)((_, _) => N)
     def forwardInputs(host: ShapeHost, slot: MemberSlot, foreignInput: => TermShape)(receive: Listener): Unit =
       def forward(input: TermShape, path: Ls[Marks])(using ResolutionContext): Unit =
         val value = instantiateShape(input, rctx.instances.withOverrides(instances))
@@ -3935,14 +3948,21 @@ class NewResolver:
       log(dbg"appShape: lhs = ${lhs.shwDbg}, args = ${args.showDbg}, res = ${res.showDbg}")
       new AppShape(lhs, args, res)
     })
+    val (head, marks) = lhs.applicationHead
+    val callPath = head match
+      case intro: IntroShape if intro.trm.isInstanceOf[Lam] =>
+        // A lambda in a stored aggregate has no named call boundary of its own. Its arguments
+        // and results cross the enclosing value's scope at this invocation of the lambda.
+        receiverPath(marks)((scope, site) => site.orElse(Option.when(isStoredValue(scope.symbol))(res.resSym)))
+      case _ => marks
     lhs.unappliedParams match
     case Nil => ()
-    case (ps, mss) :: pss =>
-      if checked then zipArgsIn(mss, ps, args, res, lhs, instances)
+    case (ps, _) :: _ =>
+      if checked then zipArgsIn(callPath, ps, args, res, lhs, instances)
       else
         // Protocol observations supply no arguments, so a rest parameter is empty.
         ps.variadic.foreach(v => constrainParameterIn(v.param,
-          TupleShape(args, Nil)(this), mss, instances, N, S(lhs)))
+          TupleShape(args, Nil)(this), callPath, instances, N, S(lhs)))
     log(dbg"appShape isSaturated? ${sh.isSaturated}; head? ${sh.applicationHead._1.shwDbg}, ${sh.applicationHead._2.map(_.showDbg)}")
     def register(using ResolutionContext) = publish(sh)
     log(dbg"lhs ${lhs.isSaturated} ${lhs.unappliedParams.map(_.mapFirst(_.showDbg).mapSecond(_.map(_.showDbg)))}")
@@ -3969,38 +3989,30 @@ class NewResolver:
       return
     if checked then res.callableTargets.currentShapes.add(source)
     if sh.isSaturated then
-      def go(body: Term, mss: Ls[Marks])(using ResolutionContext) =
-        listenResult(body): sh =>
-          transportShape(sh, mss) match
-          case NoShape =>
-          case sh: TermShape =>
-            publish(sh)
-      sh.applicationHead match
-      case (ds: DefnShape, mss) =>
+      def returned(result: TermShape)(using ResolutionContext): Unit = transportShape(result, callPath) match
+        case value: TermShape => publish(value)
+        case NoShape => ()
+      head match
+      case ds: DefnShape =>
         ds.defn match
         case cd: ClassDef =>
           // TODO: resolve ctor?
-          // TODO: handle `mss`
+          // TODO: handle the constructor's scope exits
           register
         case td: TermDefinition =>
           td.tsym match
           case ccs: ClassCtorSymbol => // TOOD: to avoid the special case, give this the actual body?
             softAssert(td.body.isEmpty)
-            // TODO: handle `mss`
+            // TODO: handle the constructor's scope exits
             register
           case _ =>
             log(dbg"appShape: td.body = ${td.body}")
-            listenDefinitionResult(td, instances): result =>
-              transportShape(result, mss) match
-                case value: TermShape => publish(value)
-                case NoShape => ()
+            listenDefinitionResult(td, instances)(returned)
         case _ =>
           softAssert(rctx.hasError(res))
-      case (sh: IntroShape, mss) =>
-        sh.trm match
-        case Lam(params, body) =>
-          // Exit the same context that zipArgs enters, filtering results from other uses.
-          go(body, mss)
+      case intro: IntroShape =>
+        intro.trm match
+        case Lam(_, body) => listenResult(body)(returned)
         case _ =>
           softAssert(rctx.hasError(res))
       case _ =>
@@ -4793,16 +4805,6 @@ class NewResolver:
         case _ => ()
     target(lhs, value => value)
 
-  /** The scope crossings that locate a receiver. For a shared scope, a value can reach the
-    * receiver through any selection of that scope. Keep the invocation site on other exits
-    * and the entry sites that locate captured values. */
-  private def receiverPath(marks: Ls[Marks])(shared: ResolutionBoundary => Bool): Ls[Marks] =
-    @tailrec def crossings(path: Marks, tail: Ls[Marks]): Ls[Marks] = path match
-      case ExitMark(scope, site, rest) => crossings(rest, ExitMark(scope, if shared(scope) then N else site, NoMarks) :: tail)
-      case EntryMark(scope, site, rest) => crossings(rest, EntryMark(scope, site, NoMarks) :: tail)
-      case NoMarks => tail
-    marks.foldRight(Nil: Ls[Marks])(crossings)
-
   /** Publish an input to an assignable field in the scope of its definition. The field's input can
     * come from an assignment, an inherited type, or a constructor parameter's annotation.
     * Reading the field exits its definition and follows the lookup path to the reader, so an
@@ -4811,12 +4813,7 @@ class NewResolver:
     */
   private[semantics] def writeField(field: TermSymbol, value: TermShape, marks: Ls[Marks])(using ResolutionContext): Unit =
     softAssert(field.defn.exists(isAssignableField), "Only assignable fields hold assigned values")
-    // Looking up a stored record or object twice reaches the same storage. Calls to a factory
-    // can allocate different receivers, so their invocation sites still distinguish writes.
-    val address = receiverPath(marks)(_.symbol match
-      case sym: TermSymbol => sym.k.isInstanceOf[ValLike]
-      case _ => false)
-    value.enter(address) match
+    value.enter(marks) match
       case value: TermShape =>
         publishActivated(rctx.memberVariable(field), MarkedShape.enter(value, ResolutionBoundary(field), N))
       case NoShape => ()
@@ -5100,6 +5097,10 @@ class NewResolver:
           val exited = sym match
             case _: ModuleOrObjectSymbol | _: PatternSymbol => sh
             case sym: TermSymbol if sym.isLetOrParamBinding => sh
+            // A stored object keeps its identity across reads. A stored function uses its
+            // selection site to match incoming arguments with the values its body returns.
+            case _ if isStoredValue(sym) && shapeParts(sh).value.isSaturated =>
+              MarkedShape.exit(sh, ResolutionBoundary(sym), N)
             case _ => MarkedShape.exit(sh, ResolutionBoundary(sym), S(resSym))
           (exited match
             case value: TermShape => transportShape(value, markss)

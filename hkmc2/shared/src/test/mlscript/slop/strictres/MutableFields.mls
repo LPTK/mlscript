@@ -659,3 +659,37 @@ private val keptRecord = makeRecord({only: 7})
 keptRecord.item.only
 //│ = 7
 //│ keptRecord = {item: {only: 7}}
+
+
+// Calling a factory stored in a tuple allocates a record for each call.
+:expect [null, 7]
+private val factories = [x => mut {item: x}]
+private val first = factories.0({only: 1})
+private val second = factories.0({only: 7})
+set first.item = null
+[first.item, second.item.only]
+//│ = [null, 7]
+//│ factories = [fun]
+//│ first = {item: null}
+//│ second = {item: {only: 7}}
+
+
+// A stored function can also return the same record to both callers.
+:e
+private val shared = mut {item: {only: 7}}
+private val readers = [() => shared]
+private val writer = readers.0()
+private val reader = readers.0()
+set writer.item = null
+reader.item.only
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+6: 	reader.item.only
+//│ ║        	^^^^^^^^^^^^^^^^
+//│ ╟── Null literal does not contain member 'only'
+//│ ║  l.+5: 	set writer.item = null
+//│ ╙──      	                  ^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ reader = {item: null}
+//│ readers = [fun]
+//│ shared = {item: null}
+//│ writer = {item: null}
