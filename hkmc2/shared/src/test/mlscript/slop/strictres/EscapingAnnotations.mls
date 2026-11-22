@@ -565,6 +565,34 @@ sinkConstructor()(box => box.contents.word).accept(Box(Argument("local")))
 //│ makeSink = fun Sink { class: class Sink }
 
 
+// Returning the class value also exposes the type argument supplied to its constructor.
+:e
+private class ProjectedInput with
+  fun read(x) = x.word
+fun boxClass() = Box[ProjectedInput].class
+new ProjectedInput().read({word: "local"})
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+2: 	  fun read(x) = x.word
+//│ ║        	                ^^^^^^
+//│ ╟── Cannot resolve member 'word' of a value with unknown shape.
+//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ║  l.+2: 	  fun read(x) = x.word
+//│ ║        	           ^
+//│ ╟── Member 'read' is accessible here.
+//│ ║  l.+2: 	  fun read(x) = x.word
+//│ ║        	  ^^^^^^^^^^^
+//│ ╟── This type argument is supplied here.
+//│ ║  l.+3: 	fun boxClass() = Box[ProjectedInput].class
+//│ ║        	                     ^^^^^^^^^^^^^^
+//│ ╟── This value is returned here.
+//│ ║  l.+3: 	fun boxClass() = Box[ProjectedInput].class
+//│ ║        	                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── 'boxClass' is exposed by this compilation unit.
+//│ ║  l.+3: 	fun boxClass() = Box[ProjectedInput].class
+//│ ╙──      	^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
 // A bare constructor returned by a specialized receiver can be called at a fresh type.
 :expect [42, "local"]
 private class LocalArgument with
