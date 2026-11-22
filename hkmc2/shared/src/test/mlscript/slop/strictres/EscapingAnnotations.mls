@@ -509,6 +509,37 @@ returnedSelf().accept(Box(Argument("local")))
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
+// Two instances of Sink expose their own arguments, even after the first has exposed its members.
+:e
+private class SecondInput with
+  fun read(x) = x.key
+fun twoSinks() = [new Sink[Int](n => "first"), new Sink[SecondInput](x => "second").self()]
+new SecondInput().read({key: 1})
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+2: 	  fun read(x) = x.key
+//│ ║        	                ^^^^^
+//│ ╟── Cannot resolve member 'key' of a value with unknown shape.
+//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ║  l.+2: 	  fun read(x) = x.key
+//│ ║        	           ^
+//│ ╟── Member 'read' is accessible here.
+//│ ║  l.+2: 	  fun read(x) = x.key
+//│ ║        	  ^^^^^^^^^^^
+//│ ╟── This type argument is supplied here.
+//│ ║  l.+3: 	fun twoSinks() = [new Sink[Int](n => "first"), new Sink[SecondInput](x => "second").self()]
+//│ ║        	                                                        ^^^^^^^^^^^
+//│ ╟── This value is stored in this tuple.
+//│ ║  l.+3: 	fun twoSinks() = [new Sink[Int](n => "first"), new Sink[SecondInput](x => "second").self()]
+//│ ║        	                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── This value is returned here.
+//│ ║  l.+3: 	fun twoSinks() = [new Sink[Int](n => "first"), new Sink[SecondInput](x => "second").self()]
+//│ ║        	                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── 'twoSinks' is exposed by this compilation unit.
+//│ ║  l.+3: 	fun twoSinks() = [new Sink[Int](n => "first"), new Sink[SecondInput](x => "second").self()]
+//│ ╙──      	^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
 // A returned constructor already exposes the argument it was specialized with.
 :e
 private val makeSink = Sink[Box]
@@ -532,6 +563,17 @@ sinkConstructor()(box => box.contents.word).accept(Box(Argument("local")))
 //│ ╙──      	^^^^^^^^^^^^^^^^^^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 //│ makeSink = fun Sink { class: class Sink }
+
+
+// A bare constructor returned by a specialized receiver can be called at a fresh type.
+:expect [42, "local"]
+private class LocalArgument with
+  fun read(x) = x.word
+private class Factory[T](val value: T) with
+  fun factory() = Factory
+fun genericFactory() = new Factory[LocalArgument](new LocalArgument).factory()
+[genericFactory()[Int](42).value, new LocalArgument().read(Argument("local"))]
+//│ = [42, "local"]
 
 
 // A local type can reach the public interface through an imported constructor's input bound.

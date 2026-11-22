@@ -82,7 +82,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
   private def emit(shape: TermShape | NoShape, path: Path)(using ResolutionContext): Unit = shape match
     case shape: TermShape if exposed.add(ShapeIdentity.key(shape)) =>
       val current = rctx
-      work.enqueue(() => value(shape, path)(using current))
+      work.enqueue(() => exposeValue(shape, path, TypeSubstitution.empty)(using current))
     case _ => ()
 
   private def source(symbol: BlockMemberSymbol): MemberRef =
@@ -203,10 +203,16 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
       val inside = InterfaceExposure.declarationExits(td, site)
       parameters(td.params.map(_ -> inside), path, S(td))
 
-  /** Expose each class's public operations once, through either a named type or an escaping value.
-    * An escaping value also supplies the scope in which to read its inferred member values.
+  /** Expose a class's public operations and the type arguments supplied by an escaping receiver.
+    * The receiver carries the scope for its member values and the bindings for this particular
+    * instance or constructor. A named type contributes arguments through its written annotation.
     */
-  private def members(cls: ClassLikeDef, receiver: Opt[Ls[Marks]], path: Path)(using ResolutionContext): Unit =
+  private def members(cls: ClassLikeDef, receiver: Opt[(Ls[Marks], TypeSubstitution)], path: Path)(using ResolutionContext): Unit =
+    // A local argument can specialize an imported class or a class whose members we already visited.
+    receiver.foreach: (marks, instances) =>
+      cls.tparams.foreach: param =>
+        instances.get(param.sym).filter(rctx.hasExplicitTypeArgument).foreach: instance =>
+          exposeSuppliedArgument(rctx.typeParameter(instance), instances, marks, path)
     if !rctx.state.isOwnedSym(cls.sym) then return
     val first = admitted.add(cls.sym)
     if first || receiver.nonEmpty then cls.body.blk.stats.foreach:
@@ -220,14 +226,14 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
               operation(td, memberPath)(using declarationContext)
               if resolver.writtenSignature(td).isEmpty then
                 resolver.exposeMemberResult(td, memberPath)(using declarationContext)
-            receiver.foreach: marks =>
+            receiver.foreach: (marks, _) =>
               if resolver.writtenSignature(td).nonEmpty then member(td.bsym, marks, memberPath)
-          case _ => member(d.bsym, receiver.getOrElse(Nil), memberPath)
+          case _ => member(d.bsym, receiver.fold[Ls[Marks]](Nil)(_._1), memberPath)
       case _ => ()
     cls.ext.foreach: parent =>
       val inherited = path.via(msg"This parent contributes inherited members." -> parent.toLoc)
       receiver match
-        case S(marks) => term(parent, marks, inherited)
+        case S((marks, _)) => term(parent, marks, inherited)
         // A class named in an annotation exposes its parent clause even if one of its instances
         // escaped first: `exposeType` visits the clause once. A class that only escapes by value
         // does not expose the clause as a type, because its parent can be a class value, as in
@@ -260,8 +266,6 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
         resolver.listenSignatureResult(td, declared, TypeView.Provided)(resolver.listenTypeInstances(_)(listener))): shape =>
         emit(shape.exit(marks), path)
 
-  private def value(shape: TermShape, path: Path)(using ResolutionContext): Unit = valueIn(shape, path, rctx.instances)
-
   /** Expose the types that an application supplies for a formal parameter. A wildcard can
     * name different types on input and output, both of which occur in the exposed interface.
     */
@@ -273,16 +277,6 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
       binding.argument.foreachBound: bound =>
         emit(resolver.instanceShape(bound.instantiate(instances)).exit(binding.marks).exit(marks),
           path.via(msg"This type argument is supplied here." -> bound.resolution.source.toLoc))
-
-  /** Expose the types supplied to a class when its constructor or an instance escapes.
-    * Returning `new Sink[Box](...)` exposes `Box` even when the function has no result annotation
-    * and the signature of `Sink.accept` names only the class's type parameter.
-    */
-  private def constructorArguments(cls: ClassLikeDef, instances: TypeSubstitution, marks: Ls[Marks], path: Path)
-      (using ResolutionContext): Unit =
-    cls.tparams.foreach: param =>
-      instances.get(param.sym).filter(rctx.hasExplicitTypeArgument).foreach: instance =>
-        exposeSuppliedArgument(rctx.typeParameter(instance), instances, marks, path)
 
   /** Expose the interface of an escaping value whose type is written, such as the result of
     * a private function with a result annotation. Clients use the value at that type, so the
@@ -320,8 +314,17 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
           case _ => ()
         resolver.foreachInterfaceComponent(tpe, shape)((part, inner) => bound(part, inner ::: marks))
 
-  private def valueIn(shape: TermShape, path: Path, instances: TypeSubstitution)(using ResolutionContext): Unit =
+  /** Follow an escaping value through its scope. For a first-class constructor, `specialization`
+    * keeps the type arguments it has already bound while its declaration supplies the parameter lists. */
+  private def exposeValue(shape: TermShape, path: Path, specialization: TypeSubstitution)(using ResolutionContext): Unit =
     val (head, marks) = shape.applicationHead
+    val instances = rctx.instances
+    def exposeClassInterface(cls: ClassLikeDef): Unit = shape match
+      case Marked(_: DefnShape, _) =>
+        if cls.paramsOpt.isEmpty then parameters(cls.auxParams.map(_ -> marks), path, N)
+        // Returning the bare constructor from an instance method leaves its binders fresh.
+        members(cls, S(marks -> specialization), path)
+      case _ => members(cls, S(marks -> instances), path)
     def contextualTerm(value: Term, context: Ls[Marks], path: Path,
         substitution: TypeSubstitution)(using ResolutionContext): Unit =
       watch((value, context, substitution))(
@@ -331,43 +334,28 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
       case contextual: ContextualShape => contextual.source.exit(marks) match
         case value: TermShape =>
           val substitution = instances.withOverrides(contextual.instances)
-          valueIn(value, path, substitution)(using rctx.withInstances(substitution))
+          exposeValue(value, path, specialization)(using rctx.withInstances(substitution))
         case NoShape => ()
       case specialized: SpecializedShape =>
         val substitution = instances.withOverrides(specialized.instances)
-        specialized.declaration.clsDef.foreach(constructorArguments(_, substitution, marks, path))
         resolver.instantiateShape(specialized.declaration, substitution).exit(marks) match
-          case value: TermShape => valueIn(value, path, instances)
+          case value: TermShape => exposeValue(value, path, substitution)
           case NoShape => ()
       case instance: InstanceShape =>
         declaredValue(instance.tpe, marks, path)
       case ds: DefnShape =>
-        shape match
-          case Marked(_: (AppShape | NewShape), _) => ds.clsDef.foreach(constructorArguments(_, instances, marks, path))
-          case _ => ()
-        // A local argument can specialize an imported class. Its defining unit checked the class body.
-        if ds.defn.sym.getState isnt rctx.owner then return
-        ds.defn match
+        if rctx.state.isOwnedSym(ds.defn.sym) then ds.defn match
           case td: TermDefinition =>
             // A method may escape on its own, including after partial application.
             // A previously exposed class already admits calls to the whole method.
             if !admitted(td.tsym) then parameters(shape.unappliedParams, path, S(td))
             if Inheritance.isOpen(td) && resolver.writtenSignature(td).isEmpty then
               resolver.exposeMemberResult(td, path)(using declarationContext)
-          case _ => parameters(shape.unappliedParams, path, N)
-        ds.clsDef match
-          case S(cls) =>
-            // Exposing a constructor also exposes instances clients can create.
-            shape match
-              case Marked(_: DefnShape, _) if cls.paramsOpt.isEmpty =>
-                parameters(cls.auxParams.map(_ -> marks), path, N)
-              case _ => ()
-            members(cls, S(marks), path)
-          case N => ds.defn match
-            case td: TermDefinition =>
+            if ds.clsDef.isEmpty then
               signature(td, path)
               td.body.foreach(result(td, _, marks, path))
-            case _ => ()
+          case _ => parameters(shape.unappliedParams, path, N)
+        ds.clsDef.foreach(exposeClassInterface)
       case intro: IntroShape => intro.trm match
         case Lam(_, body) =>
           parameters(shape.unappliedParams, path, N)
@@ -415,9 +403,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
                   fields(inner, readAssignments, marks :: context, substitution.withOverrides(inner.instances), shadowed)
                 case _ => shadowed)
         fields(record, false, marks, instances.withOverrides(record.instances), Set.empty)
-      case base: BaseShape =>
-        constructorArguments(base.defn, instances, marks, path)
-        members(base.defn, S(marks), path)
+      case base: BaseShape => exposeClassInterface(base.defn)
       case callable: CallableTypeShape =>
         callable.declaration.filter(origin => rctx.state.isOwnedSym(origin.definition.tsym)).foreach: origin =>
           val td = origin.definition
