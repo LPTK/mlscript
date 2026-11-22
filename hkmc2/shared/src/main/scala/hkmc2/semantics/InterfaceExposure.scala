@@ -171,7 +171,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
     if resolver.parameterSignature(param).isEmpty then
       val (unknown, input) = externalArguments.getOrElseUpdate(param.sym,
         InterfaceExposure.parameterInput(param, rest, path)(resolver))
-      resolver.externalParameterType(method, param):
+      resolver.listenInheritedParameterType(method, param, marks):
         // The override already receives its inherited type from the base parameter.
         case S(tpe) => resolver.exposeTypeHoles(tpe, unknown)
         case N => resolver.publishParameter(param.sym, input.enter(marks))

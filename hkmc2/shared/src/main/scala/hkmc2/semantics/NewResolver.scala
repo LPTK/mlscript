@@ -2368,14 +2368,6 @@ class NewResolver:
         case (tpe, _) => emit(td, tpe)
     visit(td, slot, marks, instances, Set.empty)(receive)
 
-  /** The type that bounds external arguments to a parameter in the declaring class's scope.
-    * An unannotated parameter with no inherited type admits arbitrary external arguments. */
-  private[semantics] def externalParameterType(td: Opt[TermDefinition], param: Param)
-      (receive: ShapeListener[Opt[DeclaredType]])(using ResolutionContext): Unit = td match
-    case S(d) if d.owner.nonEmpty && !d.tsym.isPrivate =>
-      listenDeclaredOrInheritedType(d, MemberSlot.Parameter(param), Nil, TypeSubstitution.empty, signatureSite)((_, tpe) => receive(tpe))
-    case _ => receive(N)
-
   /** Supply overriding parameters and mutable fields with the inputs their base admits, even in
     * a private hierarchy. An unannotated field receives the base's written type, or the values
     * assigned through the base if it has no annotation. Each field keeps its own initializer.
@@ -3179,26 +3171,32 @@ class NewResolver:
       def publish(value: TermShape): Unit = publishParameter(p.sym, value)(using rctx.withInstances(instances))
       parameterSignature(p) match
         case S(tpe) => inferTypeArguments(tpe.instantiate(instances), sh, marks, site)
-        case N => callee.map(_.applicationHead._1).flatMap {
-          case ds: DefnShape => S(ds.defn)
-          case callable: CallableTypeShape => callable.declaration.map(_.definition)
-          case _ => N
-        } match
-          case S(td: TermDefinition) if newResolution && td.owner.nonEmpty &&
-              !td.tsym.isPrivate && !td.tsym.isInstanceOf[ClassCtorSymbol] =>
-            val scope = ResolutionBoundary(td.tsym)
-            lazy val selection = markCarrier.enter(marks) match
-              case Marked(_, EntryMark(`scope`, id, _)) => id
-              case _ => N
-            listenDeclaredOrInheritedType(td, MemberSlot.Parameter(p), Nil, TypeSubstitution.empty, _ => selection):
-              case (_, S(declared)) =>
-                // Keep the type generic when publishing it to the body. Two calls through
-                // one saved method can supply different type arguments at the same selection.
-                val tpe = transportType(declared, EntryMark(scope, selection, NoMarks) :: Nil)
-                publishParameter(p.sym, instanceShape(tpe))(using rctx.withInstances(TypeSubstitution.empty))
-                inferTypeArguments(tpe.instantiate(instances), sh, marks, site)
-              case (_, N) => publish(sh)
-          case _ => publish(sh)
+        case N =>
+          val method = callee.map(_.applicationHead._1).flatMap:
+            case ds: DefnShape => S(ds.defn)
+            case callable: CallableTypeShape => callable.declaration.map(_.definition)
+            case _ => N
+          listenInheritedParameterType(method, p, marks):
+            case S(tpe) =>
+              // Two calls through the same saved method can supply different type arguments.
+              publishParameter(p.sym, instanceShape(tpe))(using rctx.withInstances(TypeSubstitution.empty))
+              inferTypeArguments(tpe.instantiate(instances), sh, marks, site)
+            case N => publish(sh)
+
+  /** Find the type an unannotated parameter inherits, in the parameter's scope at the
+    * selection identified by `marks`. A parameter with no matching base annotation receives
+    * its values directly from callers. */
+  private[semantics] def listenInheritedParameterType(method: Opt[Definition], param: Param, marks: Ls[Marks])
+      (receive: ShapeListener[Opt[DeclaredType]])(using ResolutionContext): Unit = method match
+    case S(td: TermDefinition) if newResolution && td.owner.nonEmpty &&
+        !td.tsym.isPrivate && !td.tsym.isInstanceOf[ClassCtorSymbol] =>
+      val scope = ResolutionBoundary(td.tsym)
+      lazy val selection = markCarrier.enter(marks) match
+        case Marked(_, EntryMark(`scope`, id, _)) => id
+        case _ => N
+      listenDeclaredOrInheritedType(td, MemberSlot.Parameter(param), Nil, TypeSubstitution.empty, _ => selection): (_, tpe) =>
+        receive(tpe.map(transportType(_, EntryMark(scope, selection, NoMarks) :: Nil)))
+    case _ => receive(N)
 
   /** The type declared for a parameter by its inline annotation or the enclosing function's
     * separate signature, or `N` if neither supplies one.
