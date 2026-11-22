@@ -2244,24 +2244,12 @@ class NewResolver:
     * also expose values. A written result bounds what clients can read from that implementation.
     */
   private[semantics] def exposeMemberResult(td: TermDefinition, path: ShapeProvenance)(using ResolutionContext): Unit =
-    val state = rctx.state
-    assert(state.isOwnedSym(td.tsym))
-    if !state.exposedResults.add(td.tsym) then return
-    val exits = InterfaceExposure.declarationExits(td, N)
-    def expose(shape: TermShape, at: ShapeProvenance)(using ResolutionContext): Unit =
-      instantiateShape(shape, rctx.instances).exit(exits) match
-        case value: TermShape => rctx.exposeValue(value, at)
-        case NoShape => ()
-    val written = memberSignature(td).isDefined
-    val inferredBody = td.body.filter(_ => !written && !Inheritance.isExternal(td))
-    if written || inferredBody.nonEmpty then
-      val at = inferredBody.filter(_ => td.k is Fun).fold(path)(body => path.via(msg"This value is returned here." -> body.toLoc))
-      listenDefinitionResult(td, TypeSubstitution.empty)(expose(_, at))
-    if !written then
-      // Clients can read writes through an abstract or declared field even when it has no initializer.
-      if isAssignableField(td) then listenMemberVariable(td.tsym)(expose(_, path))
-      if Inheritance.isOpen(td) then memberResultSlot(td).subscribeToShapes: result =>
-        exposeMemberResult(result.member, overrideExposure(result.member, path))
+    assert(rctx.state.isOwnedSym(td.tsym))
+    memberResultSlot(td).listenValues: result =>
+      val source = result.member
+      val at = if source.tsym is td.tsym then path else overrideExposure(source, path)
+      val returned = source.body.filter(_ => (source.k is Fun) && memberSignature(source).isEmpty)
+      rctx.exposeValue(result.value, returned.fold(at)(body => at.via(msg"This value is returned here." -> body.toLoc)))
 
   private def overrideExposure(td: TermDefinition, base: ShapeProvenance): ShapeProvenance =
     base.via(msg"Member '${td.tsym.nme}' overrides the exposed member here." -> td.headerLoc)
@@ -2452,17 +2440,23 @@ class NewResolver:
     // payload, while callers receive a promise or iterator with its own fixed representation.
     val inferred = if td.sign.nonEmpty || td.tsym.decl.exists(_.isInstanceOf[Param]) || td.resultWrapperAnnotation.nonEmpty
       then N else observeErasureDefinition(td)
-    rctx.state.erasureInputs.resultSlot(td, inferred)
+    rctx.state.erasureInputs.resultSlot(td, inferred): publish =>
+      val exits = InterfaceExposure.declarationExits(td, N)
+      def returned(shape: TermShape)(using ResolutionContext): Unit =
+        instantiateShape(shape, rctx.instances).exit(exits) match
+          case value: TermShape => publish(value)
+          case NoShape => ()
+      val written = memberSignature(td).nonEmpty
+      if written || (td.body.nonEmpty && !Inheritance.isExternal(td)) then
+        listenDefinitionResult(td, TypeSubstitution.empty)(returned)
+      if !written && isAssignableField(td) then listenMemberVariable(td.tsym)(returned)
 
   /** Publish the implementations whose results a call or field read through `base` can return.
     * Keeping the source declaration lets a reader observe its signature, wrapped result, or
     * field writes and report where an escaping value came from.
     */
   private def connectOverrideResult(base: TermDefinition, overriding: TermDefinition)(using ResolutionContext): Unit =
-    val slot = memberResultSlot(base)
-    val own = memberResultSlot(overriding)
-    slot.publish(own)
-    if own.inferredValues.nonEmpty then own.subscribeToShapes(slot.publish)
+    memberResultSlot(base).include(memberResultSlot(overriding))
 
   /** Check an overriding body or field initializer against the result type its callers inherit.
     * For a returned callback, the inherited type supplies the arguments callers may pass to it.

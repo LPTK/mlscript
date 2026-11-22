@@ -81,8 +81,6 @@ final class NewResolverState(val owner: Elaborator.State):
     */
   private[semantics] val exposedOpenMembers = mutable.Map.empty[TermSymbol, ShapeProvenance]
   
-  private[semantics] val exposedResults = mutable.Set.empty[TermSymbol]
-
   /** How [[InterfaceExposure]] first reached `member`, if `member` is an exposed overridable member
     * of an extensible class or object of this compilation unit.
     */

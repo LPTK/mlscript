@@ -141,9 +141,18 @@ private[hkmc2] final class ErasureInputs:
   /** Whether `symbol` is a source slot of this compilation unit that was prepared for erasure. */
   def isPrepared(symbol: InputSymbol): Bool = values.contains(symbol)
 
-  /** The live sources of results that overrides can supply through `member`. */
-  private[semantics] def resultSlot(member: TermDefinition, inferredValues: Opt[TermShapeHost]): ResultSlot =
-    results.getOrElseUpdate(member.tsym, new ResultSlot(member, inferredValues))
+  /** The values a caller can receive through `member`. Connect the declaration once, before
+    * replaying any of its results, so recursive members share the same slot.
+    */
+  private[semantics] def resultSlot(member: TermDefinition, inferredValues: Opt[TermShapeHost])
+      (connect: ResolutionContext.Listener => Unit)(using ResolutionContext): ResultSlot = results.get(member.tsym) match
+    case S(slot) => slot
+    case N =>
+      val slot = new ResultSlot(ErasureInputs.Representation(member, inferredValues))
+      results(member.tsym) = slot
+      slot.inferenceHost
+      connect(value => slot.publish(ErasureInputs.Returned(member, value)))
+      slot
 
   /** The completed inputs to a source slot, including the values or declared results of the
     * overrides that `includeOverride` accepts.
@@ -153,9 +162,9 @@ private[hkmc2] final class ErasureInputs:
     val overriding = symbol match
       case member: TermSymbol =>
         for
-          slot <- results.get(member).iterator if slot.inferredValues.nonEmpty
-          source <- ErasureInputs.completed(slot) if includeOverride(source.member)
-          value <- source.erasureInputs
+          slot <- results.get(member).iterator
+          case source: ErasureInputs.Representation <- ErasureInputs.completed(slot) if includeOverride(source.member)
+          value <- source.inputs
         yield value
       case _ => Iterator.empty
     ErasureInputs.completed(host) ++ overriding
@@ -170,13 +179,29 @@ private[hkmc2] object ErasureInputs:
     assert(host.originalData.completed, "Erasure requires completed value observations")
     host.shapes.iterator
 
-  /** A member whose result may be returned by a virtual call or field read. Subscribers receive
-    * the slots of overrides whose results are also reachable through this member. An inferred
-    * slot carries the member's observed body and field values. A fixed slot supplies the result
-    * representation of its declaration, even if the member never produces an observed value.
+  private[semantics] final case class Returned(member: TermDefinition, value: TermShape)
+  private[semantics] final case class Representation(member: TermDefinition, inferred: Opt[TermShapeHost]):
+    def inputs: Iterator[TermShape | TermDefinition] = inferred.fold(Iterator.single(member))(completed)
+
+  private given CandidateKey[Returned | Representation] with
+    def apply(result: Returned | Representation)(using ResolutionContext): Any = result match
+      case Returned(_, value) => ShapeIdentity.key(value)
+      case source: Representation => source.member.tsym
+
+  /** The values clients can read from a member across all receivers, together with the
+    * declarations that constrain its runtime representation. A fixed representation such as
+    * a promise still forwards every overriding implementation's caller-visible values.
     */
-  private[semantics] final class ResultSlot(val member: TermDefinition, val inferredValues: Opt[TermShapeHost]) extends Host[ResultSlot]:
+  private[semantics] final class ResultSlot(private val representation: Representation)
+      extends Host[Returned | Representation]:
     def showDbg(using DebugPrinter): Str = "override results"
-    def publish(result: ResultSlot)(using ResolutionContext): Unit = inferenceHost.publish(result)
-    def erasureInputs: Iterator[TermShape | TermDefinition] = inferredValues.fold(Iterator.single(member))(completed)
+    private[ErasureInputs] def publish(result: Returned | Representation)(using ResolutionContext): Unit = result match
+      case _: Representation if representation.inferred.isEmpty => ()
+      case _ => inferenceHost.publish(result)
+    def include(overriding: ResultSlot)(using ResolutionContext): Unit =
+      publish(overriding.representation)
+      overriding.subscribeToShapes(publish)
+    def listenValues(receive: ShapeListener[Returned])(using ResolutionContext): Unit = subscribeToShapes:
+      case value: Returned => receive(value)
+      case _: Representation => ()
 

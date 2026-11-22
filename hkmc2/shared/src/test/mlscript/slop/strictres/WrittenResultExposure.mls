@@ -569,9 +569,6 @@ asyncCallback({only: 2})
 //│ ╟── Member 'get' overrides the exposed member here.
 //│ ║  l.+7: 	  @async override fun get() = asyncCallback
 //│ ║        	         ^^^^^^^^^^^^^^^^^^
-//│ ╟── Member 'get' overrides the exposed member here.
-//│ ║  l.+5: 	  @async open override fun get() = x => 1
-//│ ║        	         ^^^^^^^^^^^^^^^^^^^^^^^
 //│ ╟── Member 'get' is accessible here.
 //│ ║  l.+3: 	  @async open fun get() = x => 0
 //│ ║        	         ^^^^^^^^^^^^^^
@@ -591,3 +588,35 @@ private class IteratorChild extends IteratorBase with
 fun iteratorBase(): IteratorBase = new IteratorChild
 iteratorCallback({only: 7})
 //│ = 7
+
+
+// A write through the concrete field changes what a client can read through the exposed base.
+private class Readable with
+  open mut val item = x => 0
+private class Writable extends Readable with
+  override mut val item = x => 1
+private val writable = new mut Writable
+fun readable(): Readable = writable
+//│ writable = Writable
+
+:e
+private fun storedLater(x) = x.only
+set writable.item = storedLater
+storedLater({only: 9})
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+1: 	private fun storedLater(x) = x.only
+//│ ║        	                             ^^^^^^
+//│ ╟── Cannot resolve member 'only' of a value with unknown shape.
+//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ║  l.+1: 	private fun storedLater(x) = x.only
+//│ ║        	                        ^
+//│ ╟── Member 'item' overrides the exposed member here.
+//│ ║  l.XX: 	  override mut val item = x => 1
+//│ ║        	  ^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Member 'item' is accessible here.
+//│ ║  l.XX: 	  open mut val item = x => 0
+//│ ║        	  ^^^^^^^^^^^^^^^^^
+//│ ╟── 'readable' is exposed by this compilation unit.
+//│ ║  l.XX: 	fun readable(): Readable = writable
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.

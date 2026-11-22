@@ -128,7 +128,8 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
     */
   private def memberInterface(td: TermDefinition, path: Path)(using ResolutionContext): Unit =
     signature(td, path)
-    if resolver.writtenSignature(td).isEmpty then resolver.exposeMemberResult(td, path)(using declarationContext)
+    if resolver.writtenSignature(td).isEmpty && watched.add(td.tsym) then
+      resolver.exposeMemberResult(td, path)(using declarationContext)
 
   private def alias(symbol: BlockMemberSymbol, path: Path)(using ResolutionContext): Unit =
     symbol.asAls.flatMap(_.defn).filter(InterfaceExposure.isPublic).foreach(_.rhs.foreach(annotation(_, path)))
