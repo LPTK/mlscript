@@ -273,7 +273,7 @@ final class Erasure(root: Statement, report: Raise)(using Config, Ctx, State):
           if config.language.useNewResolution && td.resultWrapperAnnotation.nonEmpty then inferredType(td.tsym)
           // An ordinary override keeps the first specified inherited result unchanged. Infer a result
           // only when no validated base supplies one, as for a definition with no overrides.
-          else overrides.validatedBases.getOrElse(td.tsym, Nil).iterator.filter(_.isErased)
+          else overrides.validatedBases(td.tsym).filter(_.isErased)
             .flatMap(_.sourceDeclaredResultType).nextOption().orElse(inferredResultType(td))
         candidateResultType.map:
           representable(_, td.resultSignature.orElse(td.sign).flatMap(_.toLoc).orElse(td.tsym.toLoc),

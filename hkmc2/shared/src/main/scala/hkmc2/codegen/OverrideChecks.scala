@@ -30,7 +30,7 @@ final class OverrideChecks(definitions: Ls[TermDefinition])(using Config, Ctx, S
     */
   private case class Edge(overriding: TermDefinition, inherited: TermDefinition, parameters: Ls[(Param, Param)])
   
-  private val edges = definitions.flatMap: td =>
+  private def matchingBases(td: TermDefinition)(invalid: (TermSymbol, OverrideLayout.Failure) => Unit): Ls[Edge] =
     td.tsym.overriddenMembers.flatMap: base =>
       softAssert(base.defn.nonEmpty, "An inherited declaration must retain its source signature for override validation")
       // `Inheritance.validateMember` reports an override that changes the kind of definition; comparing
@@ -40,22 +40,32 @@ final class OverrideChecks(definitions: Ls[TermDefinition])(using Config, Ctx, S
         // declaration, so the overriding side's lists come from `td`.
         OverrideLayout.correspondingParameters(td.params, inherited.params) match
           case Left(failure) =>
-            report(base, msg"Overriding member '${td.tsym.nme}' ${failure.message}", failure.toLoc.orElse(td.tsym.toLoc))
+            invalid(base, failure)
             Nil
           case Right(parameters) => Edge(td, inherited, parameters) :: Nil
   
-  /** The inherited members whose source layouts preserve each overriding member's argument bindings.
-    * Erasure looks up an unannotated override's inherited result here for every definition,
-    * so the lookup must not scan all edges of the program.
+  private val basesByMember = definitions.iterator.map: td =>
+    td.tsym -> matchingBases(td)((base, failure) =>
+      report(base, msg"Overriding member '${td.tsym.nme}' ${failure.message}", failure.toLoc.orElse(td.tsym.toLoc)))
+  .toMap
+  private def edges: Iterator[Edge] = definitions.iterator.flatMap(td => basesByMember(td.tsym))
+
+  // An inherited annotation can come from a declaration checked in an earlier program.
+  // Read its source layout without reporting that program's diagnostics again.
+  private def baseEdges(td: TermDefinition): Ls[Edge] =
+    basesByMember.getOrElse(td.tsym, matchingBases(td)((_, _) => ()))
+
+  /** The members from which a checked `member` can inherit a result representation, in parent lookup order.
+    * The override preserves the argument bindings promised by each returned member.
     */
-  val validatedBases: Map[TermSymbol, Ls[TermSymbol]] = edges.groupMap(_.overriding.tsym)(_.inherited.tsym)
+  def validatedBases(member: TermSymbol): Iterator[TermSymbol] = basesByMember.getOrElse(member, Nil).iterator.map(_.inherited.tsym)
   
   /** Maps each overriding parameter to the inherited parameters that deliver the same argument,
     * omitted-argument default, or rest slice. Erasure joins all their representations when the
     * overriding parameter has no annotation of its own. Parameters with no inherited counterpart
     * have no entry.
     */
-  val inheritedParameters: Map[VarSymbol, Ls[Param]] = edges.flatMap(_.parameters).groupMap(_._1.sym)(_._2)
+  val inheritedParameters: Map[VarSymbol, Ls[Param]] = edges.flatMap(_.parameters).toList.groupMap(_._1.sym)(_._2)
   
   /** Reports overridable members that [[InterfaceExposure]] found reachable from this compilation unit's
     * exports, in classes and objects that other units may extend, when their signatures leave a parameter
@@ -70,10 +80,6 @@ final class OverrideChecks(definitions: Ls[TermDefinition])(using Config, Ctx, S
     * other units override.
     */
   def checkExposedSignatures(): Unit =
-    /** The inherited declarations whose parameter lists correspond to `td`'s, with the parameter pairs. */
-    def correspondingBases(td: TermDefinition): Ls[(TermDefinition, Ls[(Param, Param)])] =
-      td.tsym.overriddenMembers.flatMap(_.defn).filterNot(Inheritance.changesMemberKind(td, _)).flatMap: inherited =>
-        OverrideLayout.correspondingParameters(td.params, inherited.params).toOption.map(inherited -> _)
     // A separate signature, as in `fun f: (Int) -> Int` followed by `fun f(x) = x`, types every written
     // parameter; a result annotation describes only the result.
     def hasFullSignature(td: TermDefinition): Bool =
@@ -84,21 +90,20 @@ final class OverrideChecks(definitions: Ls[TermDefinition])(using Config, Ctx, S
       (base.tsym.getState isnt td.tsym.getState) || (!visiting(base.tsym) && specifies(visiting + base.tsym))
     def parameterSpecified(td: TermDefinition, param: Param, visiting: Set[TermSymbol]): Bool =
       param.sign.isDefined || hasFullSignature(td) || locally:
-        val inherited = correspondingBases(td).flatMap: (base, parameters) =>
-          parameters.collect { case (actual, inherited) if actual.sym is param.sym => base -> inherited }
+        val inherited = baseEdges(td).flatMap: edge =>
+          edge.parameters.collect { case (actual, inherited) if actual.sym is param.sym => edge.inherited -> inherited }
         // Erasure joins every corresponding inherited representation, so each must be specified.
         inherited.nonEmpty && inherited.forall: (base, inheritedParam) =>
           inheritedSpecifies(td, base, visiting)(parameterSpecified(base, inheritedParam, _))
     def resultSpecified(td: TermDefinition, visiting: Set[TermSymbol]): Bool =
       // Erasure does not inherit a result for async and generator bodies, whose results are wrappers.
-      td.sign.isDefined || (td.resultWrapperAnnotation.isEmpty && correspondingBases(td).exists: (base, _) =>
-        inheritedSpecifies(td, base, visiting)(resultSpecified(base, _)))
+      td.sign.isDefined || (td.resultWrapperAnnotation.isEmpty && baseEdges(td).exists: edge =>
+        inheritedSpecifies(td, edge.inherited, visiting)(resultSpecified(edge.inherited, _)))
     definitions.foreach: td =>
       td.tsym.getState.newResolverState.exposedOpenMember(td.tsym).foreach: path =>
-        val parameters = td.params.flatMap: ps =>
-          ps.params ::: ps.variadic.toList.flatMap(variadic => variadic.param :: variadic.trailing)
-        val missing = parameters.filterNot(parameterSpecified(td, _, Set(td.tsym)))
-        val missingResult = !resultSpecified(td, Set(td.tsym))
+        val visiting = Set.single(td.tsym)
+        val missing = td.params.iterator.flatMap(_.allParams).filterNot(parameterSpecified(td, _, visiting)).toList
+        val missingResult = !resultSpecified(td, visiting)
         val required = (missingResult, missing.nonEmpty) match
           case (true, true) => S("its result type and the types of its parameters")
           case (true, false) => S(if td.k is syntax.Fun then "its result type" else "its type")
