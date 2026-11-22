@@ -390,6 +390,49 @@ generatorSource().items().next().value(null)
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
+// Returning the generator method exposes its iterator. The callback ending its body stays private.
+:expect 42
+private fun finalValue(x) = x.only
+private class Generators with
+  @generator open fun items() = finalValue
+fun itemsMethod() = new Generators().items
+finalValue({only: 42})
+//│ = 42
+
+
+// A saved ordinary method can still return the value supplied to its generic receiver.
+:e
+private class HiddenAction with
+  fun apply(x) = x.only
+private class SourceOf[T](seed: T) with
+  open fun get() = seed
+fun savedMethod() = new SourceOf[HiddenAction](new HiddenAction).get
+new HiddenAction().apply({only: 1})
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+2: 	  fun apply(x) = x.only
+//│ ║        	                 ^^^^^^
+//│ ╟── Cannot resolve member 'only' of a value with unknown shape.
+//│ ╟── Parameter 'x' admits values of unknown shape.
+//│ ║  l.+2: 	  fun apply(x) = x.only
+//│ ║        	            ^
+//│ ╟── Member 'apply' is accessible here.
+//│ ║  l.+2: 	  fun apply(x) = x.only
+//│ ║        	  ^^^^^^^^^^^^
+//│ ╟── This type argument is supplied here.
+//│ ║  l.+5: 	fun savedMethod() = new SourceOf[HiddenAction](new HiddenAction).get
+//│ ║        	                                 ^^^^^^^^^^^^
+//│ ╟── This value is returned here.
+//│ ║  l.+4: 	  open fun get() = seed
+//│ ║        	                   ^^^^
+//│ ╟── This value is returned here.
+//│ ║  l.+5: 	fun savedMethod() = new SourceOf[HiddenAction](new HiddenAction).get
+//│ ║        	                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── 'savedMethod' is exposed by this compilation unit.
+//│ ║  l.+5: 	fun savedMethod() = new SourceOf[HiddenAction](new HiddenAction).get
+//│ ╙──      	^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
 // A separate signature describes both calls. The second arrow types the returned callback.
 :expect 42
 private type FactoryFor[A, B] = A -> B -> Int

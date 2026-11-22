@@ -243,17 +243,6 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
         case S(tpe) => resolver.exposeTypeHoles(tpe, unknown)
         case N => resolver.writeField(field, unknown, Nil)
 
-  private def result(td: TermDefinition, body: Term, marks: Ls[Marks], path: Path)(using ResolutionContext): Unit = resolver.memberSignature(td) match
-    case N =>
-      watch((body, marks, "result"))(resolver.listenResult(body)): shape =>
-        emit(shape.exit(marks), path.via(msg"This value is returned here." -> body.toLoc))
-    case S(sign) =>
-      val resolver = this.resolver
-      val declared = resolver.declaredType(resolver.typeResolution(sign), Map.empty).instantiate(rctx.instances)
-      watch((td.tsym, declared, marks))(listener =>
-        resolver.listenSignatureResult(td, declared, TypeView.Provided)(resolver.listenTypeInstances(_)(listener))): shape =>
-        emit(shape.exit(marks), path)
-
   /** Expose the types that an application supplies for a formal parameter. A wildcard can
     * name different types on input and output, both of which occur in the exposed interface.
     */
@@ -343,11 +332,16 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
             // A method may escape on its own, including after partial application.
             // A previously exposed class already admits calls to the whole method.
             if !admitted(td.tsym) then parameters(shape.unappliedParams, path, S(td))
-            if Inheritance.isOpen(td) && resolver.writtenSignature(td).isEmpty then
-              resolver.exposeMemberResult(td, path)(using declarationContext)
             if ds.clsDef.isEmpty then
               signature(td, path)
-              td.body.foreach(result(td, _, marks, path))
+              if Inheritance.isOpen(td) && resolver.writtenSignature(td).isEmpty then
+                resolver.exposeMemberResult(td, path)(using declarationContext)
+              td.body.foreach: body =>
+                // A saved method retains its receiver's arguments. Its result can expose
+                // a class named only at the receiver's construction site.
+                val at = if resolver.memberSignature(td).isEmpty then path.via(msg"This value is returned here." -> body.toLoc) else path
+                watch((td.tsym, instances, marks))(resolver.listenDefinitionResult(td, instances)): result =>
+                  emit(resolver.instantiateShape(result, instances).exit(marks), at)
           case _ => parameters(shape.unappliedParams, path, N)
         ds.clsDef.foreach(exposeClassInterface)
       case intro: IntroShape => intro.trm match

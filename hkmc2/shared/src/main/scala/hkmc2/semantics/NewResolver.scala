@@ -1808,7 +1808,7 @@ class NewResolver:
     * Consumers of a generator observe an iterator, whatever its body returns.
     * Inferred values retain their lexical endpoint until callers leave the scope.
     */
-  private def listenDefinitionResult(td: TermDefinition, instances: TypeSubstitution)(listener: Listener)(using ResolutionContext): Unit =
+  private[semantics] def listenDefinitionResult(td: TermDefinition, instances: TypeSubstitution)(listener: Listener)(using ResolutionContext): Unit =
     def bodyResult(listener: Listener): Unit = memberSignature(td) match
       case S(sign) => listenSignatureResult(td, declaredType(typeResolution(sign), Map.empty).instantiate(instances), TypeView.Provided)(
         listenTypeInstances(_)(listener))
@@ -2251,23 +2251,20 @@ class NewResolver:
     assert(state.isOwnedSym(td.tsym))
     if state.exposedResults.contains(td.tsym) then return
     state.exposedResults(td.tsym) = path
-    memberSignature(td) match
-      case S(sign) =>
-        // An override may declare a result type even when its base leaves the result unannotated.
-        listenSignatureResult(td, declaredType(typeResolution(sign), Map.empty), TypeView.Provided): result =>
-          rctx.exposeValue(instanceShape(result), path)
-      case N =>
-        val exits = InterfaceExposure.declarationExits(td, N)
-        def expose(shape: TermShape, at: ShapeProvenance)(using ResolutionContext): Unit =
-          instantiateShape(shape, rctx.instances).exit(exits) match
-            case value: TermShape => rctx.exposeValue(value, at)
-            case NoShape => ()
-        td.body.filter(_ => !Inheritance.isExternal(td)).foreach: body =>
-          val at = if td.k is Fun then path.via(msg"This value is returned here." -> body.toLoc) else path
-          listenDefinitionResult(td, TypeSubstitution.empty)(expose(_, at))
-        // Clients can read writes through an abstract or declared field even when it has no initializer.
-        if isAssignableField(td) then listenMemberVariable(td.tsym)(expose(_, path))
-        state.overridingResults(td.tsym).foreach(exposeOverrideResult(_, path))
+    val exits = InterfaceExposure.declarationExits(td, N)
+    def expose(shape: TermShape, at: ShapeProvenance)(using ResolutionContext): Unit =
+      instantiateShape(shape, rctx.instances).exit(exits) match
+        case value: TermShape => rctx.exposeValue(value, at)
+        case NoShape => ()
+    val written = memberSignature(td).isDefined
+    val inferredBody = td.body.filter(_ => !written && !Inheritance.isExternal(td))
+    if written || inferredBody.nonEmpty then
+      val at = inferredBody.filter(_ => td.k is Fun).fold(path)(body => path.via(msg"This value is returned here." -> body.toLoc))
+      listenDefinitionResult(td, TypeSubstitution.empty)(expose(_, at))
+    if !written then
+      // Clients can read writes through an abstract or declared field even when it has no initializer.
+      if isAssignableField(td) then listenMemberVariable(td.tsym)(expose(_, path))
+      state.overridingResults(td.tsym).foreach(exposeOverrideResult(_, path))
 
   private def exposeOverrideResult(td: TermDefinition, base: ShapeProvenance)(using ResolutionContext): Unit =
     exposeMemberResult(td, base.via(msg"Member '${td.tsym.nme}' overrides the exposed member here." -> td.headerLoc))
