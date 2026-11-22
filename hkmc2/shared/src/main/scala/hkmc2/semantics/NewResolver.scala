@@ -2392,12 +2392,8 @@ class NewResolver:
       exposeTypeHoles(tpe, UnknownValueShape(source, fromPublicInterface = true)(path))
     // The parent clause names one receiver. A call or write through any receiver of
     // the base can reach the override, including one from a different allocation site.
-    @tailrec def allReceivers(path: Marks, tail: Ls[Marks]): Ls[Marks] = path match
-      case ExitMark(scope, _, rest) => allReceivers(rest, ExitMark(scope, N, NoMarks) :: tail)
-      case EntryMark(scope, id, rest) => allReceivers(rest, EntryMark(scope, id, NoMarks) :: tail)
-      case NoMarks => tail
     lazy val baseExit = ExitMark(ResolutionBoundary(base.tsym), N, NoMarks) ::
-      inheritedMarks.foldRight(Nil: Ls[Marks])(allReceivers)
+      receiverPath(inheritedMarks)(_ => true)
     def forwardInputs(host: ShapeHost, param: Opt[Param], foreignInput: => TermShape)(receive: Listener): Unit =
       def forward(input: TermShape, path: Ls[Marks])(using ResolutionContext): Unit =
         val value = instantiateShape(input, rctx.instances.withOverrides(instances))
@@ -4800,6 +4796,16 @@ class NewResolver:
         case _ => ()
     target(lhs, value => value)
 
+  /** The scope crossings that locate a receiver. For a shared scope, a value can reach the
+    * receiver through any selection of that scope. Keep the invocation site on other exits
+    * and the entry sites that locate captured values. */
+  private def receiverPath(marks: Ls[Marks])(shared: ResolutionBoundary => Bool): Ls[Marks] =
+    @tailrec def crossings(path: Marks, tail: Ls[Marks]): Ls[Marks] = path match
+      case ExitMark(scope, site, rest) => crossings(rest, ExitMark(scope, if shared(scope) then N else site, NoMarks) :: tail)
+      case EntryMark(scope, site, rest) => crossings(rest, EntryMark(scope, site, NoMarks) :: tail)
+      case NoMarks => tail
+    marks.foldRight(Nil: Ls[Marks])(crossings)
+
   /** Publish an input to an assignable field in the scope of its definition. The field's input can
     * come from an assignment, an inherited type, or a constructor parameter's annotation.
     * Reading the field exits its definition and follows the lookup path to the reader, so an
@@ -4808,7 +4814,12 @@ class NewResolver:
     */
   private[semantics] def writeField(field: TermSymbol, value: TermShape, marks: Ls[Marks])(using ResolutionContext): Unit =
     softAssert(field.defn.exists(isAssignableField), "Only assignable fields hold assigned values")
-    value.enter(marks) match
+    // Looking up a stored record or object twice reaches the same storage. Calls to a factory
+    // can allocate different receivers, so their invocation sites still distinguish writes.
+    val address = receiverPath(marks)(_.symbol match
+      case sym: TermSymbol => sym.k.isInstanceOf[ValLike]
+      case _ => false)
+    value.enter(address) match
       case value: TermShape =>
         publishActivated(rctx.memberVariable(field), MarkedShape.enter(value, ResolutionBoundary(field), N))
       case NoShape => ()

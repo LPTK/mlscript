@@ -634,3 +634,18 @@ exportedMutableCopy.item.length
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 //│ exportedMutableCopy = {item: "abc"}
 //│ privateImmutableSource = {item: "abc"}
+
+
+// Two references to a stored record read and write the same field.
+:e
+private val storedRecord = mut {item: {only: 7}}
+set storedRecord.item = null
+storedRecord.item.only
+//│ ╔══[COMPILATION ERROR] Resolution error in selection
+//│ ║  l.+3: 	storedRecord.item.only
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── Null literal does not contain member 'only'
+//│ ║  l.+2: 	set storedRecord.item = null
+//│ ╙──      	                        ^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+//│ storedRecord = {item: null}
