@@ -81,13 +81,10 @@ final class NewResolverState(val owner: Elaborator.State):
     */
   private[semantics] val exposedOpenMembers = mutable.Map.empty[TermSymbol, ShapeProvenance]
   
-  // Only an unannotated member gets result values from the implementations that override it.
-  private[semantics] val resultOverrides = mutable.Map.empty[TermSymbol, Ls[TermDefinition]]
+  // A base can become exposed before or after its overrides appear. Keep pending implementations
+  // until that first exposure, then use its recorded path for any later override.
+  private[semantics] val overridesAwaitingExposure = mutable.Map.empty[TermSymbol, Ls[TermDefinition]]
   private[semantics] val exposedResults = mutable.Map.empty[TermSymbol, ShapeProvenance]
-
-  /** The local implementations whose results can reach a call to `member` through one override.
-    * A written signature bounds the result at that declaration. */
-  private[semantics] def overridingResults(member: TermSymbol): Ls[TermDefinition] = resultOverrides.getOrElse(member, Nil)
 
   /** How [[InterfaceExposure]] first reached `member`, if `member` is an exposed overridable member
     * of an extensible class or object of this compilation unit.

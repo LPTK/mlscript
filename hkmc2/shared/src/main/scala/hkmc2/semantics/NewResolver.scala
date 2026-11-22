@@ -2261,7 +2261,7 @@ class NewResolver:
     if !written then
       // Clients can read writes through an abstract or declared field even when it has no initializer.
       if isAssignableField(td) then listenMemberVariable(td.tsym)(expose(_, path))
-      state.overridingResults(td.tsym).foreach(exposeOverrideResult(_, path))
+      state.overridesAwaitingExposure.remove(td.tsym).getOrElse(Nil).foreach(exposeOverrideResult(_, path))
 
   private def exposeOverrideResult(td: TermDefinition, base: ShapeProvenance)(using ResolutionContext): Unit =
     exposeMemberResult(td, base.via(msg"Member '${td.tsym.nme}' overrides the exposed member here." -> td.headerLoc))
@@ -4982,8 +4982,10 @@ class NewResolver:
                       else
                         val state = rctx.state
                         connectOverrideResult(inherited, overriding)(using rctx.withInstances(TypeSubstitution.empty))
-                        state.resultOverrides(target) = overriding :: state.overridingResults(target)
-                        state.exposedResults.get(target).foreach(exposeOverrideResult(overriding, _))
+                        state.exposedResults.get(target) match
+                          case S(path) => exposeOverrideResult(overriding, path)
+                          case N =>
+                            state.overridesAwaitingExposure.updateWith(target)(pending => S(overriding :: pending.getOrElse(Nil)))
           // Private members are not overridden, so they do not hide the inherited members they shadow.
           lookup.visibleFrom(_ => false, reportInaccessible = false).foreachClassMember(rctx.instances)((base, path, instances, _) =>
             link(base, path, instances))
