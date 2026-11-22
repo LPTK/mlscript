@@ -267,3 +267,14 @@ handle effect = Ask with
   fun ask(question)(resume) = [resume("resumed")]
 perform(effect)
 //│ = ["resumed"]
+
+
+// The shared parameter slot holds both arguments. Only the base implementation reads a tag.
+:expect [42, 0]
+private class Tagged(val tag: Int)
+private class Reader with
+  open fun read(x) = x.tag
+private class Ignoring extends Reader with
+  override fun read(x) = 0
+[new Reader().read(Tagged(42)), new Ignoring().read("child")]
+//│ = [42, 0]

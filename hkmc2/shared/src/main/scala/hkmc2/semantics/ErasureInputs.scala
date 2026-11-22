@@ -131,12 +131,15 @@ private[hkmc2] final class ErasureInputs:
   def symbols: Ls[InputSymbol] = values.keysIterator.toList
 
   private[semantics] def register(symbol: InputSymbol)(connect: ResolutionContext.Listener => Unit)
-      (using ResolutionContext): Unit = if !values.contains(symbol) then
-    val host = new TermShapeHost
-    values(symbol) = host
-    // Even an unused/unproductive definition has a completed, empty observation.
-    host.inferenceHost
-    connect(host.publish)
+      (using ResolutionContext): TermShapeHost = values.get(symbol) match
+    case S(host) => host
+    case N =>
+      val host = new TermShapeHost
+      values(symbol) = host
+      // Even an unused/unproductive definition has a completed, empty observation.
+      host.inferenceHost
+      connect(host.publish)
+      host
 
   /** Whether `symbol` is a source slot of this compilation unit that was prepared for erasure. */
   def isPrepared(symbol: InputSymbol): Bool = values.contains(symbol)

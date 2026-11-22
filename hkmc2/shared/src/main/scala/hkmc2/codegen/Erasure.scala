@@ -430,33 +430,9 @@ final class Erasure(root: Statement, report: Raise)(using Config, Ctx, State):
     overrideChecks.checkExposedSignatures()
     val inheritedParams = overrideChecks.inheritedParameters
     val parameterSymbols = parameters.iterator.map(_.sym).toSet
-    /** The representations of the values that the parameter `p` receives, for a parameter that neither
-      * declares nor inherits a representation: those of the values that resolution observed for it, and
-      * those observed for the unannotated parameters overriding it, at any depth. Such parameters inherit
-      * the representation of `p`, which must therefore admit the arguments of their members' direct calls.
-      *
-      * Three kinds of overriding parameters keep representations of their own and contribute nothing:
-      * - An annotated parameter declares its representation. Arguments flow from the callers of the
-      *   overridden member to the overriding one, so the arguments of its member's direct calls never reach `p`.
-      * - A rest parameter holds an array of its arguments, whatever their representations (see `eraseParameter`).
-      * - A parameter whose representation is already assigned belongs to a declaration that erasure does not
-      *   infer: erasure assigns inherited parameters before the parameters overriding them.
-      *
-      * `visiting` stops at inheritance cycles.
-      */
-    def observedParameterTypes(p: Param, visiting: Set[VarSymbol]): Ls[ErasedValueType] =
-      inferredType(p.sym).toList ::: overrideChecks.overridingParameters.getOrElse(p.sym, Nil).flatMap: overriding =>
-        if visiting(overriding.sym) || restParameters(overriding.sym) || overriding.sym.isErased
-            || declaredParameterType(overriding).isDefined
-        then Nil
-        else
-          // Making a required slot optional additionally admits null on direct calls of the overriding member.
-          val default = if overriding.flags.opt && !p.flags.opt then ErasedType.Unknown :: Nil else Nil
-          default ::: observedParameterTypes(overriding, visiting + overriding.sym)
     /** Initializes a parameter's representation from its annotation or the joined representations
       * of its inherited counterparts. A rest parameter with neither gets `Array`; an ordinary
-      * parameter with neither takes the representation of its whole override family (see
-      * `observedParameterTypes`). Recursion initializes local inherited
+      * parameter with neither takes the observed inputs to its shared slot. Recursion initializes local inherited
       * parameters first, while `visiting` breaks inheritance cycles; pending inherited parameters
       * contribute `Unknown`. Making a required inherited parameter optional also admits its null default.
       */
@@ -478,9 +454,7 @@ final class Erasure(root: Statement, report: Raise)(using Config, Ctx, State):
               S(ErasedType.Union.mk(types ::: defaults))
             // Rest binding constructs an Array, including when lowering slices off trailing
             // arguments. Use that representation unless a declared or inherited type supplies one.
-            case N => Option.when(restParameters(p.sym))(ErasedType.Array).orElse:
-              // The legacy resolver observes no values, and its unannotated parameters stay unknown.
-              if config.language.useNewResolution then joined(observedParameterTypes(p, Set.single(p.sym))) else N
+            case N => Option.when(restParameters(p.sym))(ErasedType.Array).orElse(inferredType(p.sym))
         // Inherited parameter types can also join into a type without a representation.
         p.sym.erasedType = erased.map(representable(_, p.sign.flatMap(_.toLoc).orElse(p.toLoc),
           if declared.isEmpty && !inheritedParams.contains(p.sym) then S(p.sym) else N))

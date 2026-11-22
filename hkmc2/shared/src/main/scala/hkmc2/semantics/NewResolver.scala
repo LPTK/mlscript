@@ -49,13 +49,10 @@ class NewResolver:
     */
   def prepareErasure(root: Statement)(using ResolutionContext): Unit =
     val declarations = new ErasureDeclarations(root)
-    def variable(symbol: VarSymbol): Unit = if !symbol.isErased then
-      val ref = SimpleRef(symbol)(N)
-      observeErasure(symbol)(listenTerm(ref))
     declarations.parameters.values.foreach: p =>
-      variable(p.sym)
+      observeErasureVariable(p.sym)
     declarations.variables.foreach:
-      case symbol: VarSymbol => variable(symbol)
+      case symbol: VarSymbol => observeErasureVariable(symbol)
       case symbol: TermSymbol if !symbol.isErased => observeErasure(symbol)(listenMemberVariable(symbol))
       // A temporary that elaboration declares (see ErasureDeclarations) is observed like a variable,
       // unless its representation was fixed when it was created.
@@ -66,9 +63,13 @@ class NewResolver:
       case td: TermDefinition => observeErasureDefinition(td)
       case _ => ()
 
-  private def observeErasure(symbol: ErasureInputs.InputSymbol)(connect: Listener => Unit)(using ResolutionContext): Unit =
-    if symbol.getState is rctx.owner then rctx.state.erasureInputs.register(symbol): publish =>
+  private def observeErasure(symbol: ErasureInputs.InputSymbol)(connect: Listener => Unit)(using ResolutionContext): Opt[TermShapeHost] =
+    Option.when(rctx.state.isOwnedSym(symbol))(rctx.state.erasureInputs.register(symbol): publish =>
       connect(shape => listenInstanceViews(shape)(publish))
+    )
+
+  private def observeErasureVariable(symbol: VarSymbol)(using ResolutionContext): Opt[TermShapeHost] =
+    if symbol.isErased then N else observeErasure(symbol)(listenTerm(SimpleRef(symbol)(N)))
 
   private def observeErasureDefinition(td: TermDefinition)(using ResolutionContext): Unit =
     if !td.tsym.isErased then observeErasure(td.tsym): publish =>
@@ -2438,8 +2439,16 @@ class NewResolver:
           parameterSignature(target) match
             case S(tpe) => exposeOmitted(tpe)
             case N =>
+              val rest = base.params.exists(_.variadic.exists(_.param.sym is inherited.sym))
+              // Direct calls to the override also use the inherited parameter's runtime slot.
+              // Their arguments contribute to its representation without entering the base body.
+              if !rest && parameterSignature(inherited).isEmpty then
+                val declarations = rctx.withInstances(TypeSubstitution.empty)
+                for
+                  baseInputs <- observeErasureVariable(inherited.sym)(using declarations)
+                  ownInputs <- observeErasureVariable(target.sym)(using declarations)
+                do ownInputs.listen(baseInputs.publish)
               def foreignArgument =
-                val rest = base.params.exists(_.variadic.exists(_.param.sym is inherited.sym))
                 InterfaceExposure.parameterInput(inherited, rest, inheritedExposure(base))(this)._2
               forwardInputs(inherited.sym, S(inherited), foreignArgument): value =>
                 // This input can check the overriding body without becoming the result of an

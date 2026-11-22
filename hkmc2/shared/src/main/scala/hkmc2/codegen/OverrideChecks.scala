@@ -63,12 +63,6 @@ final class OverrideChecks(definitions: Ls[TermDefinition])(using Config, Ctx, S
     */
   val inheritedParameters: Map[VarSymbol, Ls[Param]] = edges.flatMap(_.parameters).groupMap(_._1.sym)(_._2)
   
-  /** Maps each inherited parameter to the overriding parameters that receive the same argument,
-    * omitted-argument default, or rest slice: the pairs of [[inheritedParameters]] in the other direction.
-    * Erasure joins their representations into an inherited parameter representation that it infers.
-    */
-  val overridingParameters: Map[VarSymbol, Ls[Param]] = edges.flatMap(_.parameters).groupMap(_._2.sym)(_._1)
-  
   /** Reports overridable members that [[InterfaceExposure]] found reachable from this compilation unit's
     * exports, in classes and objects that other units may extend, when their signatures leave a parameter
     * or the result unspecified. Overrides in other units inherit these members' representations, which
