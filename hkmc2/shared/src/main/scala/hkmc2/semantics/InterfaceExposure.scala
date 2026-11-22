@@ -171,7 +171,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
     if resolver.parameterSignature(param).isEmpty then
       val (unknown, input) = externalArguments.getOrElseUpdate(param.sym,
         InterfaceExposure.parameterInput(param, rest, path)(resolver))
-      resolver.externalInputType(method, S(param)):
+      resolver.externalParameterType(method, param):
         // The override already receives its inherited type from the base parameter.
         case S(tpe) => resolver.exposeTypeHoles(tpe, unknown)
         case N => resolver.publishParameter(param.sym, input.enter(marks))
@@ -225,7 +225,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
           case td: TermDefinition =>
             if first then
               recordOpenMember(cls, td, path)
-              if td.k is syntax.MutVal then assignable(td.tsym, td.bsym, path)(using declarationContext)
+              if td.k is syntax.MutVal then exposeWrite(td, MemberLookup.Found(td.bsym, Nil), path)(using declarationContext)
               operation(td, memberPath)(using declarationContext)
             receiver.foreach: marks =>
               if resolver.writtenSignature(td).nonEmpty then member(td.bsym, marks, memberPath)
@@ -241,16 +241,13 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
         // `class Derived extends storedClass(1)`, which no type denotes.
         case N => annotation(parent.cls, inherited)(using declarationContext)
 
-  /** Include writes from other units in the inferred type of an exposed field.
-    * A field with a written type already admits the values of that type.
-    */
-  private def assignable(field: TermSymbol, symbol: BlockMemberSymbol, path: Path)(using ResolutionContext): Unit =
-    if rctx.state.isOwnedSym(field) && field.defn.flatMap(resolver.writtenSignature).isEmpty then
+  /** Admit what an external client can write through this field selection. */
+  private def exposeWrite(field: TermDefinition, target: MemberLookup, path: Path)(using ResolutionContext): Unit =
+    if rctx.state.isOwnedSym(field.tsym) && resolver.writtenSignature(field).isEmpty then
       val resolver = this.resolver
-      val unknown = InterfaceExposure.fieldInput(field, source(symbol), path)
-      resolver.externalInputType(field.defn, N):
-        case S(tpe) => resolver.exposeTypeHoles(tpe, unknown)
-        case N => resolver.writeField(field, unknown, Nil)
+      val unknown = InterfaceExposure.fieldInput(field.tsym, source(field.bsym), path)
+      resolver.resolveFieldWrite(target)((field, marks) => resolver.writeField(field, unknown, marks))(
+        resolver.exposeTypeHoles(_, unknown))
 
   /** Expose the types that an application supplies for a formal parameter. A wildcard can
     * name different types on input and output, both of which occur in the exposed interface.
@@ -353,7 +350,7 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
           rctx.fieldProjectionSite(field.sym), field.rhs, bindings, () => ())): value =>
           emit(value, path.via(msg"This value is stored in this record field." -> field.toLoc))
         // Copying a mutable source reads its writes. Clients can write only to a mutable result.
-        if record.source.mut then assignable(field.tsym, field.sym, path)
+        if record.source.mut then field.tsym.defn.foreach(exposeWrite(_, lookup.instantiate(bindings), path))
       case base: BaseShape => exposeClassInterface(base.defn)
       case callable: CallableTypeShape =>
         callable.declaration.filter(origin => rctx.state.isOwnedSym(origin.definition.tsym)).foreach: origin =>

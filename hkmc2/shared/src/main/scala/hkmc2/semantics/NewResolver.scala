@@ -2368,14 +2368,12 @@ class NewResolver:
         case (tpe, _) => emit(td, tpe)
     visit(td, slot, marks, instances, Set.empty)(receive)
 
-  /** The annotation that bounds external arguments or writes, in the enclosing class's scope.
-    * A path with no declared or inherited type admits arbitrary external values.
-    */
-  private[semantics] def externalInputType(td: Opt[TermDefinition], param: Opt[Param])
+  /** The type that bounds external arguments to a parameter in the declaring class's scope.
+    * An unannotated parameter with no inherited type admits arbitrary external arguments. */
+  private[semantics] def externalParameterType(td: Opt[TermDefinition], param: Param)
       (receive: ShapeListener[Opt[DeclaredType]])(using ResolutionContext): Unit = td match
     case S(d) if d.owner.nonEmpty && !d.tsym.isPrivate =>
-      val slot = param.fold(MemberSlot.Result)(MemberSlot.Parameter(_))
-      listenDeclaredOrInheritedType(d, slot, Nil, TypeSubstitution.empty, signatureSite)((_, tpe) => receive(tpe))
+      listenDeclaredOrInheritedType(d, MemberSlot.Parameter(param), Nil, TypeSubstitution.empty, signatureSite)((_, tpe) => receive(tpe))
     case _ => receive(N)
 
   /** Supply overriding parameters and mutable fields with the inputs their base admits, even in
@@ -2394,7 +2392,7 @@ class NewResolver:
     // the base can reach the override, including one from a different allocation site.
     lazy val baseExit = ExitMark(ResolutionBoundary(base.tsym), N, NoMarks) ::
       receiverPath(inheritedMarks)(_ => true)
-    def forwardInputs(host: ShapeHost, param: Opt[Param], foreignInput: => TermShape)(receive: Listener): Unit =
+    def forwardInputs(host: ShapeHost, slot: MemberSlot, foreignInput: => TermShape)(receive: Listener): Unit =
       def forward(input: TermShape, path: Ls[Marks])(using ResolutionContext): Unit =
         val value = instantiateShape(input, rctx.instances.withOverrides(instances))
         transportShape(value, path) match
@@ -2403,7 +2401,8 @@ class NewResolver:
       listenValueHost(host)(forward(_, baseExit))
       // An imported declaration may have no recorded external inputs in its producer.
       if !rctx.state.isOwnedSym(base.tsym) then
-        externalInputType(S(base), param)(tpe => forward(tpe.fold(foreignInput)(instanceShape), inheritedMarks))
+        listenDeclaredOrInheritedType(base, slot, Nil, TypeSubstitution.empty, signatureSite): (_, tpe) =>
+          forward(tpe.fold(foreignInput)(instanceShape), inheritedMarks)
     if base.k is syntax.MutVal then
       slotSignature(overriding, MemberSlot.Result) match
         case S(tpe) => exposeOmitted(tpe)
@@ -2411,7 +2410,7 @@ class NewResolver:
           def foreignWrite =
             val ref = MemberRef(base.bsym)(N, rctx.fieldProjectionSite(base.bsym))
             InterfaceExposure.fieldInput(base.tsym, ref, inheritedExposure(base))
-          forwardInputs(rctx.memberVariable(base.tsym), N, foreignWrite)(writeField(overriding.tsym, _, Nil))
+          forwardInputs(rctx.memberVariable(base.tsym), MemberSlot.Result, foreignWrite)(writeField(overriding.tsym, _, Nil))
     else if parameters.nonEmpty then
       val scope = ResolutionBoundary(overriding.tsym)
       val entry = signatureSite(overriding)
@@ -2430,7 +2429,7 @@ class NewResolver:
               do ownInputs.subscribeToShapes(baseInputs.publish)
             def foreignArgument =
               InterfaceExposure.parameterInput(inherited, rest, inheritedExposure(base))(this)._2
-            forwardInputs(inherited.sym, S(inherited), foreignArgument): value =>
+            forwardInputs(inherited.sym, MemberSlot.Parameter(inherited), foreignArgument): value =>
               // This input can check the overriding body without becoming the result of an
               // unrelated direct call. Direct calls enter the override at their own selection.
               publishParameter(target.sym, MarkedShape.enter(value, scope, entry))
@@ -4841,7 +4840,7 @@ class NewResolver:
     * receives the field's input type at this receiver. If `Middle[T]` inherits the type of
     * `Slot[T].item: T`, a write through `Middle[Int]` checks against `Int`.
     */
-  private def resolveFieldWrite(info: MemberLookup)
+  private[semantics] def resolveFieldWrite(info: MemberLookup)
       (assign: (TermSymbol, Ls[Marks]) => ResolutionContext ?=> Unit)(check: ShapeListener[DeclaredType])
       (using ResolutionContext): Unit =
     val caller = rctx

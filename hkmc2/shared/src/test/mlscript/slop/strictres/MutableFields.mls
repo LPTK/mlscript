@@ -649,3 +649,13 @@ storedRecord.item.only
 //│ ╙──      	                        ^^^^
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 //│ storedRecord = {item: null}
+
+
+// Clients can replace the field of the record they receive. A separate call keeps its own field.
+:expect 7
+private fun makeRecord(value) = mut {item: value}
+fun publicRecord() = makeRecord({other: 2})
+private val keptRecord = makeRecord({only: 7})
+keptRecord.item.only
+//│ = 7
+//│ keptRecord = {item: {only: 7}}
