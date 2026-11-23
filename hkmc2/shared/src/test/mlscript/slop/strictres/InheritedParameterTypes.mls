@@ -77,3 +77,51 @@ new OneParameter().pick(1, {only: 2})
 //│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
 
 
+// Only the common prefix of the two type parameter lists is paired. An explicit type argument
+// at a direct call binds the override's own `C`, which stands for the base's `A`.
+:expect 3
+private class PickBase with
+  open fun pick[A, B](x: A, y: B): A = x
+private class PickFirst extends PickBase with
+  override fun pick[C](x, y): C = x
+new PickFirst().pick[Item](Item(3), 0).n
+//│ = 3
+
+
+// A call through the base supplies the base's type arguments, including `B`, which has no
+// counterpart in the override.
+:expect 2
+private class PickSource with
+  open fun pick[A, B](x: A, y: B): A = x
+private class PickOne extends PickSource with
+  override fun pick[C](x, y): C = x
+private fun pickThroughBase(p: PickSource) = p.pick[Item, Int](Item(2), 0).n
+pickThroughBase(new PickOne)
+//│ = 2
+
+
+// An override can declare more type parameters than its base. A direct call can supply the
+// extra `C`, which no call through the base can.
+:expect 5
+private class OneParameterBase with
+  open fun keep[A](x: A): A = x
+private class TwoParameterOverride extends OneParameterBase with
+  override fun keep[B, C](x): B = x
+new TwoParameterOverride().keep[Item, Int](Item(5)).n
+//│ = 5
+
+
+// The body returns `x`, whose type is the base's `A` and so the override's `B`, at the unrelated
+// type `C`. Nothing at the call determines `C`, so the result has no interface.
+:e
+private class OneParameterSource with
+  open fun keep[A](x: A): A = x
+private class UnrelatedResult extends OneParameterSource with
+  override fun keep[B, C](x): C = x
+new UnrelatedResult().keep(Item(8)).n
+//│ ╔══[COMPILATION ERROR] This selection of member 'n' has no resolved target
+//│ ║  l.+5: 	new UnrelatedResult().keep(Item(8)).n
+//│ ╙──      	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ═══[RUNTIME ERROR] This code cannot be run as its compilation yielded an error.
+
+
