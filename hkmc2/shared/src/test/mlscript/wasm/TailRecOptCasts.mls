@@ -147,11 +147,11 @@ wideOf(2)
 //│             set exitResult = w;
 //│             match tipOf$deferred
 //│               true =>
-//│                 set exitResult = (w as! Tip⁰);
+//│                 set exitResult = (w as!! Tip⁰);
 //│                 end
 //│             match midOf$deferred
 //│               true =>
-//│                 return (exitResult as! Middle⁰)
+//│                 return (exitResult as!! Middle⁰)
 //│               else
 //│                 return exitResult
 //│             end
@@ -168,11 +168,11 @@ wideOf(2)
 //│ };
 //│ @inline
 //│ define tipOf⁰ as fun tipOf¹(n: Int⁰): Tip⁰ {
-//│   return (tipOf_midOf_wideOf⁰(0, n) as! Tip⁰)
+//│   return (tipOf_midOf_wideOf⁰(0, n) as!! Tip⁰)
 //│ };
 //│ @inline
 //│ define midOf⁰ as fun midOf¹(n: Int⁰): Middle⁰ {
-//│   return (tipOf_midOf_wideOf⁰(1, n) as! Middle⁰)
+//│   return (tipOf_midOf_wideOf⁰(1, n) as!! Middle⁰)
 //│ };
 //│ @inline
 //│ define wideOf⁰ as fun wideOf¹(n: Int⁰): Wide⁰ {

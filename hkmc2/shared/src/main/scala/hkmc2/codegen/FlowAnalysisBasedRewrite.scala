@@ -1,7 +1,7 @@
 package hkmc2
 package codegen
 
-import scala.collection.mutable.{Set as MutSet, Buffer, LinkedHashMap}
+import scala.collection.mutable.{Set as MutSet, Buffer, LinkedHashMap, LinkedHashSet}
 
 import hkmc2.utils.*, shorthands.*
 import utils.*
@@ -18,6 +18,15 @@ class FlowAnalysisBasedRewrite(
   val deadConstructorElimSolver: DeadConstructorElimResult,
 )(using Raise) extends PolyInstantiationRewrite(constraintSolver):
 
+  private object CastCheckElim extends FlowAnalysisSolverResult:
+    val provedCasts = LinkedHashSet.empty[ConcreteId[ResultId]]
+    for c <- constraintSolver.castsWithSrcs if c.succeeds do c.exprId.getResult match
+      case cast: Cast if cast.check => provedCasts += c.concreteId
+      case _ => ()
+    def hasWorkToDo: Bool = provedCasts.nonEmpty
+    // A proof can hold for one caller only, so it must trigger specialization on its own.
+    def polyInstIds: Iterator[InstantiationId] = provedCasts.iterator.map(_.instId)
+  
   private case class EtaParamList(params: LoweredParamList):
     def args: Ls[Arg] = params.params.map(p => Arg(N, p.sym.asSimpleRef)) :::
       params.restParam.toList.map(p => Arg(S(SpreadKind.Eager), p.sym.asSimpleRef))
@@ -140,6 +149,9 @@ class FlowAnalysisBasedRewrite(
     // traversal
     override def applyPath(p: Path)(k: Path => Block): Block = p match
       case PolyFnRef(specializedRef) => k(specializedRef)
+      case cast: CastPath if CastCheckElim.provedCasts(cast.uid.concreteId) =>
+        applyPath(cast.value): value =>
+          k(Cast.path(value, cast.target, check = false)(cast.toLoc))
       case _ => super.applyPath(p)(k)
     
     override def applyValue(v: Value)(k: Value => Block): Block = v match
@@ -197,6 +209,9 @@ class FlowAnalysisBasedRewrite(
       end rewriteArgs
       
       r match
+      case cast: CastResult if CastCheckElim.provedCasts(cast.uid.concreteId) =>
+        applyResult(cast.value): value =>
+          k(Cast(value, cast.target, check = false)(cast.toLoc))
       case ctorSite@CtorProducer(_, args, selectedFrom)
         if deadConstructorElimSolver.deadCtors.contains(ConcreteId(ctorSite.uid, instId)) =>
         (args.reverseIterator.map(_.value) ++ selectedFrom)
@@ -271,7 +286,7 @@ class FlowAnalysisBasedRewrite(
   
   // ====== start: implements the abstract members of `PolyInstantiationRewrite` ======
   def solvers: Iterable[FlowAnalysisSolverResult] =
-    deadParamElimSolver :: etaExpansionSolver :: deadConstructorElimSolver :: Nil
+    deadParamElimSolver :: etaExpansionSolver :: deadConstructorElimSolver :: CastCheckElim :: Nil
   
   def mkRewriter(instId: InstantiationId, refreshSymbolMappingForCopy: Opt[collection.Map[Symbol, Symbol]]) = new Rewriter(instId, refreshSymbolMappingForCopy)
   

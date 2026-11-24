@@ -234,8 +234,8 @@ copiedSuccessfulCast(true, SuccessfulOtherBox(2, 3)) + copiedSuccessfulCast(true
 //│ = 2
 
 
-// A proved cast still reads its operand. A constructor that only reaches such a cast has no
-// other consumer, and eliminating it would make the cast fail on an unspecified value.
+// An unused cast can disappear once the solver proves its constructor input fits.
+:flowBasedOpt mono
 :expect 42
 :soir
 fun provedCast(): Int =
@@ -248,7 +248,6 @@ provedCast()
 //│ define provedCast⁰ as fun provedCast¹() {
 //│   let check, tmp;
 //│   define check as fun check²(x) {
-//│     do (x as! ProofBox⁰);
 //│     return 42
 //│   };
 //│   set tmp = ProofBox¹(1);
@@ -259,7 +258,7 @@ provedCast()
 //│ = 42
 
 
-// The same holds for the constructors copied along with a reusable scheme.
+// A copied function scheme must retain enough information to prove the same unused cast.
 :flowBasedOpt poly
 :expect 42
 fun copiedProvedCast(): Int =

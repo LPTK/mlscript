@@ -1532,9 +1532,9 @@ case class Instantiate(mut: Bool, cls: Path, argss: Ls[Ls[Arg]])(val metadata: I
   * yet, so a checked cast currently generates the same code as an unchecked one.
   *
   * [[Result.coerceTo]] and [[Result.ascribeTo]] read [[Config.checkCasts]] when they introduce the coercion.
-  * [[Result.coerceToKnown]] builds unchecked casts for values whose representation the compiler knows. Every other
-  * site that rebuilds a cast must *copy* the flag rather than re-derive it, so that the configuration does not have
-  * to be threaded through the IR transformers.
+  * [[Result.coerceToKnown]] builds unchecked casts for values whose representation the compiler knows.
+  * Transformations preserve the flag unless they prove that the check always succeeds. Removing a check must
+  * retain any coercion needed by the backend to narrow the operand's representation.
   *
   * Invariants:
   * - Nested casts preserve inner checks that can fail even when the outer check would succeed.

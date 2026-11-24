@@ -1,0 +1,186 @@
+:.
+:flowBasedOpt mono
+:noInline
+
+
+// Cast checking is the only flow optimization available here. The field access still
+// needs the cast to narrow the Any parameter to the physical representation of PathBox.
+:soir
+:expect 42
+data class PathBox(x: Int)
+private fun readPath(x: Any): Int =
+  val box: PathBox = x
+  box.x
+readPath(PathBox(42))
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let tmp;
+//│ @private
+//│ define readPath⁰ as fun readPath¹(x) {
+//│   let box;
+//│   set box = (x as!! PathBox⁰);
+//│   return box.x⁰
+//│ };
+//│ @data
+//│ define PathBox¹ as class PathBox⁰ {
+//│   val x¹;
+//│   constructor PathBox²(x) {
+//│     define x¹ as val x⁰ = x;
+//│     end
+//│   }
+//│ };
+//│ set tmp = PathBox²(42);
+//│ return readPath¹(tmp)
+//│ Wasm result:
+//│ = 42
+
+
+// A cast around a call must preserve the call and its effects when its check disappears.
+:soir
+:expect 42
+data class ResultBox(x: Int)
+let count = 0
+private fun makeResult(): Any =
+  set count = count + 1
+  ResultBox(41)
+private fun readResult(): Int =
+  val box: ResultBox = makeResult()
+  box.x
+readResult() + count
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let tmp;
+//│ @private
+//│ define makeResult⁰ as fun makeResult¹() {
+//│   let tmp1;
+//│   set tmp1 = +⁰(count⁰, 1);
+//│   set count⁰ = tmp1;
+//│   return ResultBox⁰(41)
+//│ };
+//│ @private
+//│ define readResult⁰ as fun readResult¹() {
+//│   let box;
+//│   set box = (makeResult¹() as!! ResultBox¹);
+//│   return box.x²
+//│ };
+//│ @data
+//│ define ResultBox² as class ResultBox¹ {
+//│   val x³;
+//│   constructor ResultBox⁰(x) {
+//│     define x³ as val x² = x;
+//│     end
+//│   }
+//│ };
+//│ set count⁰ = 0;
+//│ set tmp = readResult¹();
+//│ return +⁰(tmp, count⁰)
+//│ Wasm result:
+//│ = 42
+
+
+// Only the constructor call justifies removing the check. The other instance must
+// keep it even though this execution takes the successful branch.
+:flowBasedOpt poly
+:soir
+:expect 42
+data class InstanceBox(x: Int)
+private fun readInstance(x: Any): Int =
+  val box: InstanceBox = x
+  box.x
+private fun chooseInstance(flag: Bool): Int =
+  if flag then readInstance(InstanceBox(42)) else readInstance("not a box")
+chooseInstance(true)
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let chooseInstance_readInstance$readInstance, chooseInstance$chooseInstance, chooseInstance_readInstance$readInstance1;
+//│ @private @private
+//│ define chooseInstance_readInstance$readInstance as fun chooseInstance_readInstance$readInstance⁰(x) {
+//│   let box;
+//│   set box = (x as!! InstanceBox⁰);
+//│   return box.x⁴
+//│ };
+//│ @private @private
+//│ define chooseInstance$chooseInstance as fun chooseInstance$chooseInstance⁰(flag) {
+//│   let tmp;
+//│   match flag
+//│     true =>
+//│       set tmp = InstanceBox¹(42);
+//│       return chooseInstance_readInstance$readInstance⁰(tmp)
+//│     else
+//│       return readInstance⁰("not a box")
+//│   end
+//│ };
+//│ @private @private
+//│ define chooseInstance_readInstance$readInstance1 as fun chooseInstance_readInstance$readInstance¹(x) {
+//│   let box;
+//│   set box = (x as!! InstanceBox⁰);
+//│   return box.x⁴
+//│ };
+//│ @private
+//│ define readInstance¹ as fun readInstance⁰(x) {
+//│   let box;
+//│   set box = (x as! InstanceBox⁰);
+//│   return box.x⁴
+//│ };
+//│ @private
+//│ define chooseInstance⁰ as fun chooseInstance¹(flag) {
+//│   let tmp;
+//│   match flag
+//│     true =>
+//│       set tmp = InstanceBox¹(42);
+//│       return chooseInstance_readInstance$readInstance¹(tmp)
+//│     else
+//│       return readInstance⁰("not a box")
+//│   end
+//│ };
+//│ @data
+//│ define InstanceBox² as class InstanceBox⁰ {
+//│   val x⁵;
+//│   constructor InstanceBox¹(x) {
+//│     define x⁵ as val x⁴ = x;
+//│     end
+//│   }
+//│ };
+//│ return chooseInstance$chooseInstance⁰(true)
+//│ Wasm result:
+//│ = 42
+
+
+// The outer cast can succeed for the incoming constructor even though the inner cast
+// cannot. Making the outer cast unchecked must preserve the inner check and its trap.
+:soir
+:re
+data class OuterBox(x: Int)
+data class InnerBox(y: Int, z: Int)
+private fun nestedCheck(x: Any): OuterBox =
+  (x as InnerBox) as OuterBox
+nestedCheck(OuterBox(42))
+//│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
+//│ let tmp, nestedCheck$nestedCheck;
+//│ @private @private
+//│ define nestedCheck$nestedCheck as fun nestedCheck$nestedCheck⁰(x) {
+//│   return ((x as! InnerBox⁰) as!! OuterBox⁰)
+//│ };
+//│ @private
+//│ define nestedCheck⁰ as fun nestedCheck¹(x) {
+//│   return ((x as! InnerBox⁰) as! OuterBox⁰)
+//│ };
+//│ @data
+//│ define OuterBox¹ as class OuterBox⁰ {
+//│   val x⁶;
+//│   constructor OuterBox²(x) {
+//│     define x⁶ as val x⁷ = x;
+//│     end
+//│   }
+//│ };
+//│ @data
+//│ define InnerBox¹ as class InnerBox⁰ {
+//│   val y⁰;
+//│   val z⁰;
+//│   constructor InnerBox²(y, z) {
+//│     define y⁰ as val y¹ = y;
+//│     define z⁰ as val z¹ = z;
+//│     end
+//│   }
+//│ };
+//│ set tmp = OuterBox²(42);
+//│ return nestedCheck$nestedCheck⁰(tmp)
+//│ Wasm result:
+//│ ═══[RUNTIME ERROR] RuntimeError: illegal cast
