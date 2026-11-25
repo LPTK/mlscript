@@ -1,4 +1,4 @@
-name: CI with Nix
+name: Scala CI
 
 on:
   pull_request:
@@ -9,7 +9,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
       # Runner speed varies between runs, which shows up in test durations and time-outs.
       # Record the hardware so slow runners can be identified.
       - name: Show runner hardware
@@ -17,11 +17,20 @@ jobs:
           echo "nproc: $(nproc)"
           lscpu
           free -h
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@main
-      - uses: rrbutani/use-nix-shell-action@v1
+      - name: Set up Java
+        uses: actions/setup-java@v5
         with:
-          devShell: .#default
+          distribution: temurin
+          java-version: '25'
+          cache: sbt
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '26'
+      - name: Set up sbt
+        uses: sbt/setup-sbt@v1
+        with:
+          disk-cache: false # This build uses sbt 1.x.
       - name: Install npm dependencies (TypeScript, Binaryen, etc.)
         run: npm ci
       - name: Run test
