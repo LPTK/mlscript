@@ -104,14 +104,7 @@ private[logicsub] object TypeSimplifier:
             case Some(y) if emitted.add(k) => b.copy(c = b.c.copy(y = y)) :: Nil
             case _ => Nil
 
-  private class Rewrite(sub: collection.Map[InfVar, Type]) extends TypeMap:
-    override def applyArg(pol: Bool)(a: TypeArg): TypeArg = a match
-      case t: Type => apply(pol)(t)
-      case Wildcard(in, out) if in eq out =>
-        // Substitution is independent of polarity. Preserve the shared operand.
-        val t = apply(pol)(in)
-        Wildcard(t, t)
-      case w: Wildcard => super.applyArg(pol)(w)
+  private class Rewrite(sub: collection.Map[InfVar, Type]) extends PolarityIndependentTypeMap:
     override def apply(pol: Bool)(t: Type): Type = t.toBasic match
       case v: InfVar => sub.getOrElse(v, v)
       case Union(l, r) => union(apply(pol)(l), apply(pol)(r))
@@ -225,11 +218,7 @@ private[logicsub] object TypeSimplifier:
         val ts = defs.get(v).iterator.flatMap(_.iterator)
         val replacement = if positive then ts.map(f(positive)).foldLeft[Type](Bot)(union)
           else intersectBounds(ts)(f(positive))
-        val atomic = replacement match
-          case _: InfVar | Bot | Top => true
-          case t: ClassLikeType => plainTag(t)
-          case _ => false
-        if atomic || uses.getOrElse(v, 0) <= 1 then sub += v -> replacement
+        if replacement.isAtomic || uses.getOrElse(v, 0) <= 1 then sub += v -> replacement
       case _ => () // A structural recursive bound has no finite unfolding here.
     if sub.isEmpty then view
     else rewrite(view, sub, c => definition(c).exists(p => sub.contains(p._1)))

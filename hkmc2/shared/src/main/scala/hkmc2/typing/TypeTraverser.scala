@@ -81,3 +81,14 @@ class TypeMap:
     case Neg(x) => Neg(apply(!pol)(x))
     case ClassLikeType(n, args, refine, i,o) =>
       ClassLikeType(n, args.map(applyArg(pol)), refine.mapValues(t => apply(pol)(t)), i,o)
+
+/** Maps types with a polarity-independent substitution. An exact argument
+  * shares one operand across its two occurrences, including after substitution.
+  * This keeps a chain of nested exact arguments linear in its written depth. */
+private[logicsub] abstract class PolarityIndependentTypeMap extends TypeMap:
+  final override def applyArg(pol: Bool)(a: TypeArg): TypeArg = a match
+    case t: Type => apply(pol)(t)
+    case Wildcard(in, out) if in eq out =>
+      val t = apply(pol)(in)
+      Wildcard(t, t)
+    case w: Wildcard => super.applyArg(pol)(w)

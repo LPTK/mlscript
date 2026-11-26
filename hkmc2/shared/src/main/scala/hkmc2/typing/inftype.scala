@@ -84,6 +84,11 @@ private enum TypePrecedence:
   case Arrow, Union, Inter, Neg, Atom
 
 sealed abstract class Type extends InfType with TypeArg:
+  /** Whether repeating this type in a bound takes constant space. */
+  def isAtomic: Bool = toBasic match
+    case _: InfVar | Top | Bot | ClassLikeType(args = Nil, refinement = Nil) => true
+    case _ => false
+
   lazy val lvl = toBasic match
     case ClassLikeType(name, targs, refinement, _,_) =>
       val args = targs.iterator
@@ -96,6 +101,21 @@ sealed abstract class Type extends InfType with TypeArg:
     case Neg(ty) => ty.lvl
   def show(using Scope, InfCtx, Raise): Str =
     val out = new StringBuilder
+    def appendArg(arg: TypeArg, variance: Opt[Bool]): Unit = (variance, arg.negPart, arg.posPart) match
+      case (_, Bot, Top) => out += '?'
+      case (Some(true), Bot, upper) => append(upper, TypePrecedence.Arrow)
+      case (Some(false), lower, Top) => append(lower, TypePrecedence.Arrow)
+      case (Some(_), lower, upper) if lower === upper =>
+        // Bare T denotes a one-sided argument here. Show a compound exact
+        // bound once so nested exact arguments do not double at every level.
+        if lower.isAtomic then
+          val bound = lower.show
+          out ++= s"in $bound out $bound"
+        else
+          out += '='
+          append(lower, TypePrecedence.Neg)
+      case (_, lower, upper) if lower === upper => append(lower, TypePrecedence.Arrow)
+      case _ => out ++= arg.show
     def append(t: Type, enclosing: TypePrecedence): Unit =
       def group(prec: TypePrecedence)(write: => Unit): Unit =
         val parens = prec.ordinal < enclosing.ordinal
@@ -127,7 +147,16 @@ sealed abstract class Type extends InfType with TypeArg:
             out ++= summon[InfCtx].prim.tagName(name)
             val unknown = Wildcard.empty
             val visibleCount = args.lastIndexWhere(_ != unknown) + 1
-            if visibleCount > 0 then args.iterator.take(visibleCount).map(_.show).addString(out, "[", ", ", "]")
+            if visibleCount > 0 then
+              val params = name match
+                case sym: TypeSymbol => sym.defn.iterator.flatMap(_.tparams.iterator)
+                case _: LiteralTag => Iterator.empty
+              out += '['
+              args.iterator.take(visibleCount).zipWithIndex.foreach: (arg, index) =>
+                if index > 0 then out ++= ", "
+                // Synthesized arguments, such as Function's effect, can extend the declaration.
+                appendArg(arg, params.nextOption().flatMap(_.vce))
+              out += ']'
             if fields.nonEmpty then
               out ++= fields.iterator.map((l, ty) => s"${l.name}: ${ty.show}").mkString(" & {", ", ", "}")
         case v: InfVar =>

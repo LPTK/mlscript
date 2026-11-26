@@ -42,3 +42,84 @@ idcs(new D())
 //│ Type: ⊥
 
 
+
+class Box[out A](val item: A)
+class Sink[in A]()
+class Cell[T]()
+
+// A constructor can choose an exact argument. A covariant annotation only promises its upper bound.
+new Box(1) as Box[in Int out Int]
+//│ Type: Box[in Int out Int]
+
+fun source: Box[Int]
+
+:e
+source as Box[in Int out Int]
+//│ ╔══[COMPILATION ERROR] Type error in reference of type Box[Int] with expected type Box[in Int out Int]
+//│ ║  l.+1: 	source as Box[in Int out Int]
+//│ ║        	^^^^^^
+//│ ╟── because: cannot constrain  Box[Int]  <:  Box[in Int out Int]
+//│ ╙── because: cannot constrain  Int  <:  ⊥
+//│ Type: Box[in Int out Int]
+
+fun exact: Box[in (Int | Str) out (Int | Str)]
+exact
+//│ Type: Box[=(Int | Str)]
+
+class Views[T](
+  val sink: Sink[T], val callback: Sink[T] -> Box[T], val joined: Sink[T | Str], val meet: Box[T & Int],
+  val explicit: Box[in T], val range: Sink[in T out T], val cell: Cell[T], val nested: Cell[Cell[Cell[Cell[T]]]]
+)
+fun views: Views[in 1 out Int]
+
+views.Views#sink
+//│ Type: Sink[1]
+
+views.Views#callback
+//│ Type: (Sink[Int]) -> Box[Int]
+
+views.Views#joined
+//│ Type: Sink[1 | Str]
+
+views.Views#meet
+//│ Type: Box[Int]
+
+views.Views#explicit
+//│ Type: Box[in 1]
+
+views.Views#range
+//│ Type: Sink[in 1 out Int]
+
+views.Views#cell
+//│ Type: Cell[in 1 out Int]
+
+// At each invariant layer both endpoint types refer to the same pair from the previous layer.
+views.Views#nested
+//│ Type: Cell[in 'bound out 'bound1]
+//│ Where:
+//│   Cell[in 'bound2 out 'bound3] <: 'bound
+//│   Cell[in 'bound4 out 'bound5] <: 'bound2
+//│   Cell[in 'T out 'T1] <: 'bound4
+//│   Int <: 'T
+//│   'T1 <: 1
+//│   'bound4 <: Cell[in 'T out 'T1]
+//│   Cell[in 'T1 out 'T] <: 'bound5
+//│   'bound5 <: Cell[in 'T1 out 'T]
+//│   'bound2 <: Cell[in 'bound4 out 'bound5]
+//│   Cell[in 'bound5 out 'bound4] <: 'bound3
+//│   'bound3 <: Cell[in 'bound5 out 'bound4]
+//│   'bound <: Cell[in 'bound2 out 'bound3]
+//│   Cell[in 'bound3 out 'bound2] <: 'bound1
+//│   'bound1 <: Cell[in 'bound3 out 'bound2]
+
+class Deep[T](val item: Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[T]]]]]]]]]]]]]]]]]]]]]]]])
+fun deep: Deep[in 1 out Int]
+deep.Deep#item as Cell[out Any]
+//│ Type: Cell
+
+// Instantiating a scheme with an exact nested argument visits each Cell once.
+fun nested: [T] -> T -> Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[T]]]]]]]]]]]]]]]]]]]]]]]]
+nested(1)
+//│ Type: Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell['T]]]]]]]]]]]]]]]]]]]]]]]]
+//│ Where:
+//│   1 <: 'T

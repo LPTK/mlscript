@@ -31,13 +31,15 @@ class Typer(using tl: TL)(using Elaborator.State, Raise, codegen.Erasure, Ctx, C
   private def freshWildcard(s: Symbol)(using InfCtx) = Wildcard(freshVar(s),freshVar(s))
   private def freshOuter(sym: Symbol)(using ctx: InfCtx): InfVar =
     InfVar(ctx.lvl + 1, InfVarSymbol(sym), true)
-  private def freshEnv(sym: Symbol)(using ctx: InfCtx): InfVar =
-    val s = InfVarSymbol(sym)
+  /** Names a type in the current inference scope, preserving it in both polarities. */
+  private def freshAlias(sym: Symbol, bound: Type)(using ctx: InfCtx): InfVar =
+    require(bound.lvl <= ctx.lvl)
+    val v = freshVar(sym)
     val state = new InfVarState
-    ctx.varSt += s -> state
-    state.upperBounds = ctx.outRegAcc -> N :: Nil
-    state.lowerBounds = ctx.outRegAcc :: Nil
-    InfVar(ctx.lvl, s, false)
+    state.upperBounds = bound -> N :: Nil
+    state.lowerBounds = bound :: Nil
+    ctx.varSt += v.sym -> state
+    v
 
   private def mono(ty: InfType)(using InfCtx): Opt[Type] = ty match
     case x: Type => S(x)
@@ -58,15 +60,39 @@ class Typer(using tl: TL)(using Elaborator.State, Raise, codegen.Erasure, Ctx, C
         error(msg"Expected a monomorphic type or an instantiable type here, but ${ty.show} found" -> sc.toLoc :: Nil)
     case ty: Type => ty
 
+  /** Substitutes class arguments into a declaration in the polarity of each use.
+    * An invariant parameter uses both interpretations of its written argument,
+    * with the input in the opposite polarity, as in NewResolver.interpretArgument. */
+  private class AnnotationSubst(val bindings: Map[LocalSymbol, TypeArg]):
+    private val polarized = bindings.valuesIterator.exists(a => a.negPart =/= a.posPart)
+    private val intervals = HashMap.empty[(InfCtx, Term), TypeArg]
+
+    def invariant(t: Term, pol: Bool)(read: Bool => Type)(using ctx: InfCtx): TypeArg =
+      if !polarized then read(pol) else
+        val arg = intervals.getOrElseUpdate((ctx, t), {
+          val lower = read(false)
+          val upper = read(true)
+          if lower === upper then lower
+          else
+            // Both enclosing polarities can refer to each endpoint. Name a
+            // compound once so nested invariant applications form a linear graph.
+            def share(bound: Type): Type =
+              if bound.isAtomic then bound else freshAlias(TempSymbol(S(t), N, "bound"), bound)
+            Wildcard(share(lower), share(upper))
+        })
+        arg match
+          case Wildcard(in, out) if !pol => Wildcard(out, in)
+          case _ => arg
+
   private def typeAndSubstType(ty: Term, pol: Bool)
-      (using map: Map[LocalSymbol, TypeArg], ctx: InfCtx, cctx: CCtx)
+      (using subst: AnnotationSubst, ctx: InfCtx, cctx: CCtx)
     : InfType =
     def mono(ty: Term, pol: Bool): Type = monoOrErr(typeAndSubstType(ty, pol), ty)
     trace[InfType](s"${ctx.lvl}. Typing type ${ty.showDbg}", r => s"~> ${r.showDbg}"):
       ty match
         case Ref(sym: LocalSymbol) =>
-          log(s"Type lookup: ${sym.nme} ${sym.uid} ${map.keySet}")
-          map.get(sym) match
+          log(s"Type lookup: ${sym.nme} ${sym.uid} ${subst.bindings.keySet}")
+          subst.bindings.get(sym) match
             case S(Wildcard(in, out)) => if pol then out else in
             case S(ty: Type) => ty
             case N => ctx.get(sym) match
@@ -89,11 +115,10 @@ class Typer(using tl: TL)(using Elaborator.State, Raise, codegen.Erasure, Ctx, C
                       out.fold(Top)(t => mono(t, pol))
                     )
                   case _ =>
-                    val ta = mono(t, pol)
                     tp.vce match
-                      case S(false) => Wildcard.in(ta)
-                      case S(true) => Wildcard.out(ta)
-                      case N => ta
+                      case S(false) => Wildcard.in(mono(t, !pol))
+                      case S(true) => Wildcard.out(mono(t, pol))
+                      case N => subst.invariant(t, pol)(mono(t, _))
                 val fs = ts.map(_ => false) // TODO
                 ClassLikeType(tpeSym, ts, Nil, fs, N)
             case N => error(msg"Not a valid class: ${cls.describe}" -> cls.toLoc :: Nil)
@@ -115,8 +140,8 @@ class Typer(using tl: TL)(using Elaborator.State, Raise, codegen.Erasure, Ctx, C
           given InfCtx = nestCtx
           genPolyType(tvs, outVar, typeAndSubstType(body, pol))
         case Neg(t) => ~mono(t, !pol)
-        case CompType(lhs, rhs, pol) =>
-          if pol then mono(lhs, pol) | mono(rhs, pol) else mono(lhs, pol) & mono(rhs, pol)
+        case CompType(lhs, rhs, isUnion) =>
+          if isUnion then mono(lhs, pol) | mono(rhs, pol) else mono(lhs, pol) & mono(rhs, pol)
         case UnitVal() => ctx.prim.unitTy
         case Lit(x) => InfCtx.litTy(x)
         case _ => ty.symbol.flatMap(_.asTpe) match
@@ -141,7 +166,7 @@ class Typer(using tl: TL)(using Elaborator.State, Raise, codegen.Erasure, Ctx, C
     PolyType(bds.map(_._1), S(outer), Nil, body)
 
   private def typeType(ty: Term)(using ctx: InfCtx, cctx: CCtx): InfType =
-    typeAndSubstType(ty, true)(using Map.empty)
+    typeAndSubstType(ty, true)(using AnnotationSubst(Map.empty))
   private def typeMonoType(ty: Term)(using InfCtx, CCtx) = monoOrErr(typeType(ty), ty)
 
   def typePurely(t: Term)(using InfCtx, Scope) =
@@ -176,7 +201,7 @@ class Typer(using tl: TL)(using Elaborator.State, Raise, codegen.Erasure, Ctx, C
     case _ =>
       error(msg"Function definition shape not yet supported for ${sym.nme}" -> lam.toLoc :: Nil)
 
-  private class Subst(map: Map[InfVarSymbol, InfVar]) extends TypeMap:
+  private class Subst(map: Map[InfVarSymbol, InfVar]) extends PolarityIndependentTypeMap:
     override def apply(pol: Bool)(t: Type) = t.toBasic match
       case v @ InfVar(_, s, _) => map.get(s).getOrElse(v)
       case t => super.apply(pol)(t)
@@ -195,7 +220,7 @@ class Typer(using tl: TL)(using Elaborator.State, Raise, codegen.Erasure, Ctx, C
 
   private def instantiate(x: PolyType)(using ctx: InfCtx, cctx: CCtx) =
     val PolyType(tvs, outer, xbds, body) = x
-    val env = freshEnv(TempSymbol(N, N, "env"))
+    val env = freshAlias(TempSymbol(N, N, "env"), ctx.outRegAcc)
     val map = (outer.map(_.sym -> env).toList ++ tvs.map(v =>
       val nv = InfVar(ctx.lvl, InfVarSymbol(InstSymbol(v.sym), v.sym.hint), false)
       tl.log(s"instantiate ${v.showDbg} ~> ${nv.showDbg}")
@@ -297,7 +322,7 @@ class Typer(using tl: TL)(using Elaborator.State, Raise, codegen.Erasure, Ctx, C
           case Param(sym = sym, sign = sign) =>
             if sym.nme === field.name then sign else N
         }.filter(_.isDefined)) match
-          case S(res) :: Nil => (typeAndSubstType(res, pol = true)(using map.toMap), eff)
+          case S(res) :: Nil => (typeAndSubstType(res, pol = true)(using AnnotationSubst(map.toMap)), eff)
           case _ => (error(msg"${field.name} is not a valid member in class ${clsSym.nme}" -> t.toLoc :: Nil), Bot)
       case N => 
         (error(msg"Not a valid class: ${cls.describe}" -> cls.toLoc :: Nil), Bot)
@@ -316,22 +341,18 @@ class Typer(using tl: TL)(using Elaborator.State, Raise, codegen.Erasure, Ctx, C
         (error(msg"The number of parameters is incorrect" -> cls.toLoc :: Nil), Bot)
       else
         val map = HashMap[LocalSymbol, TypeArg]()
-        val targs = clsDfn.tparams.map {
-          case TyParam(_, S(_), targ) =>
-            val ty = freshVar(targ)
-            map += targ -> ty
-            ty
-          case TyParam(_, N, targ) =>
-            // val ty = freshWildcard // FIXME probably not correct
-            val ty = freshVar(targ)
-            map += targ -> ty
-            ty
-        }
+        // Constructing a value chooses one exact argument per parameter.
+        // Its input and output share the same variable even on a variant class.
+        val targs = clsDfn.tparams.map: tp =>
+          val ty = freshVar(tp.sym)
+          map += tp.sym -> ty
+          ty
+        val subst = AnnotationSubst(map.toMap)
         val effBuff = ListBuffer.empty[Type]
         require(clsDfn.paramsOpt.forall(_.variadic.isEmpty))
         argsList.iterator.zip(clsDfn.params.params).foreach {
           case (arg, Param(sign = S(sign))) =>
-            val (ty, eff) = ascribe(arg, typeAndSubstType(sign, pol = true)(using map.toMap))
+            val (ty, eff) = ascribe(arg, typeAndSubstType(sign, pol = true)(using subst))
             effBuff += eff
           case _ => ???
         }
