@@ -184,7 +184,7 @@ class NewResolver:
           case DynTy() => result.publish(TypeShape.Dynamic)
           case FunTy(params, ret, _) => result.publish(TypeShape.Function(params, typeResolution(ret)))
           case UnitVal() => result.publish(TypeShape.Unit)
-          case _: WildcardTy => lastWords("Input and output bounds must be resolved separately")
+          case _: ExactTy | _: WildcardTy => lastWords("Input and output bounds must be resolved separately")
           case SimpleRef(sym: VarSymbol) if sym.decl.exists(_.isInstanceOf[TyParam]) =>
             result.publish(rctx.typeParameter(sym))
           case Ref(sym: VarSymbol) if sym.decl.exists(_.isInstanceOf[TyParam]) =>
@@ -228,6 +228,9 @@ class NewResolver:
     * either bound still use the ordinary type resolver.
     */
   private def typeArgumentResolution(term: Term)(using ResolutionContext): TypeArgumentResolution = term match
+    case ExactTy(bound) =>
+      val resolution = S(typeResolution(bound))
+      TypeArgumentResolution.Wildcard(term, resolution, resolution)
     case WildcardTy(input, output) =>
       TypeArgumentResolution.Wildcard(term, input.map(typeResolution), output.map(typeResolution))
     case _ => TypeArgumentResolution.Type(typeResolution(term))
@@ -249,6 +252,23 @@ class NewResolver:
     typeArgumentResolution(term) match
       case TypeArgumentResolution.Type(resolution) => TypeArgument.invariant(written(resolution, true))
       case wildcard => interpretArgument(wildcard, true)(written)
+
+  private enum ParameterBinding:
+    case Fixed(argument: TypeArgument)
+    case Within(interval: TypeArgument, source: Term)
+
+  /** Choose the local type used in all constructor value parameters. A single
+    * written endpoint fixes that type. Two bounds constrain the same inferred
+    * parameter, so a callback can use the type supplied by another value argument. */
+  private def constructorBindings(terms: Ls[Term], supplied: Ls[TypeArgument]): Ls[ParameterBinding] =
+    import ParameterBinding.*
+    require(terms.length == supplied.length)
+    terms.lazyZip(supplied).map:
+      case (ExactTy(_), arg) => Fixed(TypeArgument.invariant(arg.output))
+      case (WildcardTy(S(_), N), arg) => Fixed(TypeArgument.invariant(arg.input))
+      case (WildcardTy(N, S(_)), arg) => Fixed(TypeArgument.invariant(arg.output))
+      case (term: WildcardTy, arg) => Within(arg, term)
+      case (_, arg) => Fixed(arg)
 
   /** Register complete signatures while resolution can still publish candidates. Arrow operands
     * need their own interpretations: erasure may consume the arrows as physical parameter lists.
@@ -1562,7 +1582,7 @@ class NewResolver:
                 case S(bound) => follow(bound.instantiate(current.instances).at(current.positive), noTypeArguments, aliases, source, publish)
                 case N =>
                   val target = current.instances.get(parameter.symbol).fold(parameter)(rctx.typeParameter)
-                  if view == TypeView.Required && rctx.hasExplicitTypeArgument(target.symbol) then
+                  if view == TypeView.Required && rctx.hasFixedTypeArgument(target.symbol) then
                     target.arguments.subscribe: supplied =>
                       val bound = supplied.argument.input.instantiate(current.instances)
                       listenTypeViews(transportType(bound, supplied.marks :: Nil), view)(publish)
@@ -2028,18 +2048,32 @@ class NewResolver:
 
   private[semantics] def bindTypeArguments(parameters: Ls[TypeShape.Parameter], marks: Ls[Marks], arguments: Ls[TypeArgument])
       (using ResolutionContext): Unit =
-    // Establish every supplied position before publication can replay body
-    // constraints or trigger observations of a mutually dependent parameter.
-    // Missing supplied positions remain inferred; excess arguments are diagnosed
-    // at the application, so only the common prefix has bindings here.
-    parameters.zip(arguments).foreach((p, _) => rctx.markExplicitTypeArgument(p.symbol))
+    bindParameters(parameters, marks, arguments.map(ParameterBinding.Fixed.apply))
+
+  private def bindParameters(parameters: Ls[TypeShape.Parameter], marks: Ls[Marks], bindings: Ls[ParameterBinding])
+      (using ResolutionContext): Unit =
+    // Missing positions remain inferred and the application diagnoses excess arguments.
+    val positions = parameters.lazyZip(bindings)
+    // Register every position before publication can replay constraints on another parameter.
+    positions.foreach((parameter, binding) =>
+      rctx.recordExplicitTypeArgument(parameter.symbol, fixed = binding.isInstanceOf[ParameterBinding.Fixed]))
     markCarrier.enter(marks) match
-      case Marked(_, context) => parameters.zip(arguments).foreach: (parameter, argument) =>
-        val projected = argument.map(projectType)
-        parameter.arguments.publish(TypeArgumentBinding(projected, context))
-        // Reads observe only the output bound. Publishing it once here lets every read
-        // subscribe to the value host directly (see listenTypeParameterValues).
-        publishParameter(parameter.host, Marked(instanceShape(projected.output), context))
+      case Marked(_, context) => positions.foreach:
+        case (parameter, ParameterBinding.Fixed(argument)) =>
+          val projected = argument.map(projectType)
+          parameter.arguments.publish(TypeArgumentBinding(projected, context))
+          // Reads observe only the output bound. Publishing it once here lets every read
+          // subscribe to the value host directly (see listenTypeParameterValues).
+          publishParameter(parameter.host, Marked(instanceShape(projected.output), context))
+        case (parameter, ParameterBinding.Within(interval, source)) =>
+          // The bounds name types at the application; the constructor uses the
+          // inferred parameter across the class boundary.
+          // An escaping instance exposes both written endpoints, even when the
+          // constructor inferred a narrower type for its own arguments.
+          parameter.arguments.publish(TypeArgumentBinding(interval.map(projectType), context))
+          val witness = ContextualType(parameterType(parameter), marks)
+          constrainTypes(ContextualType(interval.input, Nil), witness, S(source))
+          constrainTypes(witness, ContextualType(interval.output, Nil), S(source))
       case NoShape => ()
 
   /** Bounds constrain the instantiated references, never the shared checking
@@ -2153,7 +2187,7 @@ class NewResolver:
           val target = tpe.instances.get(symbol)
           val destination = target.fold(parameter)(rctx.typeParameter)
           val lower = value.enter(captures)
-          if rctx.hasExplicitTypeArgument(target.getOrElse(symbol)) then
+          if rctx.hasFixedTypeArgument(target.getOrElse(symbol)) then
             destination.arguments.subscribe: supplied =>
               // Compare in the caller's scope, retaining the supplied
               // reference's endpoint for any further parameter constraint.
@@ -3790,20 +3824,17 @@ class NewResolver:
         case _ => lastWords("A callable definition must have a class or term owner")
 
   private def instantiateDefinition(definition: DefnShape, site: FlowSymbol, siteBinders: Opt[Set[VarSymbol]], marks: Ls[Marks],
-      captured: TypeSubstitution, supplied: Opt[Ls[TypeArgument]])
+      captured: TypeSubstitution, bindings: Ls[ParameterBinding])
       (using ResolutionContext): TypeSubstitution =
     val (owner, parameters) = definitionParameters(definition)
-    instantiateParameters(owner, parameters, site, siteBinders, marks, captured, supplied)
+    instantiateParameters(owner, parameters, site, siteBinders, marks, captured, bindings)
 
   private def instantiateParameters(owner: AnyDefinitionSymbol, parameters: Ls[VarSymbol], site: FlowSymbol,
       siteBinders: Opt[Set[VarSymbol]], marks: Ls[Marks], captured: TypeSubstitution,
-      supplied: Opt[Ls[TypeArgument]])(using ResolutionContext): TypeSubstitution =
+      bindings: Ls[ParameterBinding])(using ResolutionContext): TypeSubstitution =
     val substitution = captured.withOverrides(rctx.instantiateTypeParameters(owner, site, parameters, siteBinders))
-    supplied.foreach: arguments =>
-      bindTypeArguments(parameters.map: parameter =>
-        val instance = substitution(parameter)
-        rctx.typeParameter(instance)
-      , marks, arguments)
+    if bindings.nonEmpty then
+      bindParameters(parameters.map(parameter => rctx.typeParameter(substitution(parameter))), marks, bindings)
     if parameters.nonEmpty && rctx.state.inferredInstantiations.add((owner, site, substitution, marks)) then
       parameters.foreach: parameter =>
         val instance = substitution(parameter)
@@ -3905,9 +3936,9 @@ class NewResolver:
     val captured = callerInstances.withOverrides(lexical)
     val instances = lhs match
       case Marked(definition: DefnShape, _) if supplied.isEmpty =>
-        instantiateDefinition(definition, res.resSym, lexicalBinders(res), lhs.applicationHead._2, captured, N)
+        instantiateDefinition(definition, res.resSym, lexicalBinders(res), lhs.applicationHead._2, captured, Nil)
       case Marked(construction: NewShape, _) if construction.argss.isEmpty && !construction.isSaturated && construction.supplied.isEmpty =>
-        instantiateDefinition(construction.receiver, res.resSym, lexicalBinders(res), lhs.applicationHead._2, captured, N)
+        instantiateDefinition(construction.receiver, res.resSym, lexicalBinders(res), lhs.applicationHead._2, captured, Nil)
       case _ => captured
     def publish(value: TermShape)(using ResolutionContext): Unit =
       publishViewed(res, value, instances)(using rctx.withInstances(callerInstances))
@@ -4506,7 +4537,7 @@ class NewResolver:
         else
           val instances = instantiateParameters(ref.definition.sym, ref.definition.tparams.map(_.sym),
             rctx.typeApplicationSite(application), lexicalBinders(application), ref.marks,
-            rctx.instances.withOverrides(ref.instances), S(supplied))
+            rctx.instances.withOverrides(ref.instances), constructorBindings(args, supplied))
           selected(ref.copy(instances = instances, supplied = S(supplied)))
       , reject, probe)
       case Capture(base, thru) =>
@@ -4730,7 +4761,7 @@ class NewResolver:
         // Explicit type arguments already consumed this scheme. Otherwise an
         // unapplied constructor waits for its first term application.
         val instances = if ref.supplied.nonEmpty || (nw.args.isEmpty && dsh.unappliedParams.nonEmpty) then captured
-          else instantiateDefinition(dsh, nw.resSym, lexicalBinders(nw), marks, captured, N)
+          else instantiateDefinition(dsh, nw.resSym, lexicalBinders(nw), marks, captured, Nil)
         val sh = newShapes.getOrElseUpdate((ref.target, marks, nw.resSym, ref.supplied),
           NewShape(dsh, ref.target, marks, nw.args, nw, ref.supplied))
         if rctx.state.constructorApplications.add((sh, instances)) then
@@ -5115,8 +5146,9 @@ class NewResolver:
     // An unknown scope retains every binding when the instances are read.
     softAssert(siteBinders.nonEmpty || binders.isEmpty,
       s"The site instantiating '${td.tsym.nme}' must record its enclosing type binders")
+    val bindingsAtSite = specialization.fold(List.empty[ParameterBinding])(_._2.map(ParameterBinding.Fixed.apply))
     val instances = instantiateParameters(td.tsym, binders, instantiationSite,
-      siteBinders, marks, rctx.instances, specialization.map(_._2))
+      siteBinders, marks, rctx.instances, bindingsAtSite)
     val parameters = definitionQuantifiers(td).map: parameter =>
       DeclaredTypeParameter(rctx.typeParameter(parameter.sym),
         parameter.lb.map(bound => declaredType(typeResolution(bound), bindings)),
@@ -5435,7 +5467,7 @@ class NewResolver:
         // iteration; only falling off the split can produce a normal unit result.
         split(branches, if form.isImperative then normal else ResultFlow(false, Map.empty), form == IfLikeForm.While)
       case Quoted(body) => quoted(body, 1)
-      case _: Lam | _: Unquoted | _: FunTy | _: Forall | _: Constrained | _: WildcardTy
+      case _: Lam | _: Unquoted | _: FunTy | _: Forall | _: Constrained | _: ExactTy | _: WildcardTy
           | _: CompType | _: Neg | _: DynTy => normal
       case Annotated(Annot.Async(), _) => normal
       case Annotated(_, target) => resultFlow(target)
@@ -5586,8 +5618,10 @@ class NewResolver:
             if !unapplied then receive(value)
             else
               val supplied = args.map(suppliedArgument)
+              val bindings = if callee.clsDef.isDefined then constructorBindings(args, supplied)
+                else supplied.map(ParameterBinding.Fixed.apply)
               val instances = instantiateDefinition(callee, rctx.typeApplicationSite(application),
-                lexicalBinders(application), marks, rctx.instances.withOverrides(captured), S(supplied))
+                lexicalBinders(application), marks, rctx.instances.withOverrides(captured), bindings)
               SpecializedShape(callee, supplied, instances).exit(marks) match
                 case specialized: TermShape => receive(specialized)
                 case NoShape => ()
@@ -5842,7 +5876,7 @@ class NewResolver:
       // normal body's interface alone therefore cannot describe this value.
       listener(UnknownValueShape(trm, fromPublicInterface = false)(ShapeProvenance(
         msg"An effect handler can replace the handled body's result." -> trm.toLoc :: Nil)))
-    case _: DynTy | _: FunTy | _: Forall | _: Constrained | _: WildcardTy | _: CompType | _: Neg =>
+    case _: DynTy | _: FunTy | _: Forall | _: Constrained | _: ExactTy | _: WildcardTy | _: CompType | _: Neg =>
       resolError(trm, msg"A type cannot be used as a runtime value." -> N :: Nil)
     case Error() => () // Elaboration has already reported the error; it supplies no candidate.
     case Missing => () // A body skipped by lightweight elaboration (`Mode.Light`) supplies no candidate.

@@ -493,7 +493,9 @@ enum TypeArgumentResolution:
 
   def foreachType(f: TypeResolution => Unit): Unit = this match
     case Type(resolution) => f(resolution)
-    case Wildcard(_, input, output) => input.foreach(f); output.foreach(f)
+    case Wildcard(_, input, output) =>
+      input.foreach(f)
+      if output != input then output.foreach(f)
 
 /** An unqualified argument or mutable field is interpreted separately in the two polarities;
   * these parts coincide only when substitution gives the same type in both.

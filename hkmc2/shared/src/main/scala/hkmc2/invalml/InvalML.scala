@@ -170,8 +170,15 @@ class InvalTyper(using codegen.Erasure)(using elState: Elaborator.State, tl: TL)
           if targs.length != defn.tparams.length then
             error(msg"Type arguments do not match class definition" -> ty.toLoc :: Nil)
           val polarized = map.valuesIterator.exists(arg => arg.negPart =/= arg.posPart)
+          def invariant(t: Term): TypeArg =
+            val in = mono(t, !pol)
+            // Equal substitution parts cannot depend on polarity. Avoid
+            // rechecking their syntax and reporting malformed types twice.
+            val out = if polarized then mono(t, pol) else in
+            if in === out then in else Wildcard(in, out)
           val ts = defn.tparams.lazyZip(targs).map: (tp, t) =>
             t match
+            case Term.ExactTy(bound) => invariant(bound)
             case Term.WildcardTy(in, out) => Wildcard(
                 in.map(t => mono(t, !pol)).getOrElse(Bot),
                 out.map(t => mono(t, pol)).getOrElse(Top)
@@ -183,12 +190,7 @@ class InvalTyper(using codegen.Erasure)(using elState: Elaborator.State, tl: TL)
               tp.vce match
                 case S(false) => Wildcard.in(mono(t, !pol))
                 case S(true) => Wildcard.out(mono(t, pol))
-                case N =>
-                  val in = mono(t, !pol)
-                  // Equal substitution parts cannot depend on polarity. Avoid
-                  // rechecking their syntax and reporting malformed types twice.
-                  val out = if polarized then mono(t, pol) else in
-                  if in === out then in else Wildcard(in, out)
+                case N => invariant(t)
           ClassLikeType(tpeSym, ts)
       case N =>
         error(msg"Not a valid class: ${cls.describe}" -> cls.toLoc :: Nil)

@@ -173,6 +173,7 @@ trait StatementImpl extends Located, ProductWithExtraInfo, Describable:
       case Forall(tvs, outer, body) => "universal quantification"
       case Constrained(constraints, body) => "constrained type"
       case WildcardTy(in, out) => "wildcard type"
+      case ExactTy(_) => "exact type argument"
       case Blk(stats, res) => "block"
       case Quoted(term) => "quoted term"
       case Unquoted(term) => "unquoted term"
@@ -262,6 +263,7 @@ trait StatementImpl extends Located, ProductWithExtraInfo, Describable:
     case Forall(_, _, body) => Vector.single(body)
     case Constrained(constraints, body) => constraints.flatMap(_.subTerms).toVector :+ body
     case WildcardTy(in, out) => in.toVector ++ out.toVector
+    case ExactTy(bound) => Vector.single(bound)
     case CompType(lhs, rhs, _) => Vector.double(lhs, rhs)
     case LetDecl(sym, annotations) => annotations.flatMap(_.subTerms).toVector
     case DefineVar(sym, rhs) => Vector.single(rhs)
@@ -439,6 +441,7 @@ trait StatementImpl extends Located, ProductWithExtraInfo, Describable:
       case Constrained(constraints, body) =>
         val bounds = constraints.map(c => doc"${c.lhs.show} ${c.dir.showDbg} ${c.rhs.show}")
         doc"[${bounds.mkDocument(", ")}] => ${body.show}"
+      case ExactTy(bound) => doc"in out ${bound.show}"
       case WildcardTy(in, out) =>
         doc"in ${in.fold(doc"⊥")(_.show)} out ${out.fold(doc"⊤")(_.show)}"
       case Rcd(mut, stats) =>
@@ -540,6 +543,7 @@ trait StatementImpl extends Located, ProductWithExtraInfo, Describable:
     case Forall(tvs, outer, body) =>
       s"forall ${tvs.map(_.showAsPlain).mkString(", ")}${outer.map(v => s", outer ${v.showDbg}").mkString}: ${body.showDbg}"
     case Constrained(constraints, body) => s"[${constraints.map(_.showDbg).mkString(", ")}] => ${body.showDbg}"
+    case ExactTy(bound) => s"in out ${bound.showDbg}"
     case WildcardTy(in, out) => s"in ${in.map(_.showDbg).getOrElse("⊥")} out ${out.map(_.showDbg).getOrElse("⊤")}"
     case Sel(pre, nme) => s"${pre.showDbg}.${nme.name}"
     case SynthSel(pre, nme) => s"(${pre.showDbg}.)${nme.name}"

@@ -84,13 +84,39 @@ class Typer(using tl: TL)(using Elaborator.State, Raise, codegen.Erasure, Ctx, C
           case Wildcard(in, out) if !pol => Wildcard(out, in)
           case _ => arg
 
+  private object LocalTypeRef:
+    def unapply(t: Term): Opt[LocalSymbol] = t match
+      case Ref(sym: LocalSymbol) => S(sym)
+      case SimpleRef(sym: LocalSymbol) => S(sym)
+      case _ => N
+
+  private def annotationSymbol(t: Term): Opt[TypeSymbol] =
+    t.symbol.flatMap(_.asTpe).orElse(t.resolvedSym.flatMap(_.asTpe))
+
+  /** Project the argument onto the occurrences permitted by its declaration.
+    * The invariant interpretation may need both polarities of the source. */
+  private def declaredArgument(tp: TyParam, pol: Bool)(read: Bool => Type, invariant: => TypeArg): TypeArg =
+    tp.vce match
+      case S(false) => Wildcard.in(read(!pol))
+      case S(true) => Wildcard.out(read(pol))
+      case N => invariant
+
+  private def typeArgument(tp: TyParam, term: Term, pol: Bool)
+      (using subst: AnnotationSubst, ctx: InfCtx, cctx: CCtx): TypeArg =
+    def read(t: Term, p: Bool): Type = monoOrErr(typeAndSubstType(t, p), t)
+    term match
+      case Term.ExactTy(bound) => subst.invariant(bound, pol)(read(bound, _))
+      case Term.WildcardTy(in, out) =>
+        Wildcard(in.fold(Bot)(read(_, !pol)), out.fold(Top)(read(_, pol)))
+      case t => declaredArgument(tp, pol)(read(t, _), subst.invariant(t, pol)(read(t, _)))
+
   private def typeAndSubstType(ty: Term, pol: Bool)
       (using subst: AnnotationSubst, ctx: InfCtx, cctx: CCtx)
     : InfType =
     def mono(ty: Term, pol: Bool): Type = monoOrErr(typeAndSubstType(ty, pol), ty)
     trace[InfType](s"${ctx.lvl}. Typing type ${ty.showDbg}", r => s"~> ${r.showDbg}"):
-      ty match
-        case Ref(sym: LocalSymbol) =>
+      ty.withoutCaptures match
+        case LocalTypeRef(sym) =>
           log(s"Type lookup: ${sym.nme} ${sym.uid} ${subst.bindings.keySet}")
           subst.bindings.get(sym) match
             case S(Wildcard(in, out)) => if pol then out else in
@@ -100,7 +126,7 @@ class Typer(using tl: TL)(using Elaborator.State, Raise, codegen.Erasure, Ctx, C
               case _ => error(msg"Variable not found: ${sym.nme}" -> ty.toLoc :: Nil)
         case Term.TyApp(cls, targs) =>
           // log(s"Type application: ${cls.nme} with ${targs}")
-          cls.symbol.flatMap(_.asTpe) match
+          annotationSymbol(cls) match
             case S(tpeSym) =>
               if tpeSym.nme === "Any" then Top // FIXME hygiene
               else if tpeSym.nme === "Nothing" then Bot // FIXME hygiene
@@ -108,17 +134,7 @@ class Typer(using tl: TL)(using Elaborator.State, Raise, codegen.Erasure, Ctx, C
                 val defn = tpeSym.defn.get
                 if targs.length != defn.tparams.length then
                   error(msg"Type arguments do not match class definition" -> ty.toLoc :: Nil)
-                val ts = defn.tparams.lazyZip(targs).map: (tp, t) =>
-                  t match
-                  case Term.WildcardTy(in, out) => Wildcard(
-                      in.fold(Bot)(t => mono(t, !pol)),
-                      out.fold(Top)(t => mono(t, pol))
-                    )
-                  case _ =>
-                    tp.vce match
-                      case S(false) => Wildcard.in(mono(t, !pol))
-                      case S(true) => Wildcard.out(mono(t, pol))
-                      case N => subst.invariant(t, pol)(mono(t, _))
+                val ts = defn.tparams.lazyZip(targs).map(typeArgument(_, _, pol))
                 val fs = ts.map(_ => false) // TODO
                 ClassLikeType(tpeSym, ts, Nil, fs, N)
             case N => error(msg"Not a valid class: ${cls.describe}" -> cls.toLoc :: Nil)
@@ -144,7 +160,7 @@ class Typer(using tl: TL)(using Elaborator.State, Raise, codegen.Erasure, Ctx, C
           if isUnion then mono(lhs, pol) | mono(rhs, pol) else mono(lhs, pol) & mono(rhs, pol)
         case UnitVal() => ctx.prim.unitTy
         case Lit(x) => InfCtx.litTy(x)
-        case _ => ty.symbol.flatMap(_.asTpe) match
+        case _ => annotationSymbol(ty) match
           case S(cls: (ClassSymbol | TypeAliasSymbol)) => typeAndSubstType(Term.TyApp(ty, Nil)(N), pol)
           case _ => error(msg"Invalid type" -> ty.toLoc :: Nil, S(ty)) // TODO
 
@@ -327,39 +343,67 @@ class Typer(using tl: TL)(using Elaborator.State, Raise, codegen.Erasure, Ctx, C
       case N => 
         (error(msg"Not a valid class: ${cls.describe}" -> cls.toLoc :: Nil), Bot)
 
-  private def newobj(cls: Term, args: Ls[Term])(using InfCtx, CCtx, Scope) =
-    cls.symbol.flatMap(_.asCls.flatMap(_.defn)) match
-    case S(clsDfn: ClassDef.Parameterized) =>
-      require(clsDfn.paramsOpt.forall(_.variadic.isEmpty))
+  /** The constructor checks its value arguments against one type per formal. Its
+    * result exposes the interval promised by the written argument or declaration. */
+  private def constructorArgument(tp: TyParam, written: Opt[Term])(using InfCtx, CCtx): (Type, TypeArg) =
+    def byDeclaration(t: Type) = t -> declaredArgument(tp, true)(_ => t, t)
+    written match
+      case N => byDeclaration(freshVar(tp.sym))
+      case S(Term.ExactTy(arg)) =>
+        val t = typeMonoType(arg)
+        t -> t
+      case S(Term.WildcardTy(in, out)) =>
+        val lower = in.fold(Bot)(typeMonoType)
+        val upper = out.fold(Top)(typeMonoType)
+        val witness =
+          if in.isEmpty || lower === upper then upper
+          else if out.isEmpty then lower
+          else
+            // Every constructor parameter mentioning this formal must agree on
+            // the same member of the interval, including callback parameters.
+            val v = freshVar(tp.sym)
+            constrain(lower, v)
+            constrain(v, upper)
+            v
+        witness -> Wildcard(lower, upper)
+      case S(t) => byDeclaration(typeMonoType(t))
+
+  private def newobj(cls: Term, args: Ls[Term])(using InfCtx, CCtx, Scope): (Type, Type) =
+    val (head, supplied) = cls.withoutCaptures match
+      case Term.TyApp(base, targs) => base -> S(targs)
+      case base => base -> N
+    annotationSymbol(head).flatMap(_.asCls).flatMap(_.defn) match
+    case S(clsDfn) =>
+      val params = clsDfn.paramsOpt.fold(List.empty[Param])(_.params)
       val argsList = args match
         case Nil => Nil
-        case Term.Tup(elems) :: Nil => elems.map:
-          case PlainFld(term) => term
-          case _ => ???
-        case _ => ???
-      if argsList.length != clsDfn.params.params.length then
+        case Term.Tup(elems) :: Nil => elems
+        case _ => return (error(msg"The logic-subtyping checker requires a single constructor argument list." -> cls.toLoc :: Nil), Bot)
+      if supplied.exists(_.length != clsDfn.tparams.length) then
+        (error(msg"Type arguments do not match class definition" -> cls.toLoc :: Nil), Bot)
+      else if clsDfn.auxParams.nonEmpty || clsDfn.paramsOpt.exists(_.variadic.isDefined) then
+        (error(msg"The logic-subtyping checker requires a fixed constructor parameter list." -> cls.toLoc :: Nil), Bot)
+      else if argsList.length != params.length then
         (error(msg"The number of parameters is incorrect" -> cls.toLoc :: Nil), Bot)
       else
-        val map = HashMap[LocalSymbol, TypeArg]()
-        // Constructing a value chooses one exact argument per parameter.
-        // Its input and output share the same variable even on a variant class.
+        val map = Map.newBuilder[LocalSymbol, TypeArg]
+        val written = supplied.iterator.flatten
         val targs = clsDfn.tparams.map: tp =>
-          val ty = freshVar(tp.sym)
-          map += tp.sym -> ty
-          ty
-        val subst = AnnotationSubst(map.toMap)
-        val effBuff = ListBuffer.empty[Type]
-        require(clsDfn.paramsOpt.forall(_.variadic.isEmpty))
-        argsList.iterator.zip(clsDfn.params.params).foreach {
-          case (arg, Param(sign = S(sign))) =>
-            val (ty, eff) = ascribe(arg, typeAndSubstType(sign, pol = true)(using subst))
-            effBuff += eff
-          case _ => ???
-        }
-        val fs = targs.map(_ => false) // TOOD
-        (ClassLikeType(clsDfn.sym, targs, Nil, fs, N), effBuff.foldLeft[Type](Bot)((res, e) => res | e))
-    case S(clsDfn: ClassDef.Plain) => ??? // TODO
-    case N => 
+          val (witness, result) = constructorArgument(tp, written.nextOption())
+          map += tp.sym -> witness
+          result
+        val subst = AnnotationSubst(map.result())
+        val eff = argsList.lazyZip(params).foldLeft[Type](Bot):
+          case (eff, (PlainFld(arg), Param(sign = S(sign)))) =>
+            eff | ascribe(arg, typeAndSubstType(sign, pol = true)(using subst))._2
+          case (eff, (PlainFld(arg), param)) =>
+            error(msg"Constructor parameter '${param.sym.nme}' requires a type annotation." -> param.toLoc :: Nil)
+            eff | typeCheck(arg)._2
+          case (eff, (arg, _)) =>
+            error(msg"The logic-subtyping checker requires a positional constructor argument." -> arg.toLoc :: Nil)
+            eff
+        (ClassLikeType(clsDfn.sym, targs, Nil, targs.map(_ => false), N), eff)
+    case N =>
       (error(msg"Not a valid class: ${cls.describe}" -> cls.toLoc :: Nil), Bot)
 
   private def typeSplit
@@ -423,11 +467,15 @@ class Typer(using tl: TL)(using Elaborator.State, Raise, codegen.Erasure, Ctx, C
         (error(msg"Cannot type this ${lhs.describe} as ${rhs.show}" -> lhs.toLoc :: Nil), Bot)
       else
         val nestCtx = ctx.nest
-        val argsTy = params.zip(args).map:
-          case (Param(sym = sym), ty) =>
-            nestCtx += sym -> ty
-            ty
         given InfCtx = nestCtx
+        params.lazyZip(args).foreach: (param, expected) =>
+          nestCtx += param.sym -> expected
+          param.sign.foreach: sign =>
+            val written = typeType(sign)
+            // The caller can supply any value of the expected parameter type.
+            // Check that value at the written annotation, including for a polymorphic parameter.
+            ascribe(new Ref(param.sym)(param.sym.id, N).withLocOf(param.sym.id), written)
+            nestCtx += param.sym -> written
         val (_, effTy) = ascribe(body, ret)
         constrain(effTy, eff)
         (ft, Bot)
@@ -443,9 +491,6 @@ class Typer(using tl: TL)(using Elaborator.State, Raise, codegen.Erasure, Ctx, C
       (pt, Bot)
     case (Term.IfLike(_, IfLikeForm.ReturningIf, split), ty) => // * propagate
       typeSplit(split.getExpandedSplit, S(ty))
-    case (Term.Asc(term, ty), rhs) =>
-      ascribe(term, typeType(ty))
-      ascribe(term, rhs)
     case (lhs, rhs: Type) => rhs.conjuncts.toList match
       case rhs :: Nil =>
         val (lhsTy, eff) = typeCheck(lhs)

@@ -323,7 +323,9 @@ final class NewResolverState(val owner: Elaborator.State):
   // enclosing activations of their bounds, not whether the slot is explicit.
   // A method projection or nested constraint can change the observation scope
   // without changing this property. Missing supplied positions remain inferred.
-  private[semantics] val explicitTypeArguments = mutable.Set.empty[VarSymbol]
+  // The value records whether the written argument fixes the local parameter.
+  // A two-sided constructor range exposes its endpoints and permits local inference.
+  private[semantics] val explicitTypeArguments = mutable.Map.empty[VarSymbol, Bool]
   private[semantics] val typeConstraints: Seen[(DeclaredType, ShapeIdentity.Key, Ls[Marks], Bool)] =
     new Seen(_.typeConstraints)
   val typeArgumentArityErrors: Seen[(TyApp, Int)] =
@@ -833,10 +835,12 @@ final class ResolutionContext private[semantics] (
     val graph = pattern.originalData.owner
     val defining = if graph == null then this else inGraph(graph.context)
     defining.state.recordPatternReads.get(pattern)(using defining)
-  def markExplicitTypeArgument(symbol: VarSymbol): Unit =
-    state.explicitTypeArguments += symbol
+  def recordExplicitTypeArgument(symbol: VarSymbol, fixed: Bool): Unit =
+    state.explicitTypeArguments(symbol) = fixed
   def hasExplicitTypeArgument(symbol: VarSymbol): Bool =
-    state.explicitTypeArguments(symbol) || source.exists(_.hasExplicitTypeArgument(symbol))
+    state.explicitTypeArguments.contains(symbol) || source.exists(_.hasExplicitTypeArgument(symbol))
+  def hasFixedTypeArgument(symbol: VarSymbol): Bool =
+    state.explicitTypeArguments.get(symbol).getOrElse(source.exists(_.hasFixedTypeArgument(symbol)))
   /** Whether this constraint is new; values are keyed like inference candidates.
     * Install each constraint edge before subscribing: callback parameter/result
     * flow can revisit it immediately. Distinct instantiations retain their marks.

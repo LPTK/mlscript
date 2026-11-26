@@ -293,7 +293,8 @@ final class InterfaceExposure(resolver: NewResolver)(using ResolutionContext, TL
                 rctx.templateBindersOf(tpe.resolution).nonEmpty)(parameter)
             target.foreach: actual =>
               if rctx.hasExplicitTypeArgument(actual.symbol) then exposeSuppliedArgument(actual, tpe.instances, marks, path)
-              else watch((tpe, marks, "type argument"))(resolver.listenTypeParameterValues(actual))(candidate)
+              if !rctx.hasFixedTypeArgument(actual.symbol) then
+                watch((tpe, marks, "type argument"))(resolver.listenTypeParameterValues(actual))(candidate)
           case TypeShape.Hole(host) => watch((tpe, marks, "inferred argument"))(host.subscribe(_))(candidate)
           case TypeShape.Inferred(value) => candidate(value)
           case _ => ()

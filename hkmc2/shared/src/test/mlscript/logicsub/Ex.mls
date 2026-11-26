@@ -133,7 +133,7 @@ nil
 //│ Type: Nil
 
 cons
-//│ Type: ['A, 'B] -> ('A, 'B) -> Cons[in 'A out 'A, in 'B out 'B]
+//│ Type: ['x, 'y] -> ('x, 'y) -> Cons['x, 'y]
 
 all2(nil)
 //│ Type: Tru
@@ -186,7 +186,7 @@ headOption
 //│ Where:
 //│   'x <: Nil | Cons
 //│   'x >:< Cons =>
-//│       Some[in 'A out 'A] <: 'res
+//│       Some['A] <: 'res
 //│       'A1 <: 'A
 //│       'x & Cons <: Cons['A1]
 //│   'x >:< Nil => None <: 'res

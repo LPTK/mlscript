@@ -564,6 +564,7 @@ private[semantics] final class Cloner(outer: SymbolSubst)(using State, Erasure) 
           outer.map(scope.mapVarSym), scope.term(body))
       case Constrained(constraints, body) => Constrained(constraints.map(c =>
         located(c, c.copy(lhs = c.lhs.cloned, rhs = c.rhs.cloned))), body.cloned)
+      case ExactTy(bound) => ExactTy(bound.cloned)
       case WildcardTy(in, out) => WildcardTy(in.map(_.cloned), out.map(_.cloned))
       case blk: Blk => return block(blk)
       case term @ Rcd(mut, stats) =>

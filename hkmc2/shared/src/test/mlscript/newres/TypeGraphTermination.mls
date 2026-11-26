@@ -461,3 +461,10 @@ private fun unused(value: Level24) = 0
 // Exercise the same form at a size that is cheap enough for ordinary test runs.
 :!js
 fun small(value: ({a0: Int} | {b0: Int}) & ({a1: Int} | {b1: Int}) & ({a2: Int} | {b2: Int})) = 0
+
+
+// Follow every field of a nested invariant application through a receiver with distinct bounds.
+class Cell[T](val item: T)
+class Holder[T](val value: Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[Cell[T]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]])
+private fun read(holder: Holder[in Nothing out Int]): Int =
+  holder.value.item.item.item.item.item.item.item.item.item.item.item.item.item.item.item.item.item.item.item.item.item.item.item.item.item.item.item.item.item.item.item.item

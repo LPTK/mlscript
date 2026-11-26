@@ -1653,7 +1653,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
         msg"Cannot compile ${t.describe} term that was not elaborated (maybe elaboration was one in 'lightweight' mode?)" ->
           t.toLoc :: Nil,
         source = Diagnostic.Source.Compilation)
-    case _: Term.DynTy | _: CompType | _: Neg | _: Term.FunTy | _: Term.Forall | _: Term.WildcardTy | _: Term.Unquoted | _: LeadingDotSel | _: Term.Constrained | _: Term.Annotated
+    case _: Term.DynTy | _: CompType | _: Neg | _: Term.FunTy | _: Term.Forall | _: Term.WildcardTy | _: Term.ExactTy | _: Term.Unquoted | _: LeadingDotSel | _: Term.Constrained | _: Term.Annotated
     => fail:
       ErrorReport(
         msg"Unexpected term form in expression position (${t.describe})" ->

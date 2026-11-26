@@ -392,6 +392,8 @@ enum Term extends Statement, AutoLocated, ShapePublisher:
   case Forall(tvs: Ls[QuantVar], outer: Opt[VarSymbol], body: Term)
   case Constrained(constraints: Ls[SubConstraint], body: Term)
   case WildcardTy(in: Opt[Term], out: Opt[Term])
+  /** A single written operand supplies both bounds, even on a variant parameter. */
+  case ExactTy(bound: Term)
   case Blk(stats: Ls[Statement], res: Term) extends Term, BlkImpl
   case Rcd(mut: Bool, stats: Ls[Statement]) extends Term, ShapeHost
   case Quoted(body: Term)
@@ -692,6 +694,7 @@ object RcdField:
     * read type for erasure. The field retains the written bounds for reads and assignments. */
   def signature(field: Term, bounds: Term, mut: Bool, symbol: Opt[SymbolKey])(using State, Ctx): RcdField =
     val readType = bounds match
+      case Term.ExactTy(bound) => bound
       case Term.WildcardTy(_, output) =>
         output.getOrElse(ctx.builtins.Any.ref(new Tree.Ident("Any").withLocOf(bounds)))
       case tpe => tpe

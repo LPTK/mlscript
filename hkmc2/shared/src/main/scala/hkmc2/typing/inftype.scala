@@ -106,14 +106,8 @@ sealed abstract class Type extends InfType with TypeArg:
       case (Some(true), Bot, upper) => append(upper, TypePrecedence.Arrow)
       case (Some(false), lower, Top) => append(lower, TypePrecedence.Arrow)
       case (Some(_), lower, upper) if lower === upper =>
-        // Bare T denotes a one-sided argument here. Show a compound exact
-        // bound once so nested exact arguments do not double at every level.
-        if lower.isAtomic then
-          val bound = lower.show
-          out ++= s"in $bound out $bound"
-        else
-          out += '='
-          append(lower, TypePrecedence.Neg)
+        out ++= "in out "
+        append(lower, TypePrecedence.Neg)
       case (_, lower, upper) if lower === upper => append(lower, TypePrecedence.Arrow)
       case _ => out ++= arg.show
     def append(t: Type, enclosing: TypePrecedence): Unit =

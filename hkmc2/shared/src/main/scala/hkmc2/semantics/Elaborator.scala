@@ -1481,7 +1481,9 @@ extends Importer:
     field.copy()(field.mut, key)
 
   /** Elaborate explicit input and output bounds on a type argument or mutable record field. */
-  private def wildcardType(tree: Tree)(using Ctx, UnderCtx): Opt[Term.WildcardTy] = tree.deparenthesized match
+  private def wildcardType(tree: Tree)(using Ctx, UnderCtx): Opt[Term.WildcardTy | Term.ExactTy] = tree.deparenthesized match
+    case exact @ Modified(Keywrd(Keyword.`in`), Modified(Keywrd(Keyword.`out`), bound)) =>
+      S(new Term.ExactTy(subterm(bound, Tpe)).withLocOf(exact))
     case Modified(kw @ Keywrd(Keyword.`in`), input) =>
       S(new Term.WildcardTy(S(subterm(input, Tpe)), N).mkLocWith(kw))
     case Modified(kw @ Keywrd(Keyword.`out`), output) =>

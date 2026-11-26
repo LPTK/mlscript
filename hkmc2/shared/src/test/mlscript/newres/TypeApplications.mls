@@ -13,3 +13,44 @@ fun identity[T](x) = x
 identity[Int](new Child[Int](43)).value
 //│ = 43
 
+
+// The written endpoint gives the constructor callback its parameter type.
+:expect 17
+class Item(val value: Int)
+class Sink[in T](val run: T -> Int)
+let sink = new Sink[in Item](x => x.value)
+sink.run(Item(17))
+//│ = 17
+//│ sink = Sink(fun)
+
+// Both the constructor and the declared interface preserve an explicitly exact argument.
+:expect 18
+class Source[out T](val item: T)
+let source = new Source[in out Item](Item(18)) as Source[in out Item]
+source.item.value
+//│ = 18
+//│ source = Source(Item(18))
+
+
+// The callback and value share one type within the written range.
+class Payload
+class Numbered(val number: Int) extends Payload
+class Labeled(val label: Int) extends Payload
+class Relay[out T](x: T, f: T -> Int) with
+  val result = f(x)
+
+:expect 21
+new Relay[in Numbered out Payload](Numbered(21), x => x.number).result
+//│ = 21
+
+// The same constructor site can use bounds from two distinct enclosing calls.
+fun relay[X](value: X, read: X -> Int) =
+  new Relay[in X out Any](value, x => read(x)).result
+
+:expect 22
+relay[Numbered](Numbered(22), x => x.number)
+//│ = 22
+
+:expect 23
+relay[Labeled](Labeled(23), x => x.label)
+//│ = 23

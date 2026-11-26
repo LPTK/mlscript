@@ -1,0 +1,109 @@
+#lang(0.3.x, typeCheck: TypeChecking())
+
+class Box[out T](val item: T)
+class Sink[in T](val consume: T -> ())
+class Cell[T](val item: T)
+
+new Box(1)
+//│ Type: Box[1]
+
+new Box[Int](1)
+//│ Type: Box[Int]
+
+new Box[out Int](1)
+//│ Type: Box[Int]
+
+new Box[in out Int](1)
+//│ Type: Box[in out Int]
+
+new Box[in Int out Int](1) as Box[in out Int]
+//│ Type: Box[in out Int]
+
+new Box[in out (Int | Str)]("text")
+//│ Type: Box[in out (Int | Str)]
+
+:e
+new Box[in out Int]("text")
+//│ ╔══[COMPILATION ERROR] Type error in string literal with expected type Int
+//│ ║  l.+1: 	new Box[in out Int]("text")
+//│ ║        	                    ^^^^^^
+//│ ╙── because: cannot constrain  "text"  <:  Int
+//│ Type: Box[in out Int]
+
+:e
+new Box[Int](1) as Box[in out Int]
+//│ ╔══[COMPILATION ERROR] Type error in object instantiation with expected type Box[in out Int]
+//│ ║  l.+1: 	new Box[Int](1) as Box[in out Int]
+//│ ║        	^^^^^^^^^^^^^^^
+//│ ╟── because: cannot constrain  Box[Int]  <:  Box[in out Int]
+//│ ╙── because: cannot constrain  Int  <:  ⊥
+//│ Type: Box[in out Int]
+
+// Widening an exact instance also forgets its input bound.
+:e
+(new Box[in out Int](1) as Box[Int]) as Box[in out Int]
+//│ ╔══[COMPILATION ERROR] Type error in type ascription with expected type Box[in out Int]
+//│ ║  l.+1: 	(new Box[in out Int](1) as Box[Int]) as Box[in out Int]
+//│ ║        	 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── because: cannot constrain  Box[Int]  <:  Box[in out Int]
+//│ ╙── because: cannot constrain  Int  <:  ⊥
+//│ Type: Box[in out Int]
+
+new Cell(1)
+//│ Type: Cell['T]
+//│ Where:
+//│   1 <: 'T
+
+new Sink((x: Int) => ())
+//│ Type: Sink[Int]
+
+new Sink[in out Int]((x: Int) => ())
+//│ Type: Sink[in out Int]
+
+:e
+new Sink[Int]((x: Int) => ()) as Sink[in out Int]
+//│ ╔══[COMPILATION ERROR] Type error in object instantiation with expected type Sink[in out Int]
+//│ ║  l.+1: 	new Sink[Int]((x: Int) => ()) as Sink[in out Int]
+//│ ║        	^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//│ ╟── because: cannot constrain  Sink[Int]  <:  Sink[in out Int]
+//│ ╙── because: cannot constrain  ⊤  <:  Int
+//│ Type: Sink[in out Int]
+
+new Box[in 1 out Int](2)
+//│ Type: Box[in 1 out Int]
+
+:e
+new Box[in 1 out Int]("text")
+//│ ╔══[COMPILATION ERROR] Type error in string literal with expected type 'T
+//│ ║  l.+1: 	new Box[in 1 out Int]("text")
+//│ ║        	                      ^^^^^^
+//│ ╟── because: cannot constrain  "text"  <:  'T
+//│ ╙── because: cannot constrain  "text"  <:  Int
+//│ Type: Box[in 1 out Int]
+
+// Both parameters use the written endpoint, including occurrences in function inputs.
+class Relay[out T](x: T, f: T -> ())
+
+new Relay[Int](1, (x: Int) => ())
+//│ Type: Relay[Int]
+
+:e
+new Relay[out Int](1, (x: Str) => ())
+//│ ╔══[COMPILATION ERROR] Type error in reference with expected type Str
+//│ ║  l.+1: 	new Relay[out Int](1, (x: Str) => ())
+//│ ║        	                       ^
+//│ ╙── because: cannot constrain  Int  <:  Str
+//│ Type: Relay[Int]
+
+:e
+new Relay[in 1 out Int](1, (x: Str) => ())
+//│ ╔══[COMPILATION ERROR] Type error in reference with expected type Str
+//│ ║  l.+1: 	new Relay[in 1 out Int](1, (x: Str) => ())
+//│ ║        	                            ^
+//│ ╟── because: cannot constrain  'T  <:  Str
+//│ ╙── because: cannot constrain  1  <:  Str
+//│ Type: Relay[in 1 out Int]
+
+// A bounded constructor can choose 1 for both uses of T.
+new Relay[in 1 out Int](1, (x: 1) => ())
+//│ Type: Relay[in 1 out Int]
