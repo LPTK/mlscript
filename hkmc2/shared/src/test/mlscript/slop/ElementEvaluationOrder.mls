@@ -1,0 +1,49 @@
+:.
+
+// Elements and arguments must be evaluated from left to right, including reads of a mutable variable
+// that a later element assigns.
+
+// Capture each read of `n` between the calls that update it.
+:expect [1, 1, 2, 2]
+fun inArray() =
+  let n = 0
+  fun bump() =
+    set n = n + 1
+    n
+  [bump(), n, bump(), n]
+inArray()
+//│ = [1, 1, 2, 2]
+
+// The first element captures the value before the call.
+:expect [0, 1]
+fun readFirst() =
+  let n = 0
+  fun bump() =
+    set n = n + 1
+    n
+  [n, bump()]
+readFirst()
+//│ = [0, 1]
+
+// Call arguments preserve the same order.
+:expect [1, 1, 2]
+fun inCall() =
+  let n = 0
+  fun bump() =
+    set n = n + 1
+    n
+  fun triple(a, b, c) = [a, b, c]
+  triple(bump(), n, bump())
+inCall()
+//│ = [1, 1, 2]
+
+// Record literals bind their fields in order.
+:expect {a: 1, b: 1, c: 2}
+fun inRecord() =
+  let n = 0
+  fun bump() =
+    set n = n + 1
+    n
+  {a: bump(), b: n, c: bump()}
+inRecord()
+//│ = {a: 1, b: 1, c: 2}

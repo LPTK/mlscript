@@ -226,7 +226,7 @@ spares
 
 // A field that holds a function is a value like any other: when it can change, it is read before the arguments.
 class Dispatcher with
-  mut val handle: Int -> Str = n => "old"
+  mut val handle: (Int -> Str) = n => "old"
 let dispatcher = new mut Dispatcher
 fun swapHandler() =
   set dispatcher.handle = n => "new"

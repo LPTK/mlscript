@@ -39,7 +39,7 @@ abstract class Shape() with
 // A separate full signature types the written parameters.
 open class Signed() with
   open fun scale: (Int, Int) -> Int
-  open fun scale(x, y) = x * y
+  fun scale(x, y) = x * y
 
 // An override inherits a specified signature unchanged and need not restate it.
 open class Typed() with
@@ -59,7 +59,7 @@ class Family[T] with
 val family: Family[in Dog out Animal] = new Family[Animal]
 open class Reader with
   open fun tagOf(next: () -> family.Element): Int = 0
-  open mut val nextPet: () -> family.Element = () => Dog(1)
+  open mut val nextPet: (() -> family.Element) = () => Dog(1)
 class DogReader extends Reader with
   override fun tagOf(next) = next().tag
   override mut val nextPet = () => Dog(2)

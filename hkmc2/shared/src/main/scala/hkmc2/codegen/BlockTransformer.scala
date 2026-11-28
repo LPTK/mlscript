@@ -352,7 +352,7 @@ class BlockTransformer(subst: SymbolSubst):
         // A binding substitution retains the calling convention. Type-changing rewrites must
         // construct their parameter lists and signatures together instead.
         assert(p.sym.erasedType.corresponds(sym2.erasedType)(_ is _), "Parameter renaming changed its erased type")
-        p.copy(sym = sym2)(p.toLoc)
+        p.copy(sym = sym2)(p.toLoc).withSignTypeOf(p)
     val params2 = pl.params.mapConserve(applyParam)
     val restParam2 = pl.restParam.mapConserve(applyParam)
     if (params2 is pl.params) && (restParam2 is pl.restParam)

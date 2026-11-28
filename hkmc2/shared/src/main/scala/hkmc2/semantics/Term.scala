@@ -31,16 +31,18 @@ enum Annot extends Located:
   case Unsafe()(val toLoc: Opt[Loc])
   case PlainField()(val toLoc: Opt[Loc])
   case Modifier(mod: Keyword)(val toLoc: Opt[Loc])
-  case Trm(trm: Term)(val toLoc: Opt[Loc])
+  // Annotation lookup also accepts wildcard imports and selections through values.
+  // Keep the recognized head for comparisons between a signature and its definition.
+  case Trm(trm: Term)(override val symbol: Opt[Symbol], val toLoc: Opt[Loc])
   // NOTE: The presence of TailRec and TailCall annotations does not affect whether a function is optimized or not;
   // it only affects whether a warning is thrown if the function/call is not actually tail-recursive.
-  case TailRec()(val toLoc: Opt[Loc])
+  case TailRec()(val toLoc: Opt[Loc]) extends Annot, Annot.RequiresFunctionBody("@tailrec")
   case TailCall()(val toLoc: Opt[Loc])
-  case Inline()(val toLoc: Opt[Loc])
-  case NoInline()(val toLoc: Opt[Loc])
-  case Generator()(val toLoc: Opt[Loc])
-  case Async()(val toLoc: Opt[Loc])
-  case RaiseEffects()(val toLoc: Opt[Loc])
+  case Inline()(val toLoc: Opt[Loc]) extends Annot, Annot.RequiresFunctionBody("@inline")
+  case NoInline()(val toLoc: Opt[Loc]) extends Annot, Annot.RequiresFunctionBody("@noInline")
+  case Generator()(val toLoc: Opt[Loc]) extends Annot, Annot.RequiresFunctionBody("@generator")
+  case Async()(val toLoc: Opt[Loc]) extends Annot, Annot.RequiresFunctionBody("@async")
+  case RaiseEffects()(val toLoc: Opt[Loc]) extends Annot, Annot.RequiresFunctionBody("@raiseEffects")
   // * EffectAnalysis Annotations
   // @pure: overriding annotation indicating that the function is pure.
   case Pure()(val toLoc: Opt[Loc])
@@ -60,9 +62,7 @@ enum Annot extends Located:
   //   `f` is one-shot and each function value produced by `f(a)` is also one-shot.
   case Affine(whichParamList: Int)(val toLoc: Opt[Loc])
   
-  def symbol: Opt[Symbol] = this match
-    case Trm(trm) => trm.symbol
-    case _ => N
+  def symbol: Opt[Symbol] = N
   
   def subTerms: Vector[Term] = this match
     case Trm(trm) => Vector.single(trm)
@@ -72,16 +72,11 @@ enum Annot extends Located:
   
   def show(using Scope, ShowCfg, Raise): Document = this match
     case JsSymbol(key) => doc"@jsSymbol(${key.term.show})"
+    case a: Annot.RequiresFunctionBody => doc"${a.spelling}"
     case Fresh() => doc"@annotations.fresh"
     case Untyped() => doc"@untyped"
     case Unsafe() => doc"@unsafe"
     case PlainField() => doc"@js.plainField"
-    case Inline() => doc"@inline"
-    case NoInline() => doc"@noInline"
-    case Generator() => doc"@generator"
-    case Async() => doc"@async"
-    case RaiseEffects() => doc"@raiseEffects"
-    case TailRec() => doc"@tailrec"
     case TailCall() => doc"@tailcall"
     case Affine(n) => doc"@affine($n)"
     case Modifier(mod) => doc"@${mod.name}"
@@ -100,6 +95,24 @@ object Annot:
   /** The `declare` modifier in `annotations`, if present. */
   def declareModifierOf(annotations: Ls[Annot]): Opt[Annot.Modifier] = annotations.collectFirst:
     case mod @ Annot.Modifier(Keyword.`declare`) => mod
+  
+  /** An annotation whose effect requires a function body. `spelling` names it in source and diagnostics. */
+  sealed trait RequiresFunctionBody(val spelling: Str)
+  
+  /** Where an annotation belongs on a member that has both a separate signature (`fun f: T`) and a definition. */
+  enum Placement:
+    /** Affects only how the body is compiled. */
+    case Definition
+    /** Affects what callers see. */
+    case Signature
+    /** Fits either side. */
+    case Either
+  
+  object Placement:
+    def of(annot: Annot): Placement = annot match
+      case TailRec() | Inline() | NoInline() | Config(_) | Debug(_) | RaiseEffects() => Definition
+      case Pure() | JsSymbol(_) | Affine(_) | PlainField() | Fresh() => Signature
+      case _ => Either
   
 end Annot
 
@@ -254,9 +267,9 @@ object Resolvable:
       case defn: TermDefinition => S(CallableDefinition(
         defn.sym,
         defn.params,
-        defn.tparams,
+        defn.signatureHeader.tparams,
         defn.sign,
-        defn.flags,
+        defn.signatureHeader.flags,
         defn.modulefulness,
         defn,
       ))
@@ -312,8 +325,10 @@ sealed trait TupleLiteral extends ShapeHost:
     case Spd(SpreadKind.Lazy, _, _) => true
     case _ => false
 
-/** Identifies the values a lambda body produces on normal completion.
-  * Resolution collects those values under this slot and erasure assigns their common representation.
+/** Identifies the values that a lambda returns: the value that its body completes with and, when a `return`
+  * in its body returns from the lambda itself (see `Lam`), the values of these returns.
+  * Resolution collects these values under this slot. Erasure gives the slot the representation of the
+  * lambda's declared result type or, without one, the common representation of the collected values.
   */
 final class LambdaResultSlot extends HasDelayedErasedType[ErasedValueType]
 
@@ -384,7 +399,15 @@ enum Term extends Statement, AutoLocated, ShapePublisher:
    *  branch matches. Used by `ups.FixedPointCompiler` to drive the generated
    *  matcher machine. */
   case SynthWhile(split: Split)
-  case Lam(params: ParamList, body: Term) extends Term, LambdaImpl
+  /** A function that takes `params` and returns the result of `body`.
+    * A function literal declares no result type, and a `return` in its body returns from the enclosing definition.
+    * A definition is also elaborated into one `Lam` for each parameter list that it writes after those of its
+    * signature, as `fun f(x)(y): Int = ...` does for `(y)` following `fun f: Int -> (Int -> Int)`.
+    * The body of the last of these functions is the body of the definition: a `return` in it returns from this
+    * function, and `declaredResult` is the result type that the definition declares. As for a definition, the
+    * values that the body returns must have this type, and callers observe it in place of those values.
+    */
+  case Lam(params: ParamList, body: Term)(val declaredResult: Opt[Term]) extends Term, LambdaImpl
   case FunTy(lhs: Term, rhs: Term, eff: Opt[Term])
   case Forall(tvs: Ls[QuantVar], outer: Opt[VarSymbol], body: Term)
   case Constrained(constraints: Ls[SubConstraint], body: Term)
@@ -585,7 +608,7 @@ object Term:
     * Pass `N` when the generated body has no known result representation.
     */
   def erasedLambda(params: ParamList, body: Term, resultType: Opt[ErasedValueType]): Lam =
-    val lam: Lam = Lam(params, body)
+    val lam: Lam = Lam(params, body)(N)
     lam.resultSlot.erasedType = resultType
     lam
 
@@ -619,7 +642,7 @@ object Term:
   private[semantics] def termDefFreeVars(td: TermDefinition): Set[Str] =
     val paramNames = td.params.iterator.flatMap(_.allParams).map(_.sym.nme).toSet
     val bodyFree = td.body.iterator.flatMap(_.freeVars).toSet
-    val signFree = td.sign.iterator.flatMap(_.freeVars).toSet
+    val signFree = td.typeAnnotations.flatMap(_.freeVars).toSet
     (bodyFree ++ signFree) -- paramNames
   
   /** Free vars of a ClassLikeDef body, with constructor params subtracted. */
@@ -690,21 +713,25 @@ final case class RcdField(field: Term, rhs: Term, sym: BlockMemberSymbol)(val mu
 object RcdField:
   /** Construct a generated value field of an immutable record, whose symbol does not participate in source erasure. */
   def apply(field: Term, rhs: Term)(using State): RcdField =
-    make(field, rhs, signature = N, initializer = S(rhs), source = false, mut = false, mutable = false, symbol = N)
+    make(field, rhs, signature = N, signatureParams = Nil, initializer = S(rhs), source = false, mut = false,
+      mutable = false, symbol = N)
   /** Construct a field that a record literal declares with the value `rhs`. It is written with `mut` if `mut`,
     * and its record is written with `mut` if `mutableRecord`. */
   def source(field: Term, rhs: Term, mut: Bool, mutableRecord: Bool)(using State): RcdField =
-    make(field, rhs, signature = N, initializer = S(rhs), source = true, mut = mut, mutable = mut || mutableRecord, symbol = N)
+    make(field, rhs, signature = N, signatureParams = Nil, initializer = S(rhs), source = true, mut = mut,
+      mutable = mut || mutableRecord, symbol = N)
   /** Declare a structural field with the given type or bounds. Its term symbol carries the
     * read type for erasure. The field retains the written bounds for reads and assignments.
-    * `mut` and `mutableRecord` are those of `source`. */
-  def signature(field: Term, bounds: Term, mut: Bool, mutableRecord: Bool, symbol: Opt[SymbolKey])(using State, Ctx): RcdField =
+    * A method field has the parameter lists `signatureParams`, which its type spells out
+    * (see TermDefinition). `mut` and `mutableRecord` are those of `source`. */
+  def signature(field: Term, bounds: Term, signatureParams: Ls[ParamList], mut: Bool, mutableRecord: Bool,
+      symbol: Opt[SymbolKey])(using State, Ctx): RcdField =
     val readType = bounds match
       case Term.WildcardTy(_, output) =>
         output.getOrElse(ctx.builtins.Any.ref(new Tree.Ident("Any").withLocOf(bounds)))
       case tpe => tpe
-    make(field, bounds, signature = S(readType), initializer = N, source = true, mut = mut, mutable = mut || mutableRecord,
-      symbol = symbol)
+    make(field, bounds, signature = S(readType), signatureParams = signatureParams, initializer = N, source = true,
+      mut = mut, mutable = mut || mutableRecord, symbol = symbol)
   /** Create the field that `spread` copies from `origin`. The field name retains its declaration site.
     * The spread identifies the copy in the receiving record, whose mutability determines whether it can be assigned.
     * Resolution reads its initial value through the field's `root`, so its definition has no body. */
@@ -729,18 +756,19 @@ object RcdField:
     val sym = new BlockMemberSymbol(name, Nil)
     val tsym = new RecordFieldSymbol(id, mutable, origin)
     sym.tsym = S(tsym)
-    tsym.defn = S(TermDefinition(RecordField, sym, tsym, Nil, N, signature, N, TermDefFlags.empty,
+    tsym.defn = S(TermDefinition(RecordField, sym, tsym, Nil, Nil, N, signature, N, TermDefFlags.empty,
       Modulefulness.none, annotations, N)(loc, loc, N))
     sym.complete()
     tsym
   /** Create a record property with a fresh member symbol so that selection can identify its definition.
     * The field retains `rhs`, a value expression or structural field bounds. Its member definition
-    * takes its declared read type from `signature` and its body from `initializer` independently.
+    * takes its declared read type from `signature`, the parameter lists of a method field from
+    * `signatureParams`, and its body from `initializer` independently.
     * `source` indicates that source erasure will assign the symbol's representation.
     * `mut` tells whether the field is written with `mut`, and `mutable` whether it can be assigned.
     * `symbol` supplies the property key for an `@jsSymbol` field.
     */
-  private def make(field: Term, rhs: Term, signature: Opt[Term], initializer: Opt[Term],
+  private def make(field: Term, rhs: Term, signature: Opt[Term], signatureParams: Ls[ParamList], initializer: Opt[Term],
       source: Bool, mut: Bool, mutable: Bool, symbol: Opt[SymbolKey])(using State): RcdField =
     val name = field match
       case Term.Lit(Tree.StrLit(name)) => name
@@ -755,7 +783,7 @@ object RcdField:
     sym.tsym = S(tsym)
     // Field lookup removes this initializer's capture mark, leaving enclosing call-site marks intact.
     val body = initializer.map(Term.Capture(_, tsym))
-    tsym.defn = S(TermDefinition(RecordField, sym, tsym, Nil, N, signature, body, TermDefFlags.empty,
+    tsym.defn = S(TermDefinition(RecordField, sym, tsym, Nil, signatureParams, N, signature, body, TermDefFlags.empty,
       Modulefulness.none, symbol.toList.map(Annot.JsSymbol(_)(field.toLoc)), N)(field.toLoc, field.toLoc, N))
     sym.complete()
     RcdField(field, rhs, sym)(mut, symbol.orElse(field match
@@ -784,10 +812,12 @@ enum Visibility:
   case Public, Private
 
 object Visibility:
-  def of(annotations: Ls[Annot]): Visibility = annotations.collectFirst:
-      case Annot.Modifier(Keyword.`private`) => Visibility.Private
-      case Annot.Modifier(Keyword.`public`) => Visibility.Public
-    .getOrElse(Visibility.Public)
+  /** The visibility written among `annotations`, if any. */
+  def written(annotations: Ls[Annot]): Opt[Visibility] = annotations.collectFirst:
+    case Annot.Modifier(Keyword.`private`) => Visibility.Private
+    case Annot.Modifier(Keyword.`public`) => Visibility.Public
+  
+  def of(annotations: Ls[Annot]): Visibility = written(annotations).getOrElse(Visibility.Public)
 
 /** `isMethod` distinguishes methods from functions. `hasResultAnnotation` records whether a
   * signature describes just the result; erasure consumes leading arrows only for full signatures.
@@ -837,16 +867,28 @@ object Modulefulness:
   
   val none = Modulefulness(N)(false)
 
+/** A `fun`, `val`, record field, or other term-level definition.
+  *
+  * `params` are the parameter lists that the definition writes, in its header or, when its signature spells
+  * them out, as an immediate function literal in its body. In new resolution, a signature spells out parameter
+  * lists with its unparenthesized arrows: `fun f: (Int, Int) -> Int` declares a method with one `(Int, Int)`
+  * parameter list, and so does the record type field `f: (Int, Int) -> Int`, whereas `fun f: ((Int, Int) -> Int)`
+  * returns a function value. `signatureParams` holds the lists spelled by this header's arrows and
+  * their domain types. A body writes its own parameters, which can have different names or omit
+  * droppable inputs. [[publicParams]] describes calls and overrides, and [[physicalParams]] gives
+  * the parameters bound by the implementation (or declared by a bodiless member).
+  */
 final case class TermDefinition(
     k: TermDefKind, // * The only reason we store it here in addition to tsym.k is for refining patmats
     sym: BlockMemberSymbol,
     tsym: TermSymbol,
     params: Ls[ParamList],
+    signatureParams: Ls[ParamList],
     tparams: Opt[Ls[Param]],
-    sign: Opt[Term],
+    writtenType: Opt[Term],
     body: Opt[Term],
     flags: TermDefFlags,
-    modulefulness: Modulefulness,
+    writtenModulefulness: Modulefulness,
     annotations: Ls[Annot],
     companion: Opt[CompanionSymbol],
 )(val toLoc: Opt[Loc], val headerLoc: Opt[Loc],
@@ -854,8 +896,29 @@ final case class TermDefinition(
   val scope: Opt[SrcScope],
 ) extends CompanionValue:
   require(k is tsym.k)
+  require(signatureParams.isEmpty || writtenType.nonEmpty, "Signature parameter lists come from a signature")
   def bsym: BlockMemberSymbol = sym
   val owner = tsym.owner
+  /** The parameters bound at run time, including those declared by an abstract or external signature. */
+  def physicalParams: Ls[ParamList] = if body.isEmpty && params.isEmpty then signatureParams else params
+  /** The argument layout promised by this member to its callers and subclasses. */
+  def publicParams: Ls[ParamList] = signatureHeader.signatureParams match
+    case Nil => physicalParams
+    case declared => declared
+  /** Type parameters introduced by this header, in declaration order. */
+  def typeParamSymbols: Ls[VarSymbol] = tparams.iterator.flatten.map(_.sym).toList
+  /** The header supplying the public type and its binders. */
+  def signatureHeader: TermDefinition = tsym.termDeclaration.getOrElse(this)
+  /** The public type supplied by the declaration or written on this definition. */
+  def sign: Opt[Term] = signatureHeader.writtenType
+  /** The public type when it describes the whole member, including any parameter lists. */
+  def fullSignature: Opt[Term] =
+    val header = signatureHeader
+    if header.flags.hasResultAnnotation then N else header.writtenType
+  /** Types written on the declaration and definition, in source order. */
+  def typeAnnotations: Iterator[Term] =
+    tsym.termDeclaration.iterator.filterNot(_ is this).flatMap(_.writtenType) ++ writtenType
+  def modulefulness: Modulefulness = signatureHeader.writtenModulefulness
   /** Only function bodies are wrapped by AsyncLowering; annotations on other
     * definitions are ignored with a warning and must not change their interface.
     */
@@ -877,17 +940,16 @@ final case class TermDefinition(
     */
   def resultWrapperAnnotation: Opt[Annot.Async | Annot.Generator] =
     asyncAnnotation.orElse(generatorAnnotation)
-  /** A result annotation denotes the whole result; a separate function signature
-    * includes the arrows corresponding to the definition's written parameter lists.
-    */
+  /** The public result after the member's physical lists. A parenthesized arrow or an alias
+    * remains intact as soon as the last physical list has been consumed. */
   def resultSignature: Opt[Term] =
-    def strip(sign: Term, count: Int): Term = (sign, count) match
-      case (Term.Forall(_, _, body), _) => strip(body, count)
-      case (Term.FunTy(_, rhs, _), n) if n > 0 => strip(rhs, n - 1)
+    def strip(sign: Term, count: Int): Term = sign match
+      case Term.Forall(_, _, body) => strip(body, count)
+      case Term.FunTy(_, rhs, _) if count > 0 => if count == 1 then rhs else strip(rhs, count - 1)
       case _ => sign
-    sign.map: sign =>
-      if (k is syntax.Fun) && !flags.hasResultAnnotation then strip(sign, params.length)
-      else sign
+    if (k is syntax.Fun) || signatureParams.nonEmpty then
+      fullSignature.map(strip(_, physicalParams.length)).orElse(sign)
+    else sign
   lazy val mayRaiseEffects: Bool =
     annotations.forall:
       case Annot.Pure() => false
@@ -1260,6 +1322,7 @@ enum IfLikeForm:
 
 
 sealed abstract class Elem extends AutoLocated:
+  def term: Term
   def subTerms: Ls[Term] = this match
     case Fld(_, term, asc) => term :: asc.toList
     case Spd(_, term, _) => term :: Nil

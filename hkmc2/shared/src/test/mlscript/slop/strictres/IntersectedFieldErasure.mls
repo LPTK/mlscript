@@ -204,7 +204,7 @@ fun putDynamic(r: IntItem | dyn, b: Bool) = set r.item = b
 :sir
 :siret
 :checkIR
-type Operation32 = {invoke: Int32 -> Int32}
+type Operation32 = {invoke: (Int32 -> Int32)}
 type LooseOperation = {invoke: Any}
 fun preciseFirst(source: Operation32 & LooseOperation, value: Int32): Int32 = source.invoke(value)
 fun looseFirst(source: LooseOperation & Operation32, value: Int32): Int32 = source.invoke(value)
@@ -222,8 +222,8 @@ fun looseFirst(source: LooseOperation & Operation32, value: Int32): Int32 = sour
 :sir
 :siret
 :checkIR
-type Curried = {invoke: Int -> Int32 -> Int32}
-type TaggedCurried = {invoke: Int -> Int32 -> Int32, tag: Int}
+type Curried = {invoke: (Int -> Int32 -> Int32)}
+type TaggedCurried = {invoke: (Int -> Int32 -> Int32), tag: Int}
 type EitherOperation = (Curried & LooseOperation) | (TaggedCurried & LooseOperation)
 fun callEither(source: EitherOperation, value: Int32): Int32 = source.invoke(0)(value)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
@@ -239,8 +239,8 @@ fun callEither(source: EitherOperation, value: Int32): Int32 = source.invoke(0)(
 :sir
 :siret
 :checkIR
-type ReturnsBoxed = {invoke: Int32 -> Int -> Int}
-type ReturnsUnboxed = {invoke: Int32 -> Int32 -> Int32}
+type ReturnsBoxed = {invoke: (Int32 -> Int -> Int)}
+type ReturnsUnboxed = {invoke: (Int32 -> Int32 -> Int32)}
 type MixedOperations = (ReturnsBoxed & LooseOperation) | (ReturnsUnboxed & LooseOperation)
 fun sharedPrefix(source: MixedOperations, value: Int32) = source.invoke(value)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————

@@ -120,7 +120,7 @@ test()
 fun test() =
   let reads = 0
   class Adder(val offset: Int) with
-    fun add: Int -> Int =
+    fun add: (Int -> Int) =
       set reads += 1
       n => this.offset + n
   let adder = new Adder(41)

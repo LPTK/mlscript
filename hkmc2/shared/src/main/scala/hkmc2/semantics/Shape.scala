@@ -887,7 +887,7 @@ final case class CallableTypeShape(source: Term, paramLists: NELs[DeclaredParams
     declaration: Opt[CallableDeclaration], wrappedResult: Opt[WrappedResult]) extends CoreHeadShape:
   def tparams: Ls[DeclaredTypeParameter] = scheme.toList.flatMap(_.parameters)
   def describe: Str = declaration.fold("function with a declared signature")(d => s"function '${d.definition.bsym.nme}'")
-  def toLoc: Opt[Loc] = declaration.fold(source.toLoc)(_.definition.headerLoc)
+  def toLoc: Opt[Loc] = declaration.fold(source.toLoc)(_.definition.signatureHeader.headerLoc)
   protected def getMemberImpl(name: MemberKey)(using ResolutionContext): MemberLookup = MemberLookup.Missing
 
 /** Why observing a type did not expose a member interface. Keep this evidence
@@ -996,10 +996,10 @@ class DefnShape(val defn: Definition, val ext: Opt[TermShape]) extends CoreHeadS
       def withBuffer(body: Term): Term =
         val params = PlainParamList(List("buffer", "index").map: name =>
           Param.simple(VarSymbol(new syntax.Tree.Ident(name), erasedType = N, mut = false)))(cls.toLoc)
-        scoped(Term.Lam(params, body))
+        scoped(Term.Lam(params, body)(N))
       // Constructors return the allocated index after all their original lists.
       val ctor = (cls.paramsOpt.toList ::: cls.auxParams).foldRight[Term](Term.Lit(syntax.Tree.IntLit(0))):
-        (params, body) => scoped(Term.Lam(params, body))
+        (params, body) => scoped(Term.Lam(params, body)(N))
       val methods = cls.body.methods.filter(method => method.body.nonEmpty && !method.tsym.isPrivate).map: method =>
         val ref = scoped(Term.MemberRef(method.bsym)(N, FlowSymbol.memSym(method.bsym)))
         field(method.bsym.nme, withBuffer(ref))

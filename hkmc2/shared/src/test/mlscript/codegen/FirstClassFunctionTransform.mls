@@ -54,6 +54,7 @@ x => x
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = class anonymous
 
+// The generated call method and the lambda each bind their own parameter.
 :checkIR
 :noInline
 x => x

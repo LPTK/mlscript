@@ -16,10 +16,32 @@ class FirstClassFunctionTransformer
     extends BlockTransformer(new SymbolSubst):
   // Anonymous lambdas' parameter lists cannot be retrieved from the term symbol
   private val funDefns = HashMap.empty[BlockMemberSymbol, FunDefn] 
-  class CollectFunDefns extends BlockTraverser:
-    override def applyFunDefn(fun: FunDefn) =
-      funDefns += (fun.sym -> fun)
-      super.applyFunDefn(fun)
+  /** Find a structural method declaration among the possible sources of a selection.
+    * A class method and a record field containing a function both implement it. Those implementations
+    * require different calls and different wrappers when the selection is taken as a value. */
+  private def structuralMethod(symbol: DefinitionSymbol[?]): Opt[RecordFieldSymbol] = symbol match
+    case field: RecordFieldSymbol if field.defn.exists(_.signatureParams.nonEmpty) => S(field)
+    case field: RecordFieldSymbol => field.origins.iterator.flatMap(structuralMethod).nextOption()
+    case alternatives: RecordFieldAlternativesSymbol => alternatives.fields.iterator.flatMap(structuralMethod).nextOption()
+    case _ => N
+
+  /** Collect function definitions and check that member selections distinguish methods from function objects. */
+  private def prepare(block: Block): Bool =
+    var valid = true
+    new BlockTraverser:
+      applyBlock(block)
+      override def applyFunDefn(fun: FunDefn) =
+        funDefns += (fun.sym -> fun)
+        super.applyFunDefn(fun)
+      override def applyPath(p: Path): Unit =
+        p.targetSymbol.flatMap(structuralMethod).foreach: field =>
+          valid = false
+          raise(ErrorReport(
+            msg"Function-to-class conversion cannot determine the calling convention of structural member '${field.nme}'." -> p.toLoc ::
+            msg"This signature can be implemented by a method or by a field holding a function." -> field.toLoc :: Nil,
+            source = Diagnostic.Source.Compilation))
+        super.applyPath(p)
+    valid
 
   private def generateFCFunctionClass(p: Path, params: LoweredParamList) =
     val clsSym = ClassSymbol(
@@ -52,8 +74,8 @@ class FirstClassFunctionTransformer
     ts.irFunDefn.flatMap(_.params.headOption).orElse:
       // FIXME: remove this fallback once imported functions have their `irFunDefn` properly linked.
       ts.defn.collectFirst:
-        case TermDefinition(k = syntax.Fun, params = params @ (_ :: _)) =>
-          LoweredParamList.callingConvention(params.head)
+        case td @ TermDefinition(k = syntax.Fun) if td.physicalParams.nonEmpty =>
+          LoweredParamList.callingConvention(td.physicalParams.head)
   
   private def isGetter(l: BlockMemberSymbol): Bool = funDefns.get(l) match
     case Some(fd) => fd.params.isEmpty
@@ -63,7 +85,7 @@ class FirstClassFunctionTransformer
     ts.irFunDefn.exists(_.params.isEmpty) ||
       // FIXME: remove this fallback once imported functions have their `irFunDefn` properly linked.
       ts.defn.exists:
-        case TermDefinition(k = syntax.Fun, params = Nil) => true
+        case td @ TermDefinition(k = syntax.Fun) => td.physicalParams.isEmpty
         case _ => false
   
   private def etaExpandPath(p: Path, params: LoweredParamList)(k: Path => Block): Block =
@@ -93,7 +115,10 @@ class FirstClassFunctionTransformer
   private def etaExpandMethod(p: Path, s: TermSymbol)(k: Path => Block): Block =
     if isGetter(s) then k(p)
     else
-      val params = getParamList(s).getOrElse:
+      // A virtual call can reach an override that uses an argument dropped by the selected implementation.
+      // Forward the arguments promised by the method's signature through the wrapper.
+      val declared = s.defn.flatMap(_.signatureHeader.signatureParams.headOption)
+      val params = declared.map(LoweredParamList.callingConvention).orElse(getParamList(s)).getOrElse:
         raise:
           ErrorReport(msg"Cannot get ${s.nme}'s parameter list."
             -> p.toLoc :: Nil,
@@ -149,8 +174,7 @@ class FirstClassFunctionTransformer
   
   def transform(b: Block): Block =
     val desugared = new DesugarMultipleParamList().applyBlock(b)
-    new CollectFunDefns().applyBlock(desugared)
-    applyBlock(desugared)
+    if prepare(desugared) then applyBlock(desugared) else Lowering.compError
 
 object FirstClassFunctionTransformer:
   /** Binds every call in `block` to the signature that its callee publishes (see [[bindCall]]).

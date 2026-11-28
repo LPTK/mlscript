@@ -175,7 +175,7 @@ private fun newDate() = new Date()
 :checkIR
 :expect 42
 class Adder with
-  fun add: Int -> Int = x => x + 1
+  fun add: (Int -> Int) = x => x + 1
 let adder = new Adder
 adder.add(41)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
@@ -803,3 +803,42 @@ viaFunctionObjects()
 //│ return viaFunctionObjects¹‹() => Int⁰›()
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 //│ = 42
+
+
+// Both arrows of the foreign function declare physical parameter lists. Calling its stored value
+// supplies the first list, and calling the partial application supplies the remaining one.
+:sir
+:siret
+:checkIR
+declare fun combine32: Int32 -> Int32 -> Int32
+fun viaStoredDeclaration(value: Int32): Int32 =
+  let combine = combine32
+  let finish = combine(value)
+  finish(value)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define viaStoredDeclaration⁰ as fun viaStoredDeclaration¹(value: Int32): Int32 {
+//│   let combine: Function⁰, finish: Function⁰;
+//│   set combine = globalThis⁰.combine32⁰;
+//│   set finish = combine‹(Int32) => (Int32) => Int32›(value);
+//│   return finish‹(Int32) => Int32›(value)
+//│ };
+//│ end
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+// Through a structural interface, each application of the stored value keeps its unboxed argument type.
+:sir
+:siret
+:checkIR
+fun viaStoredMethod(ops: {combine: Int32 -> Int32 -> Int32}, value: Int32): Int32 =
+  let combine = ops.combine
+  let finish = combine(value)
+  finish(value)
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ define viaStoredMethod⁰ as fun viaStoredMethod¹(ops: Unknown, value: Int32): Int32 {
+//│   let combine: Function⁰, finish: Function⁰;
+//│   set combine = ops.combine⁰;
+//│   set finish = combine‹(Int32) => Function⁰›(value);
+//│   return finish‹(Int32) => Int32›(value)
+//│ };
+//│ end
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————

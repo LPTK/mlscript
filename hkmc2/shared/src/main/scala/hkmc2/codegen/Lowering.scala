@@ -692,7 +692,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
     case S(fs) =>
       definition match
       case S(td: TermDefinition) =>
-        zipArgs(td.params, args, Nil, fs.mayRaiseEffects)
+        zipArgs(td.publicParams, args, Nil, fs.mayRaiseEffects)
       case _ => zipArgs(Nil, args, Nil, fs.mayRaiseEffects)
     case N => zipArgs(Nil, args, Nil, true)
   
@@ -917,7 +917,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
   
   private def isImplicitNullaryCall(defnSym: DefinitionSymbol[?]): Bool =
     defnSym.defn.exists:
-      case td: TermDefinition => (td.k is syntax.Fun) && td.params.isEmpty
+      case td: TermDefinition => (td.k is syntax.Fun) && td.physicalParams.isEmpty
       case _ => false
   
   /** Consume wildcard lookup results, retaining the receiver selected by resolution. */
@@ -1236,6 +1236,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
           bms,
           dsym,
           sem.ParamList(sem.ParamListFlags.empty, Nil, N)(N) :: Nil,
+          Nil,
           N,
           N,
           S(trm),
@@ -2177,7 +2178,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
       case syntax.ImmutVal => sym.defn.forall(!Inheritance.isExternal(_))
       case syntax.Ins | syntax.ParamBind => true
       // Functions that lowering generates have no source definition, and they all take parameters.
-      case syntax.Fun => sym.defn.forall(_.params.nonEmpty)
+      case syntax.Fun => sym.defn.forall(_.physicalParams.nonEmpty)
       case _ => false
     case _: TypeAliasSymbol => false
   
@@ -2406,7 +2407,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
         case N => WarningReport(msg"This annotation has no effect." -> annot.toLoc :: Nil)
     annotations.foreach:
       case Annot.Untyped() => ()
-      case a @ (Annot.TailRec() | Annot.Inline() | Annot.NoInline() | Annot.Generator() | Annot.Async() | Annot.RaiseEffects()) =>
+      case a: Annot.RequiresFunctionBody =>
         warn(a, S(msg"This annotation has no effect on handler methods."))
       case annot => warn(annot)
   
@@ -2417,17 +2418,10 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
         case N => WarningReport(msg"This annotation has no effect." -> annot.toLoc :: Nil)
     annotations.foreach:
       case Annot.Untyped() => ()
-      case a @ (Annot.TailRec() | Annot.Inline() | Annot.NoInline() | Annot.Generator() | Annot.Async() | Annot.RaiseEffects()) =>
-        val annot = a match
-          case Annot.TailRec() => "@tailrec"
-          case Annot.Inline() => "@inline"
-          case Annot.NoInline() => "@noInline"
-          case Annot.Generator() => "@generator"
-          case Annot.Async() => "@async"
-          case Annot.RaiseEffects() => "@raiseEffects"
+      case a: Annot.RequiresFunctionBody =>
         target match
           case TermDefinition(body = S(bod), k = syntax.Fun) => ()
-          case TermDefinition(k = syntax.Fun) => warn(a, S(msg"Only functions with a body may be marked as $annot."))
+          case TermDefinition(k = syntax.Fun) => warn(a, S(msg"Only functions with a body may be marked as ${a.spelling}."))
           case _ => warn(a)
       case Annot.Modifier(syntax.Keyword.`public` | syntax.Keyword.`private` | syntax.Keyword.`virtual`) => ()
       case Annot.Modifier(syntax.Keyword("staged")) => ()
