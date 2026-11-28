@@ -8,7 +8,7 @@
 :sir
 fun f(x)(y) = x + y
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
-//│ do runtime⁰.resetEffects﹖(); define f⁰ as fun f¹(x)(y) { return +⁰(x, y) }; end
+//│ do runtime⁰.resetEffects⁰(); define f⁰ as fun f¹(x)(y) { return +⁰(x, y) }; end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
 :lift
@@ -16,13 +16,13 @@ fun f(x)(y) = x + y
 f(1)(2)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let tmp;
-//│ do runtime⁰.resetEffects﹖();
+//│ do runtime⁰.resetEffects⁰();
 //│ set tmp = f¹(1)(2);
 //│ match runtime⁰.curEffect﹖
 //│   null =>
 //│     return tmp
 //│   else
-//│     set tmp = runtime⁰.topLevelEffect﹖(false);
+//│     set tmp = runtime⁰.topLevelEffect⁰(false);
 //│     return tmp
 //│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -33,7 +33,7 @@ f(1)(2)
 fun g(a)(b) = f(a)(b) + f(b)(a)
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let g$worker;
-//│ do runtime⁰.resetEffects﹖();
+//│ do runtime⁰.resetEffects⁰();
 //│ @inline
 //│ define g⁰ as fun g¹(a)(b) {
 //│   return g$worker⁰(a, b)
@@ -61,7 +61,7 @@ fun g(a)(b) = f(a)(b) + f(b)(a)
 //│           set pc = 2;
 //│           end
 //│         else
-//│           do runtime⁰.unwind﹖(g¹, 2, "CurriedFunctionCalls.mls:33:15", null, null, 2, 1, a, 1, b, 1, tmp);
+//│           do runtime⁰.unwind⁰(g¹, 2, "CurriedFunctionCalls.mls:33:15", null, null, 2, 1, a, 1, b, 1, tmp);
 //│           return undefined
 //│       end
 //│   match pc
@@ -75,7 +75,7 @@ fun g(a)(b) = f(a)(b) + f(b)(a)
 //│           set pc = 1;
 //│           end
 //│         else
-//│           do runtime⁰.unwind﹖(g¹, 1, "CurriedFunctionCalls.mls:33:25", null, null, 2, 1, a, 1, b, 1, tmp);
+//│           do runtime⁰.unwind⁰(g¹, 1, "CurriedFunctionCalls.mls:33:25", null, null, 2, 1, a, 1, b, 1, tmp);
 //│           return undefined
 //│       end
 //│   match pc

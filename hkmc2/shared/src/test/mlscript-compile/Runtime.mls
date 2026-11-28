@@ -4,7 +4,7 @@ import "./Rendering.mjs"
 import "./LazyArray.mjs"
 import "./Iter.mjs"
 
-open annotations.{ pure }
+open annotations.{ pure, noInline }
 
 
 module Runtime with ...
@@ -88,11 +88,13 @@ fun _try(f: () -> Any) =
 
 
 // For `pattern` definitions
-data class MatchSuccess[out A, out B](output: A, bindings: B)
-data class MatchFailure(errors)
+// The result of matching a value against a pattern: a `MatchSuccess` with the output of type `A`, or a
+// `MatchFailure`.
+abstract class MatchResult[out A]
+data class MatchSuccess[out A, out B](output: A, bindings: B) extends MatchResult[A]
+data class MatchFailure(errors) extends MatchResult[Nothing]
 
 // Runtime pattern objects expose their transformed output through MatchSuccess.
-type MatchResult[A] = MatchSuccess[A, Any] | MatchFailure
 type Pattern[A, B] = { unapply: A -> MatchResult[B] }
 
 // For pattern matching on tuples
@@ -148,16 +150,21 @@ fun printRaw(x) = console.log(render(x, indent: 2, breakLength: 76))
 module TraceLogger with
   mut val enabled: Bool = false
   mut val indentLvl: Int = 0
+  // Trace lowering calls the functions of this module around the body of every traced function, so they stay
+  // out of line (see the note on `@noInline` above `resetEffects`).
+  @noInline
   fun indent() =
     if enabled then
       let prev = indentLvl
       set indentLvl = prev + 1
       prev
     else ()
+  @noInline
   fun resetIndent(n: Int) =
     if enabled then
       set indentLvl = n
     else ()
+  @noInline
   fun log(msg: Str) =
     if enabled then
       console.log("| ".repeat(indentLvl) + msg.replaceAll("\n", "\n" + "  ".repeat(indentLvl)))
@@ -251,14 +258,20 @@ data class CustomStackError(stack: Str) with
   fun toString() = stack
 
 
+// The code that handler lowering and async lowering generate calls the functions marked `@noInline` below at
+// every suspension point, handler, or wrapper. Inlining them there would copy their bodies into each of these
+// sites, so they stay out of line.
+@noInline
 fun resetEffects() =
   set
     curEffect = null
     resumePc = -1
 
+@noInline
 fun raisePrintStackEffect(showLocals) =
   mkEffect(PrintStackEffect, showLocals)
 
+@noInline
 fun topLevelEffect(debug) =
   let tr = curEffect
   let v = null
@@ -274,6 +287,7 @@ fun topLevelEffect(debug) =
   else
     v
 
+@noInline
 fun illegalEffect(position) =
   let tmp = curEffect
   set curEffect = null
@@ -378,11 +392,13 @@ fun debugEff(eff) =
     console.log(eff)
 
 // runtime implementations
+@noInline
 fun unwind(...saved) =
   set
     curEffect.contTrace.last.next = new mut FunctionContFrame(null, saved)
     curEffect.contTrace.last = curEffect.contTrace.last.next
 
+@noInline
 fun mkEffect(handler: Any, handlerFun: Function | Bool | null) =
   let res = new mut EffectSig(new mut ContTrace(null, null, null, null, false), handler, handlerFun)
   set
@@ -398,6 +414,7 @@ fun handleBlockImpl(cur: EffectSig, handler: Any) =
     cur.contTrace.last = handlerFrame
   handleEffects(cur)
 
+@noInline
 fun enterHandleBlock(handler: Any, body: () -> Any) =
   let tmp = body()
   if curEffect === null then
@@ -517,6 +534,7 @@ fun await(promise: Promise) =
     promise.then(continuation)
   )
 
+@noInline
 fun toJsAsync(thunk: () -> Any) =
   let r = enterHandleBlock(AsyncEffectMarker, thunk)
   if curEffect !== null do
@@ -533,6 +551,7 @@ object StackDelayHandler with
   fun delay() = mkEffect of this, k =>
     set stackResume = k
 
+@noInline
 fun checkDepth() =
   if stackDepth >= stackLimit && stackHandler !== null then
     // this is a tail call to effectful function
@@ -540,6 +559,7 @@ fun checkDepth() =
   else
     ()
 
+@noInline
 fun runStackSafe(limit: Int, f: () -> Any) =
   set stackLimit = limit in...
   set stackDepth = 1 in...

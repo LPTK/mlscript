@@ -51,7 +51,7 @@ class AsyncLowering(using TL, Raise, Elaborator.State, Elaborator.Ctx, Config):
       // its current IR signature. The source erasure retains the async body result.
       val wrapperSignature = fun.signature.forWrapper(noAsync)
       if wrapperSignature isnt fun.signature then wrappers += fun.dSym
-      val wrapped = Call.of(Value.SimpleRef(State.runtimeSymbol)(N).selSN("toJsAsync"),
+      val wrapped = Call.of(RuntimePath.function("toJsAsync"),
         (body.asPath.asArg :: Nil) ne_:: Nil)(CallMetadata.defaultMlsFun, N)
       // The dynamic runtime helper has no result annotation. Reestablish the wrapper's
       // return representation here so it survives both ordinary returns and inlining.

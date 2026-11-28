@@ -899,6 +899,24 @@ class PatternSymbol(val id: Tree.Ident, val params: Opt[Tree.Tup], val body: Tre
     * `@compile` match sites (see `ups.FixedPointCompiler`). */
   var fixedPointMachine: Opt[ups.FixedPointCompiler.Machine] = N
 
+  /** A method that lowering generates for the definition of this pattern (see `ups.SplitCompiler.compilePattern`).
+    * It takes the pattern objects that the pattern parameters of the definition stand for, followed by the
+    * value to match, and returns a match result.
+    *
+    * A match against this pattern calls the method, in the compilation unit of the definition and in those
+    * that import it. The symbols of the method therefore exist as soon as the pattern has a symbol: `member` is
+    * the member under which the class of the pattern defines the method, and `term` is the definition symbol
+    * that a match selects. Erasure assigns the signature of `term` when it erases the definition of the pattern.
+    */
+  final class Method(name: Str):
+    val member: BlockMemberSymbol = BlockMemberSymbol(name, Nil)
+    val term: TermSymbol = TermSymbol(syntax.Fun, S(PatternSymbol.this), Tree.Ident(name))
+    member.tsym = S(term)
+  /** The method that matches a whole value against this pattern. */
+  val unapply: Method = Method("unapply")
+  /** The method that matches a prefix of a string against this pattern. */
+  val unapplyStringPrefix: Method = Method("unapplyStringPrefix")
+
   override def subst(using sub: SymbolSubst): PatternSymbol = sub.mapPatSym(this)
 
 class TopLevelSymbol(blockNme: Str)(using State)

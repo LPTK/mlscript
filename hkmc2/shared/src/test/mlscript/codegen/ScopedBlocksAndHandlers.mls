@@ -24,7 +24,7 @@ fun f(x) =
       let z = 3
       fun g() = z
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
-//│ do runtime⁰.resetEffects﹖();
+//│ do runtime⁰.resetEffects⁰();
 //│ define f⁰ as fun f¹(x) {
 //│   match x
 //│     true =>

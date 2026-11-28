@@ -31,6 +31,13 @@ trait TermSynthesizer(using State):
     sel.resolvedTargets = target :: Nil
     sel.resolvedMembers = member :: Nil
     sel
+  /** The selection of the generated method `method` of a pattern definition on `p`, a reference to that
+    * pattern. A call of the selection takes the signature that erasure assigned to the method. */
+  protected final def sel(p: Term, method: PatternSymbol#Method): Term.NewSel =
+    val sel = new Term.NewSel(p, Ident(method.member.nme), N)(FlowSymbol.synthSel(method.member.nme))
+    sel.resolvedTargets = method.term :: Nil
+    sel.resolvedMembers = method.member :: Nil
+    sel
   protected final def int(i: Int) = Term.Lit(IntLit(BigInt(i)))
   protected final def str(s: Str) = Term.Lit(StrLit(s))
   protected final def `null` = Term.Lit(UnitLit(true))

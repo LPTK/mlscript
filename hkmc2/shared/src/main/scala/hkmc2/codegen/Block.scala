@@ -608,11 +608,11 @@ object Begin:
 
 object HandleBlock:
 
-  def suspend(tag: Path, handlerFun: Path)(using Elaborator.Ctx, State): Result =
+  def suspend(tag: Path, handlerFun: Path)(using Elaborator.Ctx): Result =
     val bms = Elaborator.ctx.builtins.runtime.suspend
     Call.of(bms.asMemberRef(bms.asPrincipal.get), (tag.asArg :: handlerFun.asArg :: Nil) ne_:: Nil)(CallMetadata.mlsFunWithEffect, N)
 
-  def handleSuspension(tag: Path, bodyFun: Path)(using Elaborator.Ctx, State): Result =
+  def handleSuspension(tag: Path, bodyFun: Path)(using Elaborator.Ctx): Result =
     val bms = Elaborator.ctx.builtins.runtime.handle_suspension
     Call.of(bms.asMemberRef(bms.asPrincipal.get), (tag.asArg :: bodyFun.asArg :: Nil) ne_:: Nil)(CallMetadata.mlsFunWithEffect, N)
   
@@ -1553,34 +1553,20 @@ object Call:
           case _ => super.applyResult(r)(k)
       .applyBlock(block)
   
-  /** The signature of the function of the runtime module that `fun` selects by name, when `fun` is such a
-    * selection and the runtime defines a function with at least `listCount` parameter lists under that name.
-    *
-    * Passes that generate calls of runtime functions select some of them by name, without their symbol, which
-    * keeps later passes from inlining or analyzing these functions. The selection then publishes no signature,
-    * while the function that it reaches is known: its calls follow the signature of its definition.
-    */
-  private def runtimeFunctionSignature(fun: Path, listCount: Int)(using State): Opt[ErasedFuncSignature] = fun match
-    case sel @ Select(Value.SimpleRef(module), name) if sel.symbol.isEmpty && (module is State.runtimeSymbol) =>
-      State.runtimeTermSymbol(name.name).filter(ts => ts.isErasureReady || ts.irFunDefn.isDefined)
-        .flatMap(_.irErasure).collect:
-          case sig: ErasedFuncSignature if listCount >= 1 && listCount <= sig.paramListCount => sig
-    case _ => N
-  
   /** The signature for applying `listCount` argument lists to `fun` when nothing is known about `fun` beyond its
-    * IR: the signature it publishes, that of the runtime function that it selects by name (see
-    * `runtimeFunctionSignature`), or else a dynamic one.
+    * IR: the signature it publishes, or else a dynamic one. A pass that calls a function of the runtime module
+    * selects it with its symbol (see [[RuntimePath]]), so that the call takes the signature of the function.
     */
-  def signatureOf(fun: Path, listCount: Int)(using State): ErasedCallableSignature =
-    publishedSignature(fun).orElse(runtimeFunctionSignature(fun, listCount)).getOrElse:
+  def signatureOf(fun: Path, listCount: Int): ErasedCallableSignature =
+    publishedSignature(fun).getOrElse:
       if listCount == 0 then ErasedGetterSignature.dynamic else ErasedFuncSignature.dynamic(listCount)
   
   /** A call of `fun` applying `argss`, using [[signatureOf]]. */
-  def of(fun: Path, argss: Ls[Ls[Arg]])(metadata: CallMetadata, toLoc: Opt[Loc])(using State): Result =
+  def of(fun: Path, argss: Ls[Ls[Arg]])(metadata: CallMetadata, toLoc: Opt[Loc]): Result =
     Call(fun, argss)(signatureOf(fun, argss.length), metadata, toLoc)
   
   /** Like [[of]], without folding applications of builtins. */
-  def rawOf(fun: Path, argss: Ls[Ls[Arg]])(metadata: CallMetadata, toLoc: Opt[Loc])(using State): Call =
+  def rawOf(fun: Path, argss: Ls[Ls[Arg]])(metadata: CallMetadata, toLoc: Opt[Loc]): Call =
     raw(fun, argss)(signatureOf(fun, argss.length), metadata, toLoc)
   
   private def literalArgValues(args: Ls[Arg]): Opt[Ls[Value]] =
@@ -1859,6 +1845,15 @@ enum Value extends Path with ProductWithExtraInfo:
   override def extraInfo(using DebugPrinter): Str = this match
     case MemberRef(bms, disamb) => s"disamb=${disamb.showAsPlain}"
     case _ => ""
+
+/** Paths to the members of the runtime module, for the code that the compiler's passes generate. */
+object RuntimePath:
+  /** The selection of the function `name` of the runtime module, with the symbol of that function. A call of
+    * this path built with [[Call.of]] takes the signature that the function publishes, and the passes that
+    * follow identify the callee by its symbol, as they do for a call that the source program writes.
+    */
+  def function(name: Str)(using State): Select =
+    State.runtimeSymbol.asSimpleRef.sel(State.runtimeFunctionSymbol(name))
 
 object Value:
   /** A value-level reference. */

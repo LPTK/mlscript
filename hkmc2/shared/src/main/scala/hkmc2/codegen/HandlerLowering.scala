@@ -61,7 +61,7 @@ object HandlerLowering:
   // currentFun: path to the current function for resumption
   // thisPath: path to `this` binding if the function is a method, `this` will be rebinded on resumption
   private case class FunctionCtx(currentFun: Path, thisPath: Option[Path], resumeInfo: ResumeInfo, debugInfo: DebugInfo, inGetter: Bool, inAsync: Bool):
-    def doUnwind(loc: Value, state: Path, restoreList: List[LocalVarSymbol])(using paths: HandlerPaths, elaboration: Elaborator.State): Block =
+    def doUnwind(loc: Value, state: Path, restoreList: List[LocalVarSymbol])(using paths: HandlerPaths): Block =
       // An active effect makes the caller ignore this return value. Discard the
       // bookkeeping call's Unit result and return undefined, which fits every
       // payload representation without claiming that Unit has the payload's type.
@@ -116,21 +116,26 @@ import HandlerLowering.*
 class HandlerPaths(using Elaborator.State):
   val runtimePath: Path = State.runtimeSymbol.asSimpleRef
   val contClsPath: Path = runtimePath.selSN("FunctionContFrame").selSN("class")
-  val mkEffectPath: Path = runtimePath.selSN("mkEffect")
-  val handleBlockImplPath: Path = runtimePath.selSN("handleBlockImpl")
+  // The functions of the runtime are selected with their symbols, so that their calls take their signatures.
+  // These paths are computed when handler lowering first uses them: the pipeline creates this object for every
+  // program, including the Prelude worksheet, which is compiled before the symbols of the runtime exist.
+  // The fields that hold the state of the runtime are selected by name: handler lowering stores values of any
+  // representation in `resumeValue` and `resumeArr`, whatever types the runtime declares for these fields.
+  lazy val mkEffectPath: Path = RuntimePath.function("mkEffect")
+  lazy val handleBlockImplPath: Path = RuntimePath.function("handleBlockImpl")
   val stackDelayClsPath: Path = runtimePath.selSN("StackDelay")
-  val topLevelEffectPath: Path = runtimePath.selSN("topLevelEffect")
-  val illegalEffectPath: Path = runtimePath.selSN("illegalEffect")
-  val enterHandleBlockPath: Path = runtimePath.selSN("enterHandleBlock")
+  lazy val topLevelEffectPath: Path = RuntimePath.function("topLevelEffect")
+  lazy val illegalEffectPath: Path = RuntimePath.function("illegalEffect")
+  lazy val enterHandleBlockPath: Path = RuntimePath.function("enterHandleBlock")
   val stackDepthIdent = new Tree.Ident("stackDepth")
   val stackDepthPath: Path = runtimePath.selN(stackDepthIdent)
-  val checkDepthPath: Path = runtimePath.selN(Tree.Ident("checkDepth"))
-  val runStackSafePath: Path = runtimePath.selN(Tree.Ident("runStackSafe"))
+  lazy val checkDepthPath: Path = RuntimePath.function("checkDepth")
+  lazy val runStackSafePath: Path = RuntimePath.function("runStackSafe")
   val fnLocalsPath: Path = runtimePath.selSN("FnLocalsInfo").selSN("class")
   val localVarInfoPath: Path = runtimePath.selSN("LocalVarInfo").selSN("class")
   val curEffect: Path = runtimePath.selSN("curEffect")
-  val unwindPath: Path = runtimePath.selSN("unwind")
-  val resetEffects: Path = runtimePath.selSN("resetEffects")
+  lazy val unwindPath: Path = RuntimePath.function("unwind")
+  lazy val resetEffects: Path = RuntimePath.function("resetEffects")
   val resumePc: Path = runtimePath.selSN("resumePc")
   val resumeIdx: Path = runtimePath.selSN("resumeIdx")
   val resumeValueIdent = new Tree.Ident("resumeValue")

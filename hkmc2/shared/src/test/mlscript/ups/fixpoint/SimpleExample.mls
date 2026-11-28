@@ -257,17 +257,17 @@ pattern Steps = @compile (Step as Steps | _)
 //│         return new runtime⁰.MatchFailure⁰(null)
 //│     end
 //│   }
-//│   method unapplyStringPrefix⁰ = fun unapplyStringPrefix¹(input) {
+//│   method unapplyStringPrefix⁰ = fun unapplyStringPrefix²(input) {
 //│     let output, remaining, unapplyResult, output1, unapplyResult1, outputPair, tmp, tmp1, tmp2;
 //│     match input
 //│       Str⁰ =>
-//│         set unapplyResult1 = Step⁰.unapplyStringPrefix﹖(input);
+//│         set unapplyResult1 = Step⁰.unapplyStringPrefix¹(input);
 //│         match unapplyResult1
 //│           MatchSuccess⁰ =>
 //│             set outputPair = unapplyResult1.output⁰;
 //│             set output = runtime⁰.Tuple⁰.get⁰(outputPair, 0);
 //│             set remaining = runtime⁰.Tuple⁰.get⁰(outputPair, 1);
-//│             set unapplyResult = Steps¹.unapply﹖(output);
+//│             set unapplyResult = Steps¹.unapply¹(output);
 //│             match unapplyResult
 //│               MatchSuccess⁰ =>
 //│                 set output1 = unapplyResult.output⁰;

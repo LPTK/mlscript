@@ -483,13 +483,15 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
                       // UCS splits that backtrack without any optimizations.
                       val compiler = new ups.SplitCompiler
                       val methods = compiler.compilePattern(pd)
-                      // We only need `owner`, `sym`, `params` and `body`
+                      // Each method is defined under the symbols that the matches against the pattern select
+                      // (see `PatternSymbol.Method`), with the signature that erasure assigned to them. Each
+                      // leaf of its split returns a `MatchSuccess` or a `MatchFailure` (see `compilePattern`).
                       val mtds = methods.map:
-                        case (sym, params, split) =>
+                        case (method, params, split) =>
                           val paramLists = LoweredParamList.fixed(params) :: Nil
                           val bodyBlock = inScopedBlock(ucs.Normalization(this)(split)(Ret))
-                          // Each leaf of the split returns a `MatchSuccess` or a `MatchFailure` (see `compilePattern`).
-                          FunDefn.withFreshSymbol(N, sym, paramLists, S(ErasedType.MatchResult), bodyBlock)(configOverride = N, annotations = Nil)
+                          FunDefn(S(pd.sym), method.member, method.term,
+                            FunDefn.Signature.fromLowering(paramLists, method.term), bodyBlock)(configOverride = N, annotations = Nil)
                       // The return type is intended to be consistent with `gatherMembers`
                       (mtds, Nil, Nil, End())
                     case _ => gatherMembers(defn.body)
@@ -625,13 +627,13 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
       k(Call.raw(State.builtinOpsMap("super").asSimpleRef, nonEmpty)(
         signature(nonEmpty.length), CallMetadata.mlsFunWithEffect, loc))
     def zipArgs(remainingParamss: Ls[ParamList], args: Ls[Term], acc: Ls[Ls[Arg]]): Block = (remainingParamss, args) match
-      case (ps :: remainingParamss2, arg :: remainingArgs) => lowerConstructorArgs(arg, ps, ctorParamLists.isMls): as =>
+      case (ps :: remainingParamss2, arg :: remainingArgs) => lowerConstructorArgs(arg, ps, ctorParamLists.isMls, loc): as =>
         zipArgs(remainingParamss2, remainingArgs, as :: acc)
       case (Nil, arg :: remainingArgs) =>
         if remainingArgs.isEmpty then
           raise(ErrorReport(msg"Too many parameter lists for parent class" -> loc :: Nil,
             source = Diagnostic.Source.Compilation))
-        lowerArgs(arg, Nil)(as => zipArgs(Nil, remainingArgs, as :: acc))
+        lowerArgs(arg, Nil, loc)(as => zipArgs(Nil, remainingArgs, as :: acc))
       case (remainingParamss, Nil) =>
         if remainingParamss.nonEmpty then
           raise(ErrorReport(msg"Extending a partially applied class is not supported" -> loc :: Nil,
@@ -641,7 +643,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
     // A class without parameter lists accepts one empty argument tuple, as with `new C()`.
     // Resolution checks the tuple's arity; lowering also accepts the implicit `extends C` form.
     case (Nil, Nil) => call(Nil)
-    case (Nil, arg :: Nil) => lowerArgs(arg, Nil)(as => call(as :: Nil))
+    case (Nil, arg :: Nil) => lowerArgs(arg, Nil, loc)(as => call(as :: Nil))
     case _ => zipArgs(ctorParamLists.lists, args, Nil)
   
   /** Lower a call with multiple argument lists into `Call` nodes,
@@ -666,8 +668,8 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
       (remainingParamss, remainingArgss) match
       case (ps :: remainingParams, ArgumentList(args, _) :: remainingArgs) =>
         def next(as: Ls[Arg]): Block = zipArgs(remainingParams, remainingArgs, as :: acc, mayRaiseEffects)
-        if isConstructor then lowerConstructorArgs(args, ps, isMlsFun)(next)
-        else lowerArgs(args, expectedParamTypes(ps, args))(next)
+        if isConstructor then lowerConstructorArgs(args, ps, isMlsFun, loc)(next)
+        else lowerArgs(args, expectedParamTypes(ps, args), loc)(next)
       case (Nil, Nil) =>
         k(new Call(fr, acc.reverse)(groupedSignature, CallMetadata(isMlsFun, mayRaiseEffects, annotations), loc))
       case (Nil, args :: remainingArgss) =>
@@ -720,7 +722,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
         case N => return fail(ErrorReport(
           msg"Cannot determine a common calling convention for the possible function types at this call" ->
             first.args.toLoc.orElse(loc) :: Nil, source = Diagnostic.Source.Compilation))
-    lowerArgs(first.args, signature.paramLists.head.params): as =>
+    lowerArgs(first.args, signature.paramLists.head.params, loc): as =>
       val call = Call(base, as :: Nil)(signature, CallMetadata(false, true, annotations), loc)
       remainingArgss match
       case Nil => k(call)
@@ -753,7 +755,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
     def zipArgs(remainingCtorParamss: Ls[ParamList], remainingArgss: Ls[Term], acc: Ls[Ls[Arg]]): Block =
       (remainingCtorParamss, remainingArgss) match
       case (ps :: remainingParams, args :: remainingArgs) =>
-        lowerConstructorArgs(args, ps, ctorParamLists.isMls)(as => zipArgs(remainingParams, remainingArgs, as :: acc))
+        lowerConstructorArgs(args, ps, ctorParamLists.isMls, loc)(as => zipArgs(remainingParams, remainingArgs, as :: acc))
       case (Nil, Nil) =>
         k(buildInstantiate(acc.reverse))
       case (Nil, args :: remainingArgss) =>
@@ -792,7 +794,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
       case Nil =>
         k(buildInstantiate(Nil))
       case args :: remainingArgss =>
-        lowerArgs(args, Nil): as =>
+        lowerArgs(args, Nil, loc): as =>
           remainingArgss match
           case Nil =>
             k(buildInstantiate(as :: Nil))
@@ -811,7 +813,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
     * and keep later lists from shifting into those slots. Foreign constructors retain undefined
     * in their optional slots so their native defaults can run.
     */
-  private def lowerConstructorArgs(arg: Term, ps: ParamList, isMls: Bool)(k: Ls[Arg] => Block)(using LoweringCtx): Block =
+  private def lowerConstructorArgs(arg: Term, ps: ParamList, isMls: Bool, callLoc: Opt[Loc])(k: Ls[Arg] => Block)(using LoweringCtx): Block =
     def capture(args: Ls[Arg]): Block =
       def loop(args: Ls[Arg], params: Ls[Param], acc: Ls[Arg]): Block = (args, params) match
         case (arg :: rest, param :: params) if isMls && param.flags.opt =>
@@ -819,7 +821,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
         case (arg :: rest, _ :: params) => loop(rest, params, arg :: acc)
         case _ => k(acc.reverse ::: args)
       loop(args, ps.params, Nil)
-    lowerArgs(arg, expectedParamTypes(ps, arg)): args =>
+    lowerArgs(arg, expectedParamTypes(ps, arg), callLoc): args =>
       if !ps.params.exists(_.flags.opt) then k(args)
       else if args.forall(_.spread.isEmpty) then
         val padded = if isMls then OptionalParams.pad(ps.params, args).getOrElse(args)
@@ -836,7 +838,10 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
           case Nil => k(acc.reverse)
         Assign(tuple, Tuple(false, args)(arg.toLoc), bind(ps.params.zipWithIndex, Nil))
   
-  def lowerArgs(arg: Term, expectedTypes: Ls[Opt[ErasedValueType]])(k: Ls[Arg] => Block)(using LoweringCtx): Block =
+  /** Lower the argument list `arg` of a call located at `callLoc`, converting each positional argument to
+    * the representation that `expectedTypes` gives for its position. An argument without a source location
+    * of its own, which the pattern compilers synthesize, reports its conversion errors at `callLoc`. */
+  def lowerArgs(arg: Term, expectedTypes: Ls[Opt[ErasedValueType]], callLoc: Opt[Loc])(k: Ls[Arg] => Block)(using LoweringCtx): Block =
     arg match
     case Tup(fs) =>
       if fs.exists(e => e match
@@ -846,7 +851,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
         raise(ErrorReport(
           msg"Lazy spreads are not supported in call arguments" -> arg.toLoc :: Nil, S(arg),
           source = Diagnostic.Source.Compilation))
-      args(fs, expectedTypes)(as => k(as))
+      args(fs, expectedTypes, callLoc)(as => k(as))
     case _ =>
       // Application arguments that are not tuples represent spreads, as in `f(...arg)`
       subTerm_nonTail(arg): ar =>
@@ -1322,12 +1327,12 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
       term(asc.term, inStmtPos = inStmtPos): r =>
         r.ascribeTo(asc.erasedType.getOrElse(ErasedType.Unknown), asc.toLoc).fold(compError)(k)
     case st.Tup(fs) =>
-      args(fs, Nil)(args => k(Tuple(mut = false, args)(trm.toLoc)))
+      args(fs, Nil, trm.toLoc)(args => k(Tuple(mut = false, args)(trm.toLoc)))
     case Mut(st.Tup(fs)) =>
-      args(fs, Nil)(args => k(Tuple(mut = true, args)(trm.toLoc)))
+      args(fs, Nil, trm.toLoc)(args => k(Tuple(mut = true, args)(trm.toLoc)))
     case st.CtxTup(fs) =>
       // * This case is currently triggered for code such as `f(using 42)`
-      args(fs, Nil)(args => k(Tuple(mut = false, args)(trm.toLoc)))
+      args(fs, Nil, trm.toLoc)(args => k(Tuple(mut = false, args)(trm.toLoc)))
     case t @ st.SimpleRef(sym) =>
       ref(t, annots, N, inStmtPos = inStmtPos)(k)
     case t @ st.SelfRef(sym) =>
@@ -1485,7 +1490,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
                   msg"Debugging functions are not enabled" ->
                     t.toLoc :: Nil,
                   source = Diagnostic.Source.Compilation)
-            return conclude(State.runtimeSymbol.asSimpleRef.selSN("raisePrintStackEffect").withLocOf(baseF))
+            return conclude(RuntimePath.function("raisePrintStackEffect").withLocOf(baseF))
           case S(SpecialBuiltin.ScopeLocally) => return
             // scope.locally only applies to the innermost call; extra args are applied on top
             if allArgs.length > 1 then
@@ -1986,7 +1991,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
     
     (mtds, publicFlds, privateFlds, ctor)
   
-  def args(elems: Ls[Elem], expectedTypes: Ls[Opt[ErasedValueType]])(k: Ls[Arg] => Block)(using LoweringCtx): Block =
+  def args(elems: Ls[Elem], expectedTypes: Ls[Opt[ErasedValueType]], enclosingLoc: Opt[Loc])(k: Ls[Arg] => Block)(using LoweringCtx): Block =
     val as = elems.map:
       case sem.Fld(sem.FldFlags.benign(), value, N) => R(N -> value)
       case sem.Fld(sem.FldFlags.benign(), idx, S(rhs)) => L(idx -> rhs)
@@ -2017,7 +2022,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
                 val (expTy, expRest) = expected match
                   case e :: es => (e, es)
                   case Nil => (N, Nil)
-                castPathTo(ar, expTy, a.toLoc): value =>
+                castPathTo(ar, expTy, a.toLoc.orElse(enclosingLoc)): value =>
                   inOrder(asr, value)(Arg(N, _))(rec(as, expRest))
               case S(_) =>
                 inOrder(asr, ar)(Arg(spd, _))(rec(as, Nil))
@@ -2495,9 +2500,13 @@ trait LoweringTraceLog(instrument: Bool)(using TL, Raise, State)
   extension (k: Block => Block)
     def |>: (b: Block): Block = k(b)
 
-  private val traceLogFn = State.runtimeSymbol.asSimpleRef.selSN("TraceLogger").selSN("log")
-  private val traceLogIndentFn = State.runtimeSymbol.asSimpleRef.selSN("TraceLogger").selSN("indent")
-  private val traceLogResetFn = State.runtimeSymbol.asSimpleRef.selSN("TraceLogger").selSN("resetIndent")
+  // The functions of the runtime's trace logger, selected with their symbols so that their calls take their
+  // signatures. They are computed on first use: the Prelude worksheet is lowered before the symbols of the
+  // runtime exist.
+  private lazy val traceLogger = State.runtimeSymbol.asSimpleRef.sel(State.traceLoggerSymbol)
+  private lazy val traceLogFn = traceLogger.sel(State.traceLogSymbol)
+  private lazy val traceLogIndentFn = traceLogger.sel(State.traceIndentSymbol)
+  private lazy val traceLogResetFn = traceLogger.sel(State.traceResetIndentSymbol)
   private val strConcatFn = selFromGlobalThis("String", "prototype", "concat", "call")
   private val inspectFn = selFromGlobalThis("util", "inspect")
   

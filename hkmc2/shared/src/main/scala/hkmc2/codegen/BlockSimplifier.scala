@@ -1969,8 +1969,18 @@ class BlockSimplifier
                     if extraArgss.isEmpty then
                       acc(Scoped(Set.single(resSym), newBlk(k(resSym.asSimpleRef))))
                     else
+                      // The inlined definition returns a function, which the call applies to its remaining
+                      // argument lists. The signature of the call describes every list that the call applies,
+                      // so the parameter lists that follow those of the definition, with the result of the
+                      // call, form the signature of that remaining application.
+                      val remainingSignature = call.signature match
+                        case sig: ErasedFuncSignature => sig.afterLists(info.defn.params.length)
+                        case _: ErasedGetterSignature => N
                       acc(Scoped(Set(resSym), newBlk(
-                        k(Call(resSym.asSimpleRef, extraArgss)(ErasedFuncSignature.dynamic(extraArgss.length),
+                        k(Call(resSym.asSimpleRef, extraArgss)(
+                          // A call applies at most as many argument lists as its signature has parameter lists.
+                          remainingSignature.getOrElse(lastWords(
+                            s"The call of ${callee.showDbg} applies more argument lists than its signature has")),
                           call.metadata.copy(
                             annotations = call.metadata.annotations.filterNot(_.isInstanceOf[Annot.TailCall]),
                           ), call.toLoc)))))

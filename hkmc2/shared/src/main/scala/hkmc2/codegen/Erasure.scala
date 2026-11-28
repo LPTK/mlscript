@@ -147,6 +147,18 @@ final class Erasure(root: Statement, report: Raise)(using Config, Ctx, State):
   private def patternInputType(symbol: ResolvedValues.InputSymbol): Opt[ErasedValueType] =
     Option.when(config.language.useNewResolution && declarations.patternInputs(symbol))(ErasedType.Unknown)
 
+  /** The signature of the methods that lowering generates for the pattern definition `pattern` (see
+    * `PatternSymbol.Method`): the pattern objects that its pattern parameters stand for, followed by the value
+    * to match, which can be any reference, and a match result. The parameters of `pattern` must be erased.
+    *
+    * The class of match results belongs to the runtime. A pattern that the Prelude or the runtime itself
+    * defines is erased before the symbols of the runtime exist, so the result of its methods is unknown.
+    */
+  private def patternMethodSignature(pattern: PatternDef): ErasedFuncSignature =
+    val inputs = pattern.patternParams.map(_.sym.erasedType) :+ S(ErasedType.Unknown)
+    ErasedFuncSignature.Signature(ErasedParamList(inputs, N) :: Nil,
+      ErasedResult.Direct(Option.when(summon[State].runtimeSymbolsInitialized)(ErasedType.MatchResult)))
+
   /** The representation of a slot that holds values of each of `types`, or `N` when there are none. */
   private def joined(types: Ls[ErasedValueType]): Opt[ErasedValueType] = types match
     case Nil => N
@@ -553,6 +565,11 @@ final class Erasure(root: Statement, report: Raise)(using Config, Ctx, State):
           inferredType(slot).map(representable(_, lam.body.toLoc, S(slot)))
       case asc: Asc if !asc.isErasureReady =>
         asc.erasedType = eraseSignature(asc.ty).map(representable(_, asc.ty.toLoc, N))
+      case pattern: PatternDef =>
+        // Both methods take the same inputs, so their symbols share one signature.
+        val signature = patternMethodSignature(pattern)
+        (pattern.sym.unapply :: pattern.sym.unapplyStringPrefix :: Nil).foreach: method =>
+          if method.term.needsErasure then method.term.initializeErasure(S(signature))
       case cls: ClassLikeDef => cls.ctorSym.foreach: symbol =>
         if symbol.needsErasure then symbol.initializeErasure:
           if config.language.useNewResolution then S(ErasedFuncSignature.Signature(

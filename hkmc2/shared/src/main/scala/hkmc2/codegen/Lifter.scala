@@ -251,6 +251,15 @@ class Lifter(topLevelBlk: Block)(using State, Raise, Config):
           // initialization or share the first invocation's key with later calls.
           if cls.methodKeys.nonEmpty || mod.exists(_.methodKeys.nonEmpty) then ignored += isym
           cls.methodKeys.valuesIterator.foreach(applyPath)
+          // A pattern definition is a single object, which its matches reach through the reference to the
+          // pattern to call its methods. Lifting moves a definition out as a class, which has no such object.
+          if (k is syntax.Pat) && nestedScopes.contains(isym) && !ignored.contains(isym)
+              && !data.getNode(isym).inModOrTopLevel then
+            raise(WarningReport(
+              msg"Cannot yet lift pattern `${sym.nme}`." -> isym.toLoc :: Nil,
+              N, Diagnostic.Source.Compilation
+            ))
+            ignored += isym
           // Check if `extends` is a complex expression, i.e. not just extending a class.
           // If it's just a class, add it to an graph where edges are class extensions.
           // If B extends A, then A -> B is an edge

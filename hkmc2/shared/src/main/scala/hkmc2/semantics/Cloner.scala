@@ -349,6 +349,14 @@ private[semantics] final class Cloner(outer: SymbolSubst)(using State, Erasure) 
               patternParams = s.patternParams.map(scope.parameter), extractionParams = s.extractionParams.map(scope.parameter),
               pattern = scope.pattern(s.pattern), annotations = annotations)(s.toLoc, s.headerLoc)
             c.sym.defn = S(c)
+            // The copy of the pattern's symbol has its own method symbols, which take the signatures of the
+            // source's methods.
+            (s.sym.unapply -> c.sym.unapply :: s.sym.unapplyStringPrefix -> c.sym.unapplyStringPrefix :: Nil).foreach:
+              (source, copy) =>
+                if source.term.isErasureReady && copy.term.needsErasure then copy.term.initializeErasure:
+                  source.term.sourceErasure.map:
+                    case sig: ErasedCallableSignature => sig.mapTypes(valueType)
+                    case tpe: ErasedValueType => valueType(tpe)
             c
         (source.sym, copy.sym) match
           case (old: ClassLikeSymbol, fresh: ClassLikeSymbol) =>

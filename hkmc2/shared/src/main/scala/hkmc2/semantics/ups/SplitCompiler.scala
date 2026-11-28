@@ -587,8 +587,7 @@ class SplitCompiler(using codegen.Erasure)(using tl: TL)(using State, Ctx, Raise
       val wrapPatternArgumentDefinitions = buildPatternArguments(patternBindings, _)
       // Then, we can call the `unapply` method.
       val unapplyArguments = patternBindings.map(_._1.safeRef |> fld) :+ fld(scrutinee())
-      val unapplyCall = call(sel(patternTerm, "unapply"), tup(unapplyArguments*), s"result of unapply",
-        patternMethodSignature(defn, patternBindings.length))
+      val unapplyCall = app(sel(patternTerm, patternSymbol.unapply), tup(unapplyArguments*), s"result of unapply")
       val unapplyResult = TempSymbol(N, initErasedType = N, "unapplyResult")
       val wrapUnapply = Split.Let(unapplyResult, unapplyCall, _)
       // Then, we need to destruct the produced `MatchSuccess`.
@@ -922,9 +921,8 @@ class SplitCompiler(using codegen.Erasure)(using tl: TL)(using State, Ctx, Raise
       val consequent = makeConsequentForArguments(outputSymbol, remainingSymbol, SeqMap.empty)
       val patternBindings = patternArguments.makePatternBindings
       val unapplyCall =
-        val method = "unapplyStringPrefix"
         val args = tup(patternBindings.map(_._1.safeRef) :+ scrutinee())
-        call(sel(patternTerm, method), args, s"result of $method", patternMethodSignature(defn, patternBindings.length))
+        app(sel(patternTerm, patternSymbol.unapplyStringPrefix), args, "result of unapplyStringPrefix")
       val split = tempLet("unapplyResult", unapplyCall): matchSuccessSymbol =>
         val outputPairSymbol = TempSymbol(N, initErasedType = N, "outputPair")
         val bindingsSymbol = TempSymbol(N, initErasedType = N, "bindings")
@@ -1313,35 +1311,23 @@ class SplitCompiler(using codegen.Erasure)(using tl: TL)(using State, Ctx, Raise
     * list that contains the pattern parameters and a parameter that represents
     * the input value.
     *
-    * @param name the method's name
+    * @param method the symbols of the method
     * @param patternParameters all pattern parameters
     * @param scrut the symbol of the input value
     * @param topmost the topmost split
     */
-  /** The signature of the `unapply` and `unapplyStringPrefix` methods that `makeMethod` generates for the
-    * pattern definition `defn`: its pattern parameters, which hold pattern objects, followed by the value to
-    * match, and a match result. `suppliedPatterns` is the number of pattern arguments of the call. A call that
-    * an earlier error leaves with another number of them takes that many pattern objects.
-    */
-  private def patternMethodSignature(defn: PatternDef, suppliedPatterns: Int): codegen.ErasedFuncSignature =
-    val patterns =
-      if defn.patternParams.sizeCompare(suppliedPatterns) == 0 then defn.patternParams
-      else List.fill(suppliedPatterns)(Param.simple(inputSymbol("pattern")))
-    generatedSignature(PlainParamList(patterns :+ Param.simple(inputSymbol("input")))(N), S(ErasedType.MatchResult))
-  
   private def makeMethod(
-      name: Str,
+      method: PatternSymbol#Method,
       patternParameters: List[Param],
       scrut: VarSymbol,
       topmost: Split
-  ): (BlockMemberSymbol, ParamList, Split) =
-    val sym = BlockMemberSymbol(name, Nil)
+  ): (PatternSymbol#Method, ParamList, Split) =
     // Pattern parameters are passed as objects.
     val patternInputs = patternParameters.map(p => p.copy(flags = FldFlags.empty)(p.toLoc))
     // The last parameter is the scrutinee.
     val scrutParam = Param.simple(scrut)
     val ps = PlainParamList(patternInputs :+ scrutParam)(N)
-    (sym, ps, topmost)
+    (method, ps, topmost)
   
   /** Translate a list of extractor/matching functions for the given pattern.
    *  There are currently two functions: `unapply` and `unapplyStringPrefix`.
@@ -1357,11 +1343,11 @@ class SplitCompiler(using codegen.Erasure)(using tl: TL)(using State, Ctx, Raise
    *                 `Pattern` class. Now the new `pattern` parameter and the
    *                 old `body` parameter are mixed.
    */
-  def compilePattern(pd: PatternDef): Ls[(BlockMemberSymbol, ParamList, Split)] =
+  def compilePattern(pd: PatternDef): Ls[(PatternSymbol#Method, ParamList, Split)] =
   trace(
     pre = s"compilePattern <<< ${pd.showDbg}",
-    post = (blk: Ls[(BlockMemberSymbol, ParamList, Split)]) =>
-      s"compilePattern >>> $blk"
+    post = (blk: Ls[(PatternSymbol#Method, ParamList, Split)]) =>
+      s"compilePattern >>> ${blk.map((method, params, split) => (method.member, params, split))}"
   ):
     val unapply = scoped("ucs:translation"):
       val inputSymbol = this.inputSymbol("input")
@@ -1385,7 +1371,7 @@ class SplitCompiler(using codegen.Erasure)(using tl: TL)(using State, Ctx, Raise
       )
       pd.extractionParams.map(_.sym)
       log(dbg"Translated `unapply`: ${topmost.prettyPrint}")
-      makeMethod("unapply", pd.patternParams, inputSymbol, topmost)
+      makeMethod(pd.sym.unapply, pd.patternParams, inputSymbol, topmost)
     // TODO: Use `pd.extractionParams`.
     val unapplyStringPrefix = scoped("ucs:cp"):
       // We don't report errors here because they have been already reported in
@@ -1396,7 +1382,7 @@ class SplitCompiler(using codegen.Erasure)(using tl: TL)(using State, Ctx, Raise
         ((consumedOutput, remainingOutput, bindings) => Split.Else:
           makeMatchSuccess(tup(fld(consumedOutput()), fld(remainingOutput()))), failure)
       log(dbg"Translated `unapplyStringPrefix`: ${topmost.prettyPrint}")
-      makeMethod("unapplyStringPrefix", pd.patternParams, inputSymbol, topmost)
+      makeMethod(pd.sym.unapplyStringPrefix, pd.patternParams, inputSymbol, topmost)
     unapply :: unapplyStringPrefix :: Nil
   
   /** Generate the record statements of `unapply` methods that can be used in

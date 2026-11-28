@@ -228,14 +228,22 @@ lambda4 = (undefined, function (Runtime2, EffectHandle1, value) {
       toString() { return runtime.render(this); }
       static [definitionMetadata] = ["class", "EffectHandle", [null]];
     });
+    (class MatchResult {
+      static {
+        Runtime.MatchResult = this
+      }
+      toString() { return runtime.render(this); }
+      static [definitionMetadata] = ["class", "MatchResult"];
+    });
     Runtime.MatchSuccess = function MatchSuccess(output, bindings) {
       return globalThis.Object.freeze(new MatchSuccess.class(output, bindings));
     };
-    (class MatchSuccess {
+    (class MatchSuccess extends Runtime.MatchResult {
       static {
         Runtime.MatchSuccess.class = this
       }
       constructor(output, bindings) {
+        super();
         this.output = output;
         this.bindings = bindings;
       }
@@ -245,11 +253,12 @@ lambda4 = (undefined, function (Runtime2, EffectHandle1, value) {
     Runtime.MatchFailure = function MatchFailure(errors) {
       return globalThis.Object.freeze(new MatchFailure.class(errors));
     };
-    (class MatchFailure {
+    (class MatchFailure extends Runtime.MatchResult {
       static {
         Runtime.MatchFailure.class = this
       }
       constructor(errors) {
+        super();
         this.errors = errors;
       }
       toString() { return runtime.render(this); }

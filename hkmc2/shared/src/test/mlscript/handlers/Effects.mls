@@ -191,7 +191,7 @@ result
 fun f() = case [...x, y, z] then x
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let lambda;
-//│ do runtime⁰.resetEffects﹖();
+//│ do runtime⁰.resetEffects⁰();
 //│ @private
 //│ define lambda as fun lambda⁰(caseScrut) {
 //│   match caseScrut

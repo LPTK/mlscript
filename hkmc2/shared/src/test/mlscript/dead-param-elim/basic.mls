@@ -259,7 +259,7 @@ f(Pair(1, 2))
 fun f() = case [...x, y, z] then x
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let lambda;
-//│ do runtime⁰.resetEffects﹖();
+//│ do runtime⁰.resetEffects⁰();
 //│ @private
 //│ define lambda as fun lambda⁰(caseScrut) {
 //│   let x, y, z, lastElement1$, lastElement2$, middleElements;
@@ -292,17 +292,17 @@ import "../../mlscript-compile/Runtime.mls"
 fun f(c) = Runtime.Tuple.get(c, 1) + 1
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ import "..." as Runtime;
-//│ do runtime⁰.resetEffects﹖();
+//│ do runtime⁰.resetEffects⁰();
 //│ define f²³ as fun f²⁴(c) {
 //│   let tmp, pc, curDepth;
-//│   do runtime⁰.checkDepth﹖();
+//│   do runtime⁰.checkDepth⁰();
 //│   match runtime⁰.curEffect﹖
 //│     null =>
 //│       set curDepth = +⁰((runtime⁰.stackDepth﹖ as! Int⁰), 1);
 //│       set tmp = Runtime⁰.Tuple⁰.get⁰(c, 1);
 //│       return +⁰(tmp, 1)
 //│     else
-//│       do runtime⁰.unwind﹖(f²⁴, -1, "basic.mls:292:1", null, null, 1, 1, c, 0);
+//│       do runtime⁰.unwind⁰(f²⁴, -1, "basic.mls:292:1", null, null, 1, 1, c, 0);
 //│       return undefined
 //│   end
 //│ };

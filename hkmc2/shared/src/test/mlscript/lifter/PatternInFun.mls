@@ -2,12 +2,35 @@
 :.
 
 
-// TODO: Improve warning messages
+// A pattern definition is a single object, which its matches reach to call its methods. The lifter leaves it
+// in the function that defines it.
 :w
 fun foo() =
   pattern P = Int
   x => x is P
-//│ ═══[WARNING] Cannot yet lift class `P` as it is used as a first-class class.
+//│ ╔══[WARNING] Cannot yet lift pattern `P`.
+//│ ║  l.+2: 	  pattern P = Int
+//│ ╙──      	          ^
+
+:expect true
+foo()(1)
+//│ = true
+
+:expect false
+foo()("a")
+//│ = false
+
+// A closure that captures a variable of the function matches against the local pattern of that function.
+:w
+:expect [5, 0]
+fun bar(y) =
+  pattern Q = Int
+  x => if x is Q then y else 0
+[bar(5)(1), bar(5)("a")]
+//│ ╔══[WARNING] Cannot yet lift pattern `Q`.
+//│ ║  l.+2: 	  pattern Q = Int
+//│ ╙──      	          ^
+//│ = [5, 0]
 
 
 module ScratchPrelude with ...

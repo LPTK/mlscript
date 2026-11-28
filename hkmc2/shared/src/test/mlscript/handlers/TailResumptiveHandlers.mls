@@ -9,7 +9,7 @@ handle h = Object with
     k(x)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let h, tmp, handleBlock$, Handler$h$;
-//│ do runtime⁰.resetEffects﹖();
+//│ do runtime⁰.resetEffects⁰();
 //│ define Handler$h$ as class Handler$h$⁰ extends globalThis⁰.Object⁰ {
 //│   method perform⁰ = fun perform¹(x) {
 //│     return x
@@ -19,12 +19,12 @@ handle h = Object with
 //│ define handleBlock$ as fun handleBlock$⁰() {
 //│   return runtime⁰.Unit⁰
 //│ };
-//│ set tmp = runtime⁰.enterHandleBlock﹖(h, handleBlock$⁰);
+//│ set tmp = runtime⁰.enterHandleBlock⁰(h, handleBlock$⁰);
 //│ match runtime⁰.curEffect﹖
 //│   null =>
 //│     return tmp
 //│   else
-//│     set tmp = runtime⁰.topLevelEffect﹖(false);
+//│     set tmp = runtime⁰.topLevelEffect⁰(false);
 //│     return tmp
 //│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -39,7 +39,7 @@ handle h = Object with
       2 then k(3)
 //│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
 //│ let h, tmp, handleBlock$, Handler$h$;
-//│ do runtime⁰.resetEffects﹖();
+//│ do runtime⁰.resetEffects⁰();
 //│ define Handler$h$ as class Handler$h$¹ extends globalThis⁰.Object⁰ {
 //│   method perform² = fun perform³(x) {
 //│     let scrut, scrut1, scrut2;
@@ -68,12 +68,12 @@ handle h = Object with
 //│ define handleBlock$ as fun handleBlock$¹() {
 //│   return runtime⁰.Unit⁰
 //│ };
-//│ set tmp = runtime⁰.enterHandleBlock﹖(h, handleBlock$¹);
+//│ set tmp = runtime⁰.enterHandleBlock⁰(h, handleBlock$¹);
 //│ match runtime⁰.curEffect﹖
 //│   null =>
 //│     return tmp
 //│   else
-//│     set tmp = runtime⁰.topLevelEffect﹖(false);
+//│     set tmp = runtime⁰.topLevelEffect⁰(false);
 //│     return tmp
 //│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
@@ -86,7 +86,7 @@ handle h = Object with
     k(f)
 //│ ——————————————| Optimized IR |——————————————————————————————————————————————————————————————————————
 //│ let h, tmp, handleBlock$, Handler$h$;
-//│ do runtime⁰.resetEffects﹖();
+//│ do runtime⁰.resetEffects⁰();
 //│ define Handler$h$ as class Handler$h$² extends globalThis⁰.Object⁰ {
 //│   method perform⁴ = fun perform⁵(x) {
 //│     let pc;
@@ -108,7 +108,7 @@ handle h = Object with
 //│             set pc = 1;
 //│             end
 //│           else
-//│             do runtime⁰.unwind﹖(Handler$h$².this.perform⁵, 1, "TailResumptiveHandlers.mls:86:7", null, Handler$h$².this, 1, 1, x, 0);
+//│             do runtime⁰.unwind⁰(Handler$h$².this.perform⁵, 1, "TailResumptiveHandlers.mls:86:7", null, Handler$h$².this, 1, 1, x, 0);
 //│             return undefined
 //│         end
 //│     match pc
@@ -123,12 +123,12 @@ handle h = Object with
 //│ define handleBlock$ as fun handleBlock$²() {
 //│   return runtime⁰.Unit⁰
 //│ };
-//│ set tmp = runtime⁰.enterHandleBlock﹖(h, handleBlock$²);
+//│ set tmp = runtime⁰.enterHandleBlock⁰(h, handleBlock$²);
 //│ match runtime⁰.curEffect﹖
 //│   null =>
 //│     return tmp
 //│   else
-//│     return runtime⁰.topLevelEffect﹖(false)
+//│     return runtime⁰.topLevelEffect⁰(false)
 //│ end
 //│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
 
