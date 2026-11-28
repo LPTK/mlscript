@@ -1490,7 +1490,7 @@ class Lowering()(using Config, TL, Raise, State, Ctx, SymbolPrinter)(using Erasu
                   msg"Debugging functions are not enabled" ->
                     t.toLoc :: Nil,
                   source = Diagnostic.Source.Compilation)
-            return conclude(RuntimePath.function("raisePrintStackEffect").withLocOf(baseF))
+            return conclude(RuntimePath.member("raisePrintStackEffect").withLocOf(baseF))
           case S(SpecialBuiltin.ScopeLocally) => return
             // scope.locally only applies to the innermost call; extra args are applied on top
             if allArgs.length > 1 then

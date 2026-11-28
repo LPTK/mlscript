@@ -36,7 +36,7 @@ fun f() =
 //│     pc = 0;
 //│   } else {
 //│     let saveOffset;
-//│     pc = runtime.resumePc /* as! Int */;
+//│     pc = runtime.resumePc;
 //│     saveOffset = runtime.resumeIdx /* as! Int */;
 //│     i = runtime.resumeArr.at(saveOffset) /* as! Int */;
 //│     saveOffset = saveOffset + 1;

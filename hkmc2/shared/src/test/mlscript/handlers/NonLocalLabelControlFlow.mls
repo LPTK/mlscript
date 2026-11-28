@@ -82,19 +82,19 @@ continueFromNestedFunctionWithEffects()
 //│ };
 //│ define loop as fun loop⁰(scope0$cap, nonLocalHandler$root) {
 //│   let scrut, tmp1, tmp2, tmp3, tmp4, pc;
-//│   match runtime⁰.resumePc﹖
+//│   match runtime⁰.resumePc⁰
 //│     -1 =>
 //│       set pc = 0;
 //│       end
 //│     else
 //│       let saveOffset;
-//│       set pc = (runtime⁰.resumePc﹖ as! Int⁰);
-//│       set runtime⁰.resumePc﹖ = -1;
+//│       set pc = runtime⁰.resumePc⁰;
+//│       set runtime⁰.resumePc⁰ = -1;
 //│       end
 //│   loop main:
 //│     match pc
 //│       2 =>
-//│         do runtime⁰.resumeValue﹖;
+//│         do runtime⁰.resumeValue⁰;
 //│         set pc = 1;
 //│         end
 //│     match pc
@@ -109,8 +109,8 @@ continueFromNestedFunctionWithEffects()
 //│         match scrut
 //│           true =>
 //│             set tmp2 = scope0$cap.i$0⁰;
-//│             set runtime⁰.resumeValue﹖ = nonLocalHandler$root.break﹖(tmp2);
-//│             match runtime⁰.curEffect﹖
+//│             set runtime⁰.resumeValue⁰ = nonLocalHandler$root.break﹖(tmp2);
+//│             match runtime⁰.curEffect⁰
 //│               null =>
 //│                 set pc = 2;
 //│                 continue main
@@ -154,16 +154,16 @@ continueFromNestedFunctionWithEffects()
 //│ };
 //│ define continueFromNestedFunctionWithEffects⁰ as fun continueFromNestedFunctionWithEffects¹() {
 //│   let i, root$result, nonLocalHandler$root, labelBodyResult, labelContinueDispatch, tmp1, scope0$cap, handleBlock$$here, pc;
-//│   match runtime⁰.resumePc﹖
+//│   match runtime⁰.resumePc⁰
 //│     -1 =>
 //│       set pc = 0;
 //│       end
 //│     else
 //│       let saveOffset;
-//│       set pc = (runtime⁰.resumePc﹖ as! Int⁰);
-//│       set saveOffset = (runtime⁰.resumeIdx﹖ as! Int⁰);
-//│       set scope0$cap = (runtime⁰.resumeArr﹖.saveOffset as! Capture$scope0¹);
-//│       set runtime⁰.resumePc﹖ = -1;
+//│       set pc = runtime⁰.resumePc⁰;
+//│       set saveOffset = (runtime⁰.resumeIdx⁰ as! Int⁰);
+//│       set scope0$cap = (runtime⁰.resumeArr⁰.saveOffset as! Capture$scope0¹);
+//│       set runtime⁰.resumePc⁰ = -1;
 //│       end
 //│   loop main:
 //│     match pc
@@ -177,8 +177,8 @@ continueFromNestedFunctionWithEffects()
 //│         block brk1:
 //│           set nonLocalHandler$root = new mut NonLocalLabelEffect⁰();
 //│           set handleBlock$$here = handleBlock$$⁰(scope0$cap, nonLocalHandler$root);
-//│           set runtime⁰.resumeValue﹖ = runtime⁰.enterHandleBlock⁰(nonLocalHandler$root, handleBlock$$here);
-//│           match runtime⁰.curEffect﹖
+//│           set runtime⁰.resumeValue⁰ = runtime⁰.enterHandleBlock⁰(nonLocalHandler$root, handleBlock$$here);
+//│           match runtime⁰.curEffect⁰
 //│             null =>
 //│               break brk1
 //│             else
@@ -189,7 +189,7 @@ continueFromNestedFunctionWithEffects()
 //│         end
 //│     match pc
 //│       3 =>
-//│         set tmp1 = runtime⁰.resumeValue﹖;
+//│         set tmp1 = runtime⁰.resumeValue⁰;
 //│         set labelBodyResult = tmp1;
 //│         set labelContinueDispatch = ===⁰(labelBodyResult, runtime⁰.Continue﹖);
 //│         match labelContinueDispatch
@@ -209,7 +209,7 @@ continueFromNestedFunctionWithEffects()
 //│   end
 //│ };
 //│ set tmp = continueFromNestedFunctionWithEffects¹();
-//│ match runtime⁰.curEffect﹖
+//│ match runtime⁰.curEffect⁰
 //│   null =>
 //│     return tmp
 //│   else

@@ -296,9 +296,9 @@ fun f(c) = Runtime.Tuple.get(c, 1) + 1
 //│ define f²³ as fun f²⁴(c) {
 //│   let tmp, pc, curDepth;
 //│   do runtime⁰.checkDepth⁰();
-//│   match runtime⁰.curEffect﹖
+//│   match runtime⁰.curEffect⁰
 //│     null =>
-//│       set curDepth = +⁰((runtime⁰.stackDepth﹖ as! Int⁰), 1);
+//│       set curDepth = +⁰(runtime⁰.stackDepth⁰, 1);
 //│       set tmp = Runtime⁰.Tuple⁰.get⁰(c, 1);
 //│       return +⁰(tmp, 1)
 //│     else

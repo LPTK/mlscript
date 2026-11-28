@@ -29,7 +29,7 @@ fun g() =
 //│   if (runtime.resumePc === -1) {
 //│     pc = 0;
 //│   } else {
-//│     pc = runtime.resumePc /* as! Int */;
+//│     pc = runtime.resumePc;
 //│     runtime.resumePc = -1;
 //│   }
 //│   main: while (true) {

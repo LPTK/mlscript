@@ -20,7 +20,7 @@ handle h = Object with
 //│   return runtime⁰.Unit⁰
 //│ };
 //│ set tmp = runtime⁰.enterHandleBlock⁰(h, handleBlock$⁰);
-//│ match runtime⁰.curEffect﹖
+//│ match runtime⁰.curEffect⁰
 //│   null =>
 //│     return tmp
 //│   else
@@ -69,7 +69,7 @@ handle h = Object with
 //│   return runtime⁰.Unit⁰
 //│ };
 //│ set tmp = runtime⁰.enterHandleBlock⁰(h, handleBlock$¹);
-//│ match runtime⁰.curEffect﹖
+//│ match runtime⁰.curEffect⁰
 //│   null =>
 //│     return tmp
 //│   else
@@ -90,20 +90,20 @@ handle h = Object with
 //│ define Handler$h$ as class Handler$h$² extends globalThis⁰.Object⁰ {
 //│   method perform⁴ = fun perform⁵(x) {
 //│     let pc;
-//│     match runtime⁰.resumePc﹖
+//│     match runtime⁰.resumePc⁰
 //│       -1 =>
 //│         set pc = 0;
 //│         end
 //│       else
-//│         set pc = (runtime⁰.resumePc﹖ as! Int⁰);
-//│         set runtime⁰.resumePc﹖ = -1;
+//│         set pc = runtime⁰.resumePc⁰;
+//│         set runtime⁰.resumePc⁰ = -1;
 //│         end
 //│     match pc
 //│       0 =>
 //│         let inlinedVal;
 //│         set inlinedVal = +⁰(x, x);
-//│         set runtime⁰.resumeValue﹖ = inlinedVal;
-//│         match runtime⁰.curEffect﹖
+//│         set runtime⁰.resumeValue⁰ = inlinedVal;
+//│         match runtime⁰.curEffect⁰
 //│           null =>
 //│             set pc = 1;
 //│             end
@@ -113,7 +113,7 @@ handle h = Object with
 //│         end
 //│     match pc
 //│       1 =>
-//│         return runtime⁰.resumeValue﹖
+//│         return runtime⁰.resumeValue⁰
 //│       else
 //│         end
 //│     end
@@ -124,7 +124,7 @@ handle h = Object with
 //│   return runtime⁰.Unit⁰
 //│ };
 //│ set tmp = runtime⁰.enterHandleBlock⁰(h, handleBlock$²);
-//│ match runtime⁰.curEffect﹖
+//│ match runtime⁰.curEffect⁰
 //│   null =>
 //│     return tmp
 //│   else

@@ -116,30 +116,33 @@ import HandlerLowering.*
 class HandlerPaths(using Elaborator.State):
   val runtimePath: Path = State.runtimeSymbol.asSimpleRef
   val contClsPath: Path = runtimePath.selSN("FunctionContFrame").selSN("class")
-  // The functions of the runtime are selected with their symbols, so that their calls take their signatures.
-  // These paths are computed when handler lowering first uses them: the pipeline creates this object for every
-  // program, including the Prelude worksheet, which is compiled before the symbols of the runtime exist.
-  // The fields that hold the state of the runtime are selected by name: handler lowering stores values of any
-  // representation in `resumeValue` and `resumeArr`, whatever types the runtime declares for these fields.
-  lazy val mkEffectPath: Path = RuntimePath.function("mkEffect")
-  lazy val handleBlockImplPath: Path = RuntimePath.function("handleBlockImpl")
   val stackDelayClsPath: Path = runtimePath.selSN("StackDelay")
-  lazy val topLevelEffectPath: Path = RuntimePath.function("topLevelEffect")
-  lazy val illegalEffectPath: Path = RuntimePath.function("illegalEffect")
-  lazy val enterHandleBlockPath: Path = RuntimePath.function("enterHandleBlock")
-  val stackDepthIdent = new Tree.Ident("stackDepth")
-  val stackDepthPath: Path = runtimePath.selN(stackDepthIdent)
-  lazy val checkDepthPath: Path = RuntimePath.function("checkDepth")
-  lazy val runStackSafePath: Path = RuntimePath.function("runStackSafe")
   val fnLocalsPath: Path = runtimePath.selSN("FnLocalsInfo").selSN("class")
   val localVarInfoPath: Path = runtimePath.selSN("LocalVarInfo").selSN("class")
-  val curEffect: Path = runtimePath.selSN("curEffect")
-  lazy val unwindPath: Path = RuntimePath.function("unwind")
-  lazy val resetEffects: Path = RuntimePath.function("resetEffects")
-  val resumePc: Path = runtimePath.selSN("resumePc")
-  val resumeIdx: Path = runtimePath.selSN("resumeIdx")
-  val resumeValueIdent = new Tree.Ident("resumeValue")
-  val resumeValue: Path = runtimePath.selN(resumeValueIdent)
+  
+  // The functions and the state fields of the runtime are selected with their symbols: a call takes the
+  // signature of the function, and a read or a write of a field takes the type that the runtime declares for
+  // it. These paths are computed when handler lowering first uses them: the pipeline creates this object for
+  // every program, including the Prelude worksheet, which is compiled before the symbols of the runtime exist.
+  lazy val mkEffectPath: Path = RuntimePath.member("mkEffect")
+  lazy val handleBlockImplPath: Path = RuntimePath.member("handleBlockImpl")
+  lazy val topLevelEffectPath: Path = RuntimePath.member("topLevelEffect")
+  lazy val illegalEffectPath: Path = RuntimePath.member("illegalEffect")
+  lazy val enterHandleBlockPath: Path = RuntimePath.member("enterHandleBlock")
+  lazy val checkDepthPath: Path = RuntimePath.member("checkDepth")
+  lazy val runStackSafePath: Path = RuntimePath.member("runStackSafe")
+  lazy val unwindPath: Path = RuntimePath.member("unwind")
+  lazy val resetEffects: Path = RuntimePath.member("resetEffects")
+  lazy val stackDepth: Select = RuntimePath.member("stackDepth")
+  lazy val curEffect: Select = RuntimePath.member("curEffect")
+  lazy val resumePc: Select = RuntimePath.member("resumePc")
+  lazy val resumeIdx: Select = RuntimePath.member("resumeIdx")
+  lazy val resumeArr: Select = RuntimePath.member("resumeArr")
+  lazy val resumeValue: Select = RuntimePath.member("resumeValue")
+  
+  /** Assigns `value` to the state field of the runtime that `field` selects, one of the selections above. */
+  def assign(field: Select, value: Result, rest: Block): Block =
+    AssignField(field.qual, field.name, value, rest)(S(State.runtimeTermSymbol(field.name.name)))
 
 class HandlerLowering(paths: HandlerPaths, opt: Opt[EffectHandlers])(using TL, Raise, Elaborator.State, Elaborator.Ctx, Config):
   
@@ -232,7 +235,7 @@ class HandlerLowering(paths: HandlerPaths, opt: Opt[EffectHandlers])(using TL, R
       def doNewEffectPartition(res: Result, rst: Block) =
         val stateId = forceId(go(rst)(using partitioned = true), true)
         val newBlock = blockBuilder
-          .assignFieldN(paths.runtimePath, paths.resumeValueIdent, res)
+          .chain(paths.assign(paths.resumeValue, res, _))
           .ifthen(
             paths.curEffect,
             Case.Lit(Tree.UnitLit(true)),
@@ -256,9 +259,13 @@ class HandlerLowering(paths: HandlerPaths, opt: Opt[EffectHandlers])(using TL, R
         override def applyResult(r: Result)(k: Result => Block) = r match
           case r @ EffectfulResult() =>
             needsStackSafety = true
-            // The runtime slot erases the call result's type while the continuation
-            // still consumes that result at its original representation.
-            doNewEffectPartition(r, k(paths.resumeValue.coerceTo(r.erasedType_!, r.toLoc)))
+            // The runtime keeps the result of the call in its `resumeValue` field, which holds a reference, and
+            // the continuation reads it back at the representation of the call's result. A result without a
+            // reference representation cannot be stored: the error is reported once, here, and the code that
+            // would store the value throws, as the code of other erroneous terms does.
+            r.tryCoerceTo(paths.resumeValue.erasedType_!, r.toLoc) match
+              case S(stored) => doNewEffectPartition(stored, k(paths.resumeValue.coerceTo(r.erasedType_!, r.toLoc)))
+              case N => Lowering.compError
           case _ => super.applyResult(r)(k)
       
       // If current block contains direct effectful result the following call will early exit.
@@ -684,7 +691,7 @@ class HandlerLowering(paths: HandlerPaths, opt: Opt[EffectHandlers])(using TL, R
         case _ => super.applyBlock(b)
       override def applyResult(r: Result)(k: Result => Block): Block = r match
         case EffectfulResult() if needsStackSafety =>
-          AssignField(paths.runtimePath, paths.stackDepthIdent, curDepth.asSimpleRef, super.applyResult(r)(k))(N)
+          paths.assign(paths.stackDepth, curDepth.asSimpleRef, super.applyResult(r)(k))
         case _ => super.applyResult(r)(k)
     // The fallback form which always works
     val fallbackPostTransform = postTransform(id => Assign(pcVar, intLit(id), Continue(mainLoopLbl)))
@@ -747,7 +754,7 @@ class HandlerLowering(paths: HandlerPaths, opt: Opt[EffectHandlers])(using TL, R
     val getSavedTmp = freshTmp(erasedType = S(ErasedType.Int), "saveOffset")
     // Runtime fields and the saved-local array carry unknown references. Restore
     // their representations before assigning the control state and each local.
-    val resumeArrIndexed = DynSelect(paths.runtimePath.selSN("resumeArr"), getSavedTmp.asSimpleRef, DynSelectKind.ArrayIdx)(N)
+    val resumeArrIndexed = DynSelect(paths.resumeArr, getSavedTmp.asSimpleRef, DynSelectKind.ArrayIdx)(N)
     val plus = State.builtinOpsMap("+").asSimpleRef
     val preRestore = blockBuilder
         .assign(pcVar, paths.resumePc.coerceTo(ErasedType.Int, N))
@@ -763,7 +770,7 @@ class HandlerLowering(paths: HandlerPaths, opt: Opt[EffectHandlers])(using TL, R
         .ifthen(paths.curEffect, Case.Lit(Tree.UnitLit(true)), End(), S(
           ctx.doUnwind(ctx.resumeInfo.currentStackSafetySym.fold(_.toLoc, _.toLoc).fold(unit)(locToStr(_)), 
           if oneState then intLit(-1) else pcVar.asSimpleRef, vars)(using paths)))
-        .assign(curDepth, Call.of(plus, (paths.stackDepthPath.coerceTo(ErasedType.Int, N).asArg :: intLit(1).asArg :: Nil) ne_:: Nil)(CallMetadata.defaultFun, N))
+        .assign(curDepth, Call.of(plus, (paths.stackDepth.coerceTo(ErasedType.Int, N).asArg :: intLit(1).asArg :: Nil) ne_:: Nil)(CallMetadata.defaultFun, N))
         .rest(mainBody)
     
     if !oneState then
@@ -771,7 +778,7 @@ class HandlerLowering(paths: HandlerPaths, opt: Opt[EffectHandlers])(using TL, R
         paths.resumePc,
         Case.Lit(Tree.IntLit(-1)) ->
           Assign(pcVar, intLit(parts.entry), End()) :: Nil,
-        S(restoreVars.assignFieldN(paths.runtimePath, new Tree.Ident("resumePc"), intLit(-1)).end),
+        S(restoreVars.chain(paths.assign(paths.resumePc, intLit(-1), _)).end),
         mainBody
       )
     

@@ -1,0 +1,161 @@
+:.
+:js
+:effectHandlers
+:lift
+
+
+// Handler lowering keeps the state of a suspended function in fields of the runtime: the result of the call
+// that suspended in `resumeValue`, and the variables that the rest of the function reads in a frame that
+// `unwind` records, which the resumed function reads back from `resumeArr`. These fields hold references, and
+// the generated code reads and assigns them at the types that the runtime declares: `resumePc` is an `Int`,
+// while a value read from `resumeValue` or `resumeArr` is cast to the representation of its variable.
+
+abstract class Words with
+  fun next(): Int
+  fun pause(): ()
+
+:sir
+:siret
+:checkIR
+fun sum(source: Words, k: Int): Int =
+  let a = source.next()
+  source.pause()
+  a + k
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ do runtime⁰.resetEffects⁰‹() => Unit⁰›();
+//│ define sum⁰ as fun sum¹(source: Words⁰, k: Int⁰): Int⁰ {
+//│   let a: Int⁰, pc: Int⁰;
+//│   match runtime⁰.resumePc⁰
+//│     -1 =>
+//│       set pc = 0;
+//│       end
+//│     else
+//│       let saveOffset: Int⁰;
+//│       set pc = runtime⁰.resumePc⁰;
+//│       set saveOffset = (runtime⁰.resumeIdx⁰ as! Int⁰);
+//│       set a = (runtime⁰.resumeArr⁰.saveOffset as! Int⁰);
+//│       set runtime⁰.resumePc⁰ = -1;
+//│       end
+//│   loop main:
+//│     match pc
+//│       0 =>
+//│         block brk0:
+//│           set runtime⁰.resumeValue⁰ = source.next⁰‹() => Int⁰›();
+//│           match runtime⁰.curEffect⁰
+//│             null =>
+//│               break brk0
+//│             else
+//│               do runtime⁰.unwind⁰‹(...Array⁰) => Unit⁰›(sum¹, 2, "HandlerStateRepresentations.mls:21:11", null, null, 1, 2, source, k, 1, a);
+//│               return undefined
+//│           end
+//│         set pc = 2;
+//│         end
+//│     match pc
+//│       2 =>
+//│         block brk2:
+//│           set a = (runtime⁰.resumeValue⁰ as! Int⁰);
+//│           set runtime⁰.resumeValue⁰ = source.pause⁰‹() => Unit⁰›();
+//│           match runtime⁰.curEffect⁰
+//│             null =>
+//│               break brk2
+//│             else
+//│               do runtime⁰.unwind⁰‹(...Array⁰) => Unit⁰›(sum¹, 1, "HandlerStateRepresentations.mls:22:3", null, null, 1, 2, source, k, 1, a);
+//│               return undefined
+//│           end
+//│         set pc = 1;
+//│         end
+//│     match pc
+//│       1 =>
+//│         do (runtime⁰.resumeValue⁰ as! Unit⁰);
+//│         return +⁰‹(?, ?) => ?›(a, k)
+//│       else
+//│         end
+//│     end
+//│   end
+//│ };
+//│ end
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————
+
+:expect 42
+handle source = Words with
+  fun next()(resume) = resume(40)
+  fun pause()(resume) = resume(())
+sum(source, 2)
+//│ = 42
+
+
+// An unboxed value has no reference representation, so it can neither be the result of a call that can
+// suspend nor be held in a variable across such a call.
+
+abstract class Source with
+  fun next(): Int32
+  fun pause(): ()
+
+fun pick(first: Bool, a: Int32, b: Int32): Int32 = if first then a else b
+
+:ge
+fun unboxedResult(source: Source, k: Int32): Int32 =
+  let a = source.next()
+  pick(true, a, k)
+//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Int32' at an unrelated type 'Unknown'
+//│ ║  l.+2: 	  let a = source.next()
+//│ ╙──      	          ^^^^^^^^^^^^^
+
+:ge
+fun unboxedVariable(source: Source, k: Int32): Int32 =
+  let held = pick(true, k, k)
+  source.pause()
+  held
+//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Int32' at an unrelated type 'Unknown'
+//│ ║  l.+2: 	  let held = pick(true, k, k)
+//│ ╙──      	             ^^^^^^^^^^^^^^^^
+//│ ╔══[COMPILATION ERROR] Cannot use a value of type 'Unknown' at an unrelated type 'Int32'
+//│ ║  l.+2: 	  let held = pick(true, k, k)
+//│ ╙──      	      ^^^^
+
+// The frame also records the arguments of the suspended function, which the runtime applies the function to
+// again when it resumes it. An unboxed parameter can therefore be read after a call that can suspend.
+:sir
+:siret
+:checkIR
+fun unboxedParameter(source: Source, k: Int32): Int32 =
+  source.pause()
+  k
+//│ ———————————————| Lowered IR |———————————————————————————————————————————————————————————————————————
+//│ do runtime⁰.resetEffects⁰‹() => Unit⁰›();
+//│ define unboxedParameter⁰ as fun unboxedParameter¹(source: Source⁰, k: Int32): Int32 {
+//│   let pc: Int⁰;
+//│   match runtime⁰.resumePc⁰
+//│     -1 =>
+//│       set pc = 0;
+//│       end
+//│     else
+//│       let saveOffset: Int⁰;
+//│       set pc = runtime⁰.resumePc⁰;
+//│       set runtime⁰.resumePc⁰ = -1;
+//│       end
+//│   loop main:
+//│     match pc
+//│       0 =>
+//│         block brk0:
+//│           set runtime⁰.resumeValue⁰ = source.pause¹‹() => Unit⁰›();
+//│           match runtime⁰.curEffect⁰
+//│             null =>
+//│               break brk0
+//│             else
+//│               do runtime⁰.unwind⁰‹(...Array⁰) => Unit⁰›(unboxedParameter¹, 1, "HandlerStateRepresentations.mls:122:3", null, null, 1, 2, source, k, 0);
+//│               return undefined
+//│           end
+//│         set pc = 1;
+//│         end
+//│     match pc
+//│       1 =>
+//│         do (runtime⁰.resumeValue⁰ as! Unit⁰);
+//│         return k
+//│       else
+//│         end
+//│     end
+//│   end
+//│ };
+//│ end
+//│ —————————————————| Output |—————————————————————————————————————————————————————————————————————————

@@ -1848,12 +1848,13 @@ enum Value extends Path with ProductWithExtraInfo:
 
 /** Paths to the members of the runtime module, for the code that the compiler's passes generate. */
 object RuntimePath:
-  /** The selection of the function `name` of the runtime module, with the symbol of that function. A call of
-    * this path built with [[Call.of]] takes the signature that the function publishes, and the passes that
-    * follow identify the callee by its symbol, as they do for a call that the source program writes.
+  /** The selection of the function or value `name` of the runtime module, with the symbol of that member.
+    * A call of the path of a function built with [[Call.of]] takes the signature that the function
+    * publishes, and a read of a value has the type that the runtime declares for it. The passes that follow
+    * identify the member by its symbol, as they do for a selection that the source program writes.
     */
-  def function(name: Str)(using State): Select =
-    State.runtimeSymbol.asSimpleRef.sel(State.runtimeFunctionSymbol(name))
+  def member(name: Str)(using State): Select =
+    State.runtimeSymbol.asSimpleRef.sel(State.runtimeTermSymbol(name))
 
 object Value:
   /** A value-level reference. */

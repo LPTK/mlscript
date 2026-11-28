@@ -18,7 +18,7 @@ f(1)(2)
 //│ let tmp;
 //│ do runtime⁰.resetEffects⁰();
 //│ set tmp = f¹(1)(2);
-//│ match runtime⁰.curEffect﹖
+//│ match runtime⁰.curEffect⁰
 //│   null =>
 //│     return tmp
 //│   else
@@ -40,23 +40,23 @@ fun g(a)(b) = f(a)(b) + f(b)(a)
 //│ };
 //│ define g$worker as fun g$worker⁰(a, b) {
 //│   let tmp, tmp1, pc;
-//│   match runtime⁰.resumePc﹖
+//│   match runtime⁰.resumePc⁰
 //│     -1 =>
 //│       set pc = 0;
 //│       end
 //│     else
 //│       let saveOffset;
-//│       set pc = (runtime⁰.resumePc﹖ as! Int⁰);
-//│       set saveOffset = (runtime⁰.resumeIdx﹖ as! Int⁰);
-//│       set tmp = runtime⁰.resumeArr﹖.saveOffset;
-//│       set runtime⁰.resumePc﹖ = -1;
+//│       set pc = runtime⁰.resumePc⁰;
+//│       set saveOffset = (runtime⁰.resumeIdx⁰ as! Int⁰);
+//│       set tmp = runtime⁰.resumeArr⁰.saveOffset;
+//│       set runtime⁰.resumePc⁰ = -1;
 //│       end
 //│   match pc
 //│     0 =>
 //│       let inlinedVal;
 //│       set inlinedVal = +⁰(a, b);
-//│       set runtime⁰.resumeValue﹖ = inlinedVal;
-//│       match runtime⁰.curEffect﹖
+//│       set runtime⁰.resumeValue⁰ = inlinedVal;
+//│       match runtime⁰.curEffect⁰
 //│         null =>
 //│           set pc = 2;
 //│           end
@@ -67,10 +67,10 @@ fun g(a)(b) = f(a)(b) + f(b)(a)
 //│   match pc
 //│     2 =>
 //│       let inlinedVal;
-//│       set tmp = runtime⁰.resumeValue﹖;
+//│       set tmp = runtime⁰.resumeValue⁰;
 //│       set inlinedVal = +⁰(b, a);
-//│       set runtime⁰.resumeValue﹖ = inlinedVal;
-//│       match runtime⁰.curEffect﹖
+//│       set runtime⁰.resumeValue⁰ = inlinedVal;
+//│       match runtime⁰.curEffect⁰
 //│         null =>
 //│           set pc = 1;
 //│           end
@@ -80,7 +80,7 @@ fun g(a)(b) = f(a)(b) + f(b)(a)
 //│       end
 //│   match pc
 //│     1 =>
-//│       set tmp1 = runtime⁰.resumeValue﹖;
+//│       set tmp1 = runtime⁰.resumeValue⁰;
 //│       return +⁰(tmp, tmp1)
 //│     else
 //│       end
