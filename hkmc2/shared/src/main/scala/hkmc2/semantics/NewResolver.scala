@@ -1654,6 +1654,9 @@ class NewResolver:
           signatureParameters(target.sym) = domain
           if target.sign.isEmpty then listenTypeInstances(domain.instantiate(checking))(publishParameter(target.sym, _))
         case Left(failure) =>
+          // Calls use the declared lists, but the implementation binds incompatible parameters.
+          // Mark the definition when elaboration publishes it so lowering skips it and its references.
+          symbol.whenDefined(_.isErroneous = true)
           val hint = Option.when(paramLists.lengthIs < declared.length)(
             msg"The body can write the missing lists as an immediate function literal. Parenthesize the result type to return a function value." -> N)
           rctx.report(ErrorReport(

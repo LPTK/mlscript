@@ -419,6 +419,21 @@ fun computed: Int -> Int =
 //│ ║        	              ^^^^^^^^^^
 //│ ╙── The body can write the missing lists as an immediate function literal. Parenthesize the result type to return a function value.
 
+// A call to a rejected method must not try to apply its declared list to the getter implementation.
+:e
+class MissingList with
+  fun add: Int -> Int =
+    let offset = 1
+    value => value + offset
+fun invokeRejected(receiver: MissingList) = receiver.add(41)
+//│ ╔══[COMPILATION ERROR] Implementation of 'add' must preserve the number of parameter lists
+//│ ║  l.+2: 	  fun add: Int -> Int =
+//│ ║        	  ^^^^^^^^^^^^^^^^^^^
+//│ ╟── The signature is declared here
+//│ ║  l.+2: 	  fun add: Int -> Int =
+//│ ║        	           ^^^^^^^^^^
+//│ ╙── The body can write the missing lists as an immediate function literal. Parenthesize the result type to return a function value.
+
 :e
 fun separate: (Int) -> Int
 fun separate = if true then x => x else x => x + 1
